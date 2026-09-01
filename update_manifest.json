@@ -1,0 +1,17 @@
+﻿{
+    "version":  "1.0.0",
+    "notes":  "First release.",
+    "published":  "2026-09-01T11:48:51.7784899-04:00",
+    "files":  [
+                  {
+                      "name":  "DRDirect Duplicate Finder.ps1",
+                      "sha256":  "1C3F4EFA4707A154F3A7611F2904A62AFEDADA1CE75B2A499152428ED734377A",
+                      "size":  97515
+                  },
+                  {
+                      "name":  "DRDirect Updater.ps1",
+                      "sha256":  "0F6059D5377F536BA691549F6C02CEF9F6919DC6079EEDFBDEFF0CF6BD9E5C72",
+                      "size":  6397
+                  }
+              ]
+}
