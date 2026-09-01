@@ -1891,6 +1891,49 @@ $ui.ChipAll.Add_Unchecked({ Update-Chips })
 $ui.ChipAll.IsChecked = $true
 Update-Chips
 
+# A trial looks through one category, not everything. Once a category has been
+# scanned it stays fixed, so closing and reopening does not hand out another.
+$script:DRTrial = $false
+if ($script:DRUpdaterLoaded) {
+    try { $script:DRTrial = Test-DRTrialMode } catch { $script:DRTrial = $false }
+}
+if ($script:DRTrial) {
+    $script:ChipLock = $true
+    $ui.ChipAll.IsChecked = $false
+    $ui.ChipAll.IsEnabled = $false
+    $ui.ChipAll.Opacity = 0.4
+
+    $taken = Get-DRTrialValue 'category'
+    $map = @{ Pic = 'ChipPic'; Vid = 'ChipVid'; Aud = 'ChipAud'; Doc = 'ChipDoc'; Arc = 'ChipArc' }
+    foreach ($c in 'ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc', 'ChipArc') { $ui[$c].IsChecked = $false }
+
+    if ($taken -and $map.ContainsKey($taken)) {
+        # Already chosen on an earlier run - lock to it.
+        $ui[$map[$taken]].IsChecked = $true
+        foreach ($c in 'ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc', 'ChipArc') {
+            if ($c -ne $map[$taken]) { $ui[$c].IsEnabled = $false; $ui[$c].Opacity = 0.4 }
+        }
+        $ui.LblChips.Text = 'Free try - you picked this category already.'
+    } else {
+        $ui[$map['Pic']].IsChecked = $true
+        $ui.LblChips.Text = 'Free try - pick one category, then press Scan.'
+    }
+    $script:ChipLock = $false
+
+    # Only one may be ticked at a time while on trial.
+    foreach ($chip in 'ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc', 'ChipArc') {
+        $ui[$chip].Add_Checked({
+                if ($script:ChipLock) { return }
+                $script:ChipLock = $true
+                $chosen = $this.Name
+                foreach ($c in 'ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc', 'ChipArc') {
+                    if ($c -ne $chosen) { $ui[$c].IsChecked = $false }
+                }
+                $script:ChipLock = $false
+            })
+    }
+}
+
 $ui.ChkAck.Add_Checked({ Update-Summary })
 $ui.ChkAck.Add_Unchecked({ Update-Summary })
 
@@ -1938,6 +1981,21 @@ $ui.BtnBrowse.Add_Click({
     })
 
 $ui.BtnScan.Add_Click({
+        # The first trial scan fixes which category the free try covers.
+        if ($script:DRTrial -and -not (Get-DRTrialValue 'category')) {
+            $chosen = @('ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc', 'ChipArc') |
+                Where-Object { $ui[$_].IsChecked } | Select-Object -First 1
+            if ($chosen) {
+                $short = @{ ChipPic = 'Pic'; ChipVid = 'Vid'; ChipAud = 'Aud'
+                            ChipDoc = 'Doc'; ChipArc = 'Arc' }[$chosen]
+                Set-DRTrialValue 'category' $short
+                foreach ($c in 'ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc', 'ChipArc') {
+                    if ($c -ne $chosen) { $ui[$c].IsEnabled = $false; $ui[$c].Opacity = 0.4 }
+                }
+                $ui.LblChips.Text = 'Free try - this is the category you picked.'
+            }
+        }
+
         $root = $ui.TxtFolder.Text.Trim()
         if (-not (Test-Path -LiteralPath $root)) {
             [System.Windows.MessageBox]::Show("That folder does not exist:`n$root", 'Duplicate Finder',

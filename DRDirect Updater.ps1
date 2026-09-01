@@ -171,3 +171,53 @@ function Install-DRUpdate {
         }
     }
 }
+# --- Trial mode -------------------------------------------------------------
+# A single-use code opens the app in trial mode: one cleanup run, and one
+# duplicate category. Both are recorded in the same licence.dat the launcher
+# writes, so closing and reopening does not hand out a second go.
+
+$script:DRLicenceState = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\licence.dat'
+
+function Get-DRLicenceState {
+    try {
+        if (Test-Path -LiteralPath $script:DRLicenceState -PathType Leaf) {
+            return Get-Content -LiteralPath $script:DRLicenceState -Raw | ConvertFrom-Json
+        }
+    } catch { }
+    return $null
+}
+
+function Save-DRLicenceState {
+    param($State)
+    try {
+        $dir = Split-Path -Parent $script:DRLicenceState
+        if (-not (Test-Path -LiteralPath $dir)) { New-Item -Path $dir -ItemType Directory -Force | Out-Null }
+        $State | ConvertTo-Json -Depth 5 |
+            Set-Content -LiteralPath $script:DRLicenceState -Encoding UTF8
+    } catch { }
+}
+
+function Test-DRTrialMode {
+    <# True when this session was opened with a single-use trial code. #>
+    $state = Get-DRLicenceState
+    if (-not $state) { return $false }
+    if (-not ($state.PSObject.Properties.Name -contains 'trial')) { return $false }
+    return [bool]$state.trial
+}
+
+function Get-DRTrialValue {
+    param([string]$Name)
+    $state = Get-DRLicenceState
+    if (-not $state -or -not $state.trial) { return $null }
+    if ($state.trial.PSObject.Properties.Name -contains $Name) { return $state.trial.$Name }
+    return $null
+}
+
+function Set-DRTrialValue {
+    param([string]$Name, $Value)
+    $state = Get-DRLicenceState
+    if (-not $state) { return }
+    if (-not $state.trial) { return }
+    $state.trial | Add-Member -NotePropertyName $Name -NotePropertyValue $Value -Force
+    Save-DRLicenceState $state
+}
