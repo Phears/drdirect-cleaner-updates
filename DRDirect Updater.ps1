@@ -50,7 +50,9 @@ function Get-DRUpdateManifest {
         # embedded in the exe, where any recipient could extract it.
         $response = Invoke-WebRequest -Uri "$script:DRUpdateFeed/update_manifest.json" `
             -UseBasicParsing -TimeoutSec 15 -Headers @{ 'Cache-Control' = 'no-cache' }
-        return $response.Content | ConvertFrom-Json
+        # A manifest written by PowerShell can start with a byte-order mark,
+        # which ConvertFrom-Json refuses. Strip it before parsing.
+        return ($response.Content -replace '^ï»¿|^﻿', '') | ConvertFrom-Json
     } catch {
         return $null
     }
