@@ -46,17 +46,29 @@ function Get-DRInstalledVersion {
 function Get-DRUpdateManifest {
     <# Returns the parsed manifest, or $null when the feed cannot be reached. #>
     try {
+        # Older Windows PowerShell negotiates SSL3/TLS1.0 by default, which
+        # GitHub refuses. Ask for TLS 1.2 explicitly.
+        try {
+            [Net.ServicePointManager]::SecurityProtocol =
+                [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+        } catch { }
+
         # No credentials: the feed is public precisely so nothing has to be
         # embedded in the exe, where any recipient could extract it.
         $response = Invoke-WebRequest -Uri "$script:DRUpdateFeed/update_manifest.json" `
             -UseBasicParsing -TimeoutSec 15 -Headers @{ 'Cache-Control' = 'no-cache' }
+
         # A manifest written by PowerShell can start with a byte-order mark,
-        # which ConvertFrom-Json refuses. Strip it before parsing.
-        return ($response.Content -replace '^ï»¿|^﻿', '') | ConvertFrom-Json
+        # which ConvertFrom-Json refuses. Trim it before parsing.
+        $text = [string]$response.Content
+        $text = $text.TrimStart([char]0xFEFF, [char]0x200B).Trim()
+        return ConvertFrom-Json -InputObject $text
     } catch {
+        $script:DRLastUpdateError = $_.Exception.Message
         return $null
     }
 }
+
 
 function Test-DRUpdateAvailable {
     <#
