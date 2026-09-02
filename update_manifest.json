@@ -1,7 +1,7 @@
 {
-    "version":  "1.2.0",
+    "version":  "1.2.1",
     "notes":  "Separate licences for the Cleaner and the Duplicate Finder.",
-    "published":  "2026-09-02T09:55:29.6867006-04:00",
+    "published":  "2026-09-02T12:35:42.0750679-04:00",
     "files":  [
                   {
                       "name":  "DRDirect Duplicate Finder.ps1",
