@@ -1,0 +1,3 @@
+# The updater checks each file against a SHA-256 taken before upload, so git
+# must not rewrite line endings on the way in or out. Byte-exact, always.
+* -text
