@@ -17,7 +17,10 @@ param(
     [string]$StartFolder,
     [switch]$TestMode,
     [switch]$ScanOnly,
-    [switch]$NoShow
+    [switch]$NoShow,
+    # Passed by the Cleaner when the copy is on a free try, so this window does
+    # not have to work it out for itself and cannot silently get it wrong.
+    [switch]$TrialMode
 )
 
 Set-StrictMode -Version Latest
@@ -25,14 +28,55 @@ $ErrorActionPreference = 'Stop'
 
 # The updater is a shared file rather than a copy of the same code, so the
 # Cleaner and this window always agree on what counts as a newer version.
+# Declared before the updater arrives, inlined or from disk, because it decides
+# which activation state file this product reads and writes.
+$script:DRProduct = 'Duplicate Finder'
+# <UPDATER-IMPORT>
+# Replaced at build time with the contents of DRDirect Updater.ps1. Loading it
+# from disk needed a path that ps2exe does not provide, so it is compiled in.
 $script:DRUpdaterLoaded = $false
-foreach ($updaterRoot in @(
-        (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts'),
-        $PSScriptRoot)) {
+foreach ($updaterRoot in @($PSScriptRoot, (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts'))) {
     if ([string]::IsNullOrWhiteSpace($updaterRoot)) { continue }
     $updaterPath = Join-Path $updaterRoot 'DRDirect Updater.ps1'
     if (Test-Path -LiteralPath $updaterPath -PathType Leaf) {
         try { . $updaterPath; $script:DRUpdaterLoaded = $true; break } catch { }
+    }
+}
+# </UPDATER-IMPORT>
+
+# <LOCK-CONFIG>
+# Replaced at build time with the PC IDs this copy is for. Left empty here so
+# the script still runs from source while you are working on it.
+$script:DRAllowedPcIds = @()
+$script:DRIsTrialBuild = $false
+# </LOCK-CONFIG>
+
+function Get-DRPcIds {
+    # Same identifiers the Cleaner's launcher checks.
+    $ids = New-Object System.Collections.Generic.List[string]
+    try {
+        $uuid = [string](Get-CimInstance Win32_ComputerSystemProduct -ErrorAction Stop).UUID
+        $serial = [string](Get-CimInstance Win32_BaseBoard -ErrorAction Stop).SerialNumber
+        if ($uuid)   { $ids.Add($uuid.Trim().ToLowerInvariant()) }
+        if ($serial) { $ids.Add($serial.Trim().ToLowerInvariant()) }
+        if ($uuid -and $serial) {
+            $ids.Add(("{0}-{1}" -f $uuid.Trim(), $serial.Trim()).ToLowerInvariant())
+        }
+    } catch { }
+    return $ids
+}
+
+if ($script:DRAllowedPcIds.Count -gt 0) {
+    $mine = Get-DRPcIds
+    $allowed = $false
+    foreach ($id in $mine) { if ($script:DRAllowedPcIds -contains $id) { $allowed = $true; break } }
+    if (-not $allowed) {
+        Add-Type -AssemblyName PresentationFramework
+        [Windows.MessageBox]::Show(
+            "This copy of the Duplicate Finder is not activated for this PC." + [Environment]::NewLine +
+            [Environment]::NewLine + "Contact DRDirect for a copy for this machine.",
+            'DRDirect Duplicate Finder', 'OK', 'Information') | Out-Null
+        exit 2
     }
 }
 
@@ -721,9 +765,9 @@ $xaml = @'
     <Border Grid.Row="0" ClipToBounds="True">
       <Border.Background>
         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-          <GradientStop Color="#152C6B" Offset="0"/>
-          <GradientStop Color="#2563EB" Offset="0.5"/>
-          <GradientStop Color="#1B3FA8" Offset="1"/>
+          <GradientStop Color="#08301D" Offset="0"/>
+          <GradientStop Color="#15A05C" Offset="0.5"/>
+          <GradientStop Color="#0B6B3C" Offset="1"/>
         </LinearGradientBrush>
       </Border.Background>
 
@@ -765,7 +809,7 @@ $xaml = @'
 
           <!-- two stacked sheets with a magnifier over them -->
           <Grid Grid.Column="0" Width="74" Height="74" Margin="0,0,22,0" VerticalAlignment="Center">
-            <Border Width="40" Height="50" CornerRadius="5" Background="#8FB2FF"
+            <Border Width="40" Height="50" CornerRadius="5" Background="#8FE3B8"
                     HorizontalAlignment="Left" VerticalAlignment="Top" Margin="4,2,0,0" Opacity="0.75"/>
             <Border Width="40" Height="50" CornerRadius="5" Background="White"
                     HorizontalAlignment="Left" VerticalAlignment="Top" Margin="13,10,0,0">
@@ -789,6 +833,10 @@ $xaml = @'
 
           <StackPanel Grid.Column="1" VerticalAlignment="Center">
             <TextBlock Text="DUPLICATE FINDER" Foreground="White" FontSize="40" FontWeight="Bold"/>
+            <Border x:Name="TrialBadge" Background="#FFD166" CornerRadius="4" Padding="10,3"
+                    HorizontalAlignment="Left" Margin="0,6,0,0" Visibility="Collapsed">
+              <TextBlock x:Name="TrialBadgeText" Text="FREE TRY" Foreground="#7A4A00" FontSize="11" FontWeight="Bold"/>
+            </Border>
             <TextBlock Foreground="#CBDCFF" FontSize="15" Margin="0,2,0,0"
                        Text="Only files that are 100% identical. One copy is always kept."/>
           </StackPanel>
@@ -831,6 +879,7 @@ $xaml = @'
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
           </Grid.ColumnDefinitions>
           <TextBlock Grid.Column="0" Text="Folder" VerticalAlignment="Center"
                      FontWeight="SemiBold" Foreground="#344054" Margin="0,0,10,0"/>
@@ -840,6 +889,7 @@ $xaml = @'
           <Button x:Name="BtnScan"   Grid.Column="3" Content="Scan for duplicates" Style="{StaticResource Btn}" Margin="10,0,0,0"/>
           <Button x:Name="BtnCancel" Grid.Column="4" Content="Stop" Style="{StaticResource GhostBtn}" Margin="10,0,0,0" Visibility="Collapsed"/>
           <Button x:Name="BtnUpdate" Grid.Column="5" Content="Check for updates" Style="{StaticResource GhostBtn}" Margin="10,0,0,0"/>
+          <Button x:Name="BtnActivate" Grid.Column="6" Content="Activate" Style="{StaticResource GhostBtn}" Margin="10,0,0,0"/>
         </Grid>
         <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
           <CheckBox x:Name="ChkSub" Content="Include subfolders" IsChecked="True" VerticalAlignment="Center" Foreground="#344054"/>
@@ -927,6 +977,28 @@ $xaml = @'
                          Foreground="#344054" HorizontalAlignment="Center"/>
               <TextBlock x:Name="EmptyHint" Margin="0,8,0,0" Foreground="#667085" TextAlignment="Center"
                          Text="Pick a folder and press Scan. Every match is proved byte-for-byte before it is shown."/>
+            </StackPanel>
+          </Border>
+
+          <!-- While a scan runs: a magnifier sweeping a circle, so it is obvious
+               the program is looking rather than stuck. -->
+          <Border x:Name="ScanBusy" Background="White" CornerRadius="10" BorderBrush="#DEE5F0"
+                  BorderThickness="1" Padding="40" Margin="0,40,0,0" Visibility="Collapsed">
+            <StackPanel HorizontalAlignment="Center">
+              <Grid Width="120" Height="120" HorizontalAlignment="Center">
+                <Ellipse Width="104" Height="104" Stroke="#D6F0E2" StrokeThickness="10"/>
+                <Grid x:Name="SweepHost" Width="120" Height="120" RenderTransformOrigin="0.5,0.5">
+                  <Grid.RenderTransform>
+                    <RotateTransform x:Name="SweepSpin" Angle="0"/>
+                  </Grid.RenderTransform>
+                  <TextBlock Text="&#128269;" FontSize="38" HorizontalAlignment="Center"
+                             VerticalAlignment="Top" Margin="0,-4,0,0"/>
+                </Grid>
+              </Grid>
+              <TextBlock x:Name="ScanBusyTitle" Text="Searching..." FontSize="20" FontWeight="SemiBold"
+                         Foreground="#0B6B3C" HorizontalAlignment="Center" Margin="0,14,0,0"/>
+              <TextBlock x:Name="ScanBusyHint" Margin="0,8,0,0" Foreground="#667085" TextAlignment="Center"
+                         Text="Looking through your files."/>
             </StackPanel>
           </Border>
 
@@ -1126,7 +1198,12 @@ $xaml = @'
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
         <StackPanel Grid.Column="0" VerticalAlignment="Center">
-          <TextBlock x:Name="LblSummary" Text="Ready." FontWeight="SemiBold" Foreground="#1D2939"/>
+          <TextBlock x:Name="LblSummary" Text="Ready." FontWeight="Bold" FontSize="17" Foreground="#1D2939"
+                     RenderTransformOrigin="0,0.5">
+            <TextBlock.RenderTransform>
+              <ScaleTransform x:Name="SummaryScale" ScaleX="1" ScaleY="1"/>
+            </TextBlock.RenderTransform>
+          </TextBlock>
           <ProgressBar x:Name="Bar" Height="6" Margin="0,8,16,0" Visibility="Collapsed"
                        Foreground="#2563EB" Background="#E3E8F0" BorderThickness="0"/>
         </StackPanel>
@@ -1154,9 +1231,9 @@ $reader = New-Object System.Xml.XmlNodeReader ([xml]$xaml)
 $win = [Windows.Markup.XamlReader]::Load($reader)
 
 $ui = @{}
-foreach ($n in 'TxtFolder', 'BtnBrowse', 'BtnScan', 'BtnCancel', 'BtnUpdate', 'ChkSub', 'CmbMin', 'GroupList',
-    'EmptyState', 'EmptyTitle', 'EmptyHint', 'LblSummary', 'Bar', 'BtnNone', 'BtnDelete', 'Scroller',
-    'AckBox', 'ChkAck', 'ChkCloud', 'ChipAll', 'ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc',
+foreach ($n in 'TxtFolder', 'BtnBrowse', 'BtnScan', 'BtnCancel', 'BtnUpdate', 'BtnActivate', 'SummaryScale', 'ChkSub', 'CmbMin', 'GroupList',
+    'EmptyState', 'EmptyTitle', 'EmptyHint', 'ScanBusy', 'SweepSpin', 'ScanBusyHint', 'LblSummary', 'Bar', 'BtnNone', 'BtnDelete', 'Scroller',
+    'TrialBadge', 'TrialBadgeText', 'AckBox', 'ChkAck', 'ChkCloud', 'ChipAll', 'ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc',
     'ChipArc', 'LblChips', 'CloudNote', 'CloudNoteText', 'SavedPanel', 'SavedBig', 'SavedSub', 'SavedSession', 'SavedShift', 'TickPop') {
     $ui[$n] = $win.FindName($n)
 }
@@ -1180,6 +1257,22 @@ $timer.Interval = [TimeSpan]::FromMilliseconds(250)
 
 function Set-Busy {
     param([bool]$Busy)
+
+    # The sweeping magnifier only spins while a scan is actually running.
+    try {
+        if ($Busy) {
+            $ui.EmptyState.Visibility = 'Collapsed'
+            $ui.ScanBusy.Visibility = 'Visible'
+            $spin = New-Object Windows.Media.Animation.DoubleAnimation(0, 360,
+                (New-Object Windows.Duration ([TimeSpan]::FromMilliseconds(1400))))
+            $spin.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
+            $ui.SweepSpin.BeginAnimation([Windows.Media.RotateTransform]::AngleProperty, $spin)
+        } else {
+            $ui.SweepSpin.BeginAnimation([Windows.Media.RotateTransform]::AngleProperty, $null)
+            $ui.ScanBusy.Visibility = 'Collapsed'
+        }
+    } catch { }
+
     $ui.BtnScan.IsEnabled = -not $Busy
     $ui.BtnBrowse.IsEnabled = -not $Busy
     $ui.BtnDelete.IsEnabled = (-not $Busy) -and ($groups.Count -gt 0)
@@ -1468,9 +1561,9 @@ function Show-FolderPicker {
     <Border Grid.Row="0" Padding="24,18" ClipToBounds="True">
       <Border.Background>
         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-          <GradientStop Color="#152C6B" Offset="0"/>
-          <GradientStop Color="#2563EB" Offset="0.5"/>
-          <GradientStop Color="#1B3FA8" Offset="1"/>
+          <GradientStop Color="#08301D" Offset="0"/>
+          <GradientStop Color="#15A05C" Offset="0.5"/>
+          <GradientStop Color="#0B6B3C" Offset="1"/>
         </LinearGradientBrush>
       </Border.Background>
       <StackPanel Orientation="Horizontal">
@@ -1710,6 +1803,25 @@ function Show-FolderPicker {
     return $null
 }
 
+function Show-DRSummaryFlash {
+    <#
+        Answers where the person is looking. The line is easy to miss otherwise,
+        so it swells briefly and settles - enough to catch the eye without
+        turning into something that nags.
+    #>
+    try {
+        $pop = New-Object Windows.Media.Animation.DoubleAnimation
+        $pop.From = 1
+        $pop.To = 1.12
+        $pop.Duration = New-Object Windows.Duration ([TimeSpan]::FromMilliseconds(260))
+        $pop.AutoReverse = $true
+        $pop.RepeatBehavior = New-Object Windows.Media.Animation.RepeatBehavior (3)
+        $pop.EasingFunction = New-Object Windows.Media.Animation.SineEase -Property @{ EasingMode = 'EaseInOut' }
+        $ui.SummaryScale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleXProperty, $pop)
+        $ui.SummaryScale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleYProperty, $pop)
+    } catch { }
+}
+
 function Update-Summary {
     $dupCount = 0
     $recoverable = 0L
@@ -1785,7 +1897,11 @@ function Show-Results {
 }
 
 $timer.Add_Tick({
-        if ($state.ContainsKey('Status')) { $ui.LblSummary.Text = [string]$state['Status'] }
+        if ($state.ContainsKey('Status')) {
+            $ui.LblSummary.Text = [string]$state['Status']
+            # Say the same thing next to the spinner, where they are looking.
+            try { $ui.ScanBusyHint.Text = [string]$state['Status'] } catch { }
+        }
         if ($state.ContainsKey('Total') -and [int]$state['Total'] -gt 0) {
             $ui.Bar.IsIndeterminate = $false
             $ui.Bar.Maximum = [int]$state['Total']
@@ -1893,11 +2009,12 @@ Update-Chips
 
 # A trial looks through one category, not everything. Once a category has been
 # scanned it stays fixed, so closing and reopening does not hand out another.
-$script:DRTrial = $false
-if ($script:DRUpdaterLoaded) {
+$script:DRTrial = [bool]$TrialMode
+if (-not $script:DRTrial -and $script:DRUpdaterLoaded) {
     try { $script:DRTrial = Test-DRTrialMode } catch { $script:DRTrial = $false }
 }
 if ($script:DRTrial) {
+    $ui.TrialBadge.Visibility = 'Visible'
     $script:ChipLock = $true
     $ui.ChipAll.IsChecked = $false
     $ui.ChipAll.IsEnabled = $false
@@ -1932,12 +2049,110 @@ if ($script:DRTrial) {
                 $script:ChipLock = $false
             })
     }
+
+    # Reaching for a second category is the try running out.
+    foreach ($chip in 'ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc', 'ChipArc') {
+        $ui[$chip].Add_MouseDoubleClick({ })
+    }
+    $ui.ChipAll.Add_MouseLeftButtonDown({
+            if ($script:DRTrial) {
+                $_.Handled = $true
+                if ((Show-DRActivation 'expired' 'Duplicate Finder') -eq 'activated') {
+                    $ui.LblChips.Text = 'Activated. Reopen the Duplicate Finder to use every category.'
+                }
+            }
+        })
 }
+
+# Trial countdown: the same "X days left" the Cleaner shows, in the badge here.
+# A timed trial with full access still counts down, so this runs whether or not
+# this session is a limited free try.
+try {
+    $left = if ($script:DRUpdaterLoaded) { Get-DRDaysLeft } else { $null }
+    if ($null -ne $left -and $left -ge 0 -and $left -le 21) {
+        $ui.TrialBadgeText.Text =
+            if     ($left -eq 0) { 'TRIAL ENDS TODAY' }
+            elseif ($left -eq 1) { 'TRIAL - 1 DAY LEFT' }
+            else                 { "TRIAL - $left DAYS LEFT" }
+        $ui.TrialBadge.Visibility = 'Visible'
+    }
+} catch { }
 
 $ui.ChkAck.Add_Checked({ Update-Summary })
 $ui.ChkAck.Add_Unchecked({ Update-Summary })
 
+# Activated copies grey the button out; a copy waiting for a code pulses blue,
+# because that is the one moment someone needs to find it.
+function Update-DRActivateLook {
+    try {
+        $needs = $false
+        if ($script:DRUpdaterLoaded) { $needs = Test-DRNeedsActivation }
+        if ($needs) {
+            $ui.BtnActivate.IsEnabled = $true
+            $ui.BtnActivate.Opacity = 1
+            $ui.BtnActivate.ToolTip = 'Enter the code DRDirect sent you.'
+            $brush = New-Object Windows.Media.SolidColorBrush ([Windows.Media.Color]::FromRgb(0x1D,0x4E,0xD8))
+            $ui.BtnActivate.Background = $brush
+            $ui.BtnActivate.Foreground = [Windows.Media.Brushes]::White
+            $blink = New-Object Windows.Media.Animation.ColorAnimation
+            $blink.From = [Windows.Media.Color]::FromRgb(0x1D,0x4E,0xD8)
+            $blink.To   = [Windows.Media.Color]::FromRgb(0x9D,0xC2,0xFF)
+            $blink.Duration = New-Object Windows.Duration ([TimeSpan]::FromMilliseconds(750))
+            $blink.AutoReverse = $true
+            $blink.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
+            $brush.BeginAnimation([Windows.Media.SolidColorBrush]::ColorProperty, $blink)
+        } else {
+            # Left readable and clickable. This is where someone goes to hand
+            # over a code before their licence lapses, so hiding it until the
+            # copy has already expired is exactly the wrong way round. It says
+            # "nothing to do" when pressed, which is an answer, not a dead end.
+            $ui.BtnActivate.IsEnabled = $true
+            $ui.BtnActivate.Opacity = 1
+            $ui.BtnActivate.ToolTip = 'This copy is activated. Enter a new code here to extend it.'
+            try {
+                $ui.BtnActivate.ClearValue([Windows.Controls.Control]::BackgroundProperty)
+                $ui.BtnActivate.ClearValue([Windows.Controls.Control]::ForegroundProperty)
+            } catch { }
+        }
+    } catch { }
+}
+
+$ui.BtnActivate.Add_Click({
+    # Always available, so a code can be handed over before anything expires.
+    if (-not $script:DRUpdaterLoaded) {
+        $ui.LblSummary.Text = 'Activation is not available in this copy.'
+        return
+    }
+    # Nothing to activate? Say so, rather than showing an end-of-licence notice
+    # to someone whose licence is perfectly good.
+    try {
+        if (-not (Test-DRNeedsActivation)) {
+            [System.Windows.MessageBox]::Show('This copy is activated. Nothing to do.',
+                'DRDirect Duplicate Finder', 'OK', 'Information') | Out-Null
+            Update-DRActivateLook
+            return
+        }
+    } catch { }
+
+    if ((Show-DRActivation 'expired' 'Duplicate Finder') -eq 'activated') {
+        $ui.LblSummary.Text = 'Activated. Close and reopen the Duplicate Finder.'
+        Update-DRActivateLook
+    }
+})
+
 $ui.BtnUpdate.Add_Click({
+    # Same here: Update doubles as the place to enter an activation code.
+    if ($script:DRUpdaterLoaded) {
+        try {
+            if (Test-DRNeedsActivation) {
+                if ((Show-DRActivation 'expired' 'Duplicate Finder') -eq 'activated') {
+                    $ui.LblSummary.Text = 'Activated. Reopen the Duplicate Finder to use every category.'
+                }
+                return
+            }
+        } catch { }
+    }
+
     if (-not $script:DRUpdaterLoaded) {
         $ui.LblSummary.Text = 'Updates are not available in this copy.'
         return
@@ -1950,6 +2165,11 @@ $ui.BtnUpdate.Add_Click({
         $check = Test-DRUpdateAvailable
         if (-not $check.Available) {
             $ui.LblSummary.Text = $check.Message
+            Show-DRSummaryFlash
+            # The summary line already tends to say this, so pressing the button
+            # looked like it did nothing. Answer where the person is looking.
+            [Windows.MessageBox]::Show($check.Message, 'DRDirect Duplicate Finder',
+                [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information) | Out-Null
             return
         }
 
@@ -2059,7 +2279,8 @@ $ui.BtnDelete.Add_Click({
         foreach ($t in $targets) { $bytes += $t.Size }
         $nl = [Environment]::NewLine
         # Show exactly which paths are going, so the confirmation is informed.
-        $shown = $targets | Select-Object -First 15
+        # @() matters: one ticked file gives a bare object, and .Count on it throws.
+        $shown = @($targets | Select-Object -First 15)
         $list = ($shown | ForEach-Object { '  ' + $_.FullPath }) -join $nl
         if ($targets.Count -gt $shown.Count) {
             $list += $nl + "  ...and $($targets.Count - $shown.Count) more"
@@ -2125,7 +2346,22 @@ if ($TestMode) {
     $ui.ChipPic.IsChecked = $false
     $ui.ChipVid.IsChecked = $false
     Write-Host "TestMode: none ticked   -> all=$($ui.ChipAll.IsChecked) [$((Get-ChosenExts).Count) exts]" 
-    if (-not $NoShow) { $null = $win.ShowDialog() }
+    Update-DRActivateLook
+    if (-not $NoShow) {
+        try {
+            $null = $win.ShowDialog()
+        } catch {
+            # Say where it broke. "An error occurred" tells nobody anything, and
+            # this window runs on machines we cannot poke at.
+            $detail = "$($_.Exception.Message)`r`n`r`n$($_.ScriptStackTrace)"
+            try {
+                $log = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Logs\DuplicateFinder_Error.log'
+                New-Item -Path (Split-Path -Parent $log) -ItemType Directory -Force | Out-Null
+                Add-Content -LiteralPath $log -Value ("[{0}] {1}" -f (Get-Date), $detail)
+            } catch { }
+            [System.Windows.MessageBox]::Show($detail, 'DRDirect Duplicate Finder', 'OK', 'Error') | Out-Null
+        }
+    }
     return
 }
 

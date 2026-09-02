@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Checks a public update feed for newer DRDirect scripts and installs them.
 
@@ -176,7 +176,28 @@ function Install-DRUpdate {
 # duplicate category. Both are recorded in the same licence.dat the launcher
 # writes, so closing and reopening does not hand out a second go.
 
-$script:DRLicenceState = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\licence.dat'
+# Set by the Duplicate Finder before it loads this file. Each product keeps its
+# own activation, so a code for one does not silently unlock the other.
+# Tested this way because StrictMode treats reading an unset variable as an
+# error, and the Cleaner never sets it - only the Duplicate Finder does.
+if (-not (Get-Variable -Name 'DRProduct' -Scope Script -ErrorAction SilentlyContinue)) {
+    $script:DRProduct = 'PC Cleaner'
+}
+$script:DRStateLeaf = if ($script:DRProduct -eq 'Duplicate Finder') { 'licence_finder.dat' } else { 'licence.dat' }
+$script:DRLicenceState = Join-Path $env:LOCALAPPDATA (Join-Path 'DRDirect PC Cleaner' $script:DRStateLeaf)
+
+# Copies sold before the split were activated into the shared file. Carry that
+# activation across the first time this runs, so an update never turns someone's
+# working program into one that asks for a code you can no longer issue. New
+# installs have nothing to inherit and stay strictly separate.
+if ($script:DRProduct -eq 'Duplicate Finder' -and -not (Test-Path -LiteralPath $script:DRLicenceState -PathType Leaf)) {
+    $shared = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\licence.dat'
+    if (Test-Path -LiteralPath $shared -PathType Leaf) {
+        try {
+            Copy-Item -LiteralPath $shared -Destination $script:DRLicenceState -ErrorAction Stop
+        } catch { }
+    }
+}
 
 function Get-DRLicenceState {
     try {
@@ -220,4 +241,138 @@ function Set-DRTrialValue {
     if (-not $state.trial) { return }
     $state.trial | Add-Member -NotePropertyName $Name -NotePropertyValue $Value -Force
     Save-DRLicenceState $state
+}
+
+function Get-DRDaysLeft {
+    <#
+    .SYNOPSIS
+        Whole days until this copy's licence lapses, or $null when it is not a
+        dated build (lifetime, or one of your own machines).
+    .DESCRIPTION
+        The launcher writes the effective end date into licence.dat on every
+        start, so the Cleaner and the Duplicate Finder can both show a trial
+        counting down without carrying the licence file themselves. A day that
+        has begun still counts, so a 14-day trial reads "14 days left" on the
+        first day and "1 day left" on the last.
+    #>
+    $state = Get-DRLicenceState
+    if (-not $state) { return $null }
+    if (-not ($state.PSObject.Properties.Name -contains 'expires')) { return $null }
+    try {
+        $end = [datetime]::ParseExact([string]$state.expires, 'yyyy-MM-dd', $null)
+    } catch { return $null }
+    return [int][math]::Floor(($end.Date - (Get-Date).Date).TotalDays)
+}
+
+# --- Activation -------------------------------------------------------------
+# Shown from inside the Cleaner rather than before it opens, so an unactivated
+# copy is never a dead end - it runs under trial limits until a code arrives.
+
+function Test-DRNeedsActivation {
+    $state = Get-DRLicenceState
+    if (-not $state) { return $false }
+    if ($state.PSObject.Properties.Name -notcontains 'needs_activation') { return $false }
+    return [bool]$state.needs_activation
+}
+
+function Resolve-DRActivationUi {
+    # $PSScriptRoot is empty inside a compiled exe, which silently broke this -
+    # the button appeared to do nothing. Look where the program actually lives.
+    $roots = New-Object System.Collections.Generic.List[string]
+    if ($PSScriptRoot) { $roots.Add($PSScriptRoot) }
+    try {
+        $exe = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
+        if ($exe) { $roots.Add((Split-Path -Parent $exe)) }
+    } catch { }
+    try {
+        $base = [AppDomain]::CurrentDomain.BaseDirectory
+        if ($base) { $roots.Add($base) }
+    } catch { }
+    $roots.Add((Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts'))
+
+    foreach ($root in @($roots | Select-Object -Unique)) {
+        if ([string]::IsNullOrWhiteSpace($root)) { continue }
+        $candidate = Join-Path $root 'DRDirect Activation.ps1'
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
+    }
+    return $null
+}
+
+function Show-DRActivation {
+    <#
+    .SYNOPSIS
+        Opens the activation window and applies whatever code is entered.
+    .OUTPUTS
+        'activated', 'removed', or '' when nothing happened.
+    #>
+    param([string]$Reason = 'expired', [string]$Product = 'PC Cleaner')
+
+    $ui = Resolve-DRActivationUi
+    if (-not $ui) {
+        # Never fail silently here - a button that does nothing is worse than
+        # one that explains itself.
+        try {
+            Add-Type -AssemblyName PresentationFramework
+            [Windows.MessageBox]::Show(
+                'The activation window could not be found in this copy. Contact DRDirect.',
+                'DRDirect', 'OK', 'Warning') | Out-Null
+        } catch { }
+        return ''
+    }
+    $result = & powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -STA `
+        -File $ui -Reason $Reason -Product $Product -Detail 'Paste the code DRDirect sent you.'
+    return ($result | Where-Object { $_ } | Select-Object -Last 1)
+}
+
+function Test-DRDuplicatesAllowed {
+    <#
+    .SYNOPSIS
+        True when this copy is entitled to the Duplicate Finder.
+    .DESCRIPTION
+        It comes with six months or more. A build with no licence file at all
+        never expires and is one of your own machines, so it gets everything.
+    #>
+    # The Duplicate Finder is licensed in its own right. If it has been activated
+    # on this PC, the Cleaner offers it whatever the Cleaner's own licence said -
+    # the person has paid for it separately.
+    try {
+        $finderState = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\licence_finder.dat'
+        if (Test-Path -LiteralPath $finderState -PathType Leaf) {
+            $fs = Get-Content -LiteralPath $finderState -Raw | ConvertFrom-Json
+            $needs = $false
+            if ($fs.PSObject.Properties.Name -contains 'needs_activation') { $needs = [bool]$fs.needs_activation }
+            if (-not $needs) { return $true }
+        }
+    } catch { }
+
+    # $PSScriptRoot is empty inside a compiled exe, and the file keeps its
+    # per-product name, so look for both beside wherever this actually runs.
+    $roots = New-Object System.Collections.Generic.List[string]
+    if ($PSScriptRoot) { $roots.Add($PSScriptRoot) }
+    try {
+        $exe = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
+        if ($exe) { $roots.Add((Split-Path -Parent $exe)) }
+    } catch { }
+    try {
+        $base = [AppDomain]::CurrentDomain.BaseDirectory
+        if ($base) { $roots.Add($base) }
+    } catch { }
+
+    foreach ($root in @($roots | Select-Object -Unique)) {
+        if ([string]::IsNullOrWhiteSpace($root)) { continue }
+        foreach ($name in 'licence_cleaner.json', 'licence.json') {
+            $file = Join-Path $root $name
+            if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { continue }
+            try {
+                $data = Get-Content -LiteralPath $file -Raw | ConvertFrom-Json
+                if ($data.PSObject.Properties.Name -notcontains 'duplicates') { return $true }
+                return [bool]$data.duplicates
+            } catch {
+                return $false
+            }
+        }
+    }
+
+    # No licence file at all - a build that never expires, one of your own.
+    return $true
 }

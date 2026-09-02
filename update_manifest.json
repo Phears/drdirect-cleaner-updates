@@ -1,17 +1,17 @@
 {
-    "version":  "1.1.0",
-    "notes":  "Free try support.",
-    "published":  "2026-09-01T14:55:55.5280893-04:00",
+    "version":  "1.2.0",
+    "notes":  "Separate licences for the Cleaner and the Duplicate Finder.",
+    "published":  "2026-09-02T09:55:29.6867006-04:00",
     "files":  [
                   {
                       "name":  "DRDirect Duplicate Finder.ps1",
-                      "sha256":  "56DE807123017D44F8C45B31B0CD9FCB226A4B66822B051662F6685E282A6E80",
-                      "size":  100160
+                      "sha256":  "2E28562D295FCD856735960788C6724CBA940E9767996F66FE0DD7B9B6E93661",
+                      "size":  114339
                   },
                   {
                       "name":  "DRDirect Updater.ps1",
-                      "sha256":  "D2BF95BD4907BAC77E2A4CA2D5F2F8AE5C040CD9D5B818B2F07CDC41709E5FBF",
-                      "size":  8861
+                      "sha256":  "3783D514181842B90376304A93B0CC55AC8C027291EBD49DA3642DE1864119DE",
+                      "size":  16126
                   }
               ]
 }
