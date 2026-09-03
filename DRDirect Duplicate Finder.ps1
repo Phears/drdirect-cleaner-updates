@@ -51,6 +51,20 @@ $script:DRAllowedPcIds = @()
 $script:DRIsTrialBuild = $false
 # </LOCK-CONFIG>
 
+# When this script is run from disk by the launcher rather than from inside the
+# compiled exe, the block above is the unlocked source copy and says nothing.
+# The launcher passes what it verified, so a free-try build stays a free-try
+# build after an update instead of quietly becoming a full one.
+if (-not $script:DRAllowedPcIds -or $script:DRAllowedPcIds.Count -eq 0) {
+    $handedIds = [Environment]::GetEnvironmentVariable('DRDIRECT_ALLOWED_PC_IDS')
+    if ($handedIds) {
+        $script:DRAllowedPcIds = @($handedIds -split ',' |
+            ForEach-Object { $_.Trim().ToLowerInvariant() } | Where-Object { $_ })
+        $script:DRIsTrialBuild =
+            ([Environment]::GetEnvironmentVariable('DRDIRECT_TRIAL_BUILD') -eq '1')
+    }
+}
+
 function Get-DRPcIds {
     # Same identifiers the Cleaner's launcher checks.
     $ids = New-Object System.Collections.Generic.List[string]

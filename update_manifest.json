@@ -1,17 +1,17 @@
 {
-  "version": "1.2.2",
-  "notes": "The banner now reads DRDirect Duplicate Finder, and 'One copy is always kept.' stands out.",
-  "published": "2026-09-03T08:21:05.8864740-04:00",
+  "version": "1.3.0",
+  "notes": "Updates are now signed, and the app runs the updated script instead of only the copy it shipped with.",
+  "published": "2026-09-03T08:30:30.7402222-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "C4DD0CA48CD229942F8D5C655711D4B6479C725D091E0B7B579288789AB60AEC",
-      "size": 114461
+      "sha256": "A649D375A15C73C32694F4ACB9D80EE7BBEEBC69670E317715BC9ED57F7FDB73",
+      "size": 115220
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "C01F81FCCCEA2D4B42F5E9289FE03D0F088BF1D83E784C118F6C98C906C95CE5",
-      "size": 17920
+      "sha256": "CCDE0626E641EB701FFFCAF7E01C46131DB449CD25B55C5653319E6ECFC4A094",
+      "size": 21163
     }
   ]
 }

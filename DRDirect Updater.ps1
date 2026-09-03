@@ -21,6 +21,39 @@ $script:DRUpdateFeed = 'https://raw.githubusercontent.com/Phears/drdirect-cleane
 # ignored, so a bad or tampered manifest cannot drop new files onto the PC.
 $script:DRUpdatableFiles = @('DRDirect Duplicate Finder.ps1', 'DRDirect Updater.ps1')
 
+# The public half of the update signing key. The private half never leaves the
+# build PC. A manifest that does not verify against this is not ours, however
+# well-formed it looks and wherever it was read from.
+$script:DRUpdatePublicKey = 'MIIBCgKCAQEAw5kxMsD7M8pAeoKvdANV4D2MQa88iByKMQHnKScD5HEMOjPDqkv/hnJCcWoavQlH9YzR+uDQv1cpTN9vPbKWYXqxq1icjPaWyvertoUWTNJ6Couq8WfJug+mCw78c8k00COLCTsb51lXrMZJTQHA7fMpnqS4yX5d0pRG7Z7RHcp42f0ISv8wTZSyNqcEQUvELtwxd8Yeh+A8AGsM3qZPTrTic79/tE0badqd9crzcJ1DlAL6DMSv79sPJ7lv4p7DZS1DmD3ASL4wNOyGj9eUMBkUf1Vshe7z5E5Ck7Mhz2qGr6/wlc+BU+QnAuLAT4kfIPZQJ0V/hxCGkS0UhbLJBQIDAQAB'
+
+function Test-DRManifestSignature {
+    <#
+    .SYNOPSIS
+        True when these manifest bytes were signed by the DRDirect build PC.
+    .DESCRIPTION
+        Checksums in a manifest only prove a file matches that manifest. This is
+        what proves the manifest itself is genuine, which is why an update is
+        refused outright when it fails - a wrong answer here runs someone else's
+        code with the elevation this app is trusted with.
+    #>
+    param(
+        [Parameter(Mandatory)] [byte[]]$ManifestBytes,
+        [Parameter(Mandatory)] [string]$SignatureBase64
+    )
+    $rsa = $null
+    try {
+        $rsa = [System.Security.Cryptography.RSA]::Create()
+        $rsa.ImportRSAPublicKey([Convert]::FromBase64String($script:DRUpdatePublicKey), [ref]$null)
+        return $rsa.VerifyData($ManifestBytes, [Convert]::FromBase64String($SignatureBase64.Trim()),
+            [System.Security.Cryptography.HashAlgorithmName]::SHA256,
+            [System.Security.Cryptography.RSASignaturePadding]::Pkcs1)
+    } catch {
+        return $false
+    } finally {
+        if ($rsa) { $rsa.Dispose() }
+    }
+}
+
 function Get-DRUpdateRoot {
     <# Updated scripts live beside the reports, under the user's AppData. #>
     $root = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts'
@@ -58,9 +91,35 @@ function Get-DRUpdateManifest {
         $response = Invoke-WebRequest -Uri "$script:DRUpdateFeed/update_manifest.json" `
             -UseBasicParsing -TimeoutSec 15 -Headers @{ 'Cache-Control' = 'no-cache' }
 
+        # Verify before parsing. The signature covers the exact bytes the feed
+        # served, so it has to be taken from those bytes and not from anything
+        # re-encoded on the way through.
+        $raw = if ($response.Content -is [byte[]]) { [byte[]]$response.Content }
+               else { [System.Text.Encoding]::UTF8.GetBytes([string]$response.Content) }
+
+        $sigResponse = Invoke-WebRequest -Uri "$script:DRUpdateFeed/update_manifest.sig" `
+            -UseBasicParsing -TimeoutSec 15 -Headers @{ 'Cache-Control' = 'no-cache' }
+        $sigText = if ($sigResponse.Content -is [byte[]]) {
+            [System.Text.Encoding]::UTF8.GetString([byte[]]$sigResponse.Content)
+        } else { [string]$sigResponse.Content }
+
+        if (-not (Test-DRManifestSignature -ManifestBytes $raw -SignatureBase64 $sigText)) {
+            $script:DRLastUpdateError = 'The update was not signed by DRDirect and was refused.'
+            return $null
+        }
+
+        # Keep the verified pair. The app checks its own script against these
+        # before running it, and it must not have to trust the network to do so.
+        try {
+            $root = Get-DRUpdateRoot
+            [System.IO.File]::WriteAllBytes((Join-Path $root 'update_manifest.json'), $raw)
+            [System.IO.File]::WriteAllText((Join-Path $root 'update_manifest.sig'),
+                $sigText.Trim(), (New-Object System.Text.UTF8Encoding($false)))
+        } catch { }
+
         # A manifest written by PowerShell can start with a byte-order mark,
         # which ConvertFrom-Json refuses. Trim it before parsing.
-        $text = [string]$response.Content
+        $text = [System.Text.Encoding]::UTF8.GetString($raw)
         $text = $text.TrimStart([char]0xFEFF, [char]0x200B).Trim()
         return ConvertFrom-Json -InputObject $text
     } catch {
