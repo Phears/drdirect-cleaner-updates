@@ -109,6 +109,41 @@ function Test-DRUpdateAvailable {
     }
 }
 
+function Clear-DRStaleTemp {
+    <# Removes a part-download left by an earlier run, read-only flag and all. #>
+    param([Parameter(Mandatory)][string] $Path)
+
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { return }
+    try {
+        $item = Get-Item -LiteralPath $Path -Force
+        if ($item.Attributes -band [IO.FileAttributes]::ReadOnly) {
+            $item.Attributes = $item.Attributes -bxor [IO.FileAttributes]::ReadOnly
+        }
+    } catch { }
+    Remove-Item -LiteralPath $Path -Force -ErrorAction SilentlyContinue
+}
+
+function Get-DRFileHashWithRetry {
+    <#
+        Hashes a just-downloaded file, retrying briefly while the read is
+        denied. Anti-virus holds a new script open while it scans it, which
+        looks like a permissions failure but clears on its own in a moment.
+    #>
+    param(
+        [Parameter(Mandatory)][string] $Path,
+        [int] $Attempts = 5
+    )
+
+    for ($i = 1; $i -le $Attempts; $i++) {
+        try {
+            return Get-FileHash -LiteralPath $Path -Algorithm SHA256 -ErrorAction Stop
+        } catch [System.UnauthorizedAccessException], [System.IO.IOException] {
+            if ($i -eq $Attempts) { throw }
+            Start-Sleep -Milliseconds (200 * $i)
+        }
+    }
+}
+
 function Install-DRUpdate {
     <#
     .SYNOPSIS
@@ -132,10 +167,18 @@ function Install-DRUpdate {
             }
 
             $temp = Join-Path $root ("{0}.downloading" -f $file.name)
+            # A leftover from an abandoned run can still be marked read-only or
+            # be held open, and Invoke-WebRequest would then fail on a file the
+            # user cannot even see. Clear it before asking for a fresh copy.
+            Clear-DRStaleTemp -Path $temp
+
             $url = "$script:DRUpdateFeed/$([uri]::EscapeDataString($file.name))"
             Invoke-WebRequest -Uri $url -OutFile $temp -UseBasicParsing -TimeoutSec 60
 
-            $actual = (Get-FileHash -LiteralPath $temp -Algorithm SHA256).Hash
+            # Defender scans a freshly written script before it lets anything
+            # else open it, so the first read can be denied on a perfectly good
+            # download. Give it a moment rather than failing the whole update.
+            $actual = (Get-DRFileHashWithRetry -Path $temp).Hash
             if ($actual -ne $file.sha256.ToUpperInvariant()) {
                 throw "'$($file.name)' did not match its published checksum and was discarded."
             }

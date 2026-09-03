@@ -1,17 +1,17 @@
 {
-    "version":  "1.2.1",
-    "notes":  "Separate licences for the Cleaner and the Duplicate Finder.",
-    "published":  "2026-09-02T12:35:42.0750679-04:00",
-    "files":  [
-                  {
-                      "name":  "DRDirect Duplicate Finder.ps1",
-                      "sha256":  "2E28562D295FCD856735960788C6724CBA940E9767996F66FE0DD7B9B6E93661",
-                      "size":  114339
-                  },
-                  {
-                      "name":  "DRDirect Updater.ps1",
-                      "sha256":  "3783D514181842B90376304A93B0CC55AC8C027291EBD49DA3642DE1864119DE",
-                      "size":  16126
-                  }
-              ]
+  "version": "1.2.2",
+  "notes": "The banner now reads DRDirect Duplicate Finder, and 'One copy is always kept.' stands out.",
+  "published": "2026-09-03T08:21:05.8864740-04:00",
+  "files": [
+    {
+      "name": "DRDirect Duplicate Finder.ps1",
+      "sha256": "C4DD0CA48CD229942F8D5C655711D4B6479C725D091E0B7B579288789AB60AEC",
+      "size": 114461
+    },
+    {
+      "name": "DRDirect Updater.ps1",
+      "sha256": "C01F81FCCCEA2D4B42F5E9289FE03D0F088BF1D83E784C118F6C98C906C95CE5",
+      "size": 17920
+    }
+  ]
 }

@@ -832,13 +832,12 @@ $xaml = @'
           </Grid>
 
           <StackPanel Grid.Column="1" VerticalAlignment="Center">
-            <TextBlock Text="DUPLICATE FINDER" Foreground="White" FontSize="40" FontWeight="Bold"/>
+            <TextBlock Foreground="White" FontSize="34" FontWeight="Bold"><Run Text="DRDirect" Foreground="#9DBBFF"/><Run Text=" Duplicate Finder"/></TextBlock>
             <Border x:Name="TrialBadge" Background="#FFD166" CornerRadius="4" Padding="10,3"
                     HorizontalAlignment="Left" Margin="0,6,0,0" Visibility="Collapsed">
               <TextBlock x:Name="TrialBadgeText" Text="FREE TRY" Foreground="#7A4A00" FontSize="11" FontWeight="Bold"/>
             </Border>
-            <TextBlock Foreground="#CBDCFF" FontSize="15" Margin="0,2,0,0"
-                       Text="Only files that are 100% identical. One copy is always kept."/>
+            <TextBlock Foreground="#E8F1FF" FontSize="16" Margin="0,6,0,0"><Run Text="Only files that are 100% identical."/><Run Text="  One copy is always kept." Foreground="#9DBBFF" FontSize="24" FontWeight="Bold"/></TextBlock>
           </StackPanel>
 
           <!-- the three checks that earn the word 'identical' -->
