@@ -2402,6 +2402,76 @@ $ui.OpenDuplicatesButton.Add_Click({
     }
 })
 
+function Start-DRQuietUpdateCheck {
+    <#
+        .SYNOPSIS
+            Look for a new version in the background and mark the button.
+        .DESCRIPTION
+            Nobody presses a button to ask whether there is news. Check once a
+            day, quietly, off the interface thread, and if something is waiting
+            say so on the button itself. Never interrupt and never show an
+            error: a PC with no internet must open exactly as it always does.
+
+            This only reads the version number to decide whether to draw a
+            badge. Nothing is trusted or installed here - pressing the button
+            still runs the full signature and checksum checks before anything
+            is downloaded.
+    #>
+    $stampFile = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\lastupdatecheck.txt'
+    try {
+        if (Test-Path -LiteralPath $stampFile) {
+            $last = ([System.IO.File]::ReadAllText($stampFile)).Trim()
+            if ($last -eq (Get-Date).ToString('yyyy-MM-dd')) { return }
+        }
+    } catch { }
+
+    $installed = try { Get-DRInstalledVersion } catch { [version]'0.0.0' }
+
+    $probe = {
+        param($InstalledText)
+        try {
+            [Net.ServicePointManager]::SecurityProtocol =
+                [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+            $headers = @{ Accept = 'application/vnd.github.raw'; 'User-Agent' = 'DRDirect-Updater' }
+            $uri = 'https://api.github.com/repos/Phears/drdirect-cleaner-updates/contents/update_manifest.json?ref=main'
+            $response = Invoke-WebRequest -Uri $uri -Headers $headers -UseBasicParsing -TimeoutSec 20
+            $text = if ($response.Content -is [byte[]]) {
+                [Text.Encoding]::UTF8.GetString([byte[]]$response.Content)
+            } else { [string]$response.Content }
+            $offered = ([string](($text.TrimStart([char]0xFEFF)) | ConvertFrom-Json).version).Trim()
+            if ([version]$offered -gt [version]$InstalledText) { 'AVAILABLE ' + $offered } else { 'NONE' }
+        } catch { 'NONE' }
+    }
+
+    try {
+        $runspace = [RunspaceFactory]::CreateRunspace()
+        $runspace.ApartmentState = 'MTA'; $runspace.ThreadOptions = 'ReuseThread'; $runspace.Open()
+        $ps = [PowerShell]::Create(); $ps.Runspace = $runspace
+        $null = $ps.AddScript($probe.ToString()).AddArgument($installed.ToString())
+        $async = $ps.BeginInvoke()
+
+        $timer = New-Object Windows.Threading.DispatcherTimer
+        $timer.Interval = [TimeSpan]::FromMilliseconds(500)
+        $timer.Add_Tick({
+            if (-not $async.IsCompleted) { return }
+            $timer.Stop()
+            try {
+                $line = [string](@($ps.EndInvoke($async)) | Select-Object -Last 1)
+                if ($line -like 'AVAILABLE*') {
+                    $version = ($line -split ' ')[1]
+                    $ui.CheckUpdatesButton.Content = "Update available - $version"
+                    $ui.CheckUpdatesButton.FontWeight = 'Bold'
+                    $ui.CheckUpdatesButton.ToolTip =
+                        "Version $version is ready. Click to see what changed and install it."
+                }
+                try { [System.IO.File]::WriteAllText($stampFile, (Get-Date).ToString('yyyy-MM-dd')) } catch { }
+            } catch { }
+            try { $ps.Dispose(); $runspace.Close(); $runspace.Dispose() } catch { }
+        })
+        $timer.Start()
+    } catch { }
+}
+
 $ui.CheckUpdatesButton.Add_Click({
     # A copy waiting to be activated gets the code box here too - some people
     # will reach for Update rather than the link in the corner.
@@ -2585,5 +2655,8 @@ if ($NoShow) {
     Write-Output 'DRDirect PC Cleaner GUI initialized successfully.'
 } else {
     Apply-CleanupPreset -Preset 'Safe'
+    # Ask once a day, quietly, so a waiting update is visible on the button
+    # rather than only to someone who thinks to go looking for it.
+    try { Start-DRQuietUpdateCheck } catch { }
     [void]$window.ShowDialog()
 }
