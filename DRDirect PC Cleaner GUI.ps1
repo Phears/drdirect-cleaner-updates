@@ -1568,13 +1568,14 @@ function Complete-RunPlan {
         $ui.ProgressSafetyText.Text = $ui.ProgressSafetyText.Text + " History refresh warning: $historyError"
     }
 
+    Set-Variable -Name restartStillNeeded -Value ([bool]($needsRestart -and -not $cancelAfterTask)) -Scope Script
     if ($needsRestart -and -not $cancelAfterTask) {
         # A full hour. The countdown often sits behind a fullscreen game or a
         # document, so the person may not see it immediately; an hour is enough
         # to finish what they are doing and restart on their own terms. The
         # window also pushes itself to the front - see Show-DRRestartNotice -
         # so the restart is never a surprise.
-        Start-DRRestartCountdown -Seconds 3600 -BaseMessage $ui.ProgressSafetyText.Text
+        Start-DRRestartCountdown -Seconds 10800 -BaseMessage $ui.ProgressSafetyText.Text
     }
 }
 
@@ -2171,7 +2172,7 @@ function Clear-DRRestartNotice {
 function Start-DRRestartCountdown {
     [CmdletBinding()]
     param(
-        [ValidateRange(1,7200)][int]$Seconds = 3600,
+        [ValidateRange(1,21600)][int]$Seconds = 10800,
         [string]$BaseMessage = ''
     )
 
