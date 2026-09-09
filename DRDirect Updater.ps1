@@ -19,12 +19,58 @@ $script:DRUpdateFeed = 'https://raw.githubusercontent.com/Phears/drdirect-cleane
 
 # Scripts the feed is allowed to replace. Anything else in a manifest is
 # ignored, so a bad or tampered manifest cannot drop new files onto the PC.
-$script:DRUpdatableFiles = @('DRDirect Duplicate Finder.ps1', 'DRDirect Updater.ps1')
+$script:DRUpdatableFiles = @(
+    'DRDirect Duplicate Finder.ps1',
+    'DRDirect PC Cleaner GUI.ps1',
+    'DRDirect Cleaner Engine.ps1',
+    'DRDirect Updater.ps1'
+)
 
 # The public half of the update signing key. The private half never leaves the
 # build PC. A manifest that does not verify against this is not ours, however
 # well-formed it looks and wherever it was read from.
-$script:DRUpdatePublicKey = 'MIIBCgKCAQEAw5kxMsD7M8pAeoKvdANV4D2MQa88iByKMQHnKScD5HEMOjPDqkv/hnJCcWoavQlH9YzR+uDQv1cpTN9vPbKWYXqxq1icjPaWyvertoUWTNJ6Couq8WfJug+mCw78c8k00COLCTsb51lXrMZJTQHA7fMpnqS4yX5d0pRG7Z7RHcp42f0ISv8wTZSyNqcEQUvELtwxd8Yeh+A8AGsM3qZPTrTic79/tE0badqd9crzcJ1DlAL6DMSv79sPJ7lv4p7DZS1DmD3ASL4wNOyGj9eUMBkUf1Vshe7z5E5Ck7Mhz2qGr6/wlc+BU+QnAuLAT4kfIPZQJ0V/hxCGkS0UhbLJBQIDAQAB'
+$script:DRUpdatePublicKey = 'MIIBCgKCAQEAtU+5ZVc6ySGCbWTLIiyP2UBRQ/6tx87XjGSJDk9JPvH1uGrNnT0E2INH+I9BDZxFeLeFqe6kmmmBjzvg/jCxjTDwsoO5Y/YL1P8KFhBsiJYtTVD2B2sRfXvdRJRIKUqA+HfeijIKfxzssnozB66ydqC4Dh0NNRFIoB9ZVaSTkOC+Xf+ZwjyOMEftoYdEs9H7TtyxcrDTGSHxqs4ThKHSEf1eoUq6CYoH6pP6yzmfUYU8zSBrZU8d6AAB2xyi1o3yWkLdkfivJlq2arm4LnEDKBZxPHOULCM1ZwBqTIPLyjKUOVfpZvpmgJ0XGrkgz+gI8BwkIsUiBLRbmMKOZ4reLQIDAQAB'
+
+function ConvertFrom-DRPkcs1PublicKey {
+    <#
+    .SYNOPSIS
+        Turns a base64 PKCS#1 RSAPublicKey into RSAParameters.
+    .DESCRIPTION
+        The DER is SEQUENCE { INTEGER modulus, INTEGER exponent }. Only the two
+        integers are read; a leading zero pad on either is dropped, as
+        RSAParameters wants the plain unsigned bytes.
+    #>
+    param([Parameter(Mandatory)] [string]$Base64)
+
+    $der = [Convert]::FromBase64String($Base64)
+    $i = 0
+    function Read-Length {
+        $first = $der[$script:__p++]
+        if ($first -lt 0x80) { return [int]$first }
+        $count = $first -band 0x7F
+        $len = 0
+        for ($n = 0; $n -lt $count; $n++) { $len = ($len -shl 8) -bor $der[$script:__p++] }
+        return $len
+    }
+    $script:__p = 0
+    if ($der[$script:__p++] -ne 0x30) { throw 'Not a PKCS#1 RSA public key.' }
+    [void](Read-Length)
+
+    $ints = @()
+    for ($k = 0; $k -lt 2; $k++) {
+        if ($der[$script:__p++] -ne 0x02) { throw 'Malformed RSA public key.' }
+        $len = Read-Length
+        $bytes = $der[$script:__p..($script:__p + $len - 1)]
+        $script:__p += $len
+        while ($bytes.Length -gt 1 -and $bytes[0] -eq 0) { $bytes = $bytes[1..($bytes.Length - 1)] }
+        $ints += ,([byte[]]$bytes)
+    }
+
+    $params = New-Object System.Security.Cryptography.RSAParameters
+    $params.Modulus  = $ints[0]
+    $params.Exponent = $ints[1]
+    return $params
+}
 
 function Test-DRManifestSignature {
     <#
@@ -42,8 +88,11 @@ function Test-DRManifestSignature {
     )
     $rsa = $null
     try {
+        # Windows PowerShell 5.1 runs on .NET Framework, which has no
+        # ImportRSAPublicKey - every check threw there, so every update was
+        # refused as unsigned. Unpick the PKCS#1 key ourselves instead.
         $rsa = [System.Security.Cryptography.RSA]::Create()
-        $rsa.ImportRSAPublicKey([Convert]::FromBase64String($script:DRUpdatePublicKey), [ref]$null)
+        $rsa.ImportParameters((ConvertFrom-DRPkcs1PublicKey $script:DRUpdatePublicKey))
         return $rsa.VerifyData($ManifestBytes, [Convert]::FromBase64String($SignatureBase64.Trim()),
             [System.Security.Cryptography.HashAlgorithmName]::SHA256,
             [System.Security.Cryptography.RSASignaturePadding]::Pkcs1)
@@ -129,6 +178,49 @@ function Get-DRUpdateManifest {
 }
 
 
+function Get-DRUpdateSummary {
+    <#
+        .SYNOPSIS
+            Builds the text shown before anyone agrees to an update.
+        .DESCRIPTION
+            Nobody should be asked to accept a change without being told what
+            it is. Keep it to the two things that matter: which version, and
+            what changed.
+    #>
+    param($Manifest, [version]$Installed, [version]$Offered)
+
+    $lines = New-Object System.Collections.Generic.List[string]
+    $lines.Add("Version $Offered  (you have $Installed)")
+    $lines.Add('')
+    $lines.Add("What's new:")
+
+    # notes may be a single string or a list of them; both are accepted so the
+    # publisher can write one line or several.
+    $notes = @()
+    if ($Manifest.PSObject.Properties['notes'] -and $Manifest.notes) {
+        foreach ($entry in @($Manifest.notes)) {
+            foreach ($line in ([string]$entry) -split "`r?`n") {
+                $trimmed = $line.Trim()
+                if ($trimmed) { $notes += $trimmed }
+            }
+        }
+    }
+
+    if ($notes.Count -gt 0) {
+        foreach ($note in $notes) {
+            # ASCII dashes only: this text travels through a signed feed and a
+            # message box, so it must survive any code page.
+            if ($note -match '^\s*[-*]') { $lines.Add('  ' + $note.TrimStart()) }
+            else { $lines.Add('  - ' + $note) }
+        }
+    }
+    else {
+        $lines.Add('  - No description was published for this version.')
+    }
+
+    return ($lines -join [Environment]::NewLine)
+}
+
 function Test-DRUpdateAvailable {
     <#
     .SYNOPSIS
@@ -153,11 +245,11 @@ function Test-DRUpdateAvailable {
     }
 
     if ($offered -gt $installed) {
-        $note = if ($manifest.notes) { " $($manifest.notes)" } else { '' }
         return [pscustomobject]@{
             Available = $true; Reachable = $true
             Version = $offered; Installed = $installed; Manifest = $manifest
-            Message = "Update $offered is available.$note"
+            Message = "Update $offered is available."
+            Summary = Get-DRUpdateSummary -Manifest $manifest -Installed $installed -Offered $offered
         }
     }
 

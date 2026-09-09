@@ -594,9 +594,15 @@ $xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="DRDirect Duplicate Finder" Width="1180" Height="800"
-        MinWidth="900" MinHeight="600" WindowState="Maximized"
-        WindowStartupLocation="CenterScreen" Background="#F4F7FC"
+        MinWidth="900" MinHeight="600"
+        WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI" FontSize="14" TextOptions.TextFormattingMode="Ideal">
+  <Window.Background>
+    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+      <GradientStop Color="#EEF3FB" Offset="0"/>
+      <GradientStop Color="#CBD8EA" Offset="1"/>
+    </LinearGradientBrush>
+  </Window.Background>
   <Window.Resources>
     <!-- Every button lifts on hover and presses in on click. -->
     <Style x:Key="Btn" TargetType="Button">
@@ -983,13 +989,57 @@ $xaml = @'
             </Grid>
           </Border>
 
-          <Border x:Name="EmptyState" Background="White" CornerRadius="10" BorderBrush="#DEE5F0"
-                  BorderThickness="1" Padding="40" Margin="0,40,0,0">
+          <UniformGrid x:Name="StatStrip" Columns="3" Margin="0,0,0,4" Visibility="Collapsed">
+            <Border Background="White" CornerRadius="12" BorderBrush="#7C5CD6" BorderThickness="5,1,1,1" Padding="18" Margin="0,0,12,0">
+              <Border.Effect><DropShadowEffect Color="#6B82A6" BlurRadius="22" ShadowDepth="4" Direction="270" Opacity="0.20"/></Border.Effect>
+              <StackPanel>
+                <TextBlock Text="DUPLICATE SETS" Foreground="#7C5CD6" FontSize="11" FontWeight="Bold"/>
+                <TextBlock x:Name="StatSets" Text="0" FontSize="27" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                <TextBlock Text="Groups of identical files" Foreground="#667085" FontSize="12"/>
+              </StackPanel>
+            </Border>
+            <Border Background="White" CornerRadius="12" BorderBrush="#0E9C86" BorderThickness="5,1,1,1" Padding="18" Margin="0,0,12,0">
+              <Border.Effect><DropShadowEffect Color="#6B82A6" BlurRadius="22" ShadowDepth="4" Direction="270" Opacity="0.20"/></Border.Effect>
+              <StackPanel>
+                <TextBlock Text="FILES TICKED" Foreground="#0E9C86" FontSize="11" FontWeight="Bold"/>
+                <TextBlock x:Name="StatFiles" Text="0" FontSize="27" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                <TextBlock Text="Copies marked to remove" Foreground="#667085" FontSize="12"/>
+              </StackPanel>
+            </Border>
+            <Border Background="White" CornerRadius="12" BorderBrush="#D97706" BorderThickness="5,1,1,1" Padding="18">
+              <Border.Effect><DropShadowEffect Color="#6B82A6" BlurRadius="22" ShadowDepth="4" Direction="270" Opacity="0.20"/></Border.Effect>
+              <StackPanel>
+                <TextBlock Text="SPACE TO FREE" Foreground="#D97706" FontSize="11" FontWeight="Bold"/>
+                <TextBlock x:Name="StatSpace" Text="0 bytes" FontSize="27" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                <TextBlock Text="Recovered once removed" Foreground="#667085" FontSize="12"/>
+              </StackPanel>
+            </Border>
+          </UniformGrid>
+
+          <Border x:Name="EmptyState" Background="White" CornerRadius="16" BorderBrush="#15A05C"
+                  BorderThickness="0,5,0,0" Padding="48" Margin="0,40,0,0">
+            <Border.Effect><DropShadowEffect Color="#6B82A6" BlurRadius="30" ShadowDepth="6" Direction="270" Opacity="0.24"/></Border.Effect>
             <StackPanel HorizontalAlignment="Center">
-              <TextBlock x:Name="EmptyTitle" Text="No scan yet" FontSize="20" FontWeight="SemiBold"
-                         Foreground="#344054" HorizontalAlignment="Center"/>
-              <TextBlock x:Name="EmptyHint" Margin="0,8,0,0" Foreground="#667085" TextAlignment="Center"
+              <Border Width="82" Height="82" CornerRadius="41" HorizontalAlignment="Center" Margin="0,0,0,22">
+                <Border.Background>
+                  <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="#15A05C" Offset="0"/>
+                    <GradientStop Color="#0B6B3C" Offset="1"/>
+                  </LinearGradientBrush>
+                </Border.Background>
+                <TextBlock Text="&#9906;" Foreground="White" FontSize="40" FontWeight="Bold"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Border>
+              <TextBlock x:Name="EmptyTitle" Text="No scan yet" FontSize="26" FontWeight="SemiBold"
+                         Foreground="#1D2939" HorizontalAlignment="Center"/>
+              <TextBlock x:Name="EmptyHint" Margin="0,10,0,0" Foreground="#667085" TextAlignment="Center"
+                         MaxWidth="460" TextWrapping="Wrap"
                          Text="Pick a folder and press Scan. Every match is proved byte-for-byte before it is shown."/>
+              <Border Background="#EAF7F0" BorderBrush="#BCE3D0" BorderThickness="1" CornerRadius="20"
+                      Padding="16,8" Margin="0,22,0,0" HorizontalAlignment="Center">
+                <TextBlock Text="Nothing is ever deleted without your say-so" Foreground="#0F5F42"
+                           FontSize="12" FontWeight="SemiBold"/>
+              </Border>
             </StackPanel>
           </Border>
 
@@ -997,6 +1047,7 @@ $xaml = @'
                the program is looking rather than stuck. -->
           <Border x:Name="ScanBusy" Background="White" CornerRadius="10" BorderBrush="#DEE5F0"
                   BorderThickness="1" Padding="40" Margin="0,40,0,0" Visibility="Collapsed">
+            <Border.Effect><DropShadowEffect Color="#6B82A6" BlurRadius="26" ShadowDepth="5" Direction="270" Opacity="0.22"/></Border.Effect>
             <StackPanel HorizontalAlignment="Center">
               <Grid Width="120" Height="120" HorizontalAlignment="Center">
                 <Ellipse Width="104" Height="104" Stroke="#D6F0E2" StrokeThickness="10"/>
@@ -1020,6 +1071,7 @@ $xaml = @'
               <DataTemplate>
                 <Border Background="White" CornerRadius="10" BorderBrush="#F0B4B4" BorderThickness="2"
                         Margin="0,0,0,16">
+                  <Border.Effect><DropShadowEffect Color="#6B82A6" BlurRadius="22" ShadowDepth="4" Direction="270" Opacity="0.20"/></Border.Effect>
                   <StackPanel>
                     <Border Background="#FDECEC" CornerRadius="8,8,0,0" Padding="16,12">
                       <Grid>
@@ -1245,7 +1297,7 @@ $win = [Windows.Markup.XamlReader]::Load($reader)
 
 $ui = @{}
 foreach ($n in 'TxtFolder', 'BtnBrowse', 'BtnScan', 'BtnCancel', 'BtnUpdate', 'BtnActivate', 'SummaryScale', 'ChkSub', 'CmbMin', 'GroupList',
-    'EmptyState', 'EmptyTitle', 'EmptyHint', 'ScanBusy', 'SweepSpin', 'ScanBusyHint', 'LblSummary', 'Bar', 'BtnNone', 'BtnDelete', 'Scroller',
+    'EmptyState', 'EmptyTitle', 'EmptyHint', 'StatStrip', 'StatSets', 'StatFiles', 'StatSpace', 'ScanBusy', 'SweepSpin', 'ScanBusyHint', 'LblSummary', 'Bar', 'BtnNone', 'BtnDelete', 'Scroller',
     'TrialBadge', 'TrialBadgeText', 'AckBox', 'ChkAck', 'ChkCloud', 'ChipAll', 'ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc',
     'ChipArc', 'LblChips', 'CloudNote', 'CloudNoteText', 'SavedPanel', 'SavedBig', 'SavedSub', 'SavedSession', 'SavedShift', 'TickPop') {
     $ui[$n] = $win.FindName($n)
@@ -1473,8 +1525,15 @@ function Show-FolderPicker {
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Choose a folder" Width="960" Height="660" MinWidth="760" MinHeight="520"
-        WindowStartupLocation="CenterOwner" Background="#F4F7FC"
+        WindowStartupLocation="CenterOwner"
         FontFamily="Segoe UI" FontSize="14" TextOptions.TextFormattingMode="Ideal">
+  <Window.Background>
+    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+      <GradientStop Color="#EEF3FB" Offset="0"/>
+      <GradientStop Color="#CBD8EA" Offset="1"/>
+    </LinearGradientBrush>
+  </Window.Background>
+
   <Window.Resources>
     <Style x:Key="PBtn" TargetType="Button">
       <Setter Property="Background" Value="#2563EB"/>
@@ -1851,6 +1910,14 @@ function Update-Summary {
     } else {
         $ui.LblSummary.Text = "$($groups.Count) duplicate sets found  -  $dupCount files ticked  -  $(Format-Size $recoverable) will be freed"
     }
+
+    # The same three numbers, read at a glance instead of out of one sentence.
+    if ($ui.StatStrip) {
+        $ui.StatSets.Text = [string]@($groups).Count
+        $ui.StatFiles.Text = [string]$dupCount
+        $ui.StatSpace.Text = Format-Size $recoverable
+        $ui.StatStrip.Visibility = if (@($groups).Count -gt 0) { 'Visible' } else { 'Collapsed' }
+    }
     $ui.AckBox.Visibility = if ($dupCount -gt 0) { 'Visible' } else { 'Collapsed' }
     # Nothing is removed until you have seen the files and ticked the acknowledgement.
     $ui.BtnDelete.IsEnabled = ($dupCount -gt 0) -and ($ui.ChkAck.IsChecked -eq $true)
@@ -1938,6 +2005,7 @@ $timer.Add_Tick({
         }
         if ($state['Cancel']) {
             $ui.LblSummary.Text = 'Scan stopped.'
+            if ($ui.StatStrip) { $ui.StatStrip.Visibility = 'Collapsed' }
             return
         }
         Show-Results $state['Results']
