@@ -15,7 +15,15 @@
     Dot-source this file; it defines functions and performs no work on load.
 #>
 
-$script:DRUpdateFeed = 'https://raw.githubusercontent.com/Phears/drdirect-cleaner-updates/main'
+# raw.githubusercontent.com is a cache. For several minutes after a release it
+# still serves the previous files, and it ignores cache-busting query strings.
+# That is worse than a delay: the manifest and the scripts can come from
+# different points in time, so a fresh manifest arrives with stale files, the
+# checksums disagree, and a perfectly good update is discarded. The API's
+# contents endpoint always returns what the branch holds right now.
+$script:DRUpdateFeed = 'https://api.github.com/repos/Phears/drdirect-cleaner-updates/contents'
+$script:DRUpdateRef = '?ref=main'
+$script:DRUpdateHeaders = @{ Accept = 'application/vnd.github.raw'; 'User-Agent' = 'DRDirect-Updater'; 'Cache-Control' = 'no-cache' }
 
 # Scripts the feed is allowed to replace. Anything else in a manifest is
 # ignored, so a bad or tampered manifest cannot drop new files onto the PC.
@@ -137,8 +145,8 @@ function Get-DRUpdateManifest {
 
         # No credentials: the feed is public precisely so nothing has to be
         # embedded in the exe, where any recipient could extract it.
-        $response = Invoke-WebRequest -Uri "$script:DRUpdateFeed/update_manifest.json" `
-            -UseBasicParsing -TimeoutSec 15 -Headers @{ 'Cache-Control' = 'no-cache' }
+        $response = Invoke-WebRequest -Uri "$script:DRUpdateFeed/update_manifest.json$script:DRUpdateRef" -Headers $script:DRUpdateHeaders `
+            -UseBasicParsing -TimeoutSec 15
 
         # Verify before parsing. The signature covers the exact bytes the feed
         # served, so it has to be taken from those bytes and not from anything
@@ -146,8 +154,8 @@ function Get-DRUpdateManifest {
         $raw = if ($response.Content -is [byte[]]) { [byte[]]$response.Content }
                else { [System.Text.Encoding]::UTF8.GetBytes([string]$response.Content) }
 
-        $sigResponse = Invoke-WebRequest -Uri "$script:DRUpdateFeed/update_manifest.sig" `
-            -UseBasicParsing -TimeoutSec 15 -Headers @{ 'Cache-Control' = 'no-cache' }
+        $sigResponse = Invoke-WebRequest -Uri "$script:DRUpdateFeed/update_manifest.sig$script:DRUpdateRef" -Headers $script:DRUpdateHeaders `
+            -UseBasicParsing -TimeoutSec 15
         $sigText = if ($sigResponse.Content -is [byte[]]) {
             [System.Text.Encoding]::UTF8.GetString([byte[]]$sigResponse.Content)
         } else { [string]$sigResponse.Content }
@@ -231,7 +239,17 @@ function Test-DRUpdateAvailable {
         return [pscustomobject]@{
             Available = $false; Reachable = $false
             Version = $null; Installed = Get-DRInstalledVersion
-            Message = 'Could not reach the update server. You are still running the version you have.'
+            # Say what actually went wrong. A refused signature and a dead
+            # network are different problems, and calling both "could not
+            # reach" sends people hunting a firewall that is working fine.
+            Message = $(
+                if ($script:DRLastUpdateError) {
+                    'Could not get the update: ' + $script:DRLastUpdateError +
+                    ' You are still running the version you have.'
+                } else {
+                    'Could not reach the update server. You are still running the version you have.'
+                }
+            )
         }
     }
 
@@ -323,8 +341,8 @@ function Install-DRUpdate {
             # user cannot even see. Clear it before asking for a fresh copy.
             Clear-DRStaleTemp -Path $temp
 
-            $url = "$script:DRUpdateFeed/$([uri]::EscapeDataString($file.name))"
-            Invoke-WebRequest -Uri $url -OutFile $temp -UseBasicParsing -TimeoutSec 60
+            $url = "$script:DRUpdateFeed/$([uri]::EscapeDataString($file.name))$script:DRUpdateRef"
+            Invoke-WebRequest -Uri $url -Headers $script:DRUpdateHeaders -OutFile $temp -UseBasicParsing -TimeoutSec 60
 
             # Defender scans a freshly written script before it lets anything
             # else open it, so the first read can be denied on a perfectly good
