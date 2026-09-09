@@ -1,7 +1,7 @@
 {
-  "version": "1.3.2",
-  "notes": "Cookie cleanup now only appears on an Advanced sweep, so a Safe or Medium clean can never sign you out of your websites. A new Drive health check tells you whether your drives are healthy before one fails, and a new Hardware page shows what is inside your PC, how old each driver is, and whether you have room to add memory. Nothing on either is changed or installed.",
-  "published": "2026-09-08T23:20:18.2063155-04:00",
+  "version": "1.3.1",
+  "notes": "The disk check now shows what it found. Running it no longer flashes a black window, and the full report is saved in the log.",
+  "published": "2026-09-08T23:21:42.2252126-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
