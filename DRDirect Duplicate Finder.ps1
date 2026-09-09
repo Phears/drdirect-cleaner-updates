@@ -2640,7 +2640,15 @@ if ($TestMode) {
 # Which version is running should never be a question.
 try {
     $shown = if ($script:DRUpdaterLoaded) { Get-DRInstalledVersion } else { $null }
-    $ui.VersionText.Text = if ($shown -and "$shown" -ne '0.0.0') { "Version $shown" } else { 'Version 1.0' }
+    # <BUILD-VERSION>
+    $script:DRBuildVersion = ''
+    # </BUILD-VERSION>
+    # The version the update system recorded wins, because it is the one
+    # actually running. A copy that has never updated falls back to the
+    # number stamped in at build time, so the label is never a guess.
+    $ui.VersionText.Text = if ($shown -and "$shown" -ne '0.0.0') { "Version $shown" }
+                           elseif ($script:DRBuildVersion) { "Version $script:DRBuildVersion" }
+                           else { 'Version 1.0' }
 } catch { }
 
 try { Initialize-DRCloudBoxes } catch { }

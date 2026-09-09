@@ -2037,7 +2037,15 @@ try {
     # product is named, so anyone reporting a problem can read it straight off.
     try {
         $shown = try { Get-DRInstalledVersion } catch { $null }
-        $ui.VersionText.Text = if ($shown -and "$shown" -ne '0.0.0') { "Version $shown" } else { 'Version 1.0' }
+        # <BUILD-VERSION>
+        $script:DRBuildVersion = ''
+        # </BUILD-VERSION>
+        # The version the update system recorded wins, because it is the one
+        # actually running. A copy that has never updated falls back to the
+        # number stamped in at build time, so the label is never a guess.
+        $ui.VersionText.Text = if ($shown -and "$shown" -ne '0.0.0') { "Version $shown" }
+                               elseif ($script:DRBuildVersion) { "Version $script:DRBuildVersion" }
+                               else { 'Version 1.0' }
     } catch { }
 
     Apply-CleanupPreset -Preset 'Safe'
@@ -2452,19 +2460,26 @@ function Start-DRQuietUpdateCheck {
     }
 
     try {
-        $runspace = [RunspaceFactory]::CreateRunspace()
-        $runspace.ApartmentState = 'MTA'; $runspace.ThreadOptions = 'ReuseThread'; $runspace.Open()
-        $ps = [PowerShell]::Create(); $ps.Runspace = $runspace
-        $null = $ps.AddScript($probe.ToString()).AddArgument($installed.ToString())
-        $async = $ps.BeginInvoke()
+        # Script scope, not local: the timer's handler runs in its own scope and
+        # under StrictMode a local variable it cannot see is a hard error, which
+        # would take the whole window down with it.
+        $script:DRCheckRunspace = [RunspaceFactory]::CreateRunspace()
+        $script:DRCheckRunspace.ApartmentState = 'MTA'
+        $script:DRCheckRunspace.ThreadOptions = 'ReuseThread'
+        $script:DRCheckRunspace.Open()
+        $script:DRCheckPs = [PowerShell]::Create()
+        $script:DRCheckPs.Runspace = $script:DRCheckRunspace
+        $null = $script:DRCheckPs.AddScript($probe.ToString()).AddArgument($installed.ToString())
+        $script:DRCheckAsync = $script:DRCheckPs.BeginInvoke()
+        $script:DRCheckStamp = $stampFile
 
-        $timer = New-Object Windows.Threading.DispatcherTimer
-        $timer.Interval = [TimeSpan]::FromMilliseconds(500)
-        $timer.Add_Tick({
-            if (-not $async.IsCompleted) { return }
-            $timer.Stop()
+        $script:DRCheckTimer = New-Object Windows.Threading.DispatcherTimer
+        $script:DRCheckTimer.Interval = [TimeSpan]::FromMilliseconds(500)
+        $script:DRCheckTimer.Add_Tick({
+            if (-not $script:DRCheckAsync.IsCompleted) { return }
+            $script:DRCheckTimer.Stop()
             try {
-                $line = [string](@($ps.EndInvoke($async)) | Select-Object -Last 1)
+                $line = [string](@($script:DRCheckPs.EndInvoke($script:DRCheckAsync)) | Select-Object -Last 1)
                 if ($line -like 'AVAILABLE*') {
                     $version = ($line -split ' ')[1]
                     $ui.CheckUpdatesButton.Content = "Update available - $version"
@@ -2472,11 +2487,15 @@ function Start-DRQuietUpdateCheck {
                     $ui.CheckUpdatesButton.ToolTip =
                         "Version $version is ready. Click to see what changed and install it."
                 }
-                try { [System.IO.File]::WriteAllText($stampFile, (Get-Date).ToString('yyyy-MM-dd')) } catch { }
+                try { [System.IO.File]::WriteAllText($script:DRCheckStamp, (Get-Date).ToString('yyyy-MM-dd')) } catch { }
             } catch { }
-            try { $ps.Dispose(); $runspace.Close(); $runspace.Dispose() } catch { }
+            try {
+                $script:DRCheckPs.Dispose()
+                $script:DRCheckRunspace.Close()
+                $script:DRCheckRunspace.Dispose()
+            } catch { }
         })
-        $timer.Start()
+        $script:DRCheckTimer.Start()
     } catch { }
 }
 
