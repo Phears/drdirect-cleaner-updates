@@ -659,6 +659,9 @@ $analysisMode = $false
 $analysisTotal = 0
 $analysisDone = 0
 $cleanupPreset = 'Custom'
+# The level the person last chose. Unticking a box drops the preset to Custom,
+# but it must not reveal cookie cleanup on a Safe or Medium sweep.
+$cleanupLevel = 'Custom'
 $renderedCleanupFilter = $null
 # TITLE BAR + BIGGER LOGO v1.4: custom dark-blue title bar and larger sidebar logo
 $applyingCleanupPreset = $false
@@ -850,7 +853,7 @@ function Sync-CleanupPresetFromSelection {
 
 function Sync-CleanupTaskVisibility {
     if ($script:currentCategory -ne 'Cleanup') { return }
-    if ($script:renderedCleanupFilter -eq $script:cleanupPreset) { return }
+    if ($script:renderedCleanupFilter -eq $script:cleanupLevel) { return }
 
     # Deferred so the list is not rebuilt from inside the checkbox event that
     # is still running against one of its rows.
@@ -880,6 +883,7 @@ function Apply-CleanupPreset {
     }
 
     $script:cleanupPreset = $Preset
+    $script:cleanupLevel = $Preset
     $ui.PresetDescription.Text = Get-CleanupPresetDescription -Preset $Preset
 
     if ($script:currentCategory -eq 'Cleanup') {
@@ -1015,12 +1019,12 @@ function Get-VisibleTasksForCategory {
 
     $tasks = @($catalog | Where-Object Category -eq $Category)
 
-    # Each ordered level only lists what it will actually run: cookie cleanup is
-    # the one task that signs the user out, so it is held back until Advanced,
-    # and Disk Cleanup does not appear until Medium. Custom lists everything.
+    # Each ordered level only lists what it will actually run. Cookie cleanup is
+    # the one task that signs the person out, so the row exists on Advanced and
+    # nowhere else, Custom included. Disk Cleanup does not appear until Medium.
     $hidden = @()
-    if ($script:cleanupPreset -eq 'Safe')   { $hidden = @('cleanup.cookies', 'cleanup.disk-cleanup') }
-    if ($script:cleanupPreset -eq 'Medium') { $hidden = @('cleanup.cookies') }
+    if ($script:cleanupLevel -ne 'Advanced') { $hidden = @('cleanup.cookies') }
+    if ($script:cleanupLevel -eq 'Safe')     { $hidden += 'cleanup.disk-cleanup' }
 
     if ($Category -eq 'Cleanup' -and $hidden.Count) {
         return @($tasks | Where-Object { $hidden -notcontains $_.Id })
@@ -1039,15 +1043,34 @@ function Show-TaskCategory {
         'Security' { 'Run Defender operations independently. Existing exclusions are never removed automatically.' }
         'Health' { 'Drive health checks are read-only and do not schedule repairs or restarts.' }
     }
-    foreach ($task in @(Get-VisibleTasksForCategory -Category $Category)) { $ui.TaskList.Children.Add((New-TaskRow $task)) | Out-Null }
-    $script:renderedCleanupFilter = $script:cleanupPreset
+    $visible = @(Get-VisibleTasksForCategory -Category $Category)
+    # A row that is not on screen must not run. Dropping to Safe after ticking
+    # cookie cleanup on Advanced would otherwise leave it selected but invisible.
+    if ($Category -eq 'Cleanup') {
+        $visibleIds = @($visible | ForEach-Object { $_.Id })
+        foreach ($task in @($catalog | Where-Object Category -eq 'Cleanup')) {
+            if ($visibleIds -notcontains $task.Id) { $selection[$task.Id] = $false }
+        }
+    }
+    foreach ($task in $visible) { $ui.TaskList.Children.Add((New-TaskRow $task)) | Out-Null }
+    $script:renderedCleanupFilter = $script:cleanupLevel
     Update-SelectionSummary
 }
 
 function Update-SelectionSummary {
     $selected = @($catalog | Where-Object { $selection[$_.Id] })
-    $ui.SelectionSummary.Text = "$(@($selected).Count) selected"
-    $ui.ReviewButton.IsEnabled = @($selected).Count -gt 0
+    $total = @($selected).Count
+
+    # The badge sits beside one page's list, so it counts that page. A run still
+    # covers every page, and the badge says so when something is ticked elsewhere.
+    $here = @($selected | Where-Object { $_.Category -eq $script:currentCategory }).Count
+    if ($script:currentCategory -in @('Cleanup','Repair','Security','Health')) {
+        $ui.SelectionSummary.Text = if ($total -gt $here) { "$here selected here, $total in total" } else { "$here selected" }
+    } else {
+        $ui.SelectionSummary.Text = "$total selected"
+    }
+
+    $ui.ReviewButton.IsEnabled = $total -gt 0
 }
 
 function Show-Confirmation {

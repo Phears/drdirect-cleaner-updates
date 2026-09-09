@@ -53,7 +53,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='security.network-files'; Category='Security'; Name='Enable network-file scanning'; Description='Enables Microsoft Defender scanning of files accessed over the network.'; Risk='Advanced'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false }
 
         [pscustomobject]@{ Id='health.chkdsk'; Category='Health'; Name='CHKDSK disk check'; Description='Checks the C: file system for corruption while Windows keeps running. Reports what it finds, repairs what is safe to repair, and never schedules a restart.'; Risk='Safe'; Duration='5-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true }
-        [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false }
+        [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false }
     )
 }
 

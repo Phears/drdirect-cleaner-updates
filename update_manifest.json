@@ -1,7 +1,7 @@
 {
-  "version": "1.3.1",
-  "notes": "New Drive health check tells you whether your drives are healthy before one fails, and a new Hardware page shows what is inside your PC, how old each driver is, and whether you have room to add memory. Nothing on either is changed or installed.",
-  "published": "2026-09-08T22:59:08.3819488-04:00",
+  "version": "1.3.2",
+  "notes": "Cookie cleanup now only appears on an Advanced sweep, so a Safe or Medium clean can never sign you out of your websites. A new Drive health check tells you whether your drives are healthy before one fails, and a new Hardware page shows what is inside your PC, how old each driver is, and whether you have room to add memory. Nothing on either is changed or installed.",
+  "published": "2026-09-08T23:20:18.2063155-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "31D5D46BD7FAD0F1D1AEAD0A3FA67112CFECA738FD2478D383EEE79E188BFDC9",
-      "size": 147782
+      "sha256": "4BDD6839E46384995B64F582FB1008693D19D0C246C6D31009C181C33A46F6DA",
+      "size": 148923
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "F68D4E04C8A18DFF18F1019A9C7CAA43831135B2CEA10DC9509A222A9C8131C6",
-      "size": 56054
+      "sha256": "D5E615FF9BDEA1659BB3A8C9729CDB85EC17DF628899E423223C5E28EFEF031F",
+      "size": 56055
     },
     {
       "name": "DRDirect Updater.ps1",
