@@ -367,7 +367,11 @@ function Install-DRUpdate {
 
         return [pscustomobject]@{
             Success = $true; Version = $Manifest.version
-            Message = "Updated to $($Manifest.version). The new Duplicate Finder is used from now on."
+            # Say what to do next. The downloaded scripts are only read when
+            # the app starts, so an update that is installed but not reopened
+            # looks like an update that did nothing.
+            Message = "Updated to $($Manifest.version)." + [Environment]::NewLine + [Environment]::NewLine +
+                      "Close and reopen the program to start using it. No PC restart is needed."
         }
     } catch {
         # Clear part-downloads so the next attempt starts clean.

@@ -1,7 +1,7 @@
 {
-  "version": "1.3.8",
-  "notes": "The Cleaner now tells you on the button when an update is waiting, instead of you having to check.",
-  "published": "2026-09-09T14:55:53.3770689-04:00",
+  "version": "1.3.9",
+  "notes": "After an update installs, the app now tells you to close and reopen it, and that no PC restart is needed.",
+  "published": "2026-09-09T14:58:15.7239539-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -20,8 +20,8 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "E5465D16AC9E9222062CCFFDAFEFD4E08F6A776FC4BAFA22E57420F4BF47CE84",
-      "size": 25708
+      "sha256": "19CF40953F33EE430D616DE061CA0CDADD6E823F0953C5DC2CD05FED9C879F2F",
+      "size": 26019
     }
   ]
 }
