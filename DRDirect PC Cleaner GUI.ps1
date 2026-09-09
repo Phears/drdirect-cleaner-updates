@@ -437,6 +437,7 @@ $ErrorActionPreference = 'Stop'
                     <Button x:Name="NavSecurity" Style="{StaticResource NavButton}" Content="⬡   Security"/>
                     <Button x:Name="NavHealth" Style="{StaticResource NavButton}" Content="▰   Drive health"/>
                     <Button x:Name="NavProgress" Style="{StaticResource NavButton}" Content="◐   Maintenance progress" Visibility="Collapsed"/>
+                    <Button x:Name="NavHardware" Style="{StaticResource NavButton}" Content="▤   Hardware"/>
                     <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   History"/>
                     <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Duplicate finder"/>
                 </StackPanel>
@@ -574,6 +575,12 @@ $ErrorActionPreference = 'Stop'
                     <Border Grid.Row="1" Style="{StaticResource Card}"><StackPanel x:Name="HistoryList"/></Border>
                 </Grid>
 
+                <Grid x:Name="PageHardware" Visibility="Collapsed">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <Grid Margin="0,0,0,14"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="What is inside this PC, and where there is room to improve it. Nothing here is changed or installed." Style="{StaticResource MutedText}" TextWrapping="Wrap" VerticalAlignment="Center"/><Button x:Name="CheckDriversButton" Grid.Column="1" Content="Check for driver updates" Style="{StaticResource SecondaryButton}" Margin="10,0,0,0"/></Grid>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"><StackPanel x:Name="HardwareList"/></ScrollViewer>
+                </Grid>
+
                 <Grid x:Name="PageDuplicates" Visibility="Collapsed">
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                     <TextBlock Text="Finds files that are 100% identical - same size, same SHA-256, then verified byte-for-byte - and keeps one copy of each set." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,0,0,14"/>
@@ -624,12 +631,13 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavDuplicates','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','HardwareList','CheckDriversButton','NavDuplicates','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 $catalog = @(Get-DRTaskCatalog)
 $selection = @{}
 $analysis = @{}
 $currentCategory = 'Dashboard'
+$script:driverPanel = $null
 $runQueue = New-Object System.Collections.Generic.Queue[string]
 $runEvents = New-Object System.Collections.Generic.List[object]
 $runStartedAt = $null
@@ -706,20 +714,23 @@ function Set-Page {
     $ui.PageProgress.Visibility = if ($Name -eq 'Progress') { 'Visible' } else { 'Collapsed' }
     $ui.PageHistory.Visibility = if ($Name -eq 'History') { 'Visible' } else { 'Collapsed' }
     $ui.PageDuplicates.Visibility = if ($Name -eq 'Duplicates') { 'Visible' } else { 'Collapsed' }
-    $ui.PageTitle.Text = switch ($Name) { 'Health' {'Drive health'} 'Progress' {'Maintenance progress'} 'Duplicates' {'Duplicate finder'} default {$Name} }
+    $ui.PageHardware.Visibility = if ($Name -eq 'Hardware') { 'Visible' } else { 'Collapsed' }
+    $ui.PageTitle.Text = switch ($Name) { 'Health' {'Drive health'} 'Progress' {'Maintenance progress'} 'Duplicates' {'Duplicate finder'} 'Hardware' {'Hardware'} default {$Name} }
     $script:currentCategory = $Name
     $ui.CleanupPresetPanel.Visibility = if ($Name -eq 'Cleanup') { 'Visible' } else { 'Collapsed' }
-    $navMap = @{ Dashboard='NavDashboard'; Cleanup='NavCleanup'; Repair='NavRepair'; Security='NavSecurity'; Health='NavHealth'; History='NavHistory'; Progress='NavProgress'; Duplicates='NavDuplicates' }
+    $navMap = @{ Dashboard='NavDashboard'; Cleanup='NavCleanup'; Repair='NavRepair'; Security='NavSecurity'; Health='NavHealth'; History='NavHistory'; Progress='NavProgress'; Duplicates='NavDuplicates'; Hardware='NavHardware' }
     foreach ($key in $navMap.Keys) { $ui[$navMap[$key]].Tag = if ($key -eq $Name) { 'Active' } else { $null } }
     if ($Name -in @('Cleanup','Repair','Security','Health')) { Show-TaskCategory $Name }
     if ($Name -eq 'History') { Show-History }
     if ($Name -eq 'Dashboard') { Show-DashboardHistory }
+    if ($Name -eq 'Hardware') { Show-Hardware }
 
     $activePage = switch ($Name) {
         'Dashboard' { $ui.PageDashboard }
         'Progress'  { $ui.PageProgress }
         'History'   { $ui.PageHistory }
         'Duplicates' { $ui.PageDuplicates }
+        'Hardware'  { $ui.PageHardware }
         default     { $ui.PageTasks }
     }
     Start-DRFadeIn -Element $activePage
@@ -1574,6 +1585,119 @@ function Show-DashboardHistory {
     }
 }
 
+function New-DRHardwareCard {
+    param([string]$Heading)
+    $card = New-Object Windows.Controls.Border
+    $card.Style = $window.Resources['Card']
+    $card.Margin = '0,0,0,14'
+    $panel = New-Object Windows.Controls.StackPanel
+    $card.Child = $panel
+
+    $title = New-Object Windows.Controls.TextBlock
+    $title.Text = $Heading
+    $title.FontSize = 16
+    $title.FontWeight = 'SemiBold'
+    $title.Margin = '0,0,0,10'
+    [void]$panel.Children.Add($title)
+
+    [void]$ui.HardwareList.Children.Add($card)
+    return $panel
+}
+
+function Add-DRHardwareRow {
+    param($Panel, [string]$Label, [string]$Value, [string]$Note = '')
+    $grid = New-Object Windows.Controls.Grid
+    $grid.Margin = '0,4'
+
+    $labelColumn = New-Object Windows.Controls.ColumnDefinition
+    $labelColumn.Width = '190'
+    [void]$grid.ColumnDefinitions.Add($labelColumn)
+    $valueColumn = New-Object Windows.Controls.ColumnDefinition
+    $valueColumn.Width = '*'
+    [void]$grid.ColumnDefinitions.Add($valueColumn)
+
+    $labelText = New-Object Windows.Controls.TextBlock
+    $labelText.Text = $Label
+    $labelText.Foreground = '#667085'
+    $labelText.FontSize = 13
+    $labelText.TextWrapping = 'Wrap'
+    [void]$grid.Children.Add($labelText)
+
+    $stack = New-Object Windows.Controls.StackPanel
+    [Windows.Controls.Grid]::SetColumn($stack, 1)
+
+    $valueText = New-Object Windows.Controls.TextBlock
+    $valueText.Text = $Value
+    $valueText.FontSize = 14
+    $valueText.TextWrapping = 'Wrap'
+    [void]$stack.Children.Add($valueText)
+
+    if ($Note) {
+        $noteText = New-Object Windows.Controls.TextBlock
+        $noteText.Text = $Note
+        $noteText.Foreground = '#8A94A6'
+        $noteText.FontSize = 12
+        $noteText.TextWrapping = 'Wrap'
+        $noteText.Margin = '0,2,0,0'
+        [void]$stack.Children.Add($noteText)
+    }
+
+    [void]$grid.Children.Add($stack)
+    [void]$Panel.Children.Add($grid)
+}
+
+function Show-Hardware {
+    $ui.HardwareList.Children.Clear()
+
+    $items = @()
+    try { $items = @(Get-DRHardwareInventory) } catch { $items = @() }
+
+    if (-not $items.Count) {
+        $panel = New-DRHardwareCard 'Hardware'
+        Add-DRHardwareRow $panel 'Nothing reported' 'Windows did not return any hardware details on this PC.'
+        return
+    }
+
+    $sections = New-Object System.Collections.Generic.List[string]
+    foreach ($item in $items) { if (-not $sections.Contains($item.Section)) { [void]$sections.Add($item.Section) } }
+
+    foreach ($section in $sections) {
+        $panel = New-DRHardwareCard $section
+        foreach ($item in $items) {
+            if ($item.Section -ne $section) { continue }
+            Add-DRHardwareRow $panel $item.Label $item.Value $item.Note
+        }
+    }
+
+    # The driver card starts empty; the check needs the internet, so it is never automatic.
+    $script:driverPanel = New-DRHardwareCard 'Driver updates'
+    Add-DRHardwareRow $script:driverPanel 'Not checked yet' 'Use "Check for driver updates" above. This asks Microsoft what drivers are available for this PC and installs nothing.'
+}
+
+function Start-DRDriverCheck {
+    if (-not $script:driverPanel) { return }
+    $script:driverPanel.Children.RemoveRange(1, $script:driverPanel.Children.Count - 1)
+    Add-DRHardwareRow $script:driverPanel 'Checking' 'Asking Microsoft what drivers are available for this PC. This can take up to a minute.'
+    $ui.CheckDriversButton.IsEnabled = $false
+    # Let the message paint before the search blocks the interface.
+    $window.Dispatcher.Invoke([action]{}, [Windows.Threading.DispatcherPriority]::Render)
+
+    $status = Get-DRDriverUpdateStatus
+
+    $script:driverPanel.Children.RemoveRange(1, $script:driverPanel.Children.Count - 1)
+    if ($status.Error) {
+        Add-DRHardwareRow $script:driverPanel 'Could not check' 'Windows could not reach the update service. Check the internet connection and try again.' $status.Error
+    } elseif ($status.Available -eq 0) {
+        Add-DRHardwareRow $script:driverPanel 'Up to date' 'Microsoft has no newer drivers for this PC.'
+    } else {
+        Add-DRHardwareRow $script:driverPanel 'Updates available' ('{0} driver update(s) are available for this PC.' -f $status.Available) 'Install these from Settings, Windows Update, Advanced options, Optional updates. This app does not install them.'
+        foreach ($title in $status.Titles) {
+            Add-DRHardwareRow $script:driverPanel '' $title
+        }
+    }
+    $ui.CheckDriversButton.IsEnabled = $true
+}
+
 function Show-History {
     $ui.HistoryList.Children.Clear()
 
@@ -1818,6 +1942,8 @@ $ui.NavCleanup.Add_Click({ Set-Page 'Cleanup' })
 $ui.NavRepair.Add_Click({ Set-Page 'Repair' })
 $ui.NavSecurity.Add_Click({ Set-Page 'Security' })
 $ui.NavHealth.Add_Click({ Set-Page 'Health' })
+$ui.NavHardware.Add_Click({ Set-Page 'Hardware' })
+$ui.CheckDriversButton.Add_Click({ Start-DRDriverCheck })
 $ui.NavHistory.Add_Click({ Set-Page 'History' })
 $ui.NavDuplicates.Add_Click({ Set-Page 'Duplicates' })
 $ui.NavProgress.Add_Click({ Set-Page 'Progress' })

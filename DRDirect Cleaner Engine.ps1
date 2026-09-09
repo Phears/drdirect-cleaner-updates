@@ -53,6 +53,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='security.network-files'; Category='Security'; Name='Enable network-file scanning'; Description='Enables Microsoft Defender scanning of files accessed over the network.'; Risk='Advanced'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false }
 
         [pscustomobject]@{ Id='health.chkdsk'; Category='Health'; Name='CHKDSK disk check'; Description='Checks the C: file system for corruption while Windows keeps running. Reports what it finds, repairs what is safe to repair, and never schedules a restart.'; Risk='Safe'; Duration='5-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true }
+        [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false }
     )
 }
 
@@ -521,6 +522,302 @@ function Invoke-DRNetworkReset {
     New-DREvent -TaskId $TaskId -State Information -Message 'RESTART REQUIRED'
 }
 
+function Get-DRDiskProperty {
+    param($Object, [string]$Name)
+    if ($null -eq $Object) { return $null }
+    $property = $Object.PSObject.Properties[$Name]
+    if (-not $property) { return $null }
+    return $property.Value
+}
+
+function Get-DRDiskDriveLetters {
+    param($Disk)
+    try {
+        $number = $Disk | Get-Disk -ErrorAction Stop | Select-Object -First 1 -ExpandProperty Number
+    } catch { return '' }
+    if ($null -eq $number) { return '' }
+    $letters = @(Get-Partition -DiskNumber $number -ErrorAction SilentlyContinue |
+        Where-Object { $_.DriveLetter } |
+        ForEach-Object { $_.DriveLetter })
+    if (-not $letters.Count) { return '' }
+    return (($letters | Sort-Object | ForEach-Object { $_ + ':' }) -join ', ')
+}
+
+function Invoke-DRDriveHealth {
+    param([string]$TaskId, [string]$TestRoot)
+    if ($TestRoot) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the drive health check was not run.'
+        return
+    }
+
+    if (-not (Get-Command -Name 'Get-PhysicalDisk' -ErrorAction SilentlyContinue)) {
+        New-DREvent -TaskId $TaskId -State Warning -Message 'This version of Windows does not provide the drive health information this check reads. Nothing was changed.'
+        return
+    }
+
+    $disks = @(Get-PhysicalDisk -ErrorAction SilentlyContinue)
+    if (-not $disks.Count) {
+        New-DREvent -TaskId $TaskId -State Warning -Message 'No drives reported health information. This can happen with some USB and RAID controllers. Nothing was changed.'
+        return
+    }
+
+    $concerns = 0
+    foreach ($disk in $disks) {
+        $name = Get-DRDiskProperty $disk 'FriendlyName'
+        if (-not $name) { $name = 'Drive' }
+        $letters = Get-DRDiskDriveLetters $disk
+        if ($letters) { $name = '{0}  ({1})' -f $letters, $name }
+        $media = Get-DRDiskProperty $disk 'MediaType'
+        $health = Get-DRDiskProperty $disk 'HealthStatus'
+        $sizeBytes = Get-DRDiskProperty $disk 'Size'
+
+        $lines = New-Object System.Collections.Generic.List[string]
+        if ($sizeBytes) { $lines.Add(('Size: {0:N0} GB' -f ($sizeBytes / 1GB))) }
+        if ($media) { $lines.Add(('Type: {0}' -f $media)) }
+
+        $counter = $null
+        try { $counter = $disk | Get-StorageReliabilityCounter -ErrorAction Stop } catch { $counter = $null }
+
+        $wear = Get-DRDiskProperty $counter 'Wear'
+        $temperature = Get-DRDiskProperty $counter 'Temperature'
+        $hours = Get-DRDiskProperty $counter 'PowerOnHours'
+        $readErrors = Get-DRDiskProperty $counter 'ReadErrorsUncorrected'
+
+        if ($null -ne $hours) { $lines.Add(('Powered on for about {0:N0} days in total.' -f ($hours / 24))) }
+        if ($null -ne $temperature -and $temperature -gt 0) { $lines.Add(('Temperature: {0} C' -f $temperature)) }
+        # Wear is a write-life figure. It means something on a solid-state drive and
+        # nothing on a spinning one, which does not wear out by being written to.
+        $isSolidState = ($media -eq 'SSD')
+        if ($null -ne $wear -and $isSolidState) {
+            $left = 100 - $wear
+            if ($left -lt 0) { $left = 0 }
+            $lines.Add(('Estimated life remaining: {0}%' -f $left))
+        }
+
+        $verdict = ''
+        if ($health -eq 'Healthy') {
+            $verdict = 'Windows reports this drive as healthy.'
+        } elseif ($health) {
+            $concerns++
+            $verdict = 'Windows reports this drive as "{0}". Back up anything important on it now and have the drive replaced.' -f $health
+        } else {
+            $verdict = 'This drive did not report a health status. That is normal for some external drives.'
+        }
+
+        if ($null -ne $readErrors -and $readErrors -gt 0) {
+            $concerns++
+            $lines.Add(('This drive has failed to read data {0} time(s) without being able to correct it. That is an early sign of a failing drive.' -f $readErrors))
+        }
+        if ($null -ne $wear -and $isSolidState -and $wear -ge 80) {
+            $concerns++
+            $lines.Add('This drive has used most of its rated write life. It still works, but plan to replace it.')
+        }
+
+        $lines.Add($verdict)
+        $state = if ($health -and $health -ne 'Healthy') { 'Warning' } else { 'Information' }
+        New-DREvent -TaskId $TaskId -State $state -Message ("{0}`r`n  {1}" -f $name, ($lines -join "`r`n  "))
+    }
+
+    if ($concerns -gt 0) {
+        New-DREvent -TaskId $TaskId -State Warning -Message 'One or more drives need attention. Nothing was changed on this PC. Copy anything you cannot lose to another drive before doing anything else.'
+    } else {
+        New-DREvent -TaskId $TaskId -State Information -Message ('All {0} drive(s) reported normal health. Nothing was changed on this PC.' -f $disks.Count)
+    }
+}
+
+function New-DRHardwareItem {
+    param([string]$Section, [string]$Label, [string]$Value, [string]$Note = '')
+    [pscustomobject]@{
+        PSTypeName = 'DRDirect.HardwareItem'
+        Section    = $Section
+        Label      = $Label
+        Value      = $Value
+        Note       = $Note
+    }
+}
+
+function Get-DRCimValue {
+    param([string]$ClassName)
+    try { return @(Get-CimInstance -ClassName $ClassName -ErrorAction Stop) } catch { return @() }
+}
+
+function Format-DRDriverNote {
+    param([string]$Version, $Date)
+    if (-not $Version -and -not $Date) { return '' }
+    if (-not $Date) { return 'driver {0}' -f $Version }
+    $when = [datetime]$Date
+    $note = 'driver {0} from {1}' -f $Version, $when.ToString('MMMM yyyy')
+    $age = [int]((Get-Date) - $when).TotalDays
+    if ($age -gt 730) { return '{0} - over two years old' -f $note }
+    if ($age -gt 365) { return '{0} - over a year old' -f $note }
+    return $note
+}
+
+function Get-DRDriverLookup {
+    # One pass over the signed-driver list, keyed by device, so each device below
+    # can show the version and date Windows has for it.
+    $lookup = @{}
+    foreach ($driver in @(Get-DRCimValue 'Win32_PnPSignedDriver')) {
+        $id = Get-DRDiskProperty $driver 'DeviceID'
+        if (-not $id) { continue }
+        if ($lookup.ContainsKey($id)) { continue }
+        $lookup[$id] = Format-DRDriverNote (Get-DRDiskProperty $driver 'DriverVersion') (Get-DRDiskProperty $driver 'DriverDate')
+    }
+    return $lookup
+}
+
+function Get-DRHardwareInventory {
+    [CmdletBinding()]
+    param()
+
+    $items = New-Object System.Collections.Generic.List[object]
+    $drivers = Get-DRDriverLookup
+
+    # This PC
+    $system = @(Get-DRCimValue 'Win32_ComputerSystem') | Select-Object -First 1
+    $product = @(Get-DRCimValue 'Win32_ComputerSystemProduct') | Select-Object -First 1
+    $maker = Get-DRDiskProperty $system 'Manufacturer'
+    $model = Get-DRDiskProperty $system 'Model'
+    # Lenovo puts a type code in Model and the name people recognise in Version.
+    $friendly = Get-DRDiskProperty $product 'Version'
+    # Boards sold to builders leave these fields as placeholder text rather than a model.
+    $placeholder = '^\s*(None|To Be Filled By O\.E\.M\.|System Version|System Product Name|Default string|Not Applicable|N/A)\s*$'
+    if ($model -match $placeholder) { $model = '' }
+    if ($friendly -match $placeholder) { $friendly = '' }
+    if ($friendly -and $model) { $model = '{0} ({1})' -f $friendly, $model }
+    elseif ($friendly) { $model = $friendly }
+    $makeAndModel = (('{0} {1}' -f $maker, $model).Trim())
+    if ($makeAndModel) {
+        # With no usable model the board name is the only thing a customer can look up.
+        if (-not $model) { $makeAndModel = '{0} - no model name reported, see the motherboard below' -f $maker }
+        $items.Add((New-DRHardwareItem 'This PC' 'Make and model' $makeAndModel))
+    }
+
+    $os = @(Get-DRCimValue 'Win32_OperatingSystem') | Select-Object -First 1
+    $osName = Get-DRDiskProperty $os 'Caption'
+    $osBuild = Get-DRDiskProperty $os 'BuildNumber'
+    if ($osName) {
+        $items.Add((New-DRHardwareItem 'This PC' 'Windows' ('{0} (build {1})' -f $osName.Trim(), $osBuild)))
+    }
+    $installed = Get-DRDiskProperty $os 'InstallDate'
+    if ($installed) {
+        $items.Add((New-DRHardwareItem 'This PC' 'Windows installed' (([datetime]$installed).ToString('d MMMM yyyy'))))
+    }
+
+    # Processor
+    foreach ($cpu in @(Get-DRCimValue 'Win32_Processor')) {
+        $cpuName = Get-DRDiskProperty $cpu 'Name'
+        if ($cpuName) { $cpuName = $cpuName.Trim() }
+        $cores = Get-DRDiskProperty $cpu 'NumberOfCores'
+        $threads = Get-DRDiskProperty $cpu 'NumberOfLogicalProcessors'
+        $detail = ''
+        if ($cores -and $threads) { $detail = '{0} cores, {1} threads' -f $cores, $threads }
+        elseif ($cores) { $detail = '{0} cores' -f $cores }
+        $items.Add((New-DRHardwareItem 'Processor' 'Processor' $cpuName $detail))
+    }
+
+    # Memory
+    $sticks = @(Get-DRCimValue 'Win32_PhysicalMemory')
+    $array = @(Get-DRCimValue 'Win32_PhysicalMemoryArray') | Select-Object -First 1
+    $slots = Get-DRDiskProperty $array 'MemoryDevices'
+    $totalBytes = Get-DRDiskProperty $system 'TotalPhysicalMemory'
+    if ($totalBytes) {
+        $note = ''
+        if ($slots -and $sticks.Count) {
+            $note = 'in {0} of {1} slots' -f $sticks.Count, $slots
+            if ($sticks.Count -lt $slots) { $note = '{0} - room to add more' -f $note }
+        }
+        $items.Add((New-DRHardwareItem 'Memory' 'Installed memory' ('{0:N0} GB' -f ($totalBytes / 1GB)) $note))
+    }
+    foreach ($stick in $sticks) {
+        $bank = Get-DRDiskProperty $stick 'DeviceLocator'
+        if (-not $bank) { $bank = Get-DRDiskProperty $stick 'BankLabel' }
+        if (-not $bank) { $bank = 'Memory stick' }
+        $capacity = Get-DRDiskProperty $stick 'Capacity'
+        $speed = Get-DRDiskProperty $stick 'ConfiguredClockSpeed'
+        if (-not $speed) { $speed = Get-DRDiskProperty $stick 'Speed' }
+        $value = ''
+        if ($capacity -and $speed) { $value = '{0:N0} GB at {1} MHz' -f ($capacity / 1GB), $speed }
+        elseif ($capacity) { $value = '{0:N0} GB' -f ($capacity / 1GB) }
+        $items.Add((New-DRHardwareItem 'Memory' $bank $value))
+    }
+
+    # Graphics
+    foreach ($video in @(Get-DRCimValue 'Win32_VideoController')) {
+        $videoName = Get-DRDiskProperty $video 'Name'
+        $driverVersion = Get-DRDiskProperty $video 'DriverVersion'
+        $driverDate = Get-DRDiskProperty $video 'DriverDate'
+        $note = Format-DRDriverNote $driverVersion $driverDate
+        $items.Add((New-DRHardwareItem 'Graphics' 'Display adapter' $videoName $note))
+    }
+
+    # Network
+    foreach ($adapter in @(Get-DRCimValue 'Win32_NetworkAdapter')) {
+        if ((Get-DRDiskProperty $adapter 'PhysicalAdapter') -ne $true) { continue }
+        if ((Get-DRDiskProperty $adapter 'NetEnabled') -ne $true) { continue }
+        $note = ''
+        $pnpId = Get-DRDiskProperty $adapter 'PNPDeviceID'
+        if ($pnpId -and $drivers.ContainsKey($pnpId)) { $note = $drivers[$pnpId] }
+        $items.Add((New-DRHardwareItem 'Network' 'Adapter' (Get-DRDiskProperty $adapter 'Name') $note))
+    }
+
+    # Sound
+    foreach ($sound in @(Get-DRCimValue 'Win32_SoundDevice')) {
+        $note = ''
+        $pnpId = Get-DRDiskProperty $sound 'PNPDeviceID'
+        if ($pnpId -and $drivers.ContainsKey($pnpId)) { $note = $drivers[$pnpId] }
+        $items.Add((New-DRHardwareItem 'Sound' 'Sound device' (Get-DRDiskProperty $sound 'Name') $note))
+    }
+
+    # Motherboard and BIOS
+    $board = @(Get-DRCimValue 'Win32_BaseBoard') | Select-Object -First 1
+    $boardMaker = Get-DRDiskProperty $board 'Manufacturer'
+    $boardModel = Get-DRDiskProperty $board 'Product'
+    if ($boardModel) {
+        $items.Add((New-DRHardwareItem 'Motherboard and BIOS' 'Motherboard' (('{0} {1}' -f $boardMaker, $boardModel).Trim())))
+    }
+
+    $bios = @(Get-DRCimValue 'Win32_BIOS') | Select-Object -First 1
+    $biosVersion = Get-DRDiskProperty $bios 'SMBIOSBIOSVersion'
+    $biosDate = Get-DRDiskProperty $bios 'ReleaseDate'
+    if ($biosVersion) {
+        $value = $biosVersion
+        if ($biosDate) { $value = '{0}, dated {1}' -f $biosVersion, (([datetime]$biosDate).ToString('d MMMM yyyy')) }
+        # Windows has no way of knowing what the newest BIOS is, so this never claims one is needed.
+        $items.Add((New-DRHardwareItem 'Motherboard and BIOS' 'BIOS version' $value 'Windows cannot tell whether a newer BIOS exists. Check the manufacturer support page for the board above.'))
+    }
+
+    return $items.ToArray()
+}
+
+function Get-DRDriverUpdateStatus {
+    [CmdletBinding()]
+    param()
+
+    try {
+        $session = New-Object -ComObject Microsoft.Update.Session
+        $searcher = $session.CreateUpdateSearcher()
+        # Drivers come from Microsoft Update, which the default service does not include.
+        $searcher.ServerSelection = 3
+        $searcher.ServiceID = '7971f918-a847-4430-9279-4a52d1efe18d'
+        $result = $searcher.Search("IsInstalled=0 and Type='Driver'")
+        $titles = @($result.Updates | ForEach-Object { $_.Title })
+        return [pscustomobject]@{
+            PSTypeName = 'DRDirect.DriverUpdateStatus'
+            Available  = $titles.Count
+            Titles     = $titles
+            Error      = ''
+        }
+    } catch {
+        return [pscustomobject]@{
+            PSTypeName = 'DRDirect.DriverUpdateStatus'
+            Available  = 0
+            Titles     = @()
+            Error      = $_.Exception.Message
+        }
+    }
+}
+
 function Invoke-DRTask {
     [CmdletBinding()]
     param(
@@ -642,6 +939,7 @@ function Invoke-DRTask {
                 }
             }
             'health.chkdsk' { Invoke-DRChkdsk -TaskId $TaskId -TestRoot $TestRoot }
+            'health.drive-check' { Invoke-DRDriveHealth -TaskId $TaskId -TestRoot $TestRoot }
         }
         New-DREvent -TaskId $TaskId -State Completed -Message ("{0} completed." -f $task.Name) -Percent 100
     } catch {
