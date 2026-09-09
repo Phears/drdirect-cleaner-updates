@@ -31,7 +31,8 @@ $script:DRUpdatableFiles = @(
     'DRDirect Duplicate Finder.ps1',
     'DRDirect PC Cleaner GUI.ps1',
     'DRDirect Cleaner Engine.ps1',
-    'DRDirect Updater.ps1'
+    'DRDirect Updater.ps1',
+    'DRDirect Activation.ps1'
 )
 
 # The public half of the update signing key. The private half never leaves the

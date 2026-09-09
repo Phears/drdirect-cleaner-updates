@@ -1,7 +1,7 @@
 {
-  "version": "1.4.2",
-  "notes": "The version number now shows correctly under the program name.",
-  "published": "2026-09-09T16:08:48.6458865-04:00",
+  "version": "1.4.3",
+  "notes": "Fixes the activation window not opening after an update.",
+  "published": "2026-09-09T16:13:05.9247968-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -20,8 +20,13 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "19CF40953F33EE430D616DE061CA0CDADD6E823F0953C5DC2CD05FED9C879F2F",
-      "size": 26019
+      "sha256": "60F848F839FE3305FD19D529A4AED082BF4406892016CE211F630158E368FE1A",
+      "size": 26050
+    },
+    {
+      "name": "DRDirect Activation.ps1",
+      "sha256": "A360D5B59604E8F5F93FB407077A7CE9B8AFFF337A7E82082FCEBE64386E6F4A",
+      "size": 19349
     }
   ]
 }
