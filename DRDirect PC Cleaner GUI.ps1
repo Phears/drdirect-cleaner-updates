@@ -1026,11 +1026,46 @@ function Get-VisibleTasksForCategory {
     if ($script:cleanupLevel -ne 'Advanced') { $hidden = @('cleanup.cookies') }
     if ($script:cleanupLevel -eq 'Safe')     { $hidden += 'cleanup.disk-cleanup' }
 
+    # A cloud cache row is only worth showing when that service is actually set
+    # up here. Offering to clear a Dropbox cache on a PC without Dropbox is a
+    # row that can only ever report "nothing to do".
+    foreach ($task in $tasks) {
+        $service = Get-DRPropertyValue -InputObject $task -Name 'CloudService'
+        if ($service -and -not (Test-DRCloudServicePresent $service)) { $hidden += $task.Id }
+    }
+
     if ($Category -eq 'Cleanup' -and $hidden.Count) {
         return @($tasks | Where-Object { $hidden -notcontains $_.Id })
     }
 
     return $tasks
+}
+
+function Test-DRCloudServicePresent {
+    <# True when the service keeps a folder on this PC, so it is signed in. #>
+    param([string]$Service)
+
+    # Declared up front: the engine runs under StrictMode, where reading a
+    # variable that was never set is a hard error, not an empty value.
+    if (-not (Test-Path variable:script:DRCloudPresence)) { $script:DRCloudPresence = @{} }
+    if ($script:DRCloudPresence.ContainsKey($Service)) { return $script:DRCloudPresence[$Service] }
+
+    $probes = switch ($Service) {
+        'iCloud'       { @("$env:LOCALAPPDATA\Apple Inc\iCloud", (Join-Path $env:USERPROFILE 'iCloudDrive'), (Join-Path $env:USERPROFILE 'iCloud Drive')) }
+        'Google Drive' { @("$env:LOCALAPPDATA\Google\DriveFS", (Join-Path $env:USERPROFILE 'Google Drive'), (Join-Path $env:USERPROFILE 'My Drive')) }
+        'OneDrive'     { @($env:OneDrive, $env:OneDriveConsumer, $env:OneDriveCommercial, "$env:LOCALAPPDATA\Microsoft\OneDrive") }
+        'Dropbox'      { @("$env:LOCALAPPDATA\Dropbox", (Join-Path $env:USERPROFILE 'Dropbox')) }
+        'MEGA'         { @("$env:LOCALAPPDATA\Mega Limited", (Join-Path $env:USERPROFILE 'MEGA')) }
+        default        { @() }
+    }
+
+    $present = $false
+    foreach ($probe in $probes) {
+        if (-not $probe) { continue }
+        try { if (Test-Path -LiteralPath $probe) { $present = $true; break } } catch { }
+    }
+    $script:DRCloudPresence[$Service] = $present
+    return $present
 }
 
 function Show-TaskCategory {

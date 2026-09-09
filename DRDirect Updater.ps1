@@ -526,16 +526,26 @@ function Test-DRDuplicatesAllowed {
         It comes with six months or more. A build with no licence file at all
         never expires and is one of your own machines, so it gets everything.
     #>
-    # The Duplicate Finder is licensed in its own right. If it has been activated
-    # on this PC, the Cleaner offers it whatever the Cleaner's own licence said -
-    # the person has paid for it separately.
+    # The Duplicate Finder is licensed in its own right. If it has been paid for
+    # on this PC, the Cleaner offers it whatever the Cleaner's own licence said.
+    # Opening the Finder once writes this file, so its presence proves nothing -
+    # only a code that was actually accepted does. Without this, a free try of
+    # the Finder would unlock the page here for good.
     try {
         $finderState = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\licence_finder.dat'
         if (Test-Path -LiteralPath $finderState -PathType Leaf) {
             $fs = Get-Content -LiteralPath $finderState -Raw | ConvertFrom-Json
-            $needs = $false
-            if ($fs.PSObject.Properties.Name -contains 'needs_activation') { $needs = [bool]$fs.needs_activation }
-            if (-not $needs) { return $true }
+            $names = $fs.PSObject.Properties.Name
+            $needs = if ($names -contains 'needs_activation') { [bool]$fs.needs_activation } else { $false }
+            $unlocked = $false
+            foreach ($key in 'code', 'activated') {
+                if ($names -contains $key -and -not [string]::IsNullOrWhiteSpace([string]$fs.$key)) {
+                    $unlocked = $true
+                }
+            }
+            # A free try is never an entitlement, whatever else the file holds.
+            if ($names -contains 'trial') { $unlocked = $false }
+            if ($unlocked -and -not $needs) { return $true }
         }
     } catch { }
 

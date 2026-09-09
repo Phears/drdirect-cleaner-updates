@@ -31,29 +31,35 @@ function New-DREvent {
 
 function Get-DRTaskCatalog {
     @(
-        [pscustomobject]@{ Id='cleanup.windows-temp'; Category='Cleanup'; Name='Windows temporary files'; Description='Removes temporary files no longer needed by Windows or applications.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false }
-        [pscustomobject]@{ Id='cleanup.browser-cache'; Category='Cleanup'; Name='Browser caches'; Description='Clears cache files while preserving passwords, bookmarks, cookies, and active sessions.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false }
-        [pscustomobject]@{ Id='cleanup.recycle-bin'; Category='Cleanup'; Name='Recycle Bin'; Description='Permanently removes Recycle Bin contents from available fixed drives.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false }
-        [pscustomobject]@{ Id='cleanup.hidden-recycle-folders'; Category='Cleanup'; Name='Hidden Recycle Bin folders'; Description='Removes hidden $Recycle.Bin folders from fixed drives so Windows can rebuild them.'; Risk='Advanced'; Duration='< 5 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false }
-        [pscustomobject]@{ Id='cleanup.cookies'; Category='Cleanup'; Name='Cookies and website storage'; Description='Clears cookies and site storage. This can sign you out of websites and webmail.'; Risk='SignOut'; Duration='1-5 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false }
-        [pscustomobject]@{ Id='cleanup.prefetch'; Category='Cleanup'; Name='Windows Prefetch'; Description='Clears the Prefetch cache. Windows rebuilds it and app launches may initially be slower.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false }
-        [pscustomobject]@{ Id='cleanup.disk-cleanup'; Category='Cleanup'; Name='Windows Disk Cleanup'; Description='Runs the Windows Disk Cleanup profile for the C: drive.'; Risk='Safe'; Duration='1-10 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$true }
+        [pscustomobject]@{ Id='cleanup.windows-temp'; Category='Cleanup'; Name='Windows temporary files'; Description='Removes temporary files no longer needed by Windows or applications.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.browser-cache'; Category='Cleanup'; Name='Browser caches'; Description='Clears cache files while preserving passwords, bookmarks, cookies, and active sessions.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.recycle-bin'; Category='Cleanup'; Name='Recycle Bin'; Description='Permanently removes Recycle Bin contents from available fixed drives.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.hidden-recycle-folders'; Category='Cleanup'; Name='Hidden Recycle Bin folders'; Description='Removes hidden $Recycle.Bin folders from fixed drives so Windows can rebuild them.'; Risk='Advanced'; Duration='< 5 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.cookies'; Category='Cleanup'; Name='Cookies and website storage'; Description='Clears cookies and site storage. This can sign you out of websites and webmail.'; Risk='SignOut'; Duration='1-5 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.prefetch'; Category='Cleanup'; Name='Windows Prefetch'; Description='Clears the Prefetch cache. Windows rebuilds it and app launches may initially be slower.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.cloud-icloud'; Category='Cleanup'; Name='iCloud cache'; Description='Clears the local cache and logs iCloud leaves on this PC. Your synced files are not touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true; Interruptible=$false; CloudService='iCloud' }
+        [pscustomobject]@{ Id='cleanup.cloud-google'; Category='Cleanup'; Name='Google Drive cache'; Description='Clears the local cache and logs Google Drive leaves on this PC. Your synced files are not touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true; Interruptible=$false; CloudService='Google Drive' }
+        [pscustomobject]@{ Id='cleanup.cloud-onedrive'; Category='Cleanup'; Name='OneDrive cache'; Description='Clears the local cache and logs OneDrive leaves on this PC. Your synced files are not touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true; Interruptible=$false; CloudService='OneDrive' }
+        [pscustomobject]@{ Id='cleanup.cloud-dropbox'; Category='Cleanup'; Name='Dropbox cache'; Description='Clears the local cache and logs Dropbox leaves on this PC. Your synced files are not touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true; Interruptible=$false; CloudService='Dropbox' }
+        [pscustomobject]@{ Id='cleanup.cloud-mega'; Category='Cleanup'; Name='MEGA cache'; Description='Clears the local cache and logs MEGA leaves on this PC. Your synced files are not touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true; Interruptible=$false; CloudService='MEGA' }
 
-        [pscustomobject]@{ Id='repair.restore-point'; Category='Repair'; Name='Create restore point'; Description='Creates a Windows restore point before repair operations when System Protection is available.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false }
-        [pscustomobject]@{ Id='repair.dism-health'; Category='Repair'; Name='DISM RestoreHealth'; Description='Repairs the Windows component store using DISM RestoreHealth.'; Risk='Repair'; Duration='20-60 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false }
-        [pscustomobject]@{ Id='repair.component-cleanup'; Category='Repair'; Name='DISM component cleanup'; Description='Removes superseded Windows component versions.'; Risk='Repair'; Duration='10-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false }
-        [pscustomobject]@{ Id='repair.sfc'; Category='Repair'; Name='System File Checker'; Description='Scans protected Windows files and repairs damaged copies.'; Risk='Repair'; Duration='10-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false }
-        [pscustomobject]@{ Id='repair.windows-update'; Category='Repair'; Name='Windows Update repair'; Description='Resets Windows Update services, caches, Winsock, and the WinHTTP proxy.'; Risk='Advanced'; Duration='5-15 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false }
-        [pscustomobject]@{ Id='repair.network-reset'; Category='Repair'; Name='Network reset'; Description='Flushes the DNS cache, releases and renews the IP address, resets Winsock, the TCP/IP stack, and the WinHTTP proxy, restores TCP auto-tuning to normal, disables TCP heuristics, and clears the ARP cache. The connection drops briefly during renew, a restart is required afterward, and any static IP or manual DNS configuration may need to be re-entered.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false }
+        [pscustomobject]@{ Id='cleanup.disk-cleanup'; Category='Cleanup'; Name='Windows Disk Cleanup'; Description='Runs the Windows Disk Cleanup profile for the C: drive.'; Risk='Safe'; Duration='1-10 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$true ; CloudService=$null }
 
-        [pscustomobject]@{ Id='security.defender-update'; Category='Security'; Name='Update Defender intelligence'; Description='Downloads the latest available Microsoft Defender security intelligence.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false }
-        [pscustomobject]@{ Id='security.quick-scan'; Category='Security'; Name='Defender quick scan'; Description='Scans common threat locations without changing exclusions.'; Risk='Safe'; Duration='5-20 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true }
-        [pscustomobject]@{ Id='security.full-scan'; Category='Security'; Name='Defender full scan'; Description='Scans all accessible files. This may take several hours.'; Risk='Long'; Duration='1+ hours'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true }
-        [pscustomobject]@{ Id='security.remove-exclusions'; Category='Security'; Name='Remove Defender exclusions'; Description='Exports and removes all configured Defender exclusions. Never runs automatically.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false }
-        [pscustomobject]@{ Id='security.network-files'; Category='Security'; Name='Enable network-file scanning'; Description='Enables Microsoft Defender scanning of files accessed over the network.'; Risk='Advanced'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false }
+        [pscustomobject]@{ Id='repair.restore-point'; Category='Repair'; Name='Create restore point'; Description='Creates a Windows restore point before repair operations when System Protection is available.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='repair.dism-health'; Category='Repair'; Name='DISM RestoreHealth'; Description='Repairs the Windows component store using DISM RestoreHealth.'; Risk='Repair'; Duration='20-60 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='repair.component-cleanup'; Category='Repair'; Name='DISM component cleanup'; Description='Removes superseded Windows component versions.'; Risk='Repair'; Duration='10-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='repair.sfc'; Category='Repair'; Name='System File Checker'; Description='Scans protected Windows files and repairs damaged copies.'; Risk='Repair'; Duration='10-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='repair.windows-update'; Category='Repair'; Name='Windows Update repair'; Description='Resets Windows Update services, caches, Winsock, and the WinHTTP proxy.'; Risk='Advanced'; Duration='5-15 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='repair.network-reset'; Category='Repair'; Name='Network reset'; Description='Flushes the DNS cache, releases and renews the IP address, resets Winsock, the TCP/IP stack, and the WinHTTP proxy, restores TCP auto-tuning to normal, disables TCP heuristics, and clears the ARP cache. The connection drops briefly during renew, a restart is required afterward, and any static IP or manual DNS configuration may need to be re-entered.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
 
-        [pscustomobject]@{ Id='health.chkdsk'; Category='Health'; Name='CHKDSK disk check'; Description='Checks the C: file system for corruption while Windows keeps running. Reports what it finds, repairs what is safe to repair, and never schedules a restart.'; Risk='Safe'; Duration='5-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true }
-        [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false }
+        [pscustomobject]@{ Id='security.defender-update'; Category='Security'; Name='Update Defender intelligence'; Description='Downloads the latest available Microsoft Defender security intelligence.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='security.quick-scan'; Category='Security'; Name='Defender quick scan'; Description='Scans common threat locations without changing exclusions.'; Risk='Safe'; Duration='5-20 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
+        [pscustomobject]@{ Id='security.full-scan'; Category='Security'; Name='Defender full scan'; Description='Scans all accessible files. This may take several hours.'; Risk='Long'; Duration='1+ hours'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
+        [pscustomobject]@{ Id='security.remove-exclusions'; Category='Security'; Name='Remove Defender exclusions'; Description='Exports and removes all configured Defender exclusions. Never runs automatically.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='security.network-files'; Category='Security'; Name='Enable network-file scanning'; Description='Enables Microsoft Defender scanning of files accessed over the network.'; Risk='Advanced'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+
+        [pscustomobject]@{ Id='health.chkdsk'; Category='Health'; Name='CHKDSK disk check'; Description='Checks the C: file system for corruption while Windows keeps running. Reports what it finds, repairs what is safe to repair, and never schedules a restart.'; Risk='Safe'; Duration='5-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
+        [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
     )
 }
 
@@ -120,6 +126,43 @@ function Get-DRPatternMatches {
         Get-Item -Path $pattern -Force -ErrorAction SilentlyContinue | ForEach-Object { $found.Add($_) }
     }
     return @($found | Sort-Object -Property FullName -Unique)
+}
+
+function Get-DRCloudCachePatterns {
+    <#
+        .SYNOPSIS
+            Where each cloud client keeps throwaway data on this PC.
+        .DESCRIPTION
+            Caches, logs and the client's own deleted-file staging areas. None of
+            it is a synced file: the services rebuild all of it, and nothing here
+            is removed from anyone's account or their other devices.
+    #>
+    param([string]$Service)
+
+    switch ($Service) {
+        'iCloud' { @(
+            "$env:LOCALAPPDATA\Apple Inc\iCloud\Logs",
+            "$env:LOCALAPPDATA\Apple Computer\Logs",
+            "$env:LOCALAPPDATA\Apple Inc\CloudKit\Caches"
+        ) }
+        'Google Drive' { @(
+            "$env:LOCALAPPDATA\Google\DriveFS\*\content_cache",
+            "$env:LOCALAPPDATA\Google\DriveFS\Logs"
+        ) }
+        'OneDrive' { @(
+            "$env:LOCALAPPDATA\Microsoft\OneDrive\logs",
+            "$env:LOCALAPPDATA\Microsoft\OneDrive\setup\logs"
+        ) }
+        'Dropbox' { @(
+            "$env:LOCALAPPDATA\Dropbox\logs",
+            "$env:USERPROFILE\Dropbox\.dropbox.cache"
+        ) }
+        'MEGA' { @(
+            "$env:LOCALAPPDATA\Mega Limited\MEGAsync\logs",
+            "$env:USERPROFILE\MEGA\.debris"
+        ) }
+        default { @() }
+    }
 }
 
 function Get-DRBrowserCachePatterns {
@@ -283,10 +326,80 @@ function Get-DRAnalysis {
                     foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
                     $detail = 'Windows and application temporary folders'
                 }
-                'cleanup.browser-cache' {
+                'cleanup.cloud-icloud' {
+                $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'iCloud')) }
+                if (@($matches).Count -eq 0) {
+                    New-DREvent -TaskId $TaskId -State Information -Message 'iCloud is not set up on this PC, so there was nothing to clear.'
+                } else {
+                    foreach ($match in $matches) { Clear-DRFolderContents -FolderPath $match.FullName -TaskId $TaskId | Out-Null }
+                    New-DREvent -TaskId $TaskId -State Information -Message ('Cleared {0} iCloud cache location(s). Synced files were not touched.' -f @($matches).Count)
+                }
+            }
+            'cleanup.cloud-google' {
+                $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'Google Drive')) }
+                if (@($matches).Count -eq 0) {
+                    New-DREvent -TaskId $TaskId -State Information -Message 'Google Drive is not set up on this PC, so there was nothing to clear.'
+                } else {
+                    foreach ($match in $matches) { Clear-DRFolderContents -FolderPath $match.FullName -TaskId $TaskId | Out-Null }
+                    New-DREvent -TaskId $TaskId -State Information -Message ('Cleared {0} Google Drive cache location(s). Synced files were not touched.' -f @($matches).Count)
+                }
+            }
+            'cleanup.cloud-onedrive' {
+                $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'OneDrive')) }
+                if (@($matches).Count -eq 0) {
+                    New-DREvent -TaskId $TaskId -State Information -Message 'OneDrive is not set up on this PC, so there was nothing to clear.'
+                } else {
+                    foreach ($match in $matches) { Clear-DRFolderContents -FolderPath $match.FullName -TaskId $TaskId | Out-Null }
+                    New-DREvent -TaskId $TaskId -State Information -Message ('Cleared {0} OneDrive cache location(s). Synced files were not touched.' -f @($matches).Count)
+                }
+            }
+            'cleanup.cloud-dropbox' {
+                $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'Dropbox')) }
+                if (@($matches).Count -eq 0) {
+                    New-DREvent -TaskId $TaskId -State Information -Message 'Dropbox is not set up on this PC, so there was nothing to clear.'
+                } else {
+                    foreach ($match in $matches) { Clear-DRFolderContents -FolderPath $match.FullName -TaskId $TaskId | Out-Null }
+                    New-DREvent -TaskId $TaskId -State Information -Message ('Cleared {0} Dropbox cache location(s). Synced files were not touched.' -f @($matches).Count)
+                }
+            }
+            'cleanup.cloud-mega' {
+                $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'MEGA')) }
+                if (@($matches).Count -eq 0) {
+                    New-DREvent -TaskId $TaskId -State Information -Message 'MEGA is not set up on this PC, so there was nothing to clear.'
+                } else {
+                    foreach ($match in $matches) { Clear-DRFolderContents -FolderPath $match.FullName -TaskId $TaskId | Out-Null }
+                    New-DREvent -TaskId $TaskId -State Information -Message ('Cleared {0} MEGA cache location(s). Synced files were not touched.' -f @($matches).Count)
+                }
+            }
+            'cleanup.browser-cache' {
                     $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRBrowserCachePatterns)) }
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
                     $detail = 'Cache only; passwords, cookies, and sessions preserved'
+                }
+                'cleanup.cloud-icloud' {
+                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'iCloud')) }
+                    foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
+                    $detail = 'Cache and logs only; synced files are not touched'
+                }
+                'cleanup.cloud-google' {
+                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'Google Drive')) }
+                    foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
+                    $detail = 'Cache and logs only; synced files are not touched'
+                }
+                'cleanup.cloud-onedrive' {
+                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'OneDrive')) }
+                    foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
+                    $detail = 'Cache and logs only; synced files are not touched'
+                }
+                'cleanup.cloud-dropbox' {
+                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'Dropbox')) }
+                    foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
+                    $detail = 'Cache and logs only; synced files are not touched'
+                }
+                'cleanup.cloud-mega' {
+                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'MEGA')) }
+                    foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
+                    $detail = 'Cache and logs only; synced files are not touched'
                 }
                 'cleanup.cookies' {
                     $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCookiePatterns)) }

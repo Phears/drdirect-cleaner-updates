@@ -345,8 +345,74 @@ function Format-Size {
 
 # ---------------------------------------------------------------- scan job
 
+function Get-DRCloudServices {
+    <#
+        .SYNOPSIS
+            The cloud folders that actually exist on this PC, by service name.
+        .DESCRIPTION
+            One entry per service, each holding every folder found for it. Used
+            for the shortcuts in the folder picker and for deciding which
+            online-only files a scan is allowed to pull down.
+    #>
+    $known = [ordered]@{
+        'iCloud'        = @('iCloudDrive', 'iCloud Drive', 'iCloudPhotos', 'iCloud Photos', 'Pictures\iCloud Photos')
+        'Google Drive'  = @('Google Drive', 'My Drive')
+        'OneDrive'      = @()
+        'Dropbox'       = @('Dropbox')
+        'MEGA'          = @('MEGA', 'MEGAsync')
+        'Box'           = @('Box', 'Box Sync')
+        'pCloud'        = @('pCloud Drive', 'pCloudDrive')
+        'Sync'          = @('Sync')
+        'Nextcloud'     = @('Nextcloud')
+        'Proton Drive'  = @('Proton Drive', 'ProtonDrive')
+        'Tresorit'      = @('Tresorit')
+        'Creative Cloud'= @('Creative Cloud Files')
+        'Amazon Drive'  = @('Amazon Drive')
+        'Yandex Disk'   = @('YandexDisk', 'Yandex.Disk')
+        'Jottacloud'    = @('Jottacloud')
+        'Icedrive'      = @('Icedrive')
+        'Koofr'         = @('Koofr')
+        'IDrive'        = @('IDrive-Sync')
+        'MediaFire'     = @('MediaFire')
+        'SpiderOak'     = @('SpiderOak Hive')
+    }
+
+    $found = [ordered]@{}
+    function Add-Found {
+        param($Name, $Path)
+        if (-not $Path) { return }
+        try { if (-not (Test-Path -LiteralPath $Path)) { return } } catch { return }
+        if (-not $found.Contains($Name)) { $found[$Name] = New-Object System.Collections.Generic.List[string] }
+        $full = try { (Resolve-Path -LiteralPath $Path -ErrorAction Stop).Path } catch { $Path }
+        if (-not $found[$Name].Contains($full)) { $found[$Name].Add($full) }
+    }
+
+    # OneDrive publishes its own locations; personal and work are separate folders.
+    foreach ($v in @($env:OneDrive, $env:OneDriveConsumer)) { Add-Found 'OneDrive' $v }
+    Add-Found 'OneDrive for Business' $env:OneDriveCommercial
+
+    foreach ($name in $known.Keys) {
+        foreach ($leaf in $known[$name]) { Add-Found $name (Join-Path $env:USERPROFILE $leaf) }
+    }
+
+    # Some clients mount a virtual drive instead of a folder in the profile.
+    try {
+        foreach ($disk in @(Get-CimInstance Win32_LogicalDisk -ErrorAction Stop)) {
+            $label = [string]$disk.VolumeName
+            if ([string]::IsNullOrWhiteSpace($label)) { continue }
+            foreach ($name in $known.Keys) {
+                if ($label -like ("*" + $name + "*")) {
+                    Add-Found $name ($disk.DeviceID + [IO.Path]::DirectorySeparatorChar)
+                }
+            }
+        }
+    } catch { }
+
+    return $found
+}
+
 $ScanScript = {
-    param($Roots, $MinBytes, $IncludeSub, $IncludeCloud, $Exts, $State)
+    param($Roots, $MinBytes, $IncludeSub, $CloudRoots, $Exts, $State)
 
     # OneDrive / cloud "online-only" files are placeholders - the bytes are not
     # on this PC. Reading one forces a full download, so they are left alone
@@ -473,7 +539,15 @@ $ScanScript = {
                         if ($Exts -and $Exts.Count -gt 0 -and -not $Exts.Contains($f.Extension.ToLowerInvariant())) { continue }
                         if (Test-CloudPlaceholder $f) {
                             $State['CloudSkipped'] = [int]$State['CloudSkipped'] + 1
-                            if (-not $IncludeCloud) { continue }
+                            # Only pull a file down if its own service was ticked.
+                            # Anything not under a ticked folder stays untouched.
+                            $allowed = $false
+                            if ($CloudRoots) {
+                                foreach ($cr in $CloudRoots) {
+                                    if ($f.FullName.StartsWith($cr, [StringComparison]::OrdinalIgnoreCase)) { $allowed = $true; break }
+                                }
+                            }
+                            if (-not $allowed) { continue }
                         }
                         $files.Add($f)
                     }
@@ -913,15 +987,20 @@ $xaml = @'
         <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
           <CheckBox x:Name="ChkSub" Content="Include subfolders" IsChecked="True" VerticalAlignment="Center" Foreground="#344054"/>
           <TextBlock Text="Ignore files smaller than" VerticalAlignment="Center" Margin="24,0,8,0" Foreground="#344054"/>
-          <ComboBox x:Name="CmbMin" Width="120" VerticalContentAlignment="Center" SelectedIndex="1">
-            <ComboBoxItem Content="1 KB"/>
-            <ComboBoxItem Content="100 KB"/>
-            <ComboBoxItem Content="1 MB"/>
-            <ComboBoxItem Content="10 MB"/>
+          <ComboBox x:Name="CmbMin" Width="170" VerticalContentAlignment="Center" SelectedIndex="0">
+            <ComboBoxItem Content="100 KB (recommended)"/>
+            <ComboBoxItem Content="Any size"/>
           </ComboBox>
-          <CheckBox x:Name="ChkCloud" VerticalAlignment="Center" Margin="24,0,0,0" Foreground="#96500A"
-                    Content="Include OneDrive / cloud files"
-                    ToolTip="Off by default. Online-only files are not stored on this PC, so checking them forces OneDrive to download every one."/>
+        </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+          <TextBlock Text="Include cloud files from" VerticalAlignment="Center" FontWeight="SemiBold"
+                     Foreground="#344054" Margin="0,0,12,0"/>
+          <CheckBox x:Name="ChkCloudICloud"   Content="iCloud"    VerticalAlignment="Center" Margin="0,0,14,0" Foreground="#344054"/>
+          <CheckBox x:Name="ChkCloudGoogle"   Content="Google Drive" VerticalAlignment="Center" Margin="0,0,14,0" Foreground="#344054"/>
+          <CheckBox x:Name="ChkCloudOneDrive" Content="OneDrive"  VerticalAlignment="Center" Margin="0,0,14,0" Foreground="#344054"/>
+          <CheckBox x:Name="ChkCloudDropbox"  Content="Dropbox"   VerticalAlignment="Center" Margin="0,0,14,0" Foreground="#344054"/>
+          <CheckBox x:Name="ChkCloudMega"     Content="MEGA"      VerticalAlignment="Center" Margin="0,0,14,0" Foreground="#344054"/>
+          <TextBlock x:Name="LblCloudHint" VerticalAlignment="Center" Foreground="#96500A" FontSize="12" TextWrapping="Wrap" MaxWidth="420"/>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
           <TextBlock Text="Look for" VerticalAlignment="Center" FontWeight="SemiBold"
@@ -1298,7 +1377,7 @@ $win = [Windows.Markup.XamlReader]::Load($reader)
 $ui = @{}
 foreach ($n in 'TxtFolder', 'BtnBrowse', 'BtnScan', 'BtnCancel', 'BtnUpdate', 'BtnActivate', 'SummaryScale', 'ChkSub', 'CmbMin', 'GroupList',
     'EmptyState', 'EmptyTitle', 'EmptyHint', 'StatStrip', 'StatSets', 'StatFiles', 'StatSpace', 'ScanBusy', 'SweepSpin', 'ScanBusyHint', 'LblSummary', 'Bar', 'BtnNone', 'BtnDelete', 'Scroller',
-    'TrialBadge', 'TrialBadgeText', 'AckBox', 'ChkAck', 'ChkCloud', 'ChipAll', 'ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc',
+    'TrialBadge', 'TrialBadgeText', 'AckBox', 'ChkAck', 'ChkCloudICloud', 'ChkCloudGoogle', 'ChkCloudOneDrive', 'ChkCloudDropbox', 'ChkCloudMega', 'LblCloudHint', 'ChipAll', 'ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc',
     'ChipArc', 'LblChips', 'CloudNote', 'CloudNoteText', 'SavedPanel', 'SavedBig', 'SavedSub', 'SavedSession', 'SavedShift', 'TickPop') {
     $ui[$n] = $win.FindName($n)
 }
@@ -1791,9 +1870,14 @@ function Show-FolderPicker {
         @{ Icon = [char]0xE8D6; Name = 'Music'; Path = [Environment]::GetFolderPath('MyMusic') }
         @{ Icon = [char]0xE714; Name = 'Videos'; Path = [Environment]::GetFolderPath('MyVideos') }
     )
-    if ($env:OneDrive -and (Test-Path -LiteralPath $env:OneDrive)) {
-        $places += @{ Icon = [char]0xE753; Name = 'OneDrive'; Path = $env:OneDrive }
-    }
+    # Cloud shortcuts, from the shared detector so the picker and the include
+    # checkboxes can never disagree about what is installed.
+    try {
+        $cloudFound = Get-DRCloudServices
+        foreach ($name in $cloudFound.Keys) {
+            $places += @{ Icon = [char]0xE753; Name = $name; Path = $cloudFound[$name][0] }
+        }
+    } catch { }
 
     function Add-Place {
         param($Icon, $Name, $Path, $Sub)
@@ -1923,12 +2007,116 @@ function Update-Summary {
     $ui.BtnDelete.IsEnabled = ($dupCount -gt 0) -and ($ui.ChkAck.IsChecked -eq $true)
 }
 
+# The five services offered as checkboxes, and the boxes that control them.
+$script:DRCloudBoxes = [ordered]@{
+    'iCloud'       = 'ChkCloudICloud'
+    'Google Drive' = 'ChkCloudGoogle'
+    'OneDrive'     = 'ChkCloudOneDrive'
+    'Dropbox'      = 'ChkCloudDropbox'
+    'MEGA'         = 'ChkCloudMega'
+}
+
+function Initialize-DRCloudBoxes {
+    <#
+        .SYNOPSIS
+            Enables the checkbox for each cloud service that is set up on this PC.
+        .DESCRIPTION
+            A service only has a folder here once its app is installed and signed
+            in. Offering a tick box for one that is not would promise a scan that
+            cannot happen, so those stay switched off and say why.
+    #>
+    $found = try { Get-DRCloudServices } catch { [ordered]@{} }
+    $script:DRCloudRoots = @{}
+    $missing = New-Object System.Collections.Generic.List[string]
+
+    foreach ($name in $script:DRCloudBoxes.Keys) {
+        $box = $ui[$script:DRCloudBoxes[$name]]
+        if (-not $box) { continue }
+
+        $roots = @()
+        foreach ($k in $found.Keys) {
+            # "OneDrive" also matches "OneDrive for Business".
+            if ($k -eq $name -or $k -like ($name + ' *')) { $roots += @($found[$k]) }
+        }
+
+        if ($roots.Count -gt 0) {
+            $script:DRCloudRoots[$name] = $roots
+            $box.IsEnabled = $true
+            $box.Tag = $name
+            $box.Add_Checked({ param($sender, $e) Set-DRCloudFolderTarget ([string]$sender.Tag) })
+            $box.ToolTip = "Off by default. Online-only files are not kept on this PC, so ticking this downloads every one from $name to compare it." +
+                           [Environment]::NewLine + ($roots -join [Environment]::NewLine)
+        } else {
+            $box.IsChecked = $false
+            $box.IsEnabled = $false
+            $box.Opacity = 0.45
+            $box.ToolTip = "$name is not installed on this PC. Install the $name app for Windows and sign in, then reopen the Duplicate Finder. Signing in on the website is not enough - the app is what puts the files on this PC."
+            $missing.Add($name)
+        }
+    }
+
+    if ($ui.LblCloudHint) {
+        # "Signed in" is not the test - a website login puts nothing on this PC.
+        # The service's own Windows app has to be installed and syncing before
+        # there are any files here to compare.
+        $ui.LblCloudHint.Text = if ($missing.Count -eq 0) { '' }
+            elseif ($missing.Count -eq $script:DRCloudBoxes.Count) {
+                'None of these are installed on this PC. Install the app for a service and sign in - signing in on its website is not enough.'
+            } else {
+                'Not installed on this PC: ' + ($missing -join ', ')
+            }
+    }
+}
+
+function Set-DRCloudFolderTarget {
+    <#
+        .SYNOPSIS
+            Points the scan at a service's folder when its box is ticked.
+        .DESCRIPTION
+            Ticking a cloud service is a statement of intent: those are the files
+            the person wants looked at. If the folder box is still somewhere that
+            has nothing to do with that service, move it there rather than run a
+            scan that can only come back empty. An existing choice inside that
+            service is left alone.
+    #>
+    param([string]$Service)
+
+    if (-not $script:DRCloudRoots.ContainsKey($Service)) { return }
+    $roots = @($script:DRCloudRoots[$Service])
+    if ($roots.Count -eq 0) { return }
+
+    $current = [string]$ui.TxtFolder.Text
+    foreach ($r in $roots) {
+        if ($current -and $current.StartsWith($r, [StringComparison]::OrdinalIgnoreCase)) { return }
+    }
+
+    $target = $roots[0]
+    # Google Drive mounts a whole drive; the person's own files live in My Drive.
+    $myDrive = Join-Path $target 'My Drive'
+    if ((Test-Path -LiteralPath $myDrive) -and ($target -match '^[A-Za-z]:\?$')) { $target = $myDrive }
+
+    $ui.TxtFolder.Text = $target
+}
+
+function Get-TickedCloudRoots {
+    <# Folders for the ticked services only. Nothing else is ever downloaded. #>
+    $roots = New-Object System.Collections.Generic.List[string]
+    foreach ($name in $script:DRCloudBoxes.Keys) {
+        $box = $ui[$script:DRCloudBoxes[$name]]
+        if (-not $box -or -not $box.IsChecked) { continue }
+        if (-not $script:DRCloudRoots.ContainsKey($name)) { continue }
+        foreach ($r in $script:DRCloudRoots[$name]) { $roots.Add($r) }
+    }
+    return @($roots)
+}
+
 function Get-MinBytes {
+    # Two choices only: skip the small stuff, or take everything. Anything
+    # under 100KB is noise - a thousand duplicate icons free a couple of
+    # megabytes and bury the photos and videos worth finding.
     switch ($ui.CmbMin.SelectedIndex) {
-        0 { 1KB }
-        1 { 100KB }
-        2 { 1MB }
-        3 { 10MB }
+        0 { 100KB }
+        1 { 1 }
         default { 100KB }
     }
 }
@@ -2014,10 +2202,10 @@ $timer.Add_Tick({
         $cloud = [int]$state['CloudSkipped']
         if ($cloud -gt 0) {
             $ui.CloudNote.Visibility = 'Visible'
-            if ($ui.ChkCloud.IsChecked) {
-                $ui.CloudNoteText.Text = "$cloud OneDrive / cloud files were included in this scan. Any that were online-only had to be downloaded to be compared."
+            if (@(Get-TickedCloudRoots).Count -gt 0) {
+                $ui.CloudNoteText.Text = "$cloud cloud files were included in this scan. Any that were online-only had to be downloaded to be compared."
             } else {
-                $ui.CloudNoteText.Text = "$cloud OneDrive / cloud files were skipped - they are not stored on this PC, so checking them would download every one. Tick 'Include OneDrive / cloud files' above to compare them anyway."
+                $ui.CloudNoteText.Text = "$cloud cloud files were skipped - they are not stored on this PC, so checking them would download every one. Tick 'Include OneDrive / Google Drive / iCloud files' above to compare them anyway."
             }
         }
     })
@@ -2328,7 +2516,7 @@ $ui.BtnScan.Add_Click({
             AddArgument(@($root)).
             AddArgument([long](Get-MinBytes)).
             AddArgument([bool]$ui.ChkSub.IsChecked).
-            AddArgument([bool]$ui.ChkCloud.IsChecked).
+            AddArgument((Get-TickedCloudRoots)).
             AddArgument((Get-ChosenExts)).
             AddArgument($state)
         $script:handle = $script:ps.BeginInvoke()
@@ -2445,5 +2633,9 @@ if ($TestMode) {
     }
     return
 }
+
+# Work out which cloud services are signed in before the window is shown, so the
+# tick boxes are already right the first time anyone looks at them.
+try { Initialize-DRCloudBoxes } catch { }
 
 $null = $win.ShowDialog()

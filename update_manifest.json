@@ -1,27 +1,27 @@
 {
-  "version": "1.3.2",
-  "notes": "Cookie cleanup now only appears on an Advanced sweep, so a Safe or Medium clean can never sign you out of your websites. A new Drive health check tells you whether your drives are healthy before one fails, and a new Hardware page shows what is inside your PC, how old each driver is, and whether you have room to add memory. Nothing on either is changed or installed.",
-  "published": "2026-09-08T23:22:20.3246389-04:00",
+  "version": "1.3.3",
+  "notes": "Cloud files now have a tick box each for iCloud, Google Drive, OneDrive, Dropbox and MEGA.\nTicking a service also points the folder at it, so you can scan it straight away.\nA service you have not installed is greyed out and says so, instead of finding nothing.\nThe Cleaner can clear the cache each cloud app leaves behind, often several gigabytes. Your synced files are never touched.\nThe size filter is simpler: skip small files, or look at everything.",
+  "published": "2026-09-09T12:15:03.9741919-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "2C0F5AC5AC1AEF0AB80731C8207D26E10BD9F58ACE26754AE39D01109029F7E0",
-      "size": 117325
+      "sha256": "39CE0577BFE4140D812E15E4112CD0A30D677B1E724057EEC574E4C24F80F488",
+      "size": 126402
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "4BDD6839E46384995B64F582FB1008693D19D0C246C6D31009C181C33A46F6DA",
-      "size": 148923
+      "sha256": "0CBBA86F6E8F13B8295E3BB68B48BB07C2EBCDD361729E8E16F8322912F6F0A6",
+      "size": 150801
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "D5E615FF9BDEA1659BB3A8C9729CDB85EC17DF628899E423223C5E28EFEF031F",
-      "size": 56055
+      "sha256": "FCD973A9B12FC2870ADFE952AE43249E6973A3EFA1A664CCDE5EF0BAF5AA21BD",
+      "size": 65307
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "E66F6416332A2C372C4F712E962CB4271365B1A5558CBE4EF7360F958206D4D0",
-      "size": 23923
+      "sha256": "BCF10DCDC130F8A1D7567391094704EAAF365C64C2881D098FC47AFADF8E1B77",
+      "size": 24521
     }
   ]
 }
