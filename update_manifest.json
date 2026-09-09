@@ -1,7 +1,7 @@
 {
-  "version": "1.4.3",
-  "notes": "Fixes the activation window not opening after an update.",
-  "published": "2026-09-09T16:13:05.9247968-04:00",
+  "version": "1.4.4",
+  "notes": "Medium Scan now also clears the cloud caches for the services you have installed.",
+  "published": "2026-09-09T16:35:34.9985307-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "D28971FBC4A51D548DBEEE0CD3DB0CE4710200021808028AE6F9B12FA32CB5FF",
-      "size": 156510
+      "sha256": "352BD0A0E3B85B040AACE791AA3F71D92EBC7A642F34EB569AA8BAD08E2C282C",
+      "size": 156730
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

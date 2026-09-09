@@ -775,18 +775,21 @@ function Test-TaskInOrderedPreset {
         'cleanup.hidden-recycle-folders',
         'cleanup.prefetch'
     )
-    $mediumIds = $safeIds + @('cleanup.disk-cleanup')
-    # The cloud caches join Advanced, the level meant to reclaim everything.
-    # They only ever appear for a service that is installed, and clearing one
-    # costs nothing but re-downloading files that were already cached.
-    $advancedIds = $mediumIds + @(
-        'cleanup.cookies',
+    # The cloud caches are safe and only ever appear for a service that is
+    # installed, so a full cleanup should take them too. Advanced adds the
+    # cookies and the repairs on top.
+    $cloudCacheIds = @(
         'cleanup.cloud-icloud',
         'cleanup.cloud-google',
         'cleanup.cloud-onedrive',
         'cleanup.cloud-dropbox',
         'cleanup.cloud-mega'
     )
+    $mediumIds = $safeIds + @('cleanup.disk-cleanup') + $cloudCacheIds
+    # The cloud caches join Advanced, the level meant to reclaim everything.
+    # They only ever appear for a service that is installed, and clearing one
+    # costs nothing but re-downloading files that were already cached.
+    $advancedIds = $mediumIds + @('cleanup.cookies')
 
     if ($Preset -eq 'Safe') {
         return ($safeIds -contains $Task.Id)
