@@ -2035,18 +2035,6 @@ try {
         }
         # Which version is running should never be a question. Show it where the
     # product is named, so anyone reporting a problem can read it straight off.
-    try {
-        $shown = try { Get-DRInstalledVersion } catch { $null }
-        # <BUILD-VERSION>
-        $script:DRBuildVersion = ''
-        # </BUILD-VERSION>
-        # The version the update system recorded wins, because it is the one
-        # actually running. A copy that has never updated falls back to the
-        # number stamped in at build time, so the label is never a guess.
-        $ui.VersionText.Text = if ($shown -and "$shown" -ne '0.0.0') { "Version $shown" }
-                               elseif ($script:DRBuildVersion) { "Version $script:DRBuildVersion" }
-                               else { 'Version 1.0' }
-    } catch { }
 
     Apply-CleanupPreset -Preset 'Safe'
     }
@@ -2681,6 +2669,18 @@ if ($NoShow) {
     $window.Close()
     Write-Output 'DRDirect PC Cleaner GUI initialized successfully.'
 } else {
+    try {
+        $shown = try { Get-DRInstalledVersion } catch { $null }
+        # <BUILD-VERSION>
+        $script:DRBuildVersion = ''
+        # </BUILD-VERSION>
+        # The version the update system recorded wins, because it is the one
+        # actually running. A copy that has never updated falls back to the
+        # number stamped in at build time, so the label is never a guess.
+        $ui.VersionText.Text = if ($shown -and "$shown" -ne '0.0.0') { "Version $shown" }
+                               elseif ($script:DRBuildVersion) { "Version $script:DRBuildVersion" }
+                               else { 'Version 1.0' }
+    } catch { }
     Apply-CleanupPreset -Preset 'Safe'
     # Ask once a day, quietly, so a waiting update is visible on the button
     # rather than only to someone who thinks to go looking for it.

@@ -1,7 +1,7 @@
 {
-  "version": "1.4.1",
-  "notes": "Fixes the Cleaner closing straight after opening.",
-  "published": "2026-09-09T15:51:43.3850527-04:00",
+  "version": "1.4.2",
+  "notes": "The version number now shows correctly under the program name.",
+  "published": "2026-09-09T16:08:48.6458865-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "4E83D69C6317829BD594D4936C0BD5409C2633C77D81521EABD738BA6795D022",
+      "sha256": "D28971FBC4A51D548DBEEE0CD3DB0CE4710200021808028AE6F9B12FA32CB5FF",
       "size": 156510
     },
     {
