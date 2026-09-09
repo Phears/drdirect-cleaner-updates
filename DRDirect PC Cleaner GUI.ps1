@@ -775,7 +775,17 @@ function Test-TaskInOrderedPreset {
         'cleanup.prefetch'
     )
     $mediumIds = $safeIds + @('cleanup.disk-cleanup')
-    $advancedIds = $mediumIds + @('cleanup.cookies')
+    # The cloud caches join Advanced, the level meant to reclaim everything.
+    # They only ever appear for a service that is installed, and clearing one
+    # costs nothing but re-downloading files that were already cached.
+    $advancedIds = $mediumIds + @(
+        'cleanup.cookies',
+        'cleanup.cloud-icloud',
+        'cleanup.cloud-google',
+        'cleanup.cloud-onedrive',
+        'cleanup.cloud-dropbox',
+        'cleanup.cloud-mega'
+    )
 
     if ($Preset -eq 'Safe') {
         return ($safeIds -contains $Task.Id)
@@ -789,12 +799,11 @@ function Test-TaskInOrderedPreset {
         # A quick Defender scan rides along with the full sweep. It stays on the
         # Security page too, so it can still be run on its own in a few minutes.
         #
-        # The network reset is left out. It repairs a broken connection rather
-        # than maintaining a working one, and it can drop the link to a machine
-        # being serviced remotely. It stays listed on the Windows repair page,
-        # just unticked, so it is always one click away when it is wanted.
-        if ($Task.Id -eq 'repair.network-reset') { return $false }
-
+        # The network reset is included. Saved wireless networks and their
+        # passwords are untouched, so a home machine on DHCP reconnects by
+        # itself after the restart. Two cases still need care: a PC on a static
+        # address or manual DNS has to have those re-entered, and a remote
+        # session drops while the address renews.
         return (($advancedIds -contains $Task.Id) -or
                 $Task.Category -eq 'Repair' -or
                 $Task.Id -eq 'security.quick-scan')

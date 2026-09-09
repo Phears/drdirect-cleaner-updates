@@ -1,7 +1,7 @@
 {
-  "version": "1.3.5",
-  "notes": "You now get three hours of warning before Windows restarts, instead of one.\nIf you try to shut down while a restart is still needed, the Cleaner reminds you to restart instead so the repairs finish properly.",
-  "published": "2026-09-09T13:29:16.5511437-04:00",
+  "version": "1.3.6",
+  "notes": "Advanced Scan now also clears the cache your cloud apps leave behind and resets the network.\nCloud cache rows only appear for services you actually have installed.",
+  "published": "2026-09-09T14:38:13.3356062-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "C3E04D329D1DB5ADDDCF36B289062DA5FF1324BE6E00F97649FC3FE361D00E36",
-      "size": 150918
+      "sha256": "43D7FDA37B7F9243767A8A9F1B291DE5B3DDAE4C6E8ED78C908AC187157582AB",
+      "size": 151293
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
