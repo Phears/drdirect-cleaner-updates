@@ -427,6 +427,7 @@ $ErrorActionPreference = 'Stop'
                         <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="DRDirect" Foreground="White" FontWeight="Bold" FontSize="24"/>
                             <TextBlock Text="PC Cleaner" Foreground="#B9C9DD" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock x:Name="VersionText" Foreground="#7F94AE" FontSize="11" Margin="0,2,0,0"/>
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
@@ -631,7 +632,7 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','HardwareList','CheckDriversButton','NavDuplicates','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','HardwareList','CheckDriversButton','NavDuplicates','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 $catalog = @(Get-DRTaskCatalog)
 $selection = @{}
@@ -2032,7 +2033,14 @@ try {
             $ui[$p].Opacity = 0.4
             $ui[$p].ToolTip = 'The free try covers the Safe scan. Contact DRDirect for a code to unlock the rest.'
         }
-        Apply-CleanupPreset -Preset 'Safe'
+        # Which version is running should never be a question. Show it where the
+    # product is named, so anyone reporting a problem can read it straight off.
+    try {
+        $shown = try { Get-DRInstalledVersion } catch { $null }
+        $ui.VersionText.Text = if ($shown -and "$shown" -ne '0.0.0') { "Version $shown" } else { 'Version 1.0' }
+    } catch { }
+
+    Apply-CleanupPreset -Preset 'Safe'
     }
 } catch { }
 $ui.ConfirmationCheck.Add_Checked({ $ui.ConfirmRunButton.IsEnabled=$true })

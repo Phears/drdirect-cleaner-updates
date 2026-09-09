@@ -932,6 +932,7 @@ $xaml = @'
               <TextBlock x:Name="TrialBadgeText" Text="FREE TRY" Foreground="#7A4A00" FontSize="11" FontWeight="Bold"/>
             </Border>
             <TextBlock Foreground="#E8F1FF" FontSize="16" Margin="0,6,0,0"><Run Text="Only files that are 100% identical."/><Run Text="  One copy is always kept." Foreground="#9DBBFF" FontSize="24" FontWeight="Bold"/></TextBlock>
+            <TextBlock x:Name="VersionText" Foreground="#A8CDBB" FontSize="11" Margin="0,4,0,0"/>
           </StackPanel>
 
           <!-- the three checks that earn the word 'identical' -->
@@ -1376,7 +1377,7 @@ $win = [Windows.Markup.XamlReader]::Load($reader)
 
 $ui = @{}
 foreach ($n in 'TxtFolder', 'BtnBrowse', 'BtnScan', 'BtnCancel', 'BtnUpdate', 'BtnActivate', 'SummaryScale', 'ChkSub', 'CmbMin', 'GroupList',
-    'EmptyState', 'EmptyTitle', 'EmptyHint', 'StatStrip', 'StatSets', 'StatFiles', 'StatSpace', 'ScanBusy', 'SweepSpin', 'ScanBusyHint', 'LblSummary', 'Bar', 'BtnNone', 'BtnDelete', 'Scroller',
+    'VersionText', 'EmptyState', 'EmptyTitle', 'EmptyHint', 'StatStrip', 'StatSets', 'StatFiles', 'StatSpace', 'ScanBusy', 'SweepSpin', 'ScanBusyHint', 'LblSummary', 'Bar', 'BtnNone', 'BtnDelete', 'Scroller',
     'TrialBadge', 'TrialBadgeText', 'AckBox', 'ChkAck', 'ChkCloudICloud', 'ChkCloudGoogle', 'ChkCloudOneDrive', 'ChkCloudDropbox', 'ChkCloudMega', 'LblCloudHint', 'ChipAll', 'ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc',
     'ChipArc', 'LblChips', 'CloudNote', 'CloudNoteText', 'SavedPanel', 'SavedBig', 'SavedSub', 'SavedSession', 'SavedShift', 'TickPop') {
     $ui[$n] = $win.FindName($n)
@@ -2636,6 +2637,12 @@ if ($TestMode) {
 
 # Work out which cloud services are signed in before the window is shown, so the
 # tick boxes are already right the first time anyone looks at them.
+# Which version is running should never be a question.
+try {
+    $shown = if ($script:DRUpdaterLoaded) { Get-DRInstalledVersion } else { $null }
+    $ui.VersionText.Text = if ($shown -and "$shown" -ne '0.0.0') { "Version $shown" } else { 'Version 1.0' }
+} catch { }
+
 try { Initialize-DRCloudBoxes } catch { }
 
 $null = $win.ShowDialog()

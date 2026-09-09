@@ -1,17 +1,17 @@
 {
-  "version": "1.3.9",
-  "notes": "After an update installs, the app now tells you to close and reopen it, and that no PC restart is needed.",
-  "published": "2026-09-09T14:58:15.7239539-04:00",
+  "version": "1.4.0",
+  "notes": "Both programs now show which version you are running, under the name at the top.",
+  "published": "2026-09-09T15:01:54.0780205-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "39CE0577BFE4140D812E15E4112CD0A30D677B1E724057EEC574E4C24F80F488",
-      "size": 126402
+      "sha256": "DB278B92E23CFC847B7185AC2A648166EC0292182AA6467AD3CA5C5BFD6390BB",
+      "size": 126782
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "1353513C8C1774CC355A97594D0E0C1B6EBFA86834AD9532631FC28A9F7F4667",
-      "size": 154935
+      "sha256": "158D5088797767D269FE1C245E67E89CCF6DE5403CC2CEA766334BEBACC8A5EF",
+      "size": 155424
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
