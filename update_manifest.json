@@ -1,12 +1,12 @@
 {
-  "version": "1.4.4",
-  "notes": "Medium Scan now also clears the cloud caches for the services you have installed.",
-  "published": "2026-09-09T16:35:34.9985307-04:00",
+  "version": "1.4.5",
+  "notes": "The Duplicate Finder now gives you a clear 'Scan complete' summary when a scan finishes - the totals count up as the results slide into view.",
+  "published": "2026-09-10T17:37:29.8872685-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "B699E55E3B09D085994886044399A1065F5FEF38C80FFBD964954A035B0845DB",
-      "size": 127197
+      "sha256": "9BD04D5CF176880C45E2734B02C10297681601790CE90EAB95D7A5334796D1EC",
+      "size": 133404
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",

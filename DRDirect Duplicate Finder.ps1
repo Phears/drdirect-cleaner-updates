@@ -1069,6 +1069,25 @@ $xaml = @'
             </Grid>
           </Border>
 
+          <!-- A quiet 'done' beat when a scan finishes: the tick draws itself in. -->
+          <Border x:Name="ScanDone" Visibility="Collapsed" Opacity="0" Margin="0,0,0,14"
+                  Padding="16,13" Background="#F3FAF6" BorderBrush="#BCE3D0" BorderThickness="1" CornerRadius="12"
+                  RenderTransformOrigin="0.5,0.5">
+            <Border.RenderTransform><ScaleTransform x:Name="ScanDoneScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+              <Grid Width="34" Height="34" Margin="0,0,13,0">
+                <Ellipse Stroke="#16835B" StrokeThickness="2.5"/>
+                <Path x:Name="ScanDoneTick" Stroke="#16835B" StrokeThickness="3"
+                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                      StrokeDashArray="9 100" StrokeDashOffset="9" Data="M9,17.5 L14,22.5 L25,11"/>
+              </Grid>
+              <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="Scan complete" Foreground="#16835B" FontSize="14" FontWeight="SemiBold"/>
+                <TextBlock x:Name="ScanDoneSub" Foreground="#667085" FontSize="12"/>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
           <UniformGrid x:Name="StatStrip" Columns="3" Margin="0,0,0,4" Visibility="Collapsed">
             <Border Background="White" CornerRadius="12" BorderBrush="#7C5CD6" BorderThickness="5,1,1,1" Padding="18" Margin="0,0,12,0">
               <Border.Effect><DropShadowEffect Color="#6B82A6" BlurRadius="22" ShadowDepth="4" Direction="270" Opacity="0.20"/></Border.Effect>
@@ -1377,7 +1396,7 @@ $win = [Windows.Markup.XamlReader]::Load($reader)
 
 $ui = @{}
 foreach ($n in 'TxtFolder', 'BtnBrowse', 'BtnScan', 'BtnCancel', 'BtnUpdate', 'BtnActivate', 'SummaryScale', 'ChkSub', 'CmbMin', 'GroupList',
-    'VersionText', 'EmptyState', 'EmptyTitle', 'EmptyHint', 'StatStrip', 'StatSets', 'StatFiles', 'StatSpace', 'ScanBusy', 'SweepSpin', 'ScanBusyHint', 'LblSummary', 'Bar', 'BtnNone', 'BtnDelete', 'Scroller',
+    'VersionText', 'EmptyState', 'EmptyTitle', 'EmptyHint', 'StatStrip', 'StatSets', 'StatFiles', 'StatSpace', 'ScanDone', 'ScanDoneScale', 'ScanDoneTick', 'ScanDoneSub', 'ScanBusy', 'SweepSpin', 'ScanBusyHint', 'LblSummary', 'Bar', 'BtnNone', 'BtnDelete', 'Scroller',
     'TrialBadge', 'TrialBadgeText', 'AckBox', 'ChkAck', 'ChkCloudICloud', 'ChkCloudGoogle', 'ChkCloudOneDrive', 'ChkCloudDropbox', 'ChkCloudMega', 'LblCloudHint', 'ChipAll', 'ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc',
     'ChipArc', 'LblChips', 'CloudNote', 'CloudNoteText', 'SavedPanel', 'SavedBig', 'SavedSub', 'SavedSession', 'SavedShift', 'TickPop') {
     $ui[$n] = $win.FindName($n)
@@ -1407,6 +1426,7 @@ function Set-Busy {
     try {
         if ($Busy) {
             $ui.EmptyState.Visibility = 'Collapsed'
+            if ($ui.ScanDone) { $ui.ScanDone.Visibility = 'Collapsed' }
             $ui.ScanBusy.Visibility = 'Visible'
             $spin = New-Object Windows.Media.Animation.DoubleAnimation(0, 360,
                 (New-Object Windows.Duration ([TimeSpan]::FromMilliseconds(1400))))
@@ -2158,11 +2178,94 @@ function Show-Results {
     }
     $ui.ChkAck.IsChecked = $false
     $ui.EmptyState.Visibility = if ($groups.Count -eq 0) { 'Visible' } else { 'Collapsed' }
+    if (($groups.Count -eq 0) -and $ui.ScanDone) { $ui.ScanDone.Visibility = 'Collapsed' }
     if ($groups.Count -eq 0) {
         $ui.EmptyTitle.Text = 'No duplicates found'
         $ui.EmptyHint.Text = 'Nothing in that folder is an exact copy of anything else. Try a bigger folder, or lower the size filter.'
     }
     Update-Summary
+
+    # A gentle reveal once the results are in: the numbers count up, the strip and
+    # list ease in, and a tick draws itself. Nothing here changes what is shown.
+    if ($groups.Count -gt 0) {
+        $revealBytes = [long]0
+        foreach ($g in $groups) {
+            foreach ($f in $g.Files) { if (-not $f.IsKeeper) { $revealBytes += $f.Size } }
+        }
+        $revealFiles = 0
+        foreach ($g in $groups) { $revealFiles += ($g.Files.Count - 1) }
+        Invoke-DRScanReveal -Sets $groups.Count -Files $revealFiles -Bytes $revealBytes
+    }
+}
+
+# Counts the three headline numbers up from zero, eases the summary strip and the
+# results list into view, then draws the 'Scan complete' tick with a small bounce.
+function Invoke-DRScanReveal {
+    param([int]$Sets, [int]$Files, [long]$Bytes)
+    if (-not $ui.StatStrip) { return }
+  try {
+    Add-Type -AssemblyName PresentationCore | Out-Null
+    $ease = New-Object System.Windows.Media.Animation.CubicEase
+    $ease.EasingMode = 'EaseOut'
+
+    # Fade + slide the summary strip and the results list.
+    foreach ($el in @($ui.StatStrip, $ui.GroupList)) {
+        if (-not $el) { continue }
+        $tt = New-Object System.Windows.Media.TranslateTransform
+        $tt.Y = 18
+        $el.RenderTransform = $tt
+        $fade = New-Object System.Windows.Media.Animation.DoubleAnimation(0, 1, ([Windows.Duration]([TimeSpan]::FromMilliseconds(450))))
+        $slide = New-Object System.Windows.Media.Animation.DoubleAnimation(18, 0, ([Windows.Duration]([TimeSpan]::FromMilliseconds(600))))
+        $slide.EasingFunction = $ease
+        $fade.EasingFunction = $ease
+        $el.BeginAnimation([Windows.UIElement]::OpacityProperty, $fade)
+        $tt.BeginAnimation([System.Windows.Media.TranslateTransform]::YProperty, $slide)
+    }
+
+    # Count the three numbers up from zero (Text is not a double, so drive it by timer).
+    # Values are captured into the tick via GetNewClosure so the built (StrictMode)
+    # exe never trips over an unset script-scope variable.
+    $revealStart = [DateTime]::Now
+    $rSets = [int]$Sets
+    $rFiles = [int]$Files
+    $rBytes = [long]$Bytes
+    $countTimer = New-Object System.Windows.Threading.DispatcherTimer
+    $countTimer.Interval = [TimeSpan]::FromMilliseconds(16)
+    $countTimer.Add_Tick({
+            $t = ([DateTime]::Now - $revealStart).TotalMilliseconds / 1200
+            if ($t -ge 1) { $t = 1 }
+            $e = 1 - [math]::Pow(1 - $t, 3)
+            $ui.StatSets.Text = [string][int][math]::Round($rSets * $e)
+            $ui.StatFiles.Text = [string][int][math]::Round($rFiles * $e)
+            $ui.StatSpace.Text = Format-Size ([long][math]::Round($rBytes * $e))
+            if ($t -ge 1) { $this.Stop() }
+        }.GetNewClosure())
+    $countTimer.Start()
+
+    # The 'Scan complete' tick: fade the badge in, draw the tick, then a soft bounce.
+    if ($ui.ScanDone) {
+        $s = if ($Sets -ne 1) { 's' } else { '' }
+        $ui.ScanDoneSub.Text = "$(Format-Size $Bytes) can be reclaimed across $Sets set$s."
+        $ui.ScanDone.Visibility = 'Visible'
+
+        $badgeFade = New-Object System.Windows.Media.Animation.DoubleAnimation(0, 1, ([Windows.Duration]([TimeSpan]::FromMilliseconds(260))))
+        $badgeFade.EasingFunction = $ease
+        $ui.ScanDone.BeginAnimation([Windows.UIElement]::OpacityProperty, $badgeFade)
+
+        $draw = New-Object System.Windows.Media.Animation.DoubleAnimation(9, 0, ([Windows.Duration]([TimeSpan]::FromMilliseconds(340))))
+        $draw.BeginTime = [TimeSpan]::FromMilliseconds(220)
+        $draw.EasingFunction = $ease
+        $ui.ScanDoneTick.BeginAnimation([System.Windows.Shapes.Shape]::StrokeDashOffsetProperty, $draw)
+
+        $bounce = New-Object System.Windows.Media.Animation.DoubleAnimationUsingKeyFrames
+        $bk = New-Object System.Windows.Media.Animation.CubicEase; $bk.EasingMode = 'EaseOut'
+        $bounce.KeyFrames.Add((New-Object System.Windows.Media.Animation.EasingDoubleKeyFrame(1.0, ([Windows.Media.Animation.KeyTime][TimeSpan]::FromMilliseconds(520)))))
+        $bounce.KeyFrames.Add((New-Object System.Windows.Media.Animation.EasingDoubleKeyFrame(1.05, ([Windows.Media.Animation.KeyTime][TimeSpan]::FromMilliseconds(640)), $bk)))
+        $bounce.KeyFrames.Add((New-Object System.Windows.Media.Animation.EasingDoubleKeyFrame(1.0, ([Windows.Media.Animation.KeyTime][TimeSpan]::FromMilliseconds(760)), $bk)))
+        $ui.ScanDoneScale.BeginAnimation([System.Windows.Media.ScaleTransform]::ScaleXProperty, $bounce)
+        $ui.ScanDoneScale.BeginAnimation([System.Windows.Media.ScaleTransform]::ScaleYProperty, $bounce.Clone())
+    }
+  } catch { }
 }
 
 $timer.Add_Tick({
@@ -2195,6 +2298,7 @@ $timer.Add_Tick({
         if ($state['Cancel']) {
             $ui.LblSummary.Text = 'Scan stopped.'
             if ($ui.StatStrip) { $ui.StatStrip.Visibility = 'Collapsed' }
+            if ($ui.ScanDone) { $ui.ScanDone.Visibility = 'Collapsed' }
             return
         }
         Show-Results $state['Results']
