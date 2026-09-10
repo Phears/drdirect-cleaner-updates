@@ -565,6 +565,24 @@ $ErrorActionPreference = 'Stop'
                             </StackPanel>
                         </Grid>
                     </Border>
+                    <!-- Shown in place of the cleaning banner once the plan finishes:
+                         the tick draws itself, so the 'done' moment is unmistakable. -->
+                    <Border x:Name="CleanDone" Grid.Row="1" Visibility="Collapsed" Opacity="0" Height="66" CornerRadius="14" Margin="0,14,0,4"
+                            Background="{StaticResource SuccessSoft}" BorderBrush="#BCE3D0" BorderThickness="1" RenderTransformOrigin="0.5,0.5">
+                        <Border.RenderTransform><ScaleTransform x:Name="CleanDoneScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="22,0">
+                            <Grid Width="36" Height="36" Margin="0,0,14,0">
+                                <Ellipse Stroke="{StaticResource Success}" StrokeThickness="2.5"/>
+                                <Path x:Name="CleanDoneTick" Stroke="{StaticResource Success}" StrokeThickness="3"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
+                                      StrokeDashArray="9 100" StrokeDashOffset="9" Data="M10,18.5 L15,23.5 L26,12"/>
+                            </Grid>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Maintenance complete" Foreground="{StaticResource Success}" FontSize="16" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="CleanDoneSub" Foreground="#5F7A6E" FontSize="12"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
                     <ProgressBar x:Name="OverallProgress" Grid.Row="1" Height="8" Minimum="0" Maximum="100" Value="0" Margin="0,96,0,18" Foreground="{StaticResource Blue}" Background="#DEE5F0" BorderThickness="0"/>
                     <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"><StackPanel x:Name="ProgressList"/></ScrollViewer>
                     <Grid Grid.Row="3" Margin="0,16,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="ProgressSafetyText" Text="Long-running Windows commands finish before the next task begins." Style="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center"/><Button x:Name="RestartButton" Grid.Column="1" Content="Restart now" Style="{StaticResource PrimaryButton}" Margin="0,0,10,0" Visibility="Collapsed"/><Button x:Name="CancelPlanButton" Grid.Column="2" Content="Stop after current task" Style="{StaticResource SecondaryButton}"/></Grid>
@@ -632,7 +650,53 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','HardwareList','CheckDriversButton','NavDuplicates','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','HardwareList','CheckDriversButton','NavDuplicates','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
+
+# A quiet 'done' beat when a plan finishes: the completion badge fades in with a
+# small bounce, its tick draws itself, and the results list eases into view.
+# Wrapped so a cosmetic hiccup can never crash the run.
+function Invoke-DRCleanReveal {
+    param([int]$TaskCount)
+    if (-not $ui.CleanDone) { return }
+  try {
+    Add-Type -AssemblyName PresentationCore | Out-Null
+    $ease = New-Object System.Windows.Media.Animation.CubicEase
+    $ease.EasingMode = 'EaseOut'
+
+    $s = if ($TaskCount -ne 1) { 's' } else { '' }
+    $ui.CleanDoneSub.Text = "$TaskCount task$s finished. Your PC has been cleaned up."
+    $ui.CleanDone.Visibility = 'Visible'
+
+    $badgeFade = New-Object System.Windows.Media.Animation.DoubleAnimation(0, 1, ([Windows.Duration]([TimeSpan]::FromMilliseconds(300))))
+    $badgeFade.EasingFunction = $ease
+    $ui.CleanDone.BeginAnimation([Windows.UIElement]::OpacityProperty, $badgeFade)
+
+    $draw = New-Object System.Windows.Media.Animation.DoubleAnimation(9, 0, ([Windows.Duration]([TimeSpan]::FromMilliseconds(360))))
+    $draw.BeginTime = [TimeSpan]::FromMilliseconds(200)
+    $draw.EasingFunction = $ease
+    $ui.CleanDoneTick.BeginAnimation([System.Windows.Shapes.Shape]::StrokeDashOffsetProperty, $draw)
+
+    $bounce = New-Object System.Windows.Media.Animation.DoubleAnimationUsingKeyFrames
+    $bk = New-Object System.Windows.Media.Animation.CubicEase; $bk.EasingMode = 'EaseOut'
+    $bounce.KeyFrames.Add((New-Object System.Windows.Media.Animation.EasingDoubleKeyFrame(1.0, ([Windows.Media.Animation.KeyTime][TimeSpan]::FromMilliseconds(500)))))
+    $bounce.KeyFrames.Add((New-Object System.Windows.Media.Animation.EasingDoubleKeyFrame(1.05, ([Windows.Media.Animation.KeyTime][TimeSpan]::FromMilliseconds(620)), $bk)))
+    $bounce.KeyFrames.Add((New-Object System.Windows.Media.Animation.EasingDoubleKeyFrame(1.0, ([Windows.Media.Animation.KeyTime][TimeSpan]::FromMilliseconds(740)), $bk)))
+    $ui.CleanDoneScale.BeginAnimation([System.Windows.Media.ScaleTransform]::ScaleXProperty, $bounce)
+    $ui.CleanDoneScale.BeginAnimation([System.Windows.Media.ScaleTransform]::ScaleYProperty, $bounce.Clone())
+
+    # Ease the finished results list up into view.
+    if ($ui.ProgressList) {
+        $tt = New-Object System.Windows.Media.TranslateTransform
+        $tt.Y = 16
+        $ui.ProgressList.RenderTransform = $tt
+        $lf = New-Object System.Windows.Media.Animation.DoubleAnimation(0, 1, ([Windows.Duration]([TimeSpan]::FromMilliseconds(450))))
+        $ls = New-Object System.Windows.Media.Animation.DoubleAnimation(16, 0, ([Windows.Duration]([TimeSpan]::FromMilliseconds(600))))
+        $lf.EasingFunction = $ease; $ls.EasingFunction = $ease
+        $ui.ProgressList.BeginAnimation([Windows.UIElement]::OpacityProperty, $lf)
+        $tt.BeginAnimation([System.Windows.Media.TranslateTransform]::YProperty, $ls)
+    }
+  } catch { }
+}
 
 $catalog = @(Get-DRTaskCatalog)
 $selection = @{}
@@ -1266,6 +1330,11 @@ function Start-RunPlan {
     Set-Variable -Name cancelAfterTask -Value $false -Scope Script
     $ui.ProgressList.Children.Clear(); foreach ($task in $selected) { $ui.ProgressList.Children.Add((New-ProgressRow $task)) | Out-Null }
     if ($ui.CleaningAnimation) { $ui.CleaningAnimation.Visibility='Visible' }
+    if ($ui.CleanDone) { $ui.CleanDone.Visibility='Collapsed' }
+    if ($ui.ProgressList) {
+        $ui.ProgressList.BeginAnimation([Windows.UIElement]::OpacityProperty, $null)
+        $ui.ProgressList.Opacity = 1
+    }
     $ui.OverallProgress.Value=0; $ui.ProgressPercent.Text='0%'; $ui.CancelPlanButton.IsEnabled=$true; $ui.CancelPlanButton.Content='Stop after current task'
     $ui.RestartButton.Visibility='Collapsed'
     Set-ProgressScanLevel -Preset $script:cleanupPreset
@@ -1547,6 +1616,7 @@ function Complete-RunPlan {
     # Every completed Safe, Medium, or Advanced plan asks about restart and
     # starts the 90-second automatic restart countdown.
     if ($ui.CleaningAnimation) { $ui.CleaningAnimation.Visibility='Collapsed' }
+    if (-not $cancelAfterTask) { Invoke-DRCleanReveal -TaskCount $selectedIds.Count }
     $needsRestart = (-not $cancelAfterTask) -and ($selectedIds.Count -gt 0)
 
     $ui.RestartButton.Visibility = if ($needsRestart) {

@@ -1,7 +1,7 @@
 {
-  "version": "1.4.5",
-  "notes": "The Duplicate Finder now gives you a clear 'Scan complete' summary when a scan finishes - the totals count up as the results slide into view.",
-  "published": "2026-09-10T17:37:29.8872685-04:00",
+  "version": "1.4.6",
+  "notes": "The PC Cleaner now shows a clear 'Maintenance complete' summary when a plan finishes, matching the Duplicate Finder.",
+  "published": "2026-09-10T17:58:40.6753409-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "352BD0A0E3B85B040AACE791AA3F71D92EBC7A642F34EB569AA8BAD08E2C282C",
-      "size": 156730
+      "sha256": "510AAC8FD3FFC6F0D774DAF1671413BB5BCB71AA4599DD1FE89237C6F5323BC9",
+      "size": 161658
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
