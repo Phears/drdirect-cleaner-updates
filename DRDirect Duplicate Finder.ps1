@@ -667,8 +667,8 @@ if ($ScanOnly) {
 $xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="DRDirect Duplicate Finder" Width="1180" Height="800"
-        MinWidth="900" MinHeight="600"
+        Title="DRDirect Duplicate Finder" Width="1040" Height="700"
+        MinWidth="860" MinHeight="560"
         WindowStartupLocation="CenterScreen"
         FontFamily="Segoe UI" FontSize="14" TextOptions.TextFormattingMode="Ideal">
   <Window.Background>

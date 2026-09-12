@@ -1,16 +1,16 @@
 {
-  "version": "1.4.12",
-  "notes": "The window now always opens to fit your screen, so the top buttons are never cut off.",
-  "published": "2026-09-12T11:49:53.1919420-04:00",
+  "version": "1.4.13",
+  "notes": "The window opens a little smaller so it fits comfortably on screen.",
+  "published": "2026-09-12T11:51:41.2448246-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "5A3981FD36024A6BB74B8C27232644FF04F13DB3D96C06D132B6D7AFB71E7801",
+      "sha256": "A5B2F002043DC8B0A373484937EB74696052EF86A93DDEFE4628756276FEAE64",
       "size": 139901
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "12F0E7903F92894A9E88AA6F1DDCEBEE3998A97A09953217053812CDD11AB25E",
+      "sha256": "8027899C36469A3789AD585BDD0E704908BA7980737A3062E42CC3EE712D716F",
       "size": 181544
     },
     {
