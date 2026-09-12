@@ -1,17 +1,17 @@
 {
-  "version": "1.4.8",
-  "notes": "Opening a file now shows it in its folder instead of trying to run scripts or program files, and updated copies keep the DRDirect icon.",
-  "published": "2026-09-12T10:29:25.9529982-04:00",
+  "version": "1.4.9",
+  "notes": "Updated copies now keep the DRDirect icon on the taskbar instead of the PowerShell icon.",
+  "published": "2026-09-12T10:36:33.6514873-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "A52CC4969E270175A2E04900DEBA5FFB27CD8FE3A45CCC318043256AB67CE144",
-      "size": 135543
+      "sha256": "E1CCD3863FB4F6AE0A9BF6A112C48AA74F95D9507DA959F0228AB97C05A945EA",
+      "size": 138914
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "A1766226ED466C806429C54BF3EDEBBBD138CB42CDC941A4A088421B26B15AA7",
-      "size": 165892
+      "sha256": "9F1C983EE71F70DFBAD3774001C0745BE295452953C997ADD9B74F6ABF1860AB",
+      "size": 180625
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
