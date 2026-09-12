@@ -1394,6 +1394,34 @@ $xaml = @'
 $reader = New-Object System.Xml.XmlNodeReader ([xml]$xaml)
 $win = [Windows.Markup.XamlReader]::Load($reader)
 
+# As the compiled exe the taskbar icon comes from the exe; as the updated script
+# (hosted by powershell.exe) nothing sets one, so Windows shows the PowerShell
+# icon. Give the window its own DRDirect icon and a stable app identity so both
+# ways look the same.
+try {
+    $iconCandidates = @(
+        (Join-Path $PSScriptRoot 'DRDirectDuplicate.ico'),
+        (Join-Path (Split-Path -Parent ([System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName)) 'DRDirectDuplicate.ico'),
+        (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'DRDirect PC Cleaner\Scripts\DRDirectDuplicate.ico')
+    )
+    $iconPath = $iconCandidates | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -First 1
+    if ($iconPath) {
+        $bmp = New-Object System.Windows.Media.Imaging.BitmapImage
+        $bmp.BeginInit()
+        $bmp.CacheOption = [System.Windows.Media.Imaging.BitmapCacheOption]::OnLoad
+        $bmp.UriSource = New-Object System.Uri ((Resolve-Path -LiteralPath $iconPath).Path)
+        $bmp.EndInit()
+        $win.Icon = $bmp
+    }
+    if (-not ([System.Management.Automation.PSTypeName]'DRDirect.AppIdFinder').Type) {
+        Add-Type -Namespace DRDirect -Name AppIdFinder -MemberDefinition @'
+[System.Runtime.InteropServices.DllImport("shell32.dll", CharSet=System.Runtime.InteropServices.CharSet.Unicode)]
+public static extern int SetCurrentProcessExplicitAppUserModelID(string AppID);
+'@ -ErrorAction Stop
+    }
+    [void][DRDirect.AppIdFinder]::SetCurrentProcessExplicitAppUserModelID('DRDirect.DuplicateFinder')
+} catch { }
+
 $ui = @{}
 foreach ($n in 'TxtFolder', 'BtnBrowse', 'BtnScan', 'BtnCancel', 'BtnUpdate', 'BtnActivate', 'SummaryScale', 'ChkSub', 'CmbMin', 'GroupList',
     'VersionText', 'EmptyState', 'EmptyTitle', 'EmptyHint', 'StatStrip', 'StatSets', 'StatFiles', 'StatSpace', 'ScanDone', 'ScanDoneScale', 'ScanDoneTick', 'ScanDoneSub', 'ScanBusy', 'SweepSpin', 'ScanBusyHint', 'LblSummary', 'Bar', 'BtnNone', 'BtnDelete', 'Scroller',
@@ -1550,7 +1578,14 @@ function Open-Selected {
             [System.Windows.MessageBox]::Show('That file is no longer there.', 'Duplicate Finder', 'OK', 'Information') | Out-Null
             return
         }
-        if ($InFolder) {
+        # Script and program files are "run" by the shell's open verb, not shown -
+        # e.g. .js launches Windows Script Host and .dll has no opener at all. For
+        # those we reveal the file in Explorer instead of executing it.
+        $noRunExt = @('.js','.jse','.vbs','.vbe','.wsf','.wsh','.ps1','.psm1',
+                      '.bat','.cmd','.com','.exe','.msi','.msp','.scr','.pif',
+                      '.hta','.cpl','.dll','.sys','.reg','.lnk')
+        $ext = [System.IO.Path]::GetExtension($Path).ToLowerInvariant()
+        if ($InFolder -or $noRunExt -contains $ext) {
             Start-Process explorer.exe -ArgumentList "/select,`"$Path`""
         } else {
             Start-Process -FilePath $Path

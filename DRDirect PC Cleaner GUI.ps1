@@ -647,6 +647,34 @@ $ErrorActionPreference = 'Stop'
 $reader = New-Object System.Xml.XmlNodeReader $xaml
 $window = [Windows.Markup.XamlReader]::Load($reader)
 
+# When this interface runs as the compiled exe, the taskbar icon comes from the
+# exe. When it runs as the updated script (hosted by powershell.exe), nothing
+# sets an icon, so Windows shows the PowerShell icon instead. Give the window its
+# own DRDirect icon and a stable app identity so both ways look the same.
+try {
+    $iconCandidates = @(
+        (Join-Path $PSScriptRoot 'DRDirectCleaner.ico'),
+        (Join-Path (Split-Path -Parent ([System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName)) 'DRDirectCleaner.ico'),
+        (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'DRDirect PC Cleaner\Scripts\DRDirectCleaner.ico')
+    )
+    $iconPath = $iconCandidates | Where-Object { $_ -and (Test-Path -LiteralPath $_) } | Select-Object -First 1
+    if ($iconPath) {
+        $bmp = New-Object System.Windows.Media.Imaging.BitmapImage
+        $bmp.BeginInit()
+        $bmp.CacheOption = [System.Windows.Media.Imaging.BitmapCacheOption]::OnLoad
+        $bmp.UriSource = New-Object System.Uri ((Resolve-Path -LiteralPath $iconPath).Path)
+        $bmp.EndInit()
+        $window.Icon = $bmp
+    }
+    if (-not ([System.Management.Automation.PSTypeName]'DRDirect.AppId').Type) {
+        Add-Type -Namespace DRDirect -Name AppId -MemberDefinition @'
+[System.Runtime.InteropServices.DllImport("shell32.dll", CharSet=System.Runtime.InteropServices.CharSet.Unicode)]
+public static extern int SetCurrentProcessExplicitAppUserModelID(string AppID);
+'@ -ErrorAction Stop
+    }
+    [void][DRDirect.AppId]::SetCurrentProcessExplicitAppUserModelID('DRDirect.PCCleaner')
+} catch { }
+
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
@@ -1917,8 +1945,20 @@ function Show-History {
         $button.Add_Click({
             param($sender, $eventArgs)
 
-            if (-not [string]::IsNullOrWhiteSpace([string]$sender.Tag)) {
-                Start-Process -FilePath ([string]$sender.Tag) | Out-Null
+            $target = [string]$sender.Tag
+            if (-not [string]::IsNullOrWhiteSpace($target)) {
+                # Never hand a file to the shell's open verb blindly - for scripts
+                # and programs that means RUNNING it (e.g. .js -> Windows Script
+                # Host, .dll -> no opener). Reveal those in Explorer instead.
+                $noRunExt = @('.js','.jse','.vbs','.vbe','.wsf','.wsh','.ps1','.psm1',
+                              '.bat','.cmd','.com','.exe','.msi','.msp','.scr','.pif',
+                              '.hta','.cpl','.dll','.sys','.reg','.lnk')
+                $ext = [System.IO.Path]::GetExtension($target).ToLowerInvariant()
+                if ($noRunExt -contains $ext) {
+                    Start-Process explorer.exe -ArgumentList "/select,`"$target`"" | Out-Null
+                } else {
+                    Start-Process -FilePath $target | Out-Null
+                }
             }
         })
 

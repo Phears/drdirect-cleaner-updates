@@ -1,17 +1,17 @@
 {
-  "version": "1.4.7",
-  "notes": "Fixes the Duplicate Finder asking for an activation code on a copy that is already paid for. If you tried the free version before buying, it now recognises your licence instead of treating you as a trial.",
-  "published": "2026-09-11T22:40:15.3801159-04:00",
+  "version": "1.4.8",
+  "notes": "Opening a file now shows it in its folder instead of trying to run scripts or program files, and updated copies keep the DRDirect icon.",
+  "published": "2026-09-12T10:29:25.9529982-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "9BD04D5CF176880C45E2734B02C10297681601790CE90EAB95D7A5334796D1EC",
-      "size": 133404
+      "sha256": "A52CC4969E270175A2E04900DEBA5FFB27CD8FE3A45CCC318043256AB67CE144",
+      "size": 135543
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "204ADD8567B698D4FE3104DC115C8BE8C0209A1CB8945234F32B4EB7AAF99D09",
-      "size": 163514
+      "sha256": "A1766226ED466C806429C54BF3EDEBBBD138CB42CDC941A4A088421B26B15AA7",
+      "size": 165892
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -27,6 +27,16 @@
       "name": "DRDirect Activation.ps1",
       "sha256": "A360D5B59604E8F5F93FB407077A7CE9B8AFFF337A7E82082FCEBE64386E6F4A",
       "size": 19349
+    },
+    {
+      "name": "DRDirectCleaner.ico",
+      "sha256": "89C357D20B5EFC1935FADC811B9316D8748B2E7B684313C25ACF06FF8ABDEAA2",
+      "size": 136046
+    },
+    {
+      "name": "DRDirectDuplicate.ico",
+      "sha256": "CA51F88E59EF573031DBE1753E65EC9E1B0EBA80CB066FBF65750532183A67BE",
+      "size": 21875
     }
   ]
 }
