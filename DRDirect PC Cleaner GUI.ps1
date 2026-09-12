@@ -1943,18 +1943,22 @@ function Show-History {
 
             $target = [string]$sender.Tag
             if (-not [string]::IsNullOrWhiteSpace($target)) {
-                # Never hand a file to the shell's open verb blindly - for scripts
-                # and programs that means RUNNING it (e.g. .js -> Windows Script
-                # Host, .dll -> no opener). Reveal those in Explorer instead.
-                $noRunExt = @('.js','.jse','.vbs','.vbe','.wsf','.wsh','.ps1','.psm1',
-                              '.bat','.cmd','.com','.exe','.msi','.msp','.scr','.pif',
-                              '.hta','.cpl','.dll','.sys','.reg','.lnk',
-                              '.jar','.jnlp','.msix','.appx','.appxbundle','.apk','.gadget')
+                # Always do something visible, never run a program. Only viewable
+                # files (documents, images, media) are opened, with a reveal
+                # fallback; everything else is shown in its folder.
+                $openable = @(
+                    '.txt','.md','.log','.csv','.tsv','.rtf','.pdf',
+                    '.doc','.docx','.xls','.xlsx','.ppt','.pptx','.odt','.ods','.odp',
+                    '.jpg','.jpeg','.png','.gif','.bmp','.webp','.tif','.tiff','.svg','.heic','.ico',
+                    '.mp3','.wav','.flac','.aac','.ogg','.m4a','.wma',
+                    '.mp4','.mov','.avi','.mkv','.webm','.wmv','.m4v',
+                    '.html','.htm','.xml','.json')
                 $ext = [System.IO.Path]::GetExtension($target).ToLowerInvariant()
-                if ($noRunExt -contains $ext) {
-                    Start-Process explorer.exe -ArgumentList "/select,`"$target`"" | Out-Null
+                if ($openable -contains $ext) {
+                    try { Start-Process -FilePath $target | Out-Null }
+                    catch { Start-Process explorer.exe -ArgumentList "/select,`"$target`"" | Out-Null }
                 } else {
-                    Start-Process -FilePath $target | Out-Null
+                    Start-Process explorer.exe -ArgumentList "/select,`"$target`"" | Out-Null
                 }
             }
         })

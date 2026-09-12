@@ -1574,18 +1574,24 @@ function Open-Selected {
             [System.Windows.MessageBox]::Show('That file is no longer there.', 'Duplicate Finder', 'OK', 'Information') | Out-Null
             return
         }
-        # Script and program files are "run" by the shell's open verb, not shown -
-        # e.g. .js launches Windows Script Host and .dll has no opener at all. For
-        # those we reveal the file in Explorer instead of executing it.
-        $noRunExt = @('.js','.jse','.vbs','.vbe','.wsf','.wsh','.ps1','.psm1',
-                      '.bat','.cmd','.com','.exe','.msi','.msp','.scr','.pif',
-                      '.hta','.cpl','.dll','.sys','.reg','.lnk',
-                      '.jar','.jnlp','.msix','.appx','.appxbundle','.apk','.gadget')
+        # "Open file" must always do something visible and never run a program.
+        # Only genuinely viewable files (documents, images, media) are opened; and
+        # if opening one fails, we still reveal it. Everything else - scripts,
+        # programs, archives, packages, unknown types - is shown in its folder, so
+        # the button works for every file and can never execute anything.
+        $openable = @(
+            '.txt','.md','.log','.csv','.tsv','.rtf','.pdf',
+            '.doc','.docx','.xls','.xlsx','.ppt','.pptx','.odt','.ods','.odp',
+            '.jpg','.jpeg','.png','.gif','.bmp','.webp','.tif','.tiff','.svg','.heic','.ico',
+            '.mp3','.wav','.flac','.aac','.ogg','.m4a','.wma',
+            '.mp4','.mov','.avi','.mkv','.webm','.wmv','.m4v',
+            '.html','.htm','.xml','.json')
         $ext = [System.IO.Path]::GetExtension($Path).ToLowerInvariant()
-        if ($InFolder -or $noRunExt -contains $ext) {
-            Start-Process explorer.exe -ArgumentList "/select,`"$Path`""
+        $reveal = { Start-Process explorer.exe -ArgumentList "/select,`"$Path`"" }
+        if (-not $InFolder -and $openable -contains $ext) {
+            try { Start-Process -FilePath $Path } catch { & $reveal }
         } else {
-            Start-Process -FilePath $Path
+            & $reveal
         }
     } catch {
         [System.Windows.MessageBox]::Show("Could not open that file:`n$($_.Exception.Message)",
