@@ -1418,6 +1418,18 @@ public static extern int SetCurrentProcessExplicitAppUserModelID(string AppID);
     [void][DRDirect.AppIdFinder]::SetCurrentProcessExplicitAppUserModelID('DRDirect.DuplicateFinder')
 } catch { }
 
+# Never open larger than the visible screen, or the title bar and its buttons
+# land off the top of a small or scaled display. Clamp to the work area.
+try {
+    $wa = [System.Windows.SystemParameters]::WorkArea
+    if ($win.MinHeight -gt $wa.Height) { $win.MinHeight = $wa.Height }
+    if ($win.MinWidth  -gt $wa.Width)  { $win.MinWidth  = $wa.Width }
+    if ($win.Height -gt $wa.Height) { $win.Height = $wa.Height }
+    if ($win.Width  -gt $wa.Width)  { $win.Width  = $wa.Width }
+    $win.MaxHeight = $wa.Height
+    $win.MaxWidth  = $wa.Width
+} catch { }
+
 $ui = @{}
 foreach ($n in 'TxtFolder', 'BtnBrowse', 'BtnScan', 'BtnCancel', 'BtnUpdate', 'BtnActivate', 'SummaryScale', 'ChkSub', 'CmbMin', 'GroupList',
     'VersionText', 'EmptyState', 'EmptyTitle', 'EmptyHint', 'StatStrip', 'StatSets', 'StatFiles', 'StatSpace', 'ScanDone', 'ScanDoneScale', 'ScanDoneTick', 'ScanDoneSub', 'ScanBusy', 'SweepSpin', 'ScanBusyHint', 'LblSummary', 'Bar', 'BtnNone', 'BtnDelete', 'Scroller',

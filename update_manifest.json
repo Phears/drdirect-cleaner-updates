@@ -1,17 +1,17 @@
 {
-  "version": "1.4.11",
-  "notes": "Open file now always works for every file type - it opens documents, pictures and video, and shows anything else in its folder.",
-  "published": "2026-09-12T10:47:14.3468199-04:00",
+  "version": "1.4.12",
+  "notes": "The window now always opens to fit your screen, so the top buttons are never cut off.",
+  "published": "2026-09-12T11:49:53.1919420-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "C26FFC9422FA26C19BB89466FCD7E4894F676CC9BC17866D12F51C119E458693",
-      "size": 139344
+      "sha256": "5A3981FD36024A6BB74B8C27232644FF04F13DB3D96C06D132B6D7AFB71E7801",
+      "size": 139901
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "40691ABE794464DB9B70223786D4C91978E63CDE0CBED98CA2DE618E6FE29DAD",
-      "size": 180957
+      "sha256": "12F0E7903F92894A9E88AA6F1DDCEBEE3998A97A09953217053812CDD11AB25E",
+      "size": 181544
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

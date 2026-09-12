@@ -671,6 +671,18 @@ public static extern int SetCurrentProcessExplicitAppUserModelID(string AppID);
     [void][DRDirect.AppId]::SetCurrentProcessExplicitAppUserModelID('DRDirect.PCCleaner')
 } catch { }
 
+# Never open larger than the visible screen, or the title bar and its buttons
+# land off the top of a small or scaled display. Clamp to the work area.
+try {
+    $wa = [System.Windows.SystemParameters]::WorkArea
+    if ($window.MinHeight -gt $wa.Height) { $window.MinHeight = $wa.Height }
+    if ($window.MinWidth  -gt $wa.Width)  { $window.MinWidth  = $wa.Width }
+    if ($window.Height -gt $wa.Height) { $window.Height = $wa.Height }
+    if ($window.Width  -gt $wa.Width)  { $window.Width  = $wa.Width }
+    $window.MaxHeight = $wa.Height
+    $window.MaxWidth  = $wa.Width
+} catch { }
+
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
