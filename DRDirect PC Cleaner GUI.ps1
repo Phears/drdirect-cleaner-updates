@@ -59,7 +59,7 @@ $ErrorActionPreference = 'Stop'
 [xml]$xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="DRDirect PC Cleaner" Width="1120" Height="720" MinWidth="880" MinHeight="600"
+        Title="DRDirect PC Cleaner" Width="1020" Height="660" MinWidth="860" MinHeight="560"
         WindowStartupLocation="CenterScreen" FontFamily="Segoe UI" FontSize="14" TextOptions.TextFormattingMode="Ideal"
         WindowStyle="None" ResizeMode="CanResize" BorderBrush="#D7DFEA" BorderThickness="1">
     <Window.Background>

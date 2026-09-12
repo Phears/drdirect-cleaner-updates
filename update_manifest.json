@@ -1,16 +1,16 @@
 {
-  "version": "1.4.13",
-  "notes": "The window opens a little smaller so it fits comfortably on screen.",
-  "published": "2026-09-12T11:51:41.2448246-04:00",
+  "version": "1.4.14",
+  "notes": "The window opens a bit smaller again.",
+  "published": "2026-09-12T11:53:11.0560945-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "A5B2F002043DC8B0A373484937EB74696052EF86A93DDEFE4628756276FEAE64",
-      "size": 139901
+      "sha256": "D2F02E53D35AECA8B25AB3C8DD399F80503537B36B97B0A14C8843AF47B16EB0",
+      "size": 139900
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "8027899C36469A3789AD585BDD0E704908BA7980737A3062E42CC3EE712D716F",
+      "sha256": "6EED141D5275473D319DCA71DC204FED482C0B785E82D625A54B309DFE6D6F48",
       "size": 181544
     },
     {
