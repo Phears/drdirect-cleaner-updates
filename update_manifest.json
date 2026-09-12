@@ -1,7 +1,7 @@
 {
-  "version": "1.4.6",
-  "notes": "The PC Cleaner now shows a clear 'Maintenance complete' summary when a plan finishes, matching the Duplicate Finder.",
-  "published": "2026-09-10T17:58:40.6753409-04:00",
+  "version": "1.4.7",
+  "notes": "Fixes the Duplicate Finder asking for an activation code on a copy that is already paid for. If you tried the free version before buying, it now recognises your licence instead of treating you as a trial.",
+  "published": "2026-09-11T22:40:15.3801159-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "510AAC8FD3FFC6F0D774DAF1671413BB5BCB71AA4599DD1FE89237C6F5323BC9",
-      "size": 161658
+      "sha256": "204ADD8567B698D4FE3104DC115C8BE8C0209A1CB8945234F32B4EB7AAF99D09",
+      "size": 163514
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

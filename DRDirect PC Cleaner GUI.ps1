@@ -2363,6 +2363,35 @@ $ui.RestartButton.Add_Click({
         [Windows.MessageBox]::Show($message, 'DRDirect PC Cleaner', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Error) | Out-Null
     }
 })
+function Resolve-DRDuplicateFinderExe {
+    # The Duplicate Finder's own locked build, if it was installed beside this
+    # one. Launching that lets it read its own licence. Running the loose script
+    # instead makes it inherit this app's licence state, which is how a paid
+    # Finder ended up wearing a free-try badge from an old Cleaner.
+    $roots = New-Object System.Collections.Generic.List[string]
+    try {
+        $exe = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
+        if (-not [string]::IsNullOrWhiteSpace($exe)) { $roots.Add((Split-Path -Parent $exe)) }
+    } catch { }
+    if (-not [string]::IsNullOrWhiteSpace($PSScriptRoot)) { $roots.Add($PSScriptRoot) }
+
+    $names = @(
+        'DRDirect Duplicate Finder CURRENT.exe',
+        'DRDirect Duplicate Finder Locked.exe',
+        'DRDirect Duplicate Finder.exe'
+    )
+    foreach ($root in @($roots | Select-Object -Unique)) {
+        if ([string]::IsNullOrWhiteSpace($root)) { continue }
+        foreach ($name in $names) {
+            $candidate = Join-Path -Path $root -ChildPath $name
+            if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
+        }
+        $candidate = Join-Path -Path $root -ChildPath 'Duplicate Finder\DRDirect Duplicate Finder CURRENT.exe'
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
+    }
+    return $null
+}
+
 function Resolve-DRDuplicateFinderPath {
     # Same lookup the engine uses - the finder ships beside this script.
     $roots = New-Object System.Collections.Generic.List[string]
@@ -2418,6 +2447,18 @@ $ui.OpenDuplicatesButton.Add_Click({
         # Falls through and opens it. The Finder asks for its own code, and once
         # that is accepted this page unlocks by itself on the next click.
         $ui.DuplicateStatus.Text = 'Opening the Duplicate Finder so you can enter its code.'
+    }
+
+    # Its own build first: it checks its own licence and needs no flags from here.
+    $finderExe = Resolve-DRDuplicateFinderExe
+    if ($finderExe) {
+        try {
+            Start-Process -FilePath $finderExe | Out-Null
+            $ui.DuplicateStatus.Text = 'Duplicate Finder opened in its own window.'
+        } catch {
+            $ui.DuplicateStatus.Text = "Could not start the Duplicate Finder: $($_.Exception.Message)"
+        }
+        return
     }
 
     $finder = Resolve-DRDuplicateFinderPath
