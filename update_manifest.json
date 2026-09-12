@@ -1,17 +1,17 @@
 {
-  "version": "1.4.9",
-  "notes": "Updated copies now keep the DRDirect icon on the taskbar instead of the PowerShell icon.",
-  "published": "2026-09-12T10:36:33.6514873-04:00",
+  "version": "1.4.10",
+  "notes": "Opening a .jar or app-package file now shows it in its folder instead of doing nothing.",
+  "published": "2026-09-12T10:45:49.6192558-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "E1CCD3863FB4F6AE0A9BF6A112C48AA74F95D9507DA959F0228AB97C05A945EA",
-      "size": 138914
+      "sha256": "9A0AD4AB7F0A955A770B51CB23D909B17B20648026D9D24F60C8934AF61937FD",
+      "size": 138999
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "9F1C983EE71F70DFBAD3774001C0745BE295452953C997ADD9B74F6ABF1860AB",
-      "size": 180625
+      "sha256": "AB522D594954BADACE54BB31B7067A4472AC7D47D2F122307C2CD74891558D6B",
+      "size": 180718
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

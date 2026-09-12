@@ -1948,7 +1948,8 @@ function Show-History {
                 # Host, .dll -> no opener). Reveal those in Explorer instead.
                 $noRunExt = @('.js','.jse','.vbs','.vbe','.wsf','.wsh','.ps1','.psm1',
                               '.bat','.cmd','.com','.exe','.msi','.msp','.scr','.pif',
-                              '.hta','.cpl','.dll','.sys','.reg','.lnk')
+                              '.hta','.cpl','.dll','.sys','.reg','.lnk',
+                              '.jar','.jnlp','.msix','.appx','.appxbundle','.apk','.gadget')
                 $ext = [System.IO.Path]::GetExtension($target).ToLowerInvariant()
                 if ($noRunExt -contains $ext) {
                     Start-Process explorer.exe -ArgumentList "/select,`"$target`"" | Out-Null
