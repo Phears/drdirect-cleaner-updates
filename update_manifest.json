@@ -1,27 +1,27 @@
 {
-  "version": "1.4.14",
-  "notes": "The window opens a bit smaller again.",
-  "published": "2026-09-12T11:53:11.0560945-04:00",
+  "version": "1.4.15",
+  "notes": "A normal cleanup no longer clears cookies by default, so it will not sign you out of your websites and email. You can still switch it on if you want to.",
+  "published": "2026-09-19T16:33:42.2723961-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "D2F02E53D35AECA8B25AB3C8DD399F80503537B36B97B0A14C8843AF47B16EB0",
-      "size": 139900
+      "sha256": "C96FF635238CF185C5E70B3A36D3D7819327B985C121B53CCD30C74E2DF66609",
+      "size": 142710
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "6EED141D5275473D319DCA71DC204FED482C0B785E82D625A54B309DFE6D6F48",
-      "size": 181544
+      "sha256": "B87D42472746075BDBF21745C1D97AE1F9F87113BFD0822C43B21A048BD010A5",
+      "size": 184422
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "EC8CDA4328CA5C52346871CE08C499A00EE0E3F13F4E35FAF18038EBBE153C95",
-      "size": 65302
+      "sha256": "53EC4CB7E02D0DAB530AC14443E5D8AE1B452F1336ADE21BECCA5F933995CAB4",
+      "size": 66599
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "60F848F839FE3305FD19D529A4AED082BF4406892016CE211F630158E368FE1A",
-      "size": 26050
+      "sha256": "6D802FCB8790891231347E578EAF527CE03A4692A4B1C47683914FCA3544FF3B",
+      "size": 26655
     },
     {
       "name": "DRDirect Activation.ps1",

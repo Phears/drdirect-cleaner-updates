@@ -1088,8 +1088,11 @@ function Write-DRRunReport {
     $lines.Add('DRDirect PC Cleaner - Maintenance Report')
     $lines.Add(('Computer: {0}' -f $env:COMPUTERNAME))
     $lines.Add(('User: {0}' -f $env:USERNAME))
+    $finishedAt = Get-Date
+    $elapsed = $finishedAt - $StartedAt
     $lines.Add(('Started: {0}' -f $StartedAt))
-    $lines.Add(('Finished: {0}' -f (Get-Date)))
+    $lines.Add(('Finished: {0}' -f $finishedAt))
+    $lines.Add(('Total time it took: {0:00}:{1:00}:{2:00}' -f [int]$elapsed.TotalHours, $elapsed.Minutes, $elapsed.Seconds))
     $lines.Add('')
     $lines.Add('Selected tasks:')
     foreach ($id in $TaskId) { $lines.Add('  - ' + $id) }

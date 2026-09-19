@@ -876,8 +876,7 @@ function Test-TaskInOrderedPreset {
         'cleanup.prefetch'
     )
     # The cloud caches are safe and only ever appear for a service that is
-    # installed, so a full cleanup should take them too. Advanced adds the
-    # cookies and the repairs on top.
+    # installed, so a full cleanup should take them too.
     $cloudCacheIds = @(
         'cleanup.cloud-icloud',
         'cleanup.cloud-google',
@@ -886,10 +885,9 @@ function Test-TaskInOrderedPreset {
         'cleanup.cloud-mega'
     )
     $mediumIds = $safeIds + @('cleanup.disk-cleanup') + $cloudCacheIds
-    # The cloud caches join Advanced, the level meant to reclaim everything.
-    # They only ever appear for a service that is installed, and clearing one
-    # costs nothing but re-downloading files that were already cached.
-    $advancedIds = $mediumIds + @('cleanup.cookies')
+    # Cookies signs the user out, so it is never pre-selected by a preset.
+    # It stays visible under Advanced and the user can tick it by hand.
+    $advancedIds = $mediumIds
 
     if ($Preset -eq 'Safe') {
         return ($safeIds -contains $Task.Id)
@@ -1501,6 +1499,8 @@ function Write-DRSafeRunReport {
     [void]$builder.AppendLine('DRDirect PC Cleaner - Maintenance Report')
     [void]$builder.AppendLine(('Started:  {0}' -f $StartedAt.ToString('yyyy-MM-dd HH:mm:ss')))
     [void]$builder.AppendLine(('Finished: {0}' -f $finishedAt.ToString('yyyy-MM-dd HH:mm:ss')))
+    $elapsed = $finishedAt - $StartedAt
+    [void]$builder.AppendLine(('Total time it took: {0:00}:{1:00}:{2:00}' -f [int]$elapsed.TotalHours, $elapsed.Minutes, $elapsed.Seconds))
     [void]$builder.AppendLine('')
 
     [void]$builder.AppendLine('Selected tasks:')

@@ -38,7 +38,7 @@ $script:DRUpdatableFiles = @(
 # The public half of the update signing key. The private half never leaves the
 # build PC. A manifest that does not verify against this is not ours, however
 # well-formed it looks and wherever it was read from.
-$script:DRUpdatePublicKey = 'MIIBCgKCAQEAtU+5ZVc6ySGCbWTLIiyP2UBRQ/6tx87XjGSJDk9JPvH1uGrNnT0E2INH+I9BDZxFeLeFqe6kmmmBjzvg/jCxjTDwsoO5Y/YL1P8KFhBsiJYtTVD2B2sRfXvdRJRIKUqA+HfeijIKfxzssnozB66ydqC4Dh0NNRFIoB9ZVaSTkOC+Xf+ZwjyOMEftoYdEs9H7TtyxcrDTGSHxqs4ThKHSEf1eoUq6CYoH6pP6yzmfUYU8zSBrZU8d6AAB2xyi1o3yWkLdkfivJlq2arm4LnEDKBZxPHOULCM1ZwBqTIPLyjKUOVfpZvpmgJ0XGrkgz+gI8BwkIsUiBLRbmMKOZ4reLQIDAQAB'
+$script:DRUpdatePublicKey = 'MIIBCgKCAQEAw03Nj9Jn6KW8O1i6JWgDXqK4cGF3aPCZSzZSO+8wtV/QwHAieHovt1RMpyUEndkaGkkyW/CHQ+C7/QfhgKL+DUMWgZV3GjYkQO3XwzFM7rbYfHuazeEYUfLhPxw4fiIvbt6ah8mCPXM32KRhNk/HgLl0oYD4V2Ky+n19IJA/hB4yQqphOJBdvtHyADEdL27vuGaQBiOcGN9ZX6Dtwwq3vJuxfiDS9AugAocZTxzjNtL5WV8RmeCafvyXZxnZZ1rPPJZVZ/veXrocy5IQics6ibFAPJt081iuW4soy+lnefc7T8p5rB3L57XM6HMVaew3ejD7wHaj013X+jRqX1f5aQIDAQAB'
 
 function ConvertFrom-DRPkcs1PublicKey {
     <#
