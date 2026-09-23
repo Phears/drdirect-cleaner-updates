@@ -7,6 +7,8 @@ Set-StrictMode -Version 2.0
 $script:DRAppName = 'DRDirect PC Cleaner'
 $script:DRLogRoot = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Logs'
 $script:DRReportRoot = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Reports'
+# File Explorer's pinned Quick Access folders live in this jump list file.
+$script:DRQuickAccessJumpList = 'f01b4d95cf55d32a.automaticDestinations-ms'
 
 function New-DREvent {
     param(
@@ -37,6 +39,15 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='cleanup.hidden-recycle-folders'; Category='Cleanup'; Name='Hidden Recycle Bin folders'; Description='Removes hidden $Recycle.Bin folders from fixed drives so Windows can rebuild them.'; Risk='Advanced'; Duration='< 5 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.cookies'; Category='Cleanup'; Name='Cookies and website storage'; Description='Clears cookies and site storage. This can sign you out of websites and webmail.'; Risk='SignOut'; Duration='1-5 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.prefetch'; Category='Cleanup'; Name='Windows Prefetch'; Description='Clears the Prefetch cache. Windows rebuilds it and app launches may initially be slower.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.wu-download-cache'; Category='Cleanup'; Name='Windows Update download cache'; Description='Clears already-installed update installers cached under SoftwareDistribution\Download. Windows re-downloads only what it needs next time.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.thumbnail-cache'; Category='Cleanup'; Name='Thumbnail cache'; Description='Clears cached thumbnail images. Windows rebuilds them the next time you browse those files.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.icon-cache'; Category='Cleanup'; Name='Icon cache'; Description='Clears the icon cache and restarts Explorer to rebuild it. Fixes blank or wrong icons. The taskbar and desktop will flash off and back on and open folder windows will close. Do not run it while File Explorer is copying or moving files.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.wer-queue'; Category='Cleanup'; Name='Windows Error Reporting queue'; Description='Removes queued and archived crash reports waiting to be sent to Microsoft.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.delivery-optimization-cache'; Category='Cleanup'; Name='Delivery Optimization cache'; Description='Clears the peer-to-peer Windows Update cache. Windows rebuilds it as needed.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.jumplists'; Category='Cleanup'; Name='Jump lists and recent items'; Description='Clears taskbar jump lists and the Recent Items list. Files you pinned inside an app''s jump list are removed too. Taskbar icons and Quick Access folders are kept.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.memory-dumps'; Category='Cleanup'; Name='Memory dump files'; Description='Removes saved crash dump files (Memory.dmp and Minidump). These are only useful for diagnosing a specific past crash.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.old-restore-points'; Category='Cleanup'; Name='Old restore points'; Description='Deletes older System Restore snapshots, keeping only the most recent one. Reduces how far back you can roll back Windows.'; Risk='Advanced'; Duration='< 5 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.event-logs'; Category='Cleanup'; Name='Windows Event Logs'; Description='Clears the Application and System event logs. Removes diagnostic history used for troubleshooting. The Security log is never touched.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.cloud-icloud'; Category='Cleanup'; Name='iCloud cache'; Description='Clears the local cache and logs iCloud leaves on this PC. Your synced files are not touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$true; Destructive=$true; Interruptible=$false; CloudService='iCloud' }
         [pscustomobject]@{ Id='cleanup.cloud-google'; Category='Cleanup'; Name='Google Drive cache'; Description='Clears the local cache and logs Google Drive leaves on this PC. Your synced files are not touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$true; Destructive=$true; Interruptible=$false; CloudService='Google Drive' }
         [pscustomobject]@{ Id='cleanup.cloud-onedrive'; Category='Cleanup'; Name='OneDrive cache'; Description='Clears the local cache and logs OneDrive leaves on this PC. Your synced files are not touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$true; Destructive=$true; Interruptible=$false; CloudService='OneDrive' }
@@ -413,6 +424,42 @@ function Get-DRAnalysis {
                 }
                 'cleanup.recycle-bin' {
                     $detail = 'Size is calculated by Windows during cleanup'
+                }
+                'cleanup.wu-download-cache' {
+                    $path = if ($TestRoot) { $TestRoot } else { Join-Path $env:WINDIR 'SoftwareDistribution\Download' }
+                    $bytes = Get-DRPathSize $path; $items = @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count
+                    $detail = 'Already-installed update installers'
+                }
+                'cleanup.thumbnail-cache' {
+                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot -ErrorAction SilentlyContinue) } else { @(Get-DRPatternMatches @((Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Explorer\thumbcache_*.db'))) }
+                    foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
+                    $detail = 'Rebuilt automatically as you browse files'
+                }
+                'cleanup.icon-cache' {
+                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot -ErrorAction SilentlyContinue) } else { @(Get-DRPatternMatches @((Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Explorer\iconcache_*.db'))) }
+                    foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
+                    $detail = 'Advanced; Explorer restarts to rebuild it'
+                }
+                'cleanup.wer-queue' {
+                    $paths = if ($TestRoot) { @($TestRoot) } else { @((Join-Path $env:ProgramData 'Microsoft\Windows\WER\ReportQueue'), (Join-Path $env:ProgramData 'Microsoft\Windows\WER\ReportArchive')) }
+                    foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
+                    $detail = 'Queued and archived crash reports'
+                }
+                'cleanup.jumplists' {
+                    $paths = if ($TestRoot) { @($TestRoot) } else { @((Join-Path $env:APPDATA 'Microsoft\Windows\Recent\AutomaticDestinations'), (Join-Path $env:APPDATA 'Microsoft\Windows\Recent\CustomDestinations')) }
+                    foreach ($path in $paths) {
+                        foreach ($item in @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue | Where-Object Name -ne $script:DRQuickAccessJumpList)) { $bytes += Get-DRPathSize $item.FullName; $items++ }
+                    }
+                    $detail = 'Taskbar jump lists and Recent Items'
+                }
+                'cleanup.memory-dumps' {
+                    $paths = if ($TestRoot) { @($TestRoot) } else { @((Join-Path $env:WINDIR 'Memory.dmp'), (Join-Path $env:WINDIR 'Minidump')) }
+                    foreach ($path in $paths) {
+                        $bytes += Get-DRPathSize $path
+                        if (Test-Path -LiteralPath $path -PathType Container) { $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
+                        elseif (Test-Path -LiteralPath $path) { $items++ }
+                    }
+                    $detail = 'Only useful for diagnosing a specific past crash'
                 }
                 'security.remove-exclusions' {
                     if (Get-Command Get-MpPreference -ErrorAction SilentlyContinue) {
@@ -996,15 +1043,155 @@ function Invoke-DRTask {
                 # does through DISM. Only one process can hold the servicing stack,
                 # so running both meant the second sat blocked for hours with no
                 # output. DISM owns the component store; cleanmgr owns the rest.
+                #
+                # Recycle Bin, crash dumps and old driver packages are left out too:
+                # each is something the customer could still need (a file to restore,
+                # a crash to diagnose, a driver to roll back). They have their own
+                # opt-in tasks where one exists.
                 $cleanmgr = Join-Path $env:SystemRoot 'System32\cleanmgr.exe'
                 if (-not $TestRoot) {
-                    $items = @('BranchCache','Delivery Optimization Files','Device Driver Packages','Downloaded Program Files','Internet Cache Files','Old ChkDsk Files','Recycle Bin','RetailDemo Offline Content','Setup Log Files','System error memory dump files','System error minidump files','Temporary Files','Temporary Setup Files','Thumbnail Cache','Windows Error Reporting Files','Windows Defender')
+                    $volumeCaches = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches'
+                    $items = @('BranchCache','Delivery Optimization Files','Downloaded Program Files','Internet Cache Files','Old ChkDsk Files','RetailDemo Offline Content','Setup Log Files','Temporary Files','Temporary Setup Files','Thumbnail Cache','Windows Error Reporting Files','Windows Defender')
                     foreach ($item in $items) {
-                        $key = Join-Path 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches' $item
+                        $key = Join-Path $volumeCaches $item
                         if (Test-Path $key) { New-ItemProperty -Path $key -Name StateFlags0777 -Value 2 -PropertyType DWord -Force | Out-Null }
+                    }
+                    # Older builds ticked these in the same saved profile, and Windows
+                    # remembers it, so they must be switched off explicitly.
+                    foreach ($item in @('Recycle Bin','System error memory dump files','System error minidump files','Device Driver Packages')) {
+                        $key = Join-Path $volumeCaches $item
+                        if (Test-Path $key) { Remove-ItemProperty -Path $key -Name StateFlags0777 -ErrorAction SilentlyContinue }
                     }
                 }
                 Invoke-DRExternalCommand -TaskId $TaskId -FilePath $cleanmgr -Arguments @('/d','C:','/sagerun:777') -TestRoot $TestRoot | Out-Null
+            }
+            'cleanup.wu-download-cache' {
+                if ($TestRoot) { Clear-DRFolderContents -FolderPath $TestRoot -TaskId $TaskId -TestRoot $TestRoot | Out-Null }
+                else {
+                    # Never pull installers out from under an update that is
+                    # installing now or waiting on a restart to finish.
+                    $installer = Get-Service -Name TrustedInstaller -ErrorAction SilentlyContinue
+                    $rebootPending = Test-Path -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired'
+                    if (($installer -and $installer.Status -eq 'Running') -or $rebootPending) {
+                        New-DREvent -TaskId $TaskId -State Information -Message 'Windows Update is busy or waiting for a restart, so its download cache was left alone. Try again after restarting.'
+                    } else {
+                        $wuService = Get-Service -Name wuauserv -ErrorAction SilentlyContinue
+                        $wasRunning = $wuService -and $wuService.Status -eq 'Running'
+                        Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue
+                        try { Clear-DRFolderContents -FolderPath (Join-Path $env:WINDIR 'SoftwareDistribution\Download') -TaskId $TaskId | Out-Null }
+                        finally { if ($wasRunning) { Start-Service -Name wuauserv -ErrorAction SilentlyContinue } }
+                    }
+                }
+            }
+            'cleanup.thumbnail-cache' {
+                if ($TestRoot) { Clear-DRFolderContents -FolderPath $TestRoot -TaskId $TaskId -TestRoot $TestRoot | Out-Null }
+                else {
+                    $folder = Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Explorer'
+                    foreach ($match in @(Get-DRPatternMatches @((Join-Path $folder 'thumbcache_*.db')))) {
+                        try { Remove-DRSafeItem -LiteralPath $match.FullName -AllowedRoot $folder | Out-Null }
+                        catch { New-DREvent -TaskId $TaskId -State Warning -Message ("Skipped {0}: {1}" -f $match.Name, $_.Exception.Message) }
+                    }
+                }
+            }
+            'cleanup.icon-cache' {
+                if ($TestRoot) { Clear-DRFolderContents -FolderPath $TestRoot -TaskId $TaskId -TestRoot $TestRoot | Out-Null }
+                else {
+                    $folder = Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Explorer'
+                    # Remember the folder windows that are already open. With
+                    # "separate process" folder windows turned on they survive the
+                    # restart, and they must not be closed along with the stray one.
+                    $windowsBefore = @()
+                    try { $windowsBefore = @((New-Object -ComObject Shell.Application).Windows() | ForEach-Object { try { $_.HWND } catch { } }) } catch { }
+                    Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue
+                    Start-Sleep -Milliseconds 500
+                    foreach ($match in @(Get-DRPatternMatches @((Join-Path $folder 'iconcache_*.db')))) {
+                        try { Remove-DRSafeItem -LiteralPath $match.FullName -AllowedRoot $folder | Out-Null }
+                        catch { New-DREvent -TaskId $TaskId -State Warning -Message ("Skipped {0}: {1}" -f $match.Name, $_.Exception.Message) }
+                    }
+                    Start-Process explorer.exe
+                    # explorer.exe with no arguments restarts the shell AND opens a
+                    # new Explorer window - closing that stray window here, not the
+                    # shell itself, is what keeps this from popping a folder open
+                    # mid-scan.
+                    Start-Sleep -Milliseconds 1200
+                    try {
+                        $shellApp = New-Object -ComObject Shell.Application
+                        foreach ($openWindow in @($shellApp.Windows())) {
+                            try { if ($openWindow.FullName -match 'explorer\.exe$' -and $windowsBefore -notcontains $openWindow.HWND) { $openWindow.Quit() } } catch { }
+                        }
+                    } catch { }
+                }
+            }
+            'cleanup.wer-queue' {
+                if ($TestRoot) { Clear-DRFolderContents -FolderPath $TestRoot -TaskId $TaskId -TestRoot $TestRoot | Out-Null }
+                else {
+                    foreach ($folder in @((Join-Path $env:ProgramData 'Microsoft\Windows\WER\ReportQueue'), (Join-Path $env:ProgramData 'Microsoft\Windows\WER\ReportArchive'))) {
+                        Clear-DRFolderContents -FolderPath $folder -TaskId $TaskId | Out-Null
+                    }
+                }
+            }
+            'cleanup.delivery-optimization-cache' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Delivery Optimization cache was not changed.' }
+                else {
+                    if (Get-Command Delete-DeliveryOptimizationCache -ErrorAction SilentlyContinue) { Delete-DeliveryOptimizationCache -Force -ErrorAction Stop }
+                    else { New-DREvent -TaskId $TaskId -State Warning -Message 'Delivery Optimization cache cmdlet is not available on this system.' }
+                }
+            }
+            'cleanup.jumplists' {
+                $folders = if ($TestRoot) { @($TestRoot) } else { @((Join-Path $env:APPDATA 'Microsoft\Windows\Recent\AutomaticDestinations'), (Join-Path $env:APPDATA 'Microsoft\Windows\Recent\CustomDestinations')) }
+                foreach ($folder in $folders) {
+                    if (-not (Test-Path -LiteralPath $folder -PathType Container)) { continue }
+                    foreach ($item in @(Get-ChildItem -LiteralPath $folder -Force -ErrorAction SilentlyContinue)) {
+                        # This one file holds File Explorer's pinned Quick Access
+                        # folders - a list people built by hand, not history.
+                        if ($item.Name -eq $script:DRQuickAccessJumpList) { continue }
+                        try { Remove-DRSafeItem -LiteralPath $item.FullName -AllowedRoot $folder | Out-Null }
+                        catch { New-DREvent -TaskId $TaskId -State Warning -Message ("Skipped {0}: {1}" -f $item.Name, $_.Exception.Message) }
+                    }
+                }
+            }
+            'cleanup.memory-dumps' {
+                if ($TestRoot) { Clear-DRFolderContents -FolderPath $TestRoot -TaskId $TaskId -TestRoot $TestRoot | Out-Null }
+                else {
+                    $dumpFile = Join-Path $env:WINDIR 'Memory.dmp'
+                    if (Test-Path -LiteralPath $dumpFile) { Remove-DRSafeItem -LiteralPath $dumpFile -AllowedRoot $env:WINDIR | Out-Null }
+                    Clear-DRFolderContents -FolderPath (Join-Path $env:WINDIR 'Minidump') -TaskId $TaskId | Out-Null
+                }
+            }
+            'cleanup.old-restore-points' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: restore points were not changed.' }
+                else {
+                    # Removes System Restore points one by one through System
+                    # Restore itself. vssadmin was not used because it deletes
+                    # any shadow copy - including the ones backup programs make.
+                    if (-not ('DRDirect.SystemRestore' -as [type])) {
+                        Add-Type -Namespace DRDirect -Name SystemRestore -MemberDefinition '[DllImport("srclient.dll")] public static extern int SRRemoveRestorePoint(int dwRPNum);'
+                    }
+                    $points = @(Get-ComputerRestorePoint -ErrorAction SilentlyContinue | Sort-Object SequenceNumber)
+                    if ($points.Count -le 1) {
+                        New-DREvent -TaskId $TaskId -State Information -Message 'There were no older restore points to remove.'
+                    } else {
+                        $removedPoints = 0
+                        foreach ($point in $points[0..($points.Count - 2)]) {
+                            $result = [DRDirect.SystemRestore]::SRRemoveRestorePoint([int]$point.SequenceNumber)
+                            if ($result -eq 0) { $removedPoints++ }
+                            else { New-DREvent -TaskId $TaskId -State Warning -Message ("Could not remove restore point '{0}' (code {1})." -f $point.Description, $result) }
+                        }
+                        New-DREvent -TaskId $TaskId -State Information -Message ("Removed {0} older restore point(s); the most recent one was kept." -f $removedPoints)
+                    }
+                }
+            }
+            'cleanup.event-logs' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: event logs were not cleared.' }
+                else {
+                    # The Security log is left alone on purpose: clearing it is a
+                    # classic sign of an intruder covering tracks, so antivirus
+                    # flags it and it would wipe the customer's own audit trail.
+                    foreach ($log in @('Application','System')) {
+                        $errorText = & wevtutil.exe cl $log 2>&1
+                        if ($LASTEXITCODE -ne 0) { New-DREvent -TaskId $TaskId -State Warning -Message ("Could not clear {0}: {1}" -f $log, ($errorText | Out-String).Trim()) }
+                    }
+                }
             }
             'repair.restore-point' {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: restore point was not created.' }

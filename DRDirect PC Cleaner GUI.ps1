@@ -845,7 +845,7 @@ function Get-CleanupPresetDescription {
     param([string]$Preset)
 
     if ($Preset -eq 'Safe') {
-        return 'Regular cleanup: temporary files, browser caches, Recycle Bin, hidden Recycle Bin folders, and Prefetch.'
+        return 'Regular cleanup: temporary files, browser caches, Prefetch, and caches Windows rebuilds by itself. Your Recycle Bin is left alone.'
     }
 
     if ($Preset -eq 'Medium') {
@@ -853,7 +853,7 @@ function Get-CleanupPresetDescription {
     }
 
     if ($Preset -eq 'Advanced') {
-        return 'Everything in Medium plus cookies/site data, a Defender quick scan, and full Windows repair: restore point, DISM, SFC, and Windows Update repair. The network reset stays manual.'
+        return 'Everything in Medium plus Recycle Bin, icon cache, jump lists, memory dumps, old restore points, event logs, a Defender quick scan, and full Windows repair: restore point, DISM, SFC, and Windows Update repair. Cookies and the network reset stay manual.'
     }
 
     return 'Custom selection. Security and drive-health operations remain manual.'
@@ -871,9 +871,11 @@ function Test-TaskInOrderedPreset {
     $safeIds = @(
         'cleanup.windows-temp',
         'cleanup.browser-cache',
-        'cleanup.recycle-bin',
-        'cleanup.hidden-recycle-folders',
-        'cleanup.prefetch'
+        'cleanup.prefetch',
+        'cleanup.wu-download-cache',
+        'cleanup.thumbnail-cache',
+        'cleanup.wer-queue',
+        'cleanup.delivery-optimization-cache'
     )
     # The cloud caches are safe and only ever appear for a service that is
     # installed, so a full cleanup should take them too.
@@ -885,9 +887,20 @@ function Test-TaskInOrderedPreset {
         'cleanup.cloud-mega'
     )
     $mediumIds = $safeIds + @('cleanup.disk-cleanup') + $cloudCacheIds
-    # Cookies signs the user out, so it is never pre-selected by a preset.
-    # It stays visible under Advanced and the user can tick it by hand.
-    $advancedIds = $mediumIds
+    # Safe and Medium never pre-select anything that loses something the person
+    # cannot get back. Advanced is the full sweep and takes all of it - Recycle
+    # Bin, icon cache (closes Explorer windows), jump lists (loses pins), memory
+    # dumps, old restore points and event logs - except cookies, which signs the
+    # person out and so is only ever ticked by hand.
+    $advancedIds = $mediumIds + @(
+        'cleanup.recycle-bin',
+        'cleanup.hidden-recycle-folders',
+        'cleanup.icon-cache',
+        'cleanup.jumplists',
+        'cleanup.memory-dumps',
+        'cleanup.old-restore-points',
+        'cleanup.event-logs'
+    )
 
     if ($Preset -eq 'Safe') {
         return ($safeIds -contains $Task.Id)
@@ -901,13 +914,11 @@ function Test-TaskInOrderedPreset {
         # A quick Defender scan rides along with the full sweep. It stays on the
         # Security page too, so it can still be run on its own in a few minutes.
         #
-        # The network reset is included. Saved wireless networks and their
-        # passwords are untouched, so a home machine on DHCP reconnects by
-        # itself after the restart. Two cases still need care: a PC on a static
-        # address or manual DNS has to have those re-entered, and a remote
-        # session drops while the address renews.
+        # The network reset is left out. A PC on a static address or manual DNS
+        # has to have those re-entered afterwards, and a remote session drops
+        # while the address renews. It stays on the Repair page to tick by hand.
         return (($advancedIds -contains $Task.Id) -or
-                $Task.Category -eq 'Repair' -or
+                ($Task.Category -eq 'Repair' -and $Task.Id -ne 'repair.network-reset') -or
                 $Task.Id -eq 'security.quick-scan')
     }
 
@@ -1130,12 +1141,17 @@ function Get-VisibleTasksForCategory {
 
     $tasks = @($catalog | Where-Object Category -eq $Category)
 
-    # Each ordered level only lists what it will actually run. Cookie cleanup is
+    # Each ordered level only lists what it will actually run, computed from the
+    # same membership check the preset buttons use - so a task added to Medium
+    # or Advanced automatically stays hidden under a lower level instead of
+    # needing a second hardcoded list kept in sync by hand. Cookie cleanup is
     # the one task that signs the person out, so the row exists on Advanced and
-    # nowhere else, Custom included. Disk Cleanup does not appear until Medium.
+    # nowhere else, Custom included.
     $hidden = @()
     if ($script:cleanupLevel -ne 'Advanced') { $hidden = @('cleanup.cookies') }
-    if ($script:cleanupLevel -eq 'Safe')     { $hidden += 'cleanup.disk-cleanup' }
+    if ($script:cleanupLevel -in @('Safe', 'Medium')) {
+        $hidden += @($catalog | Where-Object { $_.Category -eq 'Cleanup' -and -not (Test-TaskInOrderedPreset -Task $_ -Preset $script:cleanupLevel) } | ForEach-Object Id)
+    }
 
     # A cloud cache row is only worth showing when that service is actually set
     # up here. Offering to clear a Dropbox cache on a PC without Dropbox is a
@@ -1164,7 +1180,10 @@ function Test-DRCloudServicePresent {
     $probes = switch ($Service) {
         'iCloud'       { @("$env:LOCALAPPDATA\Apple Inc\iCloud", (Join-Path $env:USERPROFILE 'iCloudDrive'), (Join-Path $env:USERPROFILE 'iCloud Drive')) }
         'Google Drive' { @("$env:LOCALAPPDATA\Google\DriveFS", (Join-Path $env:USERPROFILE 'Google Drive'), (Join-Path $env:USERPROFILE 'My Drive')) }
-        'OneDrive'     { @($env:OneDrive, $env:OneDriveConsumer, $env:OneDriveCommercial, "$env:LOCALAPPDATA\Microsoft\OneDrive") }
+        # The exe itself, not the sync folder: Windows/Explorer can leave an
+        # empty OneDrive folder behind (just a desktop.ini) long after the
+        # client was uninstalled, which made this a false positive.
+        'OneDrive'     { @("$env:LOCALAPPDATA\Microsoft\OneDrive\OneDrive.exe", "$env:ProgramFiles\Microsoft OneDrive\OneDrive.exe", "${env:ProgramFiles(x86)}\Microsoft OneDrive\OneDrive.exe") }
         'Dropbox'      { @("$env:LOCALAPPDATA\Dropbox", (Join-Path $env:USERPROFILE 'Dropbox')) }
         'MEGA'         { @("$env:LOCALAPPDATA\Mega Limited", (Join-Path $env:USERPROFILE 'MEGA')) }
         default        { @() }
@@ -2841,12 +2860,14 @@ if ($NoShow) {
         # <BUILD-VERSION>
         $script:DRBuildVersion = ''
         # </BUILD-VERSION>
-        # The version the update system recorded wins, because it is the one
-        # actually running. A copy that has never updated falls back to the
-        # number stamped in at build time, so the label is never a guess.
-        $ui.VersionText.Text = if ($shown -and "$shown" -ne '0.0.0') { "Version $shown" }
-                               elseif ($script:DRBuildVersion) { "Version $script:DRBuildVersion" }
-                               else { 'Version 1.0' }
+        # Show whichever is newer: the version the update system recorded, or the
+        # one stamped in at build time. A fresh install over an old one inherits
+        # the old recorded number, which used to make a new build say 1.3.0.
+        $recorded = [version]'0.0'; $built = [version]'0.0'
+        if ($shown) { [void][version]::TryParse("$shown", [ref]$recorded) }
+        if ($script:DRBuildVersion) { [void][version]::TryParse("$script:DRBuildVersion", [ref]$built) }
+        $newest = if ($recorded -gt $built) { $recorded } else { $built }
+        $ui.VersionText.Text = if ($newest -ge [version]'0.0.1') { "Version $newest" } else { 'Version 1.0' }
     } catch { }
     Apply-CleanupPreset -Preset 'Safe'
     # Ask once a day, quietly, so a waiting update is visible on the button

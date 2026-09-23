@@ -1,7 +1,7 @@
 {
-  "version": "1.4.15",
-  "notes": "A normal cleanup no longer clears cookies by default, so it will not sign you out of your websites and email. You can still switch it on if you want to.",
-  "published": "2026-09-19T16:33:42.2723961-04:00",
+  "version": "1.4.16",
+  "notes": "More ways to free up space, including Windows Update leftovers, thumbnail and error report caches. Safe and Medium scans never remove anything you cannot get back. Advanced does a full sweep but never signs you out of websites. The version number now shows correctly.",
+  "published": "2026-09-23T09:58:57.6181705-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,17 +10,17 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B87D42472746075BDBF21745C1D97AE1F9F87113BFD0822C43B21A048BD010A5",
-      "size": 184422
+      "sha256": "28B5C2B19BB5D87F9ECD65F192C3AD8F638292A74C468E7D6BB23B347C28D4E6",
+      "size": 185833
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "53EC4CB7E02D0DAB530AC14443E5D8AE1B452F1336ADE21BECCA5F933995CAB4",
-      "size": 66599
+      "sha256": "AF9D9EB94C499C4ABAD0DE5A9C7273007E96F437DE9AF4A217E7D7A96C23F9E0",
+      "size": 84086
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "6D802FCB8790891231347E578EAF527CE03A4692A4B1C47683914FCA3544FF3B",
+      "sha256": "F1A6C9ED3DEA864D2B12B8BD9F381C9CF2EBFF561E25E325462665F3DFC36F5E",
       "size": 26655
     },
     {
