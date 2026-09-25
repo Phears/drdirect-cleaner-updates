@@ -431,7 +431,31 @@ $ErrorActionPreference = 'Stop'
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>
-                <StackPanel Grid.Row="1" x:Name="Navigation">
+                <!-- Scrolls on short screens (small laptops), so the last menu items never hide behind the Activate button -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+                <ScrollViewer.Resources>
+                    <Style TargetType="ScrollBar">
+                        <Setter Property="Width" Value="6"/>
+                        <Setter Property="MinWidth" Value="6"/>
+                        <Setter Property="Margin" Value="0,0,4,0"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ScrollBar">
+                                    <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                        <Track.Thumb>
+                                            <Thumb>
+                                                <Thumb.Template>
+                                                    <ControlTemplate TargetType="Thumb"><Border CornerRadius="3" Background="#4A6284"/></ControlTemplate>
+                                                </Thumb.Template>
+                                            </Thumb>
+                                        </Track.Thumb>
+                                    </Track>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ScrollViewer.Resources>
+                <StackPanel x:Name="Navigation">
                     <Button x:Name="NavDashboard" Style="{StaticResource NavButton}" Tag="Active" Content="⌂   Dashboard"/>
                     <Button x:Name="NavCleanup" Style="{StaticResource NavButton}" Content="✦   Cleanup"/>
                     <Button x:Name="NavRepair" Style="{StaticResource NavButton}" Content="⚒   Windows repair"/>
@@ -442,7 +466,8 @@ $ErrorActionPreference = 'Stop'
                     <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   History"/>
                     <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Duplicate finder"/>
                 </StackPanel>
-                <StackPanel Grid.Row="2" Margin="24,14,20,24"><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="14,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="15" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
+                </ScrollViewer>
+                <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
             </Grid>
         </Border>
 
@@ -672,12 +697,16 @@ public static extern int SetCurrentProcessExplicitAppUserModelID(string AppID);
 } catch { }
 
 # Never open larger than the visible screen, or the title bar and its buttons
-# land off the top of a small or scaled display. Clamp to the work area.
+# land off the top of a small or scaled display. Open at no more than 90% of the
+# work area's height, so a small laptop gets a window with room above and below
+# rather than one that fills the whole screen; maximizing still uses all of it.
+# Width keeps the full work area - any narrower and the dashboard cards clip.
 try {
     $wa = [System.Windows.SystemParameters]::WorkArea
-    if ($window.MinHeight -gt $wa.Height) { $window.MinHeight = $wa.Height }
+    $fitHeight = [Math]::Floor($wa.Height * 0.9)
+    if ($window.MinHeight -gt $fitHeight) { $window.MinHeight = $fitHeight }
     if ($window.MinWidth  -gt $wa.Width)  { $window.MinWidth  = $wa.Width }
-    if ($window.Height -gt $wa.Height) { $window.Height = $wa.Height }
+    if ($window.Height -gt $fitHeight) { $window.Height = $fitHeight }
     if ($window.Width  -gt $wa.Width)  { $window.Width  = $wa.Width }
     $window.MaxHeight = $wa.Height
     $window.MaxWidth  = $wa.Width

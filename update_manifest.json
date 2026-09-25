@@ -1,7 +1,7 @@
 {
-  "version": "1.4.16",
-  "notes": "More ways to free up space, including Windows Update leftovers, thumbnail and error report caches. Safe and Medium scans never remove anything you cannot get back. Advanced does a full sweep but never signs you out of websites. The version number now shows correctly.",
-  "published": "2026-09-23T09:58:57.6181705-04:00",
+  "version": "1.4.17",
+  "notes": "The menu now fits on smaller laptop screens, so History and Duplicate finder are always there. The window opens at a comfortable size, and the Activate button is no longer cut off.",
+  "published": "2026-09-25T18:56:14.9041506-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "28B5C2B19BB5D87F9ECD65F192C3AD8F638292A74C468E7D6BB23B347C28D4E6",
-      "size": 185833
+      "sha256": "142547AC452A0437D5313E32B0BDB0C120C4135C8223119A845C2D449D10DE7A",
+      "size": 187730
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
