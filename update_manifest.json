@@ -1,7 +1,7 @@
 {
-  "version": "1.4.18",
-  "notes": "Safe, Medium and Advanced scans empty the Recycle Bin again.",
-  "published": "2026-09-25T19:01:02.2237907-04:00",
+  "version": "1.4.19",
+  "notes": "On smaller laptop screens everything now fits: the window is drawn smaller, and the Cleanup page scrolls so you can see every check mark.",
+  "published": "2026-09-25T19:08:31.2504102-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "BA3D47954DD5BBA70013EFD8173F8298A72F51537E5F611733D8E11E06AEBF3D",
-      "size": 187857
+      "sha256": "2508E85A704F09ACAA64A1FE7F9FF2C5C8FCE72360998DF738E6F1B261A12624",
+      "size": 188621
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

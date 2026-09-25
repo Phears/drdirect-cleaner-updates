@@ -507,9 +507,12 @@ $ErrorActionPreference = 'Stop'
                 </ScrollViewer>
 
                 <Grid x:Name="PageTasks" Visibility="Collapsed">
-                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                    <Grid Grid.Row="0" Margin="0,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="TaskIntro" Text="Select exactly what you want to run. Nothing starts until you review and confirm the plan." Style="{StaticResource MutedText}" TextWrapping="Wrap"/><Border Grid.Column="1" Background="{StaticResource BlueSoft}" CornerRadius="14" Padding="12,6"><TextBlock x:Name="SelectionSummary" Text="0 selected" Foreground="{StaticResource Blue}" FontSize="12"/></Border></Grid>
-                    <Border x:Name="CleanupPresetPanel" Grid.Row="1" Style="{StaticResource Card}" Padding="16" Margin="0,0,0,14" Visibility="Visible">
+                    <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                    <!-- The whole page scrolls, not just the list: on a short screen the level buttons
+                         would otherwise leave the task list room for barely one row. -->
+                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto"><StackPanel>
+                    <Grid Margin="0,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="TaskIntro" Text="Select exactly what you want to run. Nothing starts until you review and confirm the plan." Style="{StaticResource MutedText}" TextWrapping="Wrap"/><Border Grid.Column="1" Background="{StaticResource BlueSoft}" CornerRadius="14" Padding="12,6"><TextBlock x:Name="SelectionSummary" Text="0 selected" Foreground="{StaticResource Blue}" FontSize="12"/></Border></Grid>
+                    <Border x:Name="CleanupPresetPanel" Style="{StaticResource Card}" Padding="16" Margin="0,0,0,14" Visibility="Visible">
                         <StackPanel>
                             <StackPanel Orientation="Horizontal"><TextBlock Text="Choose cleanup level" FontSize="16" FontWeight="SemiBold"/><Border Background="#E8F0FF" CornerRadius="10" Padding="8,3" Margin="10,0,0,0"><TextBlock Text="ORDERED PRESETS" Foreground="#2563EB" FontSize="11" FontWeight="SemiBold"/></Border></StackPanel>
                             <TextBlock Text="Safe = regular cleanup. Medium = full cleanup. Advanced = full cleanup plus Windows repair." Style="{StaticResource MutedText}" FontSize="12" Margin="0,4,0,12"/>
@@ -527,8 +530,9 @@ $ErrorActionPreference = 'Stop'
                             <TextBlock x:Name="PresetDescription" Text="Choose a level, or select individual tasks below." Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap" Margin="0,10,0,0"/>
                         </StackPanel>
                     </Border>
-                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"><StackPanel x:Name="TaskList"/></ScrollViewer>
-                    <Grid Grid.Row="3" Margin="0,16,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="Destructive actions always require final confirmation." Style="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center"/><Button x:Name="ReviewButton" Grid.Column="1" Content="Review selected plan" Style="{StaticResource PrimaryButton}" IsEnabled="False"/></Grid>
+                    <StackPanel x:Name="TaskList"/>
+                    </StackPanel></ScrollViewer>
+                    <Grid Grid.Row="1" Margin="0,16,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="Destructive actions always require final confirmation." Style="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center"/><Button x:Name="ReviewButton" Grid.Column="1" Content="Review selected plan" Style="{StaticResource PrimaryButton}" IsEnabled="False"/></Grid>
                 </Grid>
 
                 <Grid x:Name="PageProgress" Visibility="Collapsed">
@@ -696,17 +700,27 @@ public static extern int SetCurrentProcessExplicitAppUserModelID(string AppID);
     [void][DRDirect.AppId]::SetCurrentProcessExplicitAppUserModelID('DRDirect.PCCleaner')
 } catch { }
 
-# Never open larger than the visible screen, or the title bar and its buttons
-# land off the top of a small or scaled display. Open at no more than 90% of the
-# work area's height, so a small laptop gets a window with room above and below
-# rather than one that fills the whole screen; maximizing still uses all of it.
-# Width keeps the full work area - any narrower and the dashboard cards clip.
+# A small or zoomed screen (a 15" laptop at 125%) has far less room than the
+# layout needs, so everything came out huge and the Cleanup list got about one
+# row. There the whole window is laid out as a normal 1020 x 740 window and
+# drawn smaller to fit. Big screens keep the full size.
 try {
     $wa = [System.Windows.SystemParameters]::WorkArea
-    $fitHeight = [Math]::Floor($wa.Height * 0.9)
-    if ($window.MinHeight -gt $fitHeight) { $window.MinHeight = $fitHeight }
+    $layoutWidth = 1020; $layoutHeight = 740
+    $uiScale = [Math]::Min(1.0, [Math]::Min(($wa.Height * 0.95) / $layoutHeight, ($wa.Width * 0.95) / $layoutWidth))
+    if ($uiScale -lt 1.0) {
+        $uiScale = [Math]::Max($uiScale, 0.6)
+        $window.Content.LayoutTransform = [System.Windows.Media.ScaleTransform]::new($uiScale, $uiScale)
+        $window.MinWidth  = [Math]::Floor($window.MinWidth  * $uiScale)
+        $window.MinHeight = [Math]::Floor($window.MinHeight * $uiScale)
+        $window.Width  = [Math]::Floor($layoutWidth  * $uiScale)
+        $window.Height = [Math]::Floor($layoutHeight * $uiScale)
+    }
+    # Never open larger than the visible screen, or the title bar and its
+    # buttons land off the top of it.
+    if ($window.MinHeight -gt $wa.Height) { $window.MinHeight = $wa.Height }
     if ($window.MinWidth  -gt $wa.Width)  { $window.MinWidth  = $wa.Width }
-    if ($window.Height -gt $fitHeight) { $window.Height = $fitHeight }
+    if ($window.Height -gt $wa.Height) { $window.Height = $wa.Height }
     if ($window.Width  -gt $wa.Width)  { $window.Width  = $wa.Width }
     $window.MaxHeight = $wa.Height
     $window.MaxWidth  = $wa.Width
