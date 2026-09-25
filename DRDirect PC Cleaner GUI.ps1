@@ -874,7 +874,7 @@ function Get-CleanupPresetDescription {
     param([string]$Preset)
 
     if ($Preset -eq 'Safe') {
-        return 'Regular cleanup: temporary files, browser caches, Prefetch, and caches Windows rebuilds by itself. Your Recycle Bin is left alone.'
+        return 'Regular cleanup: temporary files, browser caches, Recycle Bin, Prefetch, and caches Windows rebuilds by itself.'
     }
 
     if ($Preset -eq 'Medium') {
@@ -882,7 +882,7 @@ function Get-CleanupPresetDescription {
     }
 
     if ($Preset -eq 'Advanced') {
-        return 'Everything in Medium plus Recycle Bin, icon cache, jump lists, memory dumps, old restore points, event logs, a Defender quick scan, and full Windows repair: restore point, DISM, SFC, and Windows Update repair. Cookies and the network reset stay manual.'
+        return 'Everything in Medium plus icon cache, jump lists, memory dumps, old restore points, event logs, a Defender quick scan, and full Windows repair: restore point, DISM, SFC, and Windows Update repair. Cookies and the network reset stay manual.'
     }
 
     return 'Custom selection. Security and drive-health operations remain manual.'
@@ -897,9 +897,13 @@ function Test-TaskInOrderedPreset {
     # Ordered presets are explicit lists, not risk rules, so each level stays a
     # strict superset of the one before it and cookie cleanup - the only task
     # that signs the user out - is held back until Advanced.
+    # The Recycle Bin is part of every level: emptying it is what customers
+    # expect a cleanup to do. The run still warns before it goes.
     $safeIds = @(
         'cleanup.windows-temp',
         'cleanup.browser-cache',
+        'cleanup.recycle-bin',
+        'cleanup.hidden-recycle-folders',
         'cleanup.prefetch',
         'cleanup.wu-download-cache',
         'cleanup.thumbnail-cache',
@@ -916,14 +920,12 @@ function Test-TaskInOrderedPreset {
         'cleanup.cloud-mega'
     )
     $mediumIds = $safeIds + @('cleanup.disk-cleanup') + $cloudCacheIds
-    # Safe and Medium never pre-select anything that loses something the person
-    # cannot get back. Advanced is the full sweep and takes all of it - Recycle
-    # Bin, icon cache (closes Explorer windows), jump lists (loses pins), memory
-    # dumps, old restore points and event logs - except cookies, which signs the
-    # person out and so is only ever ticked by hand.
+    # Apart from the Recycle Bin, Safe and Medium never pre-select anything that
+    # loses something the person cannot get back. Advanced is the full sweep and
+    # takes all of it - icon cache (closes Explorer windows), jump lists (loses
+    # pins), memory dumps, old restore points and event logs - except cookies,
+    # which signs the person out and so is only ever ticked by hand.
     $advancedIds = $mediumIds + @(
-        'cleanup.recycle-bin',
-        'cleanup.hidden-recycle-folders',
         'cleanup.icon-cache',
         'cleanup.jumplists',
         'cleanup.memory-dumps',
