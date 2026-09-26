@@ -1,17 +1,17 @@
 {
-  "version": "1.4.19",
-  "notes": "On smaller laptop screens everything now fits: the window is drawn smaller, and the Cleanup page scrolls so you can see every check mark.",
-  "published": "2026-09-25T19:08:31.2504102-04:00",
+  "version": "1.4.20",
+  "notes": "Security improvement: DRDirect PC Cleaner and the Duplicate Finder now only start from their own shortcut.",
+  "published": "2026-09-25T20:57:25.7145704-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "C96FF635238CF185C5E70B3A36D3D7819327B985C121B53CCD30C74E2DF66609",
-      "size": 142710
+      "sha256": "AEEAE3C545BF2AD35D65A57BC71C89125532B532D67CBD52C5F0E0C0964826D9",
+      "size": 145056
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "2508E85A704F09ACAA64A1FE7F9FF2C5C8FCE72360998DF738E6F1B261A12624",
-      "size": 188621
+      "sha256": "AA2E2215AFADE0EA944DEE064B09144168573E4ADD5BD3AE3A4AAEA2C40FC7E6",
+      "size": 190854
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

@@ -5,6 +5,46 @@ param(
     [switch]$NoShow
 )
 
+# This script is published in the public update feed, so a downloaded copy would
+# otherwise open as the full Cleaner with no licence check at all. Only start
+# when DRDirect opened it: the compiled exe, the launcher (which hands over the
+# PC IDs it checked), test mode, or the project folder the licence secret lives in.
+$drStartedByDRDirect = [bool]$TestMode
+if (-not $drStartedByDRDirect) {
+    $drHostName = ''
+    try { $drHostName = [Diagnostics.Process]::GetCurrentProcess().ProcessName } catch { }
+    $drStartedByDRDirect = @('powershell', 'pwsh', 'powershell_ise') -notcontains $drHostName.ToLowerInvariant()
+}
+if (-not $drStartedByDRDirect) {
+    $drStartedByDRDirect = -not [string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable('DRDIRECT_ALLOWED_PC_IDS'))
+}
+if (-not $drStartedByDRDirect -and -not [string]::IsNullOrWhiteSpace($PSScriptRoot)) {
+    $drStartedByDRDirect = Test-Path -LiteralPath (Join-Path $PSScriptRoot 'licence_secret_cleaner.txt') -PathType Leaf
+}
+# The update folder the launcher runs updates from. A customer's copy must never
+# be locked out of its own update, even if the launcher's hand-off went missing.
+if (-not $drStartedByDRDirect -and -not [string]::IsNullOrWhiteSpace($PSScriptRoot) -and
+        -not [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
+    $drUpdateFolder = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts'
+    $drStartedByDRDirect = [string]::Equals(
+        [IO.Path]::GetFullPath($PSScriptRoot).TrimEnd('\'),
+        [IO.Path]::GetFullPath($drUpdateFolder).TrimEnd('\'),
+        [StringComparison]::OrdinalIgnoreCase)
+}
+if (-not $drStartedByDRDirect) {
+    $drRefusal = "This file is part of DRDirect PC Cleaner and cannot be opened on its own." + [Environment]::NewLine + [Environment]::NewLine +
+        "Open DRDirect PC Cleaner from its shortcut instead. Don't have it? Contact DRDirect."
+    if ($NoShow) {
+        Write-Error $drRefusal
+    } else {
+        try {
+            Add-Type -AssemblyName PresentationFramework
+            [Windows.MessageBox]::Show($drRefusal, 'DRDirect PC Cleaner', 'OK', 'Information') | Out-Null
+        } catch { Write-Error $drRefusal }
+    }
+    exit 2
+}
+
 function Resolve-DREnginePath {
     $runtimeRoots = New-Object System.Collections.Generic.List[string]
 
@@ -2587,7 +2627,7 @@ $ui.OpenDuplicatesButton.Add_Click({
     $psExe = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
     $trialFlag = ''
     try { if (Test-DRTrialMode) { $trialFlag = ' -TrialMode' } } catch { }
-    $psArgs = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}"{1}' -f $finder, $trialFlag
+    $psArgs = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}" -FromCleaner{1}' -f $finder, $trialFlag
 
     try {
         if (Test-DRAdministrator) {

@@ -20,7 +20,10 @@ param(
     [switch]$NoShow,
     # Passed by the Cleaner when the copy is on a free try, so this window does
     # not have to work it out for itself and cannot silently get it wrong.
-    [switch]$TrialMode
+    [switch]$TrialMode,
+    # Passed by the Cleaner. Its administrator path opens this window through
+    # Explorer, which drops the launcher's hand-off, so this says who opened it.
+    [switch]$FromCleaner
 )
 
 Set-StrictMode -Version Latest
@@ -63,6 +66,43 @@ if (-not $script:DRAllowedPcIds -or $script:DRAllowedPcIds.Count -eq 0) {
         $script:DRIsTrialBuild =
             ([Environment]::GetEnvironmentVariable('DRDIRECT_TRIAL_BUILD') -eq '1')
     }
+}
+
+# This script is published in the public update feed, so a downloaded copy would
+# otherwise open as the full Finder with no licence check at all. Only start
+# when DRDirect opened it: the compiled exe, a launcher, the Cleaner, test mode,
+# or the project folder the licence secret lives in.
+$drStartedByDRDirect = [bool]($TestMode -or $FromCleaner -or $script:DRAllowedPcIds.Count -gt 0)
+if (-not $drStartedByDRDirect) {
+    $drHostName = ''
+    try { $drHostName = [Diagnostics.Process]::GetCurrentProcess().ProcessName } catch { }
+    $drStartedByDRDirect = @('powershell', 'pwsh', 'powershell_ise') -notcontains $drHostName.ToLowerInvariant()
+}
+if (-not $drStartedByDRDirect -and -not [string]::IsNullOrWhiteSpace($PSScriptRoot)) {
+    $drStartedByDRDirect = Test-Path -LiteralPath (Join-Path $PSScriptRoot 'licence_secret_finder.txt') -PathType Leaf
+}
+# An update lands here while the older Cleaner is still open, and that Cleaner
+# opens this copy without saying who it is until it has been closed and reopened.
+if (-not $drStartedByDRDirect -and -not [string]::IsNullOrWhiteSpace($PSScriptRoot) -and
+        -not [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
+    $drUpdateFolder = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts'
+    $drStartedByDRDirect = [string]::Equals(
+        [IO.Path]::GetFullPath($PSScriptRoot).TrimEnd('\'),
+        [IO.Path]::GetFullPath($drUpdateFolder).TrimEnd('\'),
+        [StringComparison]::OrdinalIgnoreCase)
+}
+if (-not $drStartedByDRDirect) {
+    $drRefusal = "This file is part of DRDirect Duplicate Finder and cannot be opened on its own." + [Environment]::NewLine + [Environment]::NewLine +
+        "Open it from its shortcut, or from the DRDirect PC Cleaner. Don't have it? Contact DRDirect."
+    if ($NoShow -or $ScanOnly) {
+        Write-Error $drRefusal -ErrorAction Continue
+    } else {
+        try {
+            Add-Type -AssemblyName PresentationFramework
+            [Windows.MessageBox]::Show($drRefusal, 'DRDirect Duplicate Finder', 'OK', 'Information') | Out-Null
+        } catch { Write-Error $drRefusal -ErrorAction Continue }
+    }
+    exit 2
 }
 
 function Get-DRPcIds {
