@@ -1,7 +1,7 @@
 {
-  "version": "1.4.25",
-  "notes": "AI Remover can now block AI websites like ChatGPT and Gemini, and it shows you how to switch off Gemini in Gmail, Copilot in Word and Excel, and the Copilot button in Edge.",
-  "published": "2026-09-28T19:43:01.8338744-04:00",
+  "version": "1.4.26",
+  "notes": "AI Remover can now show you what AI is on your PC, delete the large AI files your browser downloaded to free up space, and help you set the Copilot key to open Search.",
+  "published": "2026-09-28T19:53:54.5945598-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "48E7ADE1D085ED0D6FDB1FF2EEA4D0A9D4DB658F6E3EFFF3EBE9EC5E44169453",
-      "size": 199221
+      "sha256": "763DA2E05B10A3F07E6FADB3AE3B50FED9EDFF6A576B3419207B807063E3F88C",
+      "size": 199948
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "A6C55F91F7C847FD37ADBCF7C22E1DAFD6A3822C07A550792FD40EFDF56D6DA7",
-      "size": 145842
+      "sha256": "3913CCA9237444D0A89DAF1883FA06158E9B1BFD0A013063034C3BAE971DF6E3",
+      "size": 155181
     },
     {
       "name": "DRDirect Updater.ps1",

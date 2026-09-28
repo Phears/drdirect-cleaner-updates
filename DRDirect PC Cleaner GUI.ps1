@@ -864,6 +864,9 @@ $currentCategory = 'Dashboard'
 $script:driverPanel = $null
 # What the AI Remover page found on its last check (apps, browsers, sign-ins).
 $script:DRAIStatus = @()
+# These only look, or only open a page for the customer to finish, so a run of
+# nothing but these never needs Windows to restart.
+$script:DRNoRestartTaskIds = @('ai.check','ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key','ai.remove-models')
 $runQueue = New-Object System.Collections.Generic.Queue[string]
 $runEvents = New-Object System.Collections.Generic.List[object]
 $runStartedAt = $null
@@ -1169,7 +1172,7 @@ function New-TaskRow {
     # AI Remover rows share the page's violet and say plainly what each one does.
     $aiStatus = $null
     if ($Task.Category -eq 'AI') {
-        $aiLabel = if ($Task.Id -eq 'ai.restore') { 'UNDO' } elseif ($risk -eq 'Confirm') { 'UNINSTALLS' } elseif ($risk -eq 'Guided') { 'YOU MAKE THE LAST CLICK' } else { 'CAN BE UNDONE' }
+        $aiLabel = if ($Task.Id -eq 'ai.restore') { 'UNDO' } elseif ($Task.Id -eq 'ai.check') { 'ONLY LOOKS' } elseif ($risk -eq 'Cleanup') { 'FREES SPACE' } elseif ($risk -eq 'Confirm') { 'UNINSTALLS' } elseif ($risk -eq 'Guided') { 'YOU MAKE THE LAST CLICK' } else { 'CAN BE UNDONE' }
         $accent = @{ Badge='#F1EAFE'; BadgeInk='#6D28D9'; Label=$aiLabel }
         $border.BorderBrush = '#7C3AED'
         $border.BorderThickness = '5,1,1,1'
@@ -1298,6 +1301,7 @@ function New-TaskRow {
     $meta = New-Object Windows.Controls.StackPanel -Property @{ HorizontalAlignment='Right'; Margin='12,0,0,0' }
     [Windows.Controls.Grid]::SetColumn($meta,2)
     $value = if ($analysis.ContainsKey($Task.Id) -and $Task.SupportsAnalysis) { Format-Bytes $analysis[$Task.Id].Bytes } else { $Task.Duration }
+    if ($aiStatus -and $aiStatus.Detail) { $value = $aiStatus.Detail }
     $meta.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$value; FontWeight='SemiBold'; HorizontalAlignment='Right' })) | Out-Null
     $sub = if ($analysis.ContainsKey($Task.Id) -and $analysis[$Task.Id].ItemCount -gt 0) { "$($analysis[$Task.Id].ItemCount) location(s)" } elseif ($Task.RequiresAdmin) { 'Administrator' } else { 'Current user' }
     $meta.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$sub; Foreground='#667085'; FontSize=11; HorizontalAlignment='Right'; Margin='0,4,0,0' })) | Out-Null
@@ -1441,10 +1445,11 @@ function Show-Confirmation {
     if ($selected.Id -contains 'security.remove-exclusions') { $warnings.Add('All configured Defender exclusions will be exported to a backup and then removed.') }
     if ($selected.Id -contains 'security.checkup-fix') { $warnings.Add('Any of the Windows firewall, Microsoft Defender real-time protection and Windows Update that is off will be switched back on.') }
     if (@($selected | Where-Object { $_.Id -in @('ai.edge','ai.chrome','ai.brave','ai.firefox','ai.block-sites') }).Count) { $warnings.Add('The browsers you picked will show "Managed by your organization" - that is what keeps their AI off. "Put AI back" removes it.') }
-    if (@($selected | Where-Object { $_.Category -eq 'AI' -and $_.Risk -eq 'Guided' }).Count) { $warnings.Add('Some items open Gmail, Word or Edge at the right setting. The last click there is yours - the steps show on each item.') }
+    if (@($selected | Where-Object { $_.Category -eq 'AI' -and $_.Risk -eq 'Guided' }).Count) { $warnings.Add('Some items open Gmail, Word, Edge or Settings at the right place. The last click there is yours - the steps show on each item.') }
+    if ($selected.Id -contains 'ai.remove-models') { $warnings.Add('Close Chrome and Edge before running, so the AI model they downloaded can be deleted.') }
     if (@($selected | Where-Object { $_.Category -eq 'AI' -and $_.Risk -eq 'Confirm' }).Count) { $warnings.Add('The AI apps you picked will be uninstalled. They can be installed again from the Microsoft Store.') }
     if ($selected.Id -contains 'ai.restore' -and @($selected | Where-Object { $_.Category -eq 'AI' -and $_.Id -ne 'ai.restore' }).Count) { $warnings.Add('"Put AI back" is also ticked, so it runs last and undoes the AI settings chosen above. Untick one of them.') }
-    if (@($selected).Count -gt 0) { $warnings.Add('When everything has finished, Windows needs to restart. You will get a one-hour countdown first, and you can cancel it or restart sooner.') }
+    if (@($selected | Where-Object { $script:DRNoRestartTaskIds -notcontains $_.Id }).Count -gt 0) { $warnings.Add('When everything has finished, Windows needs to restart. You will get a one-hour countdown first, and you can cancel it or restart sooner.') }
     $ui.ConfirmWarning.Visibility = if ($warnings.Count) { 'Visible' } else { 'Collapsed' }
     $ui.ConfirmWarningText.Text = $warnings -join "`n"
     $ui.ConfirmationCheck.IsChecked = $false
@@ -1861,7 +1866,7 @@ function Complete-RunPlan {
     # starts the 90-second automatic restart countdown.
     if ($ui.CleaningAnimation) { $ui.CleaningAnimation.Visibility='Collapsed' }
     if (-not $cancelAfterTask) { Invoke-DRCleanReveal -TaskCount $selectedIds.Count }
-    $needsRestart = (-not $cancelAfterTask) -and ($selectedIds.Count -gt 0)
+    $needsRestart = (-not $cancelAfterTask) -and (@($selectedIds | Where-Object { $script:DRNoRestartTaskIds -notcontains $_ }).Count -gt 0)
 
     $ui.RestartButton.Visibility = if ($needsRestart) {
         'Visible'
