@@ -1,7 +1,7 @@
 {
-  "version": "1.4.20",
-  "notes": "Security improvement: DRDirect PC Cleaner and the Duplicate Finder now only start from their own shortcut.",
-  "published": "2026-09-25T20:57:25.7145704-04:00",
+  "version": "1.4.21",
+  "notes": "The Cleaner now removes old Windows Update backup folders left behind by earlier repairs, freeing up disk space.",
+  "published": "2026-09-28T17:31:01.5284109-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "AA2E2215AFADE0EA944DEE064B09144168573E4ADD5BD3AE3A4AAEA2C40FC7E6",
-      "size": 190854
+      "sha256": "29FB879B4D9E3E8B5E2E700D694C58EDD98D6407E0793235999FA92A36E9F49E",
+      "size": 190923
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "AF9D9EB94C499C4ABAD0DE5A9C7273007E96F437DE9AF4A217E7D7A96C23F9E0",
-      "size": 84086
+      "sha256": "F01D3707B7C8B613481EFA555296E0D75052835248DED95BD29CC026DABCF905",
+      "size": 87485
     },
     {
       "name": "DRDirect Updater.ps1",

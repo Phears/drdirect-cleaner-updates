@@ -40,6 +40,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='cleanup.cookies'; Category='Cleanup'; Name='Cookies and website storage'; Description='Clears cookies and site storage. This can sign you out of websites and webmail.'; Risk='SignOut'; Duration='1-5 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.prefetch'; Category='Cleanup'; Name='Windows Prefetch'; Description='Clears the Prefetch cache. Windows rebuilds it and app launches may initially be slower.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.wu-download-cache'; Category='Cleanup'; Name='Windows Update download cache'; Description='Clears already-installed update installers cached under SoftwareDistribution\Download. Windows re-downloads only what it needs next time.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.old-update-backups'; Category='Cleanup'; Name='Old Windows Update backup folders'; Description='Removes SoftwareDistribution.old and catroot2.old, copies left behind by an earlier Windows Update fix. Windows no longer uses them. The Windows Update folders in use are never touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.thumbnail-cache'; Category='Cleanup'; Name='Thumbnail cache'; Description='Clears cached thumbnail images. Windows rebuilds them the next time you browse those files.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.icon-cache'; Category='Cleanup'; Name='Icon cache'; Description='Clears the icon cache and restarts Explorer to rebuild it. Fixes blank or wrong icons. The taskbar and desktop will flash off and back on and open folder windows will close. Do not run it while File Explorer is copying or moving files.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.wer-queue'; Category='Cleanup'; Name='Windows Error Reporting queue'; Description='Removes queued and archived crash reports waiting to be sent to Microsoft.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
@@ -320,6 +321,34 @@ function Clear-DRFolderContents {
     return $removed
 }
 
+function Get-DROldUpdateBackupFolders {
+    <#
+        .SYNOPSIS
+            Copies of the Windows Update folders left behind by an earlier reset.
+        .DESCRIPTION
+            The usual Windows Update fix renames SoftwareDistribution and catroot2
+            to .old or .bak so Windows builds fresh ones, and nothing reads the
+            renamed copies again. Only these exact names count: the folders in use
+            and every other .old item are never returned. Links are skipped so a
+            junction can never carry the delete somewhere else.
+    #>
+    param([string]$WindowsDir = $env:WINDIR)
+
+    $system32 = Join-Path $WindowsDir 'System32'
+    $candidates = @(
+        @{ Root = $WindowsDir; Name = 'SoftwareDistribution.old' },
+        @{ Root = $WindowsDir; Name = 'SoftwareDistribution.bak' },
+        @{ Root = $system32;   Name = 'catroot2.old' },
+        @{ Root = $system32;   Name = 'catroot2.bak' }
+    )
+    foreach ($candidate in $candidates) {
+        $item = Get-Item -LiteralPath (Join-Path $candidate.Root $candidate.Name) -Force -ErrorAction SilentlyContinue
+        if (-not $item -or -not $item.PSIsContainer) { continue }
+        if ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) { continue }
+        [pscustomobject]@{ Path = $item.FullName; AllowedRoot = $candidate.Root }
+    }
+}
+
 function Get-DRAnalysis {
     [CmdletBinding()]
     param([string[]]$TaskId, [string]$TestRoot)
@@ -429,6 +458,11 @@ function Get-DRAnalysis {
                     $path = if ($TestRoot) { $TestRoot } else { Join-Path $env:WINDIR 'SoftwareDistribution\Download' }
                     $bytes = Get-DRPathSize $path; $items = @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count
                     $detail = 'Already-installed update installers'
+                }
+                'cleanup.old-update-backups' {
+                    $windowsDir = if ($TestRoot) { $TestRoot } else { $env:WINDIR }
+                    foreach ($folder in @(Get-DROldUpdateBackupFolders -WindowsDir $windowsDir)) { $bytes += Get-DRPathSize $folder.Path; $items++ }
+                    $detail = 'Left behind by an earlier Windows Update fix'
                 }
                 'cleanup.thumbnail-cache' {
                     $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot -ErrorAction SilentlyContinue) } else { @(Get-DRPatternMatches @((Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Explorer\thumbcache_*.db'))) }
@@ -1081,6 +1115,22 @@ function Invoke-DRTask {
                         try { Clear-DRFolderContents -FolderPath (Join-Path $env:WINDIR 'SoftwareDistribution\Download') -TaskId $TaskId | Out-Null }
                         finally { if ($wasRunning) { Start-Service -Name wuauserv -ErrorAction SilentlyContinue } }
                     }
+                }
+            }
+            'cleanup.old-update-backups' {
+                # A test root stands in for the Windows folder, so the same exact
+                # names are looked for under it instead.
+                $windowsDir = if ($TestRoot) { $TestRoot } else { $env:WINDIR }
+                $folders = @(Get-DROldUpdateBackupFolders -WindowsDir $windowsDir)
+                if ($folders.Count -eq 0) {
+                    New-DREvent -TaskId $TaskId -State Information -Message 'There were no old Windows Update backup folders on this PC.'
+                } else {
+                    $removedFolders = 0
+                    foreach ($folder in $folders) {
+                        try { if (Remove-DRSafeItem -LiteralPath $folder.Path -AllowedRoot $folder.AllowedRoot) { $removedFolders++ } }
+                        catch { New-DREvent -TaskId $TaskId -State Warning -Message ("Could not fully remove {0}: {1}" -f $folder.Path, $_.Exception.Message) }
+                    }
+                    New-DREvent -TaskId $TaskId -State Information -Message ("Removed {0} old Windows Update backup folder(s)." -f $removedFolders)
                 }
             }
             'cleanup.thumbnail-cache' {

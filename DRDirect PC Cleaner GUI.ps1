@@ -928,7 +928,7 @@ function Get-CleanupPresetDescription {
     param([string]$Preset)
 
     if ($Preset -eq 'Safe') {
-        return 'Regular cleanup: temporary files, browser caches, Recycle Bin, Prefetch, and caches Windows rebuilds by itself.'
+        return 'Regular cleanup: temporary files, browser caches, Recycle Bin, Prefetch, old Windows Update leftovers, and caches Windows rebuilds by itself.'
     }
 
     if ($Preset -eq 'Medium') {
@@ -960,6 +960,7 @@ function Test-TaskInOrderedPreset {
         'cleanup.hidden-recycle-folders',
         'cleanup.prefetch',
         'cleanup.wu-download-cache',
+        'cleanup.old-update-backups',
         'cleanup.thumbnail-cache',
         'cleanup.wer-queue',
         'cleanup.delivery-optimization-cache'
