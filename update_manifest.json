@@ -1,7 +1,7 @@
 {
-  "version": "1.4.21",
-  "notes": "The Cleaner now removes old Windows Update backup folders left behind by earlier repairs, freeing up disk space.",
-  "published": "2026-09-28T17:31:01.5284109-04:00",
+  "version": "1.4.22",
+  "notes": "Scanning your PC now only measures. Nothing is removed until you start the cleanup. The iCloud, Google Drive, OneDrive, Dropbox and MEGA cache options now clean properly when ticked.",
+  "published": "2026-09-28T17:53:23.3853808-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "F01D3707B7C8B613481EFA555296E0D75052835248DED95BD29CC026DABCF905",
-      "size": 87485
+      "sha256": "DF9507504974D265A4BC4CA9CB7965FB39821D6E30264351541CB11410D088A5",
+      "size": 84648
     },
     {
       "name": "DRDirect Updater.ps1",

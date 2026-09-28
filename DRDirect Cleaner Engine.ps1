@@ -366,52 +366,7 @@ function Get-DRAnalysis {
                     foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
                     $detail = 'Windows and application temporary folders'
                 }
-                'cleanup.cloud-icloud' {
-                $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'iCloud')) }
-                if (@($matches).Count -eq 0) {
-                    New-DREvent -TaskId $TaskId -State Information -Message 'iCloud is not set up on this PC, so there was nothing to clear.'
-                } else {
-                    foreach ($match in $matches) { Clear-DRFolderContents -FolderPath $match.FullName -TaskId $TaskId | Out-Null }
-                    New-DREvent -TaskId $TaskId -State Information -Message ('Cleared {0} iCloud cache location(s). Synced files were not touched.' -f @($matches).Count)
-                }
-            }
-            'cleanup.cloud-google' {
-                $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'Google Drive')) }
-                if (@($matches).Count -eq 0) {
-                    New-DREvent -TaskId $TaskId -State Information -Message 'Google Drive is not set up on this PC, so there was nothing to clear.'
-                } else {
-                    foreach ($match in $matches) { Clear-DRFolderContents -FolderPath $match.FullName -TaskId $TaskId | Out-Null }
-                    New-DREvent -TaskId $TaskId -State Information -Message ('Cleared {0} Google Drive cache location(s). Synced files were not touched.' -f @($matches).Count)
-                }
-            }
-            'cleanup.cloud-onedrive' {
-                $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'OneDrive')) }
-                if (@($matches).Count -eq 0) {
-                    New-DREvent -TaskId $TaskId -State Information -Message 'OneDrive is not set up on this PC, so there was nothing to clear.'
-                } else {
-                    foreach ($match in $matches) { Clear-DRFolderContents -FolderPath $match.FullName -TaskId $TaskId | Out-Null }
-                    New-DREvent -TaskId $TaskId -State Information -Message ('Cleared {0} OneDrive cache location(s). Synced files were not touched.' -f @($matches).Count)
-                }
-            }
-            'cleanup.cloud-dropbox' {
-                $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'Dropbox')) }
-                if (@($matches).Count -eq 0) {
-                    New-DREvent -TaskId $TaskId -State Information -Message 'Dropbox is not set up on this PC, so there was nothing to clear.'
-                } else {
-                    foreach ($match in $matches) { Clear-DRFolderContents -FolderPath $match.FullName -TaskId $TaskId | Out-Null }
-                    New-DREvent -TaskId $TaskId -State Information -Message ('Cleared {0} Dropbox cache location(s). Synced files were not touched.' -f @($matches).Count)
-                }
-            }
-            'cleanup.cloud-mega' {
-                $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'MEGA')) }
-                if (@($matches).Count -eq 0) {
-                    New-DREvent -TaskId $TaskId -State Information -Message 'MEGA is not set up on this PC, so there was nothing to clear.'
-                } else {
-                    foreach ($match in $matches) { Clear-DRFolderContents -FolderPath $match.FullName -TaskId $TaskId | Out-Null }
-                    New-DREvent -TaskId $TaskId -State Information -Message ('Cleared {0} MEGA cache location(s). Synced files were not touched.' -f @($matches).Count)
-                }
-            }
-            'cleanup.browser-cache' {
+                'cleanup.browser-cache' {
                     $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRBrowserCachePatterns)) }
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
                     $detail = 'Cache only; passwords, cookies, and sessions preserved'
@@ -1040,6 +995,17 @@ function Invoke-DRTask {
                     $index++
                     Clear-DRFolderContents -FolderPath $match.FullName -TaskId $TaskId | Out-Null
                     New-DREvent -TaskId $TaskId -State Progress -Message ("Cleared browser cache {0} of {1}." -f $index, @($matches).Count) -Percent ([int](100 * $index / [Math]::Max(1,@($matches).Count)))
+                }
+            }
+            { $_ -like 'cleanup.cloud-*' } {
+                # One clause for every cloud service; the catalog names which one.
+                $service = $task.CloudService
+                $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns $service)) }
+                if (@($matches).Count -eq 0) {
+                    New-DREvent -TaskId $TaskId -State Information -Message ('{0} is not set up on this PC, so there was nothing to clear.' -f $service)
+                } else {
+                    foreach ($match in $matches) { Clear-DRFolderContents -FolderPath $match.FullName -TaskId $TaskId | Out-Null }
+                    New-DREvent -TaskId $TaskId -State Information -Message ('Cleared {0} {1} cache location(s). Synced files were not touched.' -f @($matches).Count, $service)
                 }
             }
             'cleanup.cookies' {
