@@ -1,7 +1,7 @@
 {
-  "version": "1.4.24",
-  "notes": "New AI Remover: switch off Copilot, Gemini and other AI in Windows and your web browsers, or remove the Copilot, ChatGPT and Claude apps - your choice, and one click puts it all back. New Security checkup: checks that your firewall, virus protection and Windows Update are on, and can switch them back on.",
-  "published": "2026-09-28T19:29:44.9834623-04:00",
+  "version": "1.4.25",
+  "notes": "AI Remover can now block AI websites like ChatGPT and Gemini, and it shows you how to switch off Gemini in Gmail, Copilot in Word and Excel, and the Copilot button in Edge.",
+  "published": "2026-09-28T19:43:01.8338744-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "DD845D5B5F94175FEC33C553FB6ADB3B9F34244E9338C2AAA59E08A8AC2B82B4",
-      "size": 195842
+      "sha256": "48E7ADE1D085ED0D6FDB1FF2EEA4D0A9D4DB658F6E3EFFF3EBE9EC5E44169453",
+      "size": 199221
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "72475C30932F90B24748A87627F910FC577C4E319E7D7E55EA0842E472CA279C",
-      "size": 131555
+      "sha256": "A6C55F91F7C847FD37ADBCF7C22E1DAFD6A3822C07A550792FD40EFDF56D6DA7",
+      "size": 145842
     },
     {
       "name": "DRDirect Updater.ps1",

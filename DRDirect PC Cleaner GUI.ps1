@@ -1169,7 +1169,7 @@ function New-TaskRow {
     # AI Remover rows share the page's violet and say plainly what each one does.
     $aiStatus = $null
     if ($Task.Category -eq 'AI') {
-        $aiLabel = if ($Task.Id -eq 'ai.restore') { 'UNDO' } elseif ($risk -eq 'Confirm') { 'UNINSTALLS' } else { 'CAN BE UNDONE' }
+        $aiLabel = if ($Task.Id -eq 'ai.restore') { 'UNDO' } elseif ($risk -eq 'Confirm') { 'UNINSTALLS' } elseif ($risk -eq 'Guided') { 'YOU MAKE THE LAST CLICK' } else { 'CAN BE UNDONE' }
         $accent = @{ Badge='#F1EAFE'; BadgeInk='#6D28D9'; Label=$aiLabel }
         $border.BorderBrush = '#7C3AED'
         $border.BorderThickness = '5,1,1,1'
@@ -1440,7 +1440,8 @@ function Show-Confirmation {
     if ($selected.Id -contains 'cleanup.recycle-bin') { $warnings.Add('Recycle Bin contents will be permanently removed.') }
     if ($selected.Id -contains 'security.remove-exclusions') { $warnings.Add('All configured Defender exclusions will be exported to a backup and then removed.') }
     if ($selected.Id -contains 'security.checkup-fix') { $warnings.Add('Any of the Windows firewall, Microsoft Defender real-time protection and Windows Update that is off will be switched back on.') }
-    if (@($selected | Where-Object { $_.Id -in @('ai.edge','ai.chrome','ai.brave','ai.firefox') }).Count) { $warnings.Add('The browsers you picked will show "Managed by your organization" - that is what keeps their AI off. "Put AI back" removes it.') }
+    if (@($selected | Where-Object { $_.Id -in @('ai.edge','ai.chrome','ai.brave','ai.firefox','ai.block-sites') }).Count) { $warnings.Add('The browsers you picked will show "Managed by your organization" - that is what keeps their AI off. "Put AI back" removes it.') }
+    if (@($selected | Where-Object { $_.Category -eq 'AI' -and $_.Risk -eq 'Guided' }).Count) { $warnings.Add('Some items open Gmail, Word or Edge at the right setting. The last click there is yours - the steps show on each item.') }
     if (@($selected | Where-Object { $_.Category -eq 'AI' -and $_.Risk -eq 'Confirm' }).Count) { $warnings.Add('The AI apps you picked will be uninstalled. They can be installed again from the Microsoft Store.') }
     if ($selected.Id -contains 'ai.restore' -and @($selected | Where-Object { $_.Category -eq 'AI' -and $_.Id -ne 'ai.restore' }).Count) { $warnings.Add('"Put AI back" is also ticked, so it runs last and undoes the AI settings chosen above. Untick one of them.') }
     if (@($selected).Count -gt 0) { $warnings.Add('When everything has finished, Windows needs to restart. You will get a one-hour countdown first, and you can cancel it or restart sooner.') }

@@ -82,13 +82,17 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='ai.windows'; Category='AI'; Name='Windows: turn off Recall and AI in Paint and Notepad'; Description='Switches off Recall (the snapshots of your screen), Click to Do, the AI agent in Settings, and the AI tools in Paint and Notepad. Takes effect after the restart. "Put AI back" undoes it.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.copilot-app'; Category='AI'; Name='Windows: remove the Copilot app'; Description='Uninstalls the Microsoft Copilot app for every account on this PC. It can be installed again from the Microsoft Store.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.m365-app'; Category='AI'; Name='Windows: remove the Microsoft 365 Copilot app'; Description='Uninstalls the Microsoft 365 Copilot app (the Copilot chat and Office start page). Word, Excel, Outlook and your documents are not touched. It can be installed again from the Microsoft Store.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.office-copilot'; Category='AI'; Name='Word and Excel: turn off Copilot'; Description='Opens Word so you can switch Copilot off: File > Options > Copilot, untick Enable Copilot, then OK. Do the same in Excel and PowerPoint. Office keeps this switch inside each app, so the last click is yours.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.edge'; Category='AI'; Name='Edge: turn off Copilot'; Description='Turns off the Copilot sidebar, Copilot reading the page, Copilot on the new tab page, and AI writing help. Passwords, bookmarks and sign-ins are not touched. Edge will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.edge-button'; Category='AI'; Name='Edge: hide the Copilot button'; Description='Opens Edge so you can switch off the Copilot button on the toolbar: Settings, search for Copilot, switch the button off. The newest Edge keeps this switch to itself, so the last click is yours.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.chrome'; Category='AI'; Name='Chrome: turn off Gemini and AI Mode'; Description='Turns off Gemini in Chrome, the AI Mode button, "Help me write", and the AI tab and history features. Passwords, bookmarks and sign-ins are not touched. Chrome will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.brave'; Category='AI'; Name='Brave: turn off Leo AI'; Description='Turns off Leo, the AI assistant built into Brave. Passwords, bookmarks and sign-ins are not touched. Brave will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.firefox'; Category='AI'; Name='Firefox: turn off AI'; Description='Turns off the AI chatbot sidebar, AI link previews and AI tab groups. Passwords, bookmarks and sign-ins are not touched. Firefox settings will say the browser is managed by your organization while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.block-sites'; Category='AI'; Name='Block AI websites'; Description='Blocks the ChatGPT, Gemini, Copilot, Claude, Perplexity, DeepSeek, Grok and Meta AI websites in Edge, Chrome, Brave and Firefox. Only browsers that are signed in are changed (Brave has no sign-in). The browsers will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.gmail'; Category='AI'; Name='Gmail: turn off Gemini'; Description='Opens Gmail settings in the web browser: untick the Smart features boxes and click Save changes. Google keeps this switch in the Google account, so the last click is yours.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.chatgpt-app'; Category='AI'; Name='Remove the ChatGPT app'; Description='Uninstalls the ChatGPT app. Chats saved in the ChatGPT account are not deleted, and the app can be installed again.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.claude-app'; Category='AI'; Name='Remove the Claude app'; Description='Uninstalls the Claude app. Chats saved in the Claude account are not deleted, and the app can be installed again.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='ai.restore'; Category='AI'; Name='Put AI back'; Description='Undoes the Windows and browser AI settings above, exactly as they were before, and the "Managed by your organization" message goes away. Removed apps are not reinstalled - get them again from the Microsoft Store.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.restore'; Category='AI'; Name='Put AI back'; Description='Undoes the Windows and browser AI settings and the website blocks above, exactly as they were before, and the "Managed by your organization" message goes away. Removed apps are not reinstalled - get them again from the Microsoft Store. Switches you turned off yourself (Gmail, Word, the Edge button) are turned back on the same way.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
     )
 }
 
@@ -1268,6 +1272,7 @@ function Get-DRAIBrowserForTask {
     param([string]$TaskId)
     switch ($TaskId) {
         'ai.edge'    { return 'Edge' }
+        'ai.edge-button' { return 'Edge' }
         'ai.chrome'  { return 'Chrome' }
         'ai.brave'   { return 'Brave' }
         'ai.firefox' { return 'Firefox' }
@@ -1461,15 +1466,17 @@ function Restore-DRAIPolicy {
     )
 
     $restored = @()
-    foreach ($target in @('Windows','Edge','Chrome','Brave','Firefox')) {
+    $emptied = @()
+    foreach ($target in @('Sites_Chrome','Sites_Edge','Sites_Brave','Sites_Firefox','Windows','Edge','Chrome','Brave','Firefox')) {
         $backupPath = Join-Path $BackupFolder ('AI_{0}.json' -f $target)
         if (-not (Test-Path -LiteralPath $backupPath -PathType Leaf)) { continue }
-        $allowed = @(Get-DRAIPolicyValues -Target $target -Root $Root)
+        $allowed = if ($target -like 'Sites_*') { @([pscustomobject]@{ Key = (Get-DRAISiteBlockKey -Browser $target.Substring(6) -Root $Root) }) }
+                   else { @(Get-DRAIPolicyValues -Target $target -Root $Root) }
         $saved = Get-Content -LiteralPath $backupPath -Raw | ConvertFrom-Json
 
         foreach ($entry in @(Get-DRDiskProperty $saved 'Settings' | Where-Object { $_ })) {
             # Only the switches this Cleaner sets; an edited backup cannot point anywhere else.
-            if (-not @($allowed | Where-Object { $_.Key -eq $entry.Key -and $_.Name -eq $entry.Name }).Count) { continue }
+            if (-not (Test-DRAIAllowedEntry -Target $target -Entry $entry -Root $Root)) { continue }
             if ($entry.Existed) {
                 $kind = [Microsoft.Win32.RegistryValueKind]$entry.Kind
                 $data = switch ($kind) {
@@ -1484,18 +1491,30 @@ function Restore-DRAIPolicy {
                 try { $opened.SetValue($entry.Name, $data, $kind) } finally { $opened.Close() }
             } else {
                 $opened = Open-DRRegistryKey -Key $entry.Key -Writable
-                if ($opened) { try { $opened.DeleteValue($entry.Name, $false) } finally { $opened.Close() } }
+                if ($opened) {
+                    try {
+                        # A block-list entry is only taken out while it still holds the site
+                        # the Cleaner put there; anything reusing that slot since is kept.
+                        $expected = Get-DRDiskProperty $entry 'Value'
+                        if ($null -eq $expected -or [string]$opened.GetValue($entry.Name) -eq [string]$expected) { $opened.DeleteValue($entry.Name, $false) }
+                    } finally { $opened.Close() }
+                }
             }
         }
 
-        # Keys the Cleaner created, deepest first, and only while they are empty:
-        # a key something else has put its own settings in since is left alone.
-        foreach ($newKey in @(Get-DRDiskProperty $saved 'NewKeys' | Where-Object { $_ } | Sort-Object Length -Descending)) {
-            if (Test-DRAIRemovableKey -Key $newKey -Allowed $allowed -Root $Root) { Remove-DREmptyRegistryKey -Key $newKey | Out-Null }
+        foreach ($newKey in @(Get-DRDiskProperty $saved 'NewKeys' | Where-Object { $_ })) {
+            if (Test-DRAIRemovableKey -Key $newKey -Allowed $allowed -Root $Root) { $emptied += $newKey }
         }
 
         Remove-DRSafeItem -LiteralPath $backupPath -AllowedRoot $BackupFolder | Out-Null
-        $restored += $target
+        $restored += if ($target -like 'Sites_*') { 'AI websites in ' + $target.Substring(6) } else { $target }
+    }
+
+    # Keys the Cleaner created, deepest first, and only while they are empty: a key
+    # something else has put its own settings in since is left alone. Done last, so
+    # a browser key emptied by a later step still goes.
+    foreach ($newKey in @($emptied | Select-Object -Unique | Sort-Object Length -Descending)) {
+        Remove-DREmptyRegistryKey -Key $newKey | Out-Null
     }
 
     if (-not $restored.Count) {
@@ -1503,6 +1522,144 @@ function Restore-DRAIPolicy {
         return
     }
     New-DREvent -TaskId $TaskId -State Information -Message ('AI settings are back to how they were for: {0}. Close and reopen those browsers. Removed apps are not put back - get them again from the Microsoft Store if you want them.' -f ($restored -join ', '))
+}
+
+function Test-DRAIAllowedEntry {
+    # Whether a backup entry is one this Cleaner could have written for that target.
+    param([string]$Target, $Entry, [string]$Root)
+    if ($Target -like 'Sites_*') {
+        $blockKey = Get-DRAISiteBlockKey -Browser $Target.Substring(6) -Root $Root
+        return ($Entry.Key -eq $blockKey -and [string]$Entry.Name -match '^\d+$' -and -not $Entry.Existed)
+    }
+    return [bool]@(Get-DRAIPolicyValues -Target $Target -Root $Root | Where-Object { $_.Key -eq $Entry.Key -and $_.Name -eq $Entry.Name }).Count
+}
+
+function Get-DRAIBlockedSites {
+    param([ValidateSet('Chrome','Edge','Brave','Firefox')][string]$Browser)
+    $sites = @('chatgpt.com', 'chat.openai.com', 'gemini.google.com', 'copilot.microsoft.com', 'claude.ai',
+               'perplexity.ai', 'chat.deepseek.com', 'grok.com', 'meta.ai')
+    # Firefox takes match patterns; *.site also covers the site itself.
+    if ($Browser -eq 'Firefox') { return @($sites | ForEach-Object { '*://*.{0}/*' -f $_ }) }
+    return $sites
+}
+
+function Get-DRAISiteBlockKey {
+    param([ValidateSet('Chrome','Edge','Brave','Firefox')][string]$Browser, [string]$Root = 'HKLM:\SOFTWARE')
+    $relative = switch ($Browser) {
+        'Chrome'  { 'Policies\Google\Chrome\URLBlocklist' }
+        'Edge'    { 'Policies\Microsoft\Edge\URLBlocklist' }
+        'Brave'   { 'Policies\BraveSoftware\Brave\URLBlocklist' }
+        'Firefox' { 'Policies\Mozilla\Firefox\WebsiteFilter\Block' }
+    }
+    Join-Path $Root $relative
+}
+
+function Add-DRAISiteBlock {
+    <#
+        Adds the AI sites to a browser's block list beside anything already on it,
+        and records exactly which numbered entries were added - before adding them -
+        so "Put AI back" takes out only those. Returns how many were added.
+    #>
+    param(
+        [ValidateSet('Chrome','Edge','Brave','Firefox')][string]$Browser,
+        [string]$Root = 'HKLM:\SOFTWARE',
+        [string]$BackupFolder = (Get-DRAIBackupFolder)
+    )
+    $key = Get-DRAISiteBlockKey -Browser $Browser -Root $Root
+    $backupPath = Join-Path $BackupFolder ('AI_Sites_{0}.json' -f $Browser)
+    $saved = $null
+    if (Test-Path -LiteralPath $backupPath -PathType Leaf) { $saved = Get-Content -LiteralPath $backupPath -Raw | ConvertFrom-Json }
+    # Earlier runs are added to, never replaced, so every entry ever added stays on record.
+    $settings = if ($saved) { @(Get-DRDiskProperty $saved 'Settings' | Where-Object { $_ }) } else { @() }
+    $newKeys  = if ($saved) { @(Get-DRDiskProperty $saved 'NewKeys' | Where-Object { $_ }) } else { @(Get-DRMissingRegistryKeys -Key $key -Root $Root) }
+
+    $names = @(); $present = @()
+    $opened = Open-DRRegistryKey -Key $key
+    if ($opened) {
+        try {
+            $names = @($opened.GetValueNames())
+            $present = @($names | ForEach-Object { [string]$opened.GetValue($_) })
+        } finally { $opened.Close() }
+    }
+    $plan = @()
+    $next = 1
+    foreach ($site in (Get-DRAIBlockedSites -Browser $Browser)) {
+        if ($present -contains $site) { continue }
+        while ($names -contains [string]$next) { $next++ }
+        $names += [string]$next
+        $plan += [pscustomobject]@{ Key = $key; Name = [string]$next; Existed = $false; Kind = 'String'; Value = $site }
+    }
+    if (-not $plan.Count) { return 0 }
+
+    New-Item -Path $BackupFolder -ItemType Directory -Force | Out-Null
+    $record = [pscustomobject]@{ Target = ('Sites_{0}' -f $Browser); Settings = @($settings + $plan); NewKeys = @($newKeys) }
+    [System.IO.File]::WriteAllText($backupPath, (ConvertTo-Json -InputObject $record -Depth 4), (New-Object System.Text.UTF8Encoding($false)))
+
+    $opened = Open-DRRegistryKey -Key $key -Create
+    try { foreach ($entry in $plan) { $opened.SetValue($entry.Name, $entry.Value, [Microsoft.Win32.RegistryValueKind]::String) } } finally { $opened.Close() }
+    return $plan.Count
+}
+
+function Invoke-DRAISiteBlock {
+    param([string]$TaskId, [string]$TestRoot)
+    $blocked = @(); $skipped = @()
+    foreach ($browser in @('Edge','Chrome','Brave','Firefox')) {
+        if (-not (Test-DRAIBrowserPresent -Browser $browser)) { continue }
+        # Same rule as the browser rows: a browser with accounts must be signed in first.
+        if ($browser -ne 'Brave' -and -not (Test-DRBrowserSignedIn -Browser $browser)) { $skipped += $browser; continue }
+        if (-not $TestRoot) { Add-DRAISiteBlock -Browser $browser | Out-Null }
+        $blocked += $browser
+    }
+    foreach ($browser in $skipped) {
+        New-DREvent -TaskId $TaskId -State Warning -Message ('{0} is not signed in, so AI websites were not blocked there. Sign in to {0} first, then run this again.' -f $browser)
+    }
+    if (-not $blocked.Count) {
+        if (-not $skipped.Count) { New-DREvent -TaskId $TaskId -State Information -Message 'No supported web browser was found. Nothing was changed.' }
+        return
+    }
+    if ($TestRoot) {
+        New-DREvent -TaskId $TaskId -State Information -Message ('TEST MODE: nothing was changed. AI websites would be blocked in {0}.' -f ($blocked -join ', '))
+        return
+    }
+    New-DREvent -TaskId $TaskId -State Information -Message ('ChatGPT, Gemini, Copilot, Claude and other AI websites are now blocked in {0}. Close and reopen the browser. It will show "Managed by your organization" - that is what keeps them blocked. "Put AI back" removes it.' -f ($blocked -join ', '))
+}
+
+function Open-DRForUser {
+    # Opens a web page or program as the signed-in person rather than as
+    # administrator, by handing it to Explorer. A browser started as administrator
+    # would not be the customer's normal browser session.
+    param([string]$Target)
+    Start-Process -FilePath (Join-Path $env:WINDIR 'explorer.exe') -ArgumentList ('"{0}"' -f $Target)
+}
+
+function Invoke-DRAIGuidedTask {
+    # For switches kept in an online account or inside an app: open the right place
+    # and say exactly what to click. Nothing on this PC is changed.
+    param([string]$TaskId, [string]$TestRoot)
+    $target = $null; $message = $null
+    switch ($TaskId) {
+        'ai.gmail' {
+            $target = 'https://mail.google.com/mail/u/0/#settings/general'
+            $message = 'Gmail settings are open in the web browser. Sign in if asked, untick the Smart features boxes, then click Save changes at the bottom of the page.'
+        }
+        'ai.office-copilot' {
+            $target = Get-DRWordExe
+            $message = 'Word is opening. Click File > Options > Copilot, untick Enable Copilot and click OK, then close and reopen Word. Do the same in Excel and PowerPoint.'
+            if (-not $target) { $message = 'Word is not installed on this PC. Nothing was opened.' }
+        }
+        'ai.edge-button' {
+            if (-not (Test-DRBrowserSignedIn -Browser Edge)) {
+                New-DREvent -TaskId $TaskId -State Warning -Message 'Edge is not signed in, so nothing was opened. Sign in to Edge first, then run this again.'
+                return
+            }
+            $target = Get-DRAIBrowserExe -Browser Edge
+            $message = 'Edge is opening. Click the three dots at the top right, open Settings, search for "Copilot" and switch the Copilot button off.'
+            if (-not $target) { $message = 'Edge was not found on this PC. Nothing was opened.' }
+        }
+    }
+    if ($target -and $TestRoot) { $message = 'TEST MODE: nothing was opened. ' + $message }
+    elseif ($target) { Open-DRForUser -Target $target }
+    New-DREvent -TaskId $TaskId -State Information -Message $message
 }
 
 function Test-DRBrowserSignedIn {
@@ -1535,7 +1692,7 @@ function Test-DRBrowserSignedIn {
     return [regex]::IsMatch($text, '"user_name"\s*:\s*"[^"]+"')
 }
 
-function Test-DRAIBrowserPresent {
+function Get-DRAIBrowserExe {
     param([ValidateSet('Chrome','Edge','Brave','Firefox')][string]$Browser)
     $relative = switch ($Browser) {
         'Chrome'  { 'Google\Chrome\Application\chrome.exe' }
@@ -1544,14 +1701,40 @@ function Test-DRAIBrowserPresent {
         'Firefox' { 'Mozilla Firefox\firefox.exe' }
     }
     foreach ($root in @($env:ProgramFiles, ${env:ProgramFiles(x86)}, $env:LOCALAPPDATA)) {
-        if ($root -and (Test-Path -LiteralPath (Join-Path $root $relative) -PathType Leaf)) { return $true }
+        if (-not $root) { continue }
+        $candidate = Join-Path $root $relative
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
     }
     # Installed somewhere else: the installer still registers the exe with Windows.
-    $exe = Split-Path -Leaf $relative
+    return (Get-DRAppPath -Exe (Split-Path -Leaf $relative))
+}
+
+function Get-DRAppPath {
+    # The full path Windows has registered for a program's exe, or $null.
+    param([string]$Exe)
     foreach ($hive in @('HKLM:', 'HKCU:')) {
-        if (Test-Path -LiteralPath "$hive\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\$exe") { return $true }
+        $properties = Get-ItemProperty -LiteralPath "$hive\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\$Exe" -ErrorAction SilentlyContinue
+        $path = [string](Get-DRDiskProperty $properties '(default)')
+        if ($path) { $path = $path.Trim('"') }
+        if ($path -and (Test-Path -LiteralPath $path -PathType Leaf)) { return $path }
     }
-    return $false
+    return $null
+}
+
+function Test-DRAIBrowserPresent {
+    param([ValidateSet('Chrome','Edge','Brave','Firefox')][string]$Browser)
+    return [bool](Get-DRAIBrowserExe -Browser $Browser)
+}
+
+function Get-DRWordExe {
+    $word = Get-DRAppPath -Exe 'WINWORD.EXE'
+    if ($word) { return $word }
+    foreach ($root in @($env:ProgramFiles, ${env:ProgramFiles(x86)})) {
+        if (-not $root) { continue }
+        $candidate = Join-Path $root 'Microsoft Office\root\Office16\WINWORD.EXE'
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
+    }
+    return $null
 }
 
 function Test-DRAIAppMatch {
@@ -1682,6 +1865,9 @@ function Get-DRAIStatus {
         $browser = Get-DRAIBrowserForTask -TaskId $task.Id
         $present = switch ($task.Id) {
             'ai.windows'     { $build -ge 22000 }
+            'ai.office-copilot' { [bool](Get-DRWordExe) }
+            'ai.block-sites' { [bool]@(@('Edge','Chrome','Brave','Firefox') | Where-Object { Test-DRAIBrowserPresent -Browser $_ }).Count }
+            'ai.gmail'       { $true }
             'ai.copilot-app' { & $hasApp 'Copilot' }
             'ai.m365-app'    { & $hasApp 'M365Copilot' }
             'ai.chatgpt-app' { & $hasApp 'ChatGPT' }
@@ -2033,6 +2219,8 @@ function Invoke-DRTask {
             'ai.chrome'  { Invoke-DRAIBrowserTask -TaskId $TaskId -Browser Chrome -TestRoot $TestRoot }
             'ai.brave'   { Invoke-DRAIBrowserTask -TaskId $TaskId -Browser Brave -TestRoot $TestRoot }
             'ai.firefox' { Invoke-DRAIBrowserTask -TaskId $TaskId -Browser Firefox -TestRoot $TestRoot }
+            'ai.block-sites' { Invoke-DRAISiteBlock -TaskId $TaskId -TestRoot $TestRoot }
+            { $_ -in @('ai.gmail','ai.office-copilot','ai.edge-button') } { Invoke-DRAIGuidedTask -TaskId $TaskId -TestRoot $TestRoot }
             { $_ -in @('ai.copilot-app','ai.m365-app','ai.chatgpt-app','ai.claude-app') } {
                 $app = switch ($TaskId) { 'ai.copilot-app' {'Copilot'} 'ai.m365-app' {'M365Copilot'} 'ai.chatgpt-app' {'ChatGPT'} 'ai.claude-app' {'Claude'} }
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: no apps were removed.' }
