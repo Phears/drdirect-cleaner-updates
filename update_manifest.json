@@ -1,7 +1,7 @@
 {
   "version": "1.4.22",
   "notes": "Scanning your PC now only measures. Nothing is removed until you start the cleanup. The iCloud, Google Drive, OneDrive, Dropbox and MEGA cache options now clean properly when ticked.",
-  "published": "2026-09-28T17:53:23.3853808-04:00",
+  "published": "2026-09-28T17:54:21.9590540-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
