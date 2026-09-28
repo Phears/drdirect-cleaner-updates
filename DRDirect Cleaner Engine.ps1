@@ -65,6 +65,8 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='repair.windows-update'; Category='Repair'; Name='Windows Update repair'; Description='Resets Windows Update services, caches, Winsock, and the WinHTTP proxy.'; Risk='Advanced'; Duration='5-15 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='repair.network-reset'; Category='Repair'; Name='Network reset'; Description='Flushes the DNS cache, releases and renews the IP address, resets Winsock, the TCP/IP stack, and the WinHTTP proxy, restores TCP auto-tuning to normal, disables TCP heuristics, and clears the ARP cache. The connection drops briefly during renew, a restart is required afterward, and any static IP or manual DNS configuration may need to be re-entered.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
 
+        [pscustomobject]@{ Id='security.checkup'; Category='Security'; Name='Security checkup'; Description='Checks that the firewall, virus protection and Windows Update are all switched on. It only looks - nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='security.checkup-fix'; Category='Security'; Name='Turn protection back on'; Description='Switches the Windows firewall, Microsoft Defender real-time protection and Windows Update back on if any of them are off. When another antivirus or firewall is in charge, that part is left alone.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.defender-update'; Category='Security'; Name='Update Defender intelligence'; Description='Downloads the latest available Microsoft Defender security intelligence.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.quick-scan'; Category='Security'; Name='Defender quick scan'; Description='Scans common threat locations without changing exclusions.'; Risk='Safe'; Duration='5-20 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
         [pscustomobject]@{ Id='security.full-scan'; Category='Security'; Name='Defender full scan'; Description='Scans all accessible files. This may take several hours.'; Risk='Long'; Duration='1+ hours'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
@@ -75,6 +77,18 @@ function Get-DRTaskCatalog {
 
         [pscustomobject]@{ Id='health.chkdsk'; Category='Health'; Name='CHKDSK disk check'; Description='Checks the C: file system for corruption while Windows keeps running. Reports what it finds, repairs what is safe to repair, and never schedules a restart.'; Risk='Safe'; Duration='5-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
         [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+
+        # AI Remover. Nothing here is ever pre-selected or part of a cleanup level.
+        [pscustomobject]@{ Id='ai.windows'; Category='AI'; Name='Windows: turn off Recall and AI in Paint and Notepad'; Description='Switches off Recall (the snapshots of your screen), Click to Do, the AI agent in Settings, and the AI tools in Paint and Notepad. Takes effect after the restart. "Put AI back" undoes it.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.copilot-app'; Category='AI'; Name='Windows: remove the Copilot app'; Description='Uninstalls the Microsoft Copilot app for every account on this PC. It can be installed again from the Microsoft Store.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.m365-app'; Category='AI'; Name='Windows: remove the Microsoft 365 Copilot app'; Description='Uninstalls the Microsoft 365 Copilot app (the Copilot chat and Office start page). Word, Excel, Outlook and your documents are not touched. It can be installed again from the Microsoft Store.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.edge'; Category='AI'; Name='Edge: turn off Copilot'; Description='Turns off the Copilot sidebar, Copilot reading the page, Copilot on the new tab page, and AI writing help. Passwords, bookmarks and sign-ins are not touched. Edge will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.chrome'; Category='AI'; Name='Chrome: turn off Gemini and AI Mode'; Description='Turns off Gemini in Chrome, the AI Mode button, "Help me write", and the AI tab and history features. Passwords, bookmarks and sign-ins are not touched. Chrome will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.brave'; Category='AI'; Name='Brave: turn off Leo AI'; Description='Turns off Leo, the AI assistant built into Brave. Passwords, bookmarks and sign-ins are not touched. Brave will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.firefox'; Category='AI'; Name='Firefox: turn off AI'; Description='Turns off the AI chatbot sidebar, AI link previews and AI tab groups. Passwords, bookmarks and sign-ins are not touched. Firefox settings will say the browser is managed by your organization while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.chatgpt-app'; Category='AI'; Name='Remove the ChatGPT app'; Description='Uninstalls the ChatGPT app. Chats saved in the ChatGPT account are not deleted, and the app can be installed again.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.claude-app'; Category='AI'; Name='Remove the Claude app'; Description='Uninstalls the Claude app. Chats saved in the Claude account are not deleted, and the app can be installed again.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.restore'; Category='AI'; Name='Put AI back'; Description='Undoes the Windows and browser AI settings above, exactly as they were before, and the "Managed by your organization" message goes away. Removed apps are not reinstalled - get them again from the Microsoft Store.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
     )
 }
 
@@ -1042,6 +1056,133 @@ function Get-DRDriverUpdateStatus {
     }
 }
 
+function Get-DRSecurityCenterProducts {
+    # Other security products that told Windows Security Center they are switched
+    # on. Microsoft Defender registers there too, so it is left out by name.
+    param([ValidateSet('AntiVirusProduct','FirewallProduct')][string]$Kind)
+    $products = @()
+    try { $products = @(Get-CimInstance -Namespace 'root\SecurityCenter2' -ClassName $Kind -ErrorAction Stop) } catch { return }
+    foreach ($product in $products) {
+        $name = Get-DRDiskProperty $product 'displayName'
+        $state = Get-DRDiskProperty $product 'productState'
+        if (-not $name -or $name -match 'Defender') { continue }
+        # Bit 12 of productState is Security Center's "switched on" flag.
+        if ($null -ne $state -and ([int64]$state -band 0x1000)) { $name }
+    }
+}
+
+function Get-DRFirewallOffProfiles {
+    # The network types (Domain, Private, Public) the Windows firewall is off for.
+    Get-NetFirewallProfile -ErrorAction Stop | Where-Object { "$($_.Enabled)" -ne 'True' } | ForEach-Object { [string]$_.Name }
+}
+
+function Test-DRDefenderRealtimeOn {
+    # $true or $false, or $null when Defender cannot be asked at all.
+    try { return [bool](Get-MpComputerStatus -ErrorAction Stop).RealTimeProtectionEnabled } catch { return $null }
+}
+
+function Get-DRWindowsUpdateState {
+    $service = Get-Service -Name wuauserv -ErrorAction SilentlyContinue
+    $policy = Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU' -Name NoAutoUpdate -ErrorAction SilentlyContinue
+    $last = $null
+    try {
+        $newest = Get-HotFix -ErrorAction Stop | Where-Object { $_.InstalledOn } | Sort-Object InstalledOn -Descending | Select-Object -First 1
+        if ($newest) { $last = [datetime]$newest.InstalledOn }
+    } catch { }
+    [pscustomobject]@{
+        ServiceDisabled = [bool]($service -and "$($service.StartType)" -eq 'Disabled')
+        PolicyOff       = [bool]($policy -and $policy.NoAutoUpdate -eq 1)
+        LastInstalled   = $last
+    }
+}
+
+function Enable-DRFirewallProfiles {
+    param([string[]]$Profiles)
+    Set-NetFirewallProfile -Profile $Profiles -Enabled True -ErrorAction Stop
+}
+
+function Enable-DRDefenderRealtime {
+    Set-MpPreference -DisableRealtimeMonitoring $false -ErrorAction Stop
+}
+
+function Enable-DRWindowsUpdateService {
+    # Manual is Windows' own setting for this service: it starts whenever an
+    # update check needs it.
+    Set-Service -Name wuauserv -StartupType Manual -ErrorAction Stop
+}
+
+function Get-DRSecurityStatus {
+    <#
+        .SYNOPSIS
+            Read-only: whether the firewall, virus protection and Windows Update are on.
+        .DESCRIPTION
+            When another product registered with Windows Security Center does a
+            job, the Windows part being off is how it should be, so that counts as
+            on and is never "fixed". Only Fixable rows are ever switched back on.
+    #>
+    $otherAv = @(Get-DRSecurityCenterProducts -Kind AntiVirusProduct)
+    $otherFw = @(Get-DRSecurityCenterProducts -Kind FirewallProduct)
+    $row = { param($Area, $Label, $Ok, $Fixable, $Message, $Detail)
+        [pscustomobject]@{ Area = $Area; Label = $Label; Ok = [bool]$Ok; Fixable = [bool]$Fixable; Message = $Message; Detail = $Detail } }
+
+    $firewall = 'The Windows firewall'
+    $offProfiles = @(); $firewallKnown = $true
+    try { $offProfiles = @(Get-DRFirewallOffProfiles) } catch { $firewallKnown = $false }
+    if ($otherFw.Count) { & $row 'Firewall' $firewall $true $false ('Firewall: {0} is protecting this PC.' -f ($otherFw -join ', ')) $null }
+    elseif (-not $firewallKnown) { & $row 'Firewall' $firewall $false $false 'Firewall: Windows did not report whether its firewall is on.' $null }
+    elseif ($offProfiles.Count) { & $row 'Firewall' $firewall $false $true ('Firewall: OFF for {0} networks.' -f ($offProfiles -join ', ')) $offProfiles }
+    else { & $row 'Firewall' $firewall $true $false 'Firewall: on for all networks.' $null }
+
+    $defender = 'Microsoft Defender real-time protection'
+    if ($otherAv.Count) { & $row 'Virus' $defender $true $false ('Virus protection: {0} is protecting this PC.' -f ($otherAv -join ', ')) $null }
+    else {
+        $realtime = Test-DRDefenderRealtimeOn
+        if ($realtime -eq $true) { & $row 'Virus' $defender $true $false 'Virus protection: Microsoft Defender real-time protection is on.' $null }
+        elseif ($realtime -eq $false) { & $row 'Virus' $defender $false $true 'Virus protection: Microsoft Defender real-time protection is OFF.' $null }
+        else { & $row 'Virus' $defender $false $false 'Virus protection: no active antivirus was found on this PC.' $null }
+    }
+
+    $update = Get-DRWindowsUpdateState
+    $days = if ($update.LastInstalled) { [int]((Get-Date) - $update.LastInstalled).TotalDays } else { $null }
+    if ($update.ServiceDisabled) { & $row 'Update' 'Windows Update' $false $true 'Windows Update: switched OFF, so this PC is not getting security fixes.' $null }
+    elseif ($update.PolicyOff) { & $row 'Update' 'Windows Update' $false $false 'Windows Update: automatic updates are turned off by a policy setting. The Cleaner does not change policies.' $null }
+    elseif ($null -ne $days -and $days -gt 60) { & $row 'Update' 'Windows Update' $false $false ('Windows Update: on, but the last update was installed {0} days ago. Open Settings > Windows Update and install what is waiting.' -f $days) $null }
+    elseif ($update.LastInstalled) { & $row 'Update' 'Windows Update' $true $false ('Windows Update: on. Last update installed {0}.' -f $update.LastInstalled.ToString('d MMMM yyyy')) $null }
+    else { & $row 'Update' 'Windows Update' $true $false 'Windows Update: on.' $null }
+}
+
+function Repair-DRSecurityProtection {
+    param([string]$TaskId)
+
+    $toFix = @(Get-DRSecurityStatus | Where-Object { -not $_.Ok -and $_.Fixable })
+    if (-not $toFix.Count) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'Everything the Cleaner can switch on is already on. Nothing was changed.'
+    }
+    foreach ($item in $toFix) {
+        try {
+            switch ($item.Area) {
+                'Firewall' { Enable-DRFirewallProfiles -Profiles $item.Detail }
+                'Virus'    { Enable-DRDefenderRealtime }
+                'Update'   { Enable-DRWindowsUpdateService }
+            }
+        } catch {
+            New-DREvent -TaskId $TaskId -State Warning -Message ('{0} could not be switched on: {1}' -f $item.Label, $_.Exception.Message)
+        }
+    }
+
+    # Check again instead of trusting the commands: a policy or Tamper Protection
+    # can refuse a change without any error.
+    $after = @(Get-DRSecurityStatus)
+    foreach ($item in $toFix) {
+        $now = $after | Where-Object Area -eq $item.Area | Select-Object -First 1
+        if ($now -and $now.Ok) { New-DREvent -TaskId $TaskId -State Information -Message ('{0} is back on.' -f $item.Label) }
+        else { New-DREvent -TaskId $TaskId -State Warning -Message ('{0} is still off. It may be controlled by a policy or by another program.' -f $item.Label) }
+    }
+    foreach ($left in @($after | Where-Object { -not $_.Ok -and -not $_.Fixable })) {
+        New-DREvent -TaskId $TaskId -State Warning -Message $left.Message
+    }
+}
+
 function Get-DRTypingPrivacyValues {
     # The switches behind Settings > Privacy > "Improve inking and typing" and
     # "Inking & typing personalization", with the value that turns each one off.
@@ -1114,6 +1255,449 @@ function Restore-DRTypingPrivacy {
     }
     Remove-DRSafeItem -LiteralPath $BackupPath -AllowedRoot (Split-Path -Parent $BackupPath) | Out-Null
     New-DREvent -TaskId $TaskId -State Information -Message 'Typing settings are back to how they were before the Cleaner changed them.'
+}
+
+# ---------------------------------------------------------------------------
+# AI Remover. Windows and browser AI is switched off with the same policy
+# settings a company would use, saved first so "Put AI back" can undo it.
+# Passwords, bookmarks, sign-ins and browser profiles are never opened for
+# writing.
+# ---------------------------------------------------------------------------
+
+function Get-DRAIBrowserForTask {
+    param([string]$TaskId)
+    switch ($TaskId) {
+        'ai.edge'    { return 'Edge' }
+        'ai.chrome'  { return 'Chrome' }
+        'ai.brave'   { return 'Brave' }
+        'ai.firefox' { return 'Firefox' }
+    }
+    return $null
+}
+
+function Get-DRAIPolicyValues {
+    # The policy switches behind each AI option, with the value that turns the AI
+    # off. They sit under HKLM so they cover every account; Root only moves for tests.
+    param(
+        [ValidateSet('Windows','Edge','Chrome','Brave','Firefox')][string]$Target,
+        [string]$Root = 'HKLM:\SOFTWARE'
+    )
+    $spec = switch ($Target) {
+        'Windows' { @(
+            'Policies\Microsoft\Windows\WindowsAI|DisableAIDataAnalysis|1'      # Recall stops saving snapshots
+            'Policies\Microsoft\Windows\WindowsAI|AllowRecallEnablement|0'      # Recall is removed
+            'Policies\Microsoft\Windows\WindowsAI|DisableClickToDo|1'
+            'Policies\Microsoft\Windows\WindowsAI|DisableSettingsAgent|1'
+            'Microsoft\Windows\CurrentVersion\Policies\Paint|DisableCocreator|1'
+            'Microsoft\Windows\CurrentVersion\Policies\Paint|DisableGenerativeFill|1'
+            'Microsoft\Windows\CurrentVersion\Policies\Paint|DisableImageCreator|1'
+            'Policies\WindowsNotepad|DisableAIFeatures|1'
+        ) }
+        'Edge' { @(
+            'Policies\Microsoft\Edge|HubsSidebarEnabled|0'                      # the sidebar Copilot lives in
+            'Policies\Microsoft\Edge|CopilotPageContext|0'
+            'Policies\Microsoft\Edge|CopilotCDPPageContext|0'
+            'Policies\Microsoft\Edge|Microsoft365CopilotChatIconEnabled|0'
+            'Policies\Microsoft\Edge|ComposeInlineEnabled|0'
+            'Policies\Microsoft\Edge|NewTabPageBingChatEnabled|0'
+            'Policies\Microsoft\Edge|GenAILocalFoundationalModelSettings|1'
+        ) }
+        'Chrome' { @(
+            'Policies\Google\Chrome|GenAiDefaultSettings|2'                     # every AI feature off unless named
+            'Policies\Google\Chrome|GeminiSettings|1'
+            'Policies\Google\Chrome|AIModeSettings|1'
+            'Policies\Google\Chrome|HelpMeWriteSettings|2'
+            'Policies\Google\Chrome|TabOrganizerSettings|2'
+            'Policies\Google\Chrome|TabCompareSettings|2'
+            'Policies\Google\Chrome|HistorySearchSettings|2'
+            'Policies\Google\Chrome|CreateThemesSettings|2'
+            'Policies\Google\Chrome|DevToolsGenAiSettings|2'
+            'Policies\Google\Chrome|GenAILocalFoundationalModelSettings|1'
+        ) }
+        'Brave' { @(
+            'Policies\BraveSoftware\Brave|BraveAIChatEnabled|0'
+        ) }
+        'Firefox' { @(
+            'Policies\Mozilla\Firefox\GenerativeAI|Enabled|0'
+            'Policies\Mozilla\Firefox\GenerativeAI|Chatbot|0'
+            'Policies\Mozilla\Firefox\GenerativeAI|LinkPreviews|0'
+            'Policies\Mozilla\Firefox\GenerativeAI|TabGroups|0'
+        ) }
+    }
+    foreach ($line in $spec) {
+        $key, $name, $off = $line -split '\|'
+        [pscustomobject]@{ Key = (Join-Path $Root $key); Name = $name; Off = [int]$off }
+    }
+}
+
+function Open-DRRegistryKey {
+    # 'HKLM:\...' or 'HKCU:\...' opened in the 64-bit view, so a 32-bit host still
+    # writes where Windows and 64-bit browsers read. $null when the key is missing.
+    param([Parameter(Mandatory=$true)][string]$Key, [switch]$Writable, [switch]$Create)
+    $parts = $Key -split ':\\', 2
+    if (@($parts).Count -ne 2 -or -not $parts[1]) { throw "Not a registry key path: $Key" }
+    $hive = switch ($parts[0]) {
+        'HKLM'  { [Microsoft.Win32.RegistryHive]::LocalMachine }
+        'HKCU'  { [Microsoft.Win32.RegistryHive]::CurrentUser }
+        default { throw "Unsupported registry hive: $($parts[0])" }
+    }
+    $base = [Microsoft.Win32.RegistryKey]::OpenBaseKey($hive, [Microsoft.Win32.RegistryView]::Registry64)
+    if ($Create) { return $base.CreateSubKey($parts[1]) }
+    return $base.OpenSubKey($parts[1], [bool]$Writable)
+}
+
+function Test-DRRegistryKey {
+    param([string]$Key)
+    $opened = Open-DRRegistryKey -Key $Key
+    if (-not $opened) { return $false }
+    $opened.Close()
+    return $true
+}
+
+function Get-DRRegistryValueState {
+    param([string]$Key, [string]$Name)
+    $opened = Open-DRRegistryKey -Key $Key
+    if ($opened) {
+        try {
+            if (@($opened.GetValueNames()) -contains $Name) {
+                return [pscustomobject]@{
+                    Key = $Key; Name = $Name; Existed = $true
+                    Kind = [string]$opened.GetValueKind($Name)
+                    Value = $opened.GetValue($Name, $null, [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames)
+                }
+            }
+        } finally { $opened.Close() }
+    }
+    [pscustomobject]@{ Key = $Key; Name = $Name; Existed = $false; Kind = $null; Value = $null }
+}
+
+function Get-DRMissingRegistryKeys {
+    # Every key on the way down from Root to Key that does not exist yet, top first.
+    param([string]$Key, [string]$Root)
+    $missing = @()
+    $path = $Root
+    foreach ($segment in ($Key.Substring($Root.Length).Trim('\') -split '\\')) {
+        $path = "$path\$segment"
+        if ($missing.Count -or -not (Test-DRRegistryKey -Key $path)) { $missing += $path }
+    }
+    $missing
+}
+
+function Remove-DREmptyRegistryKey {
+    # Deletes a key only while it holds no values and no subkeys.
+    param([string]$Key)
+    $opened = Open-DRRegistryKey -Key $Key
+    if (-not $opened) { return $false }
+    try { $empty = ($opened.ValueCount -eq 0 -and $opened.SubKeyCount -eq 0) } finally { $opened.Close() }
+    if (-not $empty) { return $false }
+    $split = $Key.LastIndexOf('\')
+    $parent = Open-DRRegistryKey -Key $Key.Substring(0, $split) -Writable
+    if (-not $parent) { return $false }
+    try { $parent.DeleteSubKey($Key.Substring($split + 1), $false) } finally { $parent.Close() }
+    return $true
+}
+
+function Test-DRAIRemovableKey {
+    # A key the Cleaner created may be removed again only if it is on the way to
+    # one of the policy keys and at least two levels below Root (Policies\Google),
+    # so an edited backup can never reach anything else.
+    param([string]$Key, [object[]]$Allowed, [string]$Root)
+    if (-not $Key -or -not $Key.StartsWith($Root + '\', [StringComparison]::OrdinalIgnoreCase)) { return $false }
+    if (@($Key.Substring($Root.Length).Trim('\') -split '\\').Count -lt 2) { return $false }
+    foreach ($value in $Allowed) {
+        if ($value.Key -eq $Key -or $value.Key.StartsWith($Key + '\', [StringComparison]::OrdinalIgnoreCase)) { return $true }
+    }
+    return $false
+}
+
+function Get-DRAIBackupFolder {
+    # Machine-wide, like the policies themselves, so any administrator can put AI back.
+    Join-Path $env:ProgramData 'DRDirect PC Cleaner\Backups'
+}
+
+function Set-DRAIPolicy {
+    param(
+        [string]$TaskId,
+        [ValidateSet('Windows','Edge','Chrome','Brave','Firefox')][string]$Target,
+        [string]$Root = 'HKLM:\SOFTWARE',
+        [string]$BackupFolder = (Get-DRAIBackupFolder)
+    )
+
+    $values = @(Get-DRAIPolicyValues -Target $Target -Root $Root)
+    $backupPath = Join-Path $BackupFolder ('AI_{0}.json' -f $Target)
+    # Save what was there before touching anything. A backup that already exists
+    # holds the customer's original settings, so a second run never replaces it.
+    if (-not (Test-Path -LiteralPath $backupPath -PathType Leaf)) {
+        $before = [pscustomobject]@{
+            Target   = $Target
+            Settings = @($values | ForEach-Object { Get-DRRegistryValueState -Key $_.Key -Name $_.Name })
+            NewKeys  = @($values | ForEach-Object { Get-DRMissingRegistryKeys -Key $_.Key -Root $Root } | Select-Object -Unique)
+        }
+        New-Item -Path $BackupFolder -ItemType Directory -Force | Out-Null
+        [System.IO.File]::WriteAllText($backupPath, (ConvertTo-Json -InputObject $before -Depth 4), (New-Object System.Text.UTF8Encoding($false)))
+    }
+
+    foreach ($value in $values) {
+        $opened = Open-DRRegistryKey -Key $value.Key -Create
+        try { $opened.SetValue($value.Name, [int]$value.Off, [Microsoft.Win32.RegistryValueKind]::DWord) } finally { $opened.Close() }
+    }
+
+    $managed = ' It will show "Managed by your organization" - that is what keeps the AI off. "Put AI back" removes it.'
+    $message = switch ($Target) {
+        'Windows' { 'Recall, Click to Do, the AI agent in Settings, and the AI in Paint and Notepad are now off. They are gone after the restart.' }
+        'Edge'    { 'Copilot is now off in Edge. Close Edge completely and open it again.' + $managed + ' If the Copilot button still shows on the toolbar, open Edge Settings, search for "Copilot" and switch the button off.' }
+        'Chrome'  { 'Gemini and AI Mode are now off in Chrome. Close Chrome completely and open it again.' + $managed }
+        'Brave'   { 'Leo AI is now off in Brave. Close Brave completely and open it again.' + $managed }
+        'Firefox' { 'AI is now off in Firefox. Close Firefox completely and open it again.' + $managed }
+    }
+    New-DREvent -TaskId $TaskId -State Information -Message $message
+}
+
+function Restore-DRAIPolicy {
+    param(
+        [string]$TaskId,
+        [string]$Root = 'HKLM:\SOFTWARE',
+        [string]$BackupFolder = (Get-DRAIBackupFolder)
+    )
+
+    $restored = @()
+    foreach ($target in @('Windows','Edge','Chrome','Brave','Firefox')) {
+        $backupPath = Join-Path $BackupFolder ('AI_{0}.json' -f $target)
+        if (-not (Test-Path -LiteralPath $backupPath -PathType Leaf)) { continue }
+        $allowed = @(Get-DRAIPolicyValues -Target $target -Root $Root)
+        $saved = Get-Content -LiteralPath $backupPath -Raw | ConvertFrom-Json
+
+        foreach ($entry in @(Get-DRDiskProperty $saved 'Settings' | Where-Object { $_ })) {
+            # Only the switches this Cleaner sets; an edited backup cannot point anywhere else.
+            if (-not @($allowed | Where-Object { $_.Key -eq $entry.Key -and $_.Name -eq $entry.Name }).Count) { continue }
+            if ($entry.Existed) {
+                $kind = [Microsoft.Win32.RegistryValueKind]$entry.Kind
+                $data = switch ($kind) {
+                    'DWord'       { [int]$entry.Value }
+                    'QWord'       { [long]$entry.Value }
+                    # The leading comma keeps an array whole instead of unrolling it.
+                    'MultiString' { ,[string[]]@($entry.Value) }
+                    'Binary'      { ,[byte[]]@($entry.Value) }
+                    default       { [string]$entry.Value }
+                }
+                $opened = Open-DRRegistryKey -Key $entry.Key -Create
+                try { $opened.SetValue($entry.Name, $data, $kind) } finally { $opened.Close() }
+            } else {
+                $opened = Open-DRRegistryKey -Key $entry.Key -Writable
+                if ($opened) { try { $opened.DeleteValue($entry.Name, $false) } finally { $opened.Close() } }
+            }
+        }
+
+        # Keys the Cleaner created, deepest first, and only while they are empty:
+        # a key something else has put its own settings in since is left alone.
+        foreach ($newKey in @(Get-DRDiskProperty $saved 'NewKeys' | Where-Object { $_ } | Sort-Object Length -Descending)) {
+            if (Test-DRAIRemovableKey -Key $newKey -Allowed $allowed -Root $Root) { Remove-DREmptyRegistryKey -Key $newKey | Out-Null }
+        }
+
+        Remove-DRSafeItem -LiteralPath $backupPath -AllowedRoot $BackupFolder | Out-Null
+        $restored += $target
+    }
+
+    if (-not $restored.Count) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'There was nothing to put back: the Cleaner has not changed any AI settings on this PC.'
+        return
+    }
+    New-DREvent -TaskId $TaskId -State Information -Message ('AI settings are back to how they were for: {0}. Close and reopen those browsers. Removed apps are not put back - get them again from the Microsoft Store if you want them.' -f ($restored -join ', '))
+}
+
+function Test-DRBrowserSignedIn {
+    <#
+        True when the browser has an account signed in. Only reads: Chrome and
+        Edge list signed-in accounts in their Local State file, and Firefox keeps
+        signedInUser.json in a profile that is signed in to a Mozilla account.
+    #>
+    param(
+        [ValidateSet('Chrome','Edge','Firefox')][string]$Browser,
+        [string]$LocalAppData = $env:LOCALAPPDATA,
+        [string]$AppData = $env:APPDATA
+    )
+    if ($Browser -eq 'Firefox') {
+        $profiles = Join-Path $AppData 'Mozilla\Firefox\Profiles'
+        foreach ($folder in @(Get-ChildItem -LiteralPath $profiles -Directory -ErrorAction SilentlyContinue)) {
+            if (Test-Path -LiteralPath (Join-Path $folder.FullName 'signedInUser.json') -PathType Leaf) { return $true }
+        }
+        return $false
+    }
+
+    $userData = if ($Browser -eq 'Chrome') { 'Google\Chrome\User Data' } else { 'Microsoft\Edge\User Data' }
+    $state = Join-Path (Join-Path $LocalAppData $userData) 'Local State'
+    if (-not (Test-Path -LiteralPath $state -PathType Leaf)) { return $false }
+    try {
+        # Shared read, so an open browser is never disturbed.
+        $stream = New-Object System.IO.FileStream($state, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+        try { $text = (New-Object System.IO.StreamReader($stream)).ReadToEnd() } finally { $stream.Dispose() }
+    } catch { return $false }
+    return [regex]::IsMatch($text, '"user_name"\s*:\s*"[^"]+"')
+}
+
+function Test-DRAIBrowserPresent {
+    param([ValidateSet('Chrome','Edge','Brave','Firefox')][string]$Browser)
+    $relative = switch ($Browser) {
+        'Chrome'  { 'Google\Chrome\Application\chrome.exe' }
+        'Edge'    { 'Microsoft\Edge\Application\msedge.exe' }
+        'Brave'   { 'BraveSoftware\Brave-Browser\Application\brave.exe' }
+        'Firefox' { 'Mozilla Firefox\firefox.exe' }
+    }
+    foreach ($root in @($env:ProgramFiles, ${env:ProgramFiles(x86)}, $env:LOCALAPPDATA)) {
+        if ($root -and (Test-Path -LiteralPath (Join-Path $root $relative) -PathType Leaf)) { return $true }
+    }
+    # Installed somewhere else: the installer still registers the exe with Windows.
+    $exe = Split-Path -Leaf $relative
+    foreach ($hive in @('HKLM:', 'HKCU:')) {
+        if (Test-Path -LiteralPath "$hive\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\$exe") { return $true }
+    }
+    return $false
+}
+
+function Test-DRAIAppMatch {
+    # Store packages match on their package name and publisher; classic programs
+    # on the name and publisher shown in Installed apps.
+    param([string]$App, [string]$Name, [string]$Publisher)
+    switch ($App) {
+        'Copilot'     { return ($Name -eq 'Microsoft.Copilot') }
+        'M365Copilot' { return ($Name -eq 'Microsoft.MicrosoftOfficeHub') }
+        'ChatGPT'     { return ($Name -match 'ChatGPT' -and ($Publisher -match 'OpenAI' -or $Name -match '^OpenAI\.')) }
+        'Claude'      { return ($Name -match 'Claude' -and $Name -notmatch 'Code' -and $Publisher -match 'Anthropic') }
+    }
+    return $false
+}
+
+function Get-DRInstalledProgramEntries {
+    # Name and publisher of every classic (non-Store) program listed in Installed apps.
+    foreach ($root in @(
+            'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall',
+            'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall',
+            'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall')) {
+        foreach ($item in @(Get-ChildItem -LiteralPath $root -ErrorAction SilentlyContinue)) {
+            $properties = Get-ItemProperty -LiteralPath $item.PSPath -ErrorAction SilentlyContinue
+            $name = Get-DRDiskProperty $properties 'DisplayName'
+            if ($name) { [pscustomobject]@{ Name = [string]$name; Publisher = [string](Get-DRDiskProperty $properties 'Publisher') } }
+        }
+    }
+}
+
+function Get-DRAIAppxPackages {
+    param([string]$App, [switch]$AllUsers)
+    $packages = @()
+    try {
+        if ($AllUsers) { $packages = @(Get-AppxPackage -AllUsers -ErrorAction Stop) }
+        else { $packages = @(Get-AppxPackage -ErrorAction Stop) }
+    } catch { $packages = @() }
+    @($packages | Where-Object { Test-DRAIAppMatch -App $App -Name $_.Name -Publisher $_.Publisher })
+}
+
+function Get-DRAIAppLabel {
+    param([string]$App)
+    switch ($App) {
+        'Copilot'     { return 'The Copilot app' }
+        'M365Copilot' { return 'The Microsoft 365 Copilot app' }
+        'ChatGPT'     { return 'The ChatGPT app' }
+        'Claude'      { return 'The Claude app' }
+    }
+    return 'The app'
+}
+
+function Remove-DRAIApp {
+    param(
+        [string]$TaskId,
+        [ValidateSet('Copilot','M365Copilot','ChatGPT','Claude')][string]$App
+    )
+
+    $label = Get-DRAIAppLabel -App $App
+    $packages = @(Get-DRAIAppxPackages -App $App -AllUsers)
+    $programs = @(Get-DRInstalledProgramEntries | Where-Object { Test-DRAIAppMatch -App $App -Name $_.Name -Publisher $_.Publisher })
+    if (-not $packages.Count -and -not $programs.Count) {
+        New-DREvent -TaskId $TaskId -State Information -Message ('{0} is not installed on this PC. Nothing was changed.' -f $label)
+        return
+    }
+
+    foreach ($package in $packages) {
+        try { Remove-AppxPackage -Package $package.PackageFullName -AllUsers -ErrorAction Stop }
+        catch {
+            try { Remove-AppxPackage -Package $package.PackageFullName -ErrorAction Stop }
+            catch { New-DREvent -TaskId $TaskId -State Warning -Message ('{0} could not be removed: {1}' -f $label, $_.Exception.Message) }
+        }
+    }
+    # Windows adds its own AI apps to every new account; stop that too.
+    if ($App -in @('Copilot','M365Copilot')) {
+        try {
+            foreach ($provisioned in @(Get-AppxProvisionedPackage -Online -ErrorAction Stop | Where-Object { Test-DRAIAppMatch -App $App -Name $_.DisplayName -Publisher '' })) {
+                Remove-AppxProvisionedPackage -Online -PackageName $provisioned.PackageName -ErrorAction Stop | Out-Null
+            }
+        } catch { }
+    }
+    # A classic install is never run from here: its uninstall command comes from
+    # the registry, and running that as administrator is not safe to automate.
+    foreach ($program in $programs) {
+        New-DREvent -TaskId $TaskId -State Warning -Message ('{0} has to be removed by hand: Settings > Apps > Installed apps > {1} > Uninstall.' -f $program.Name, $program.Name)
+    }
+
+    # Check again instead of trusting the commands.
+    if ($packages.Count) {
+        if (@(Get-DRAIAppxPackages -App $App -AllUsers).Count) {
+            New-DREvent -TaskId $TaskId -State Warning -Message ('{0} is still installed. Close it if it is open and run this again, or remove it in Settings > Apps > Installed apps.' -f $label)
+        } else {
+            New-DREvent -TaskId $TaskId -State Information -Message ('{0} was removed. It can be installed again from the Microsoft Store.' -f $label)
+        }
+    }
+}
+
+function Invoke-DRAIBrowserTask {
+    param([string]$TaskId, [string]$Browser, [string]$TestRoot)
+    # The customer signs in first, so the AI is switched off for the account they use.
+    # Brave has no sign-in to check.
+    if ($Browser -ne 'Brave' -and -not (Test-DRBrowserSignedIn -Browser $Browser)) {
+        New-DREvent -TaskId $TaskId -State Warning -Message ('{0} is not signed in, so nothing was changed. Sign in to {0} first, then run this again.' -f $Browser)
+        return
+    }
+    if ($TestRoot) {
+        New-DREvent -TaskId $TaskId -State Information -Message ('TEST MODE: {0} settings were not changed.' -f $Browser)
+        return
+    }
+    Set-DRAIPolicy -TaskId $TaskId -Target $Browser
+}
+
+function Get-DRAIStatus {
+    <#
+        For each AI Remover option: whether its app or browser is on this PC and,
+        for a browser with accounts, whether one is signed in. Only reads.
+    #>
+    $build = 0
+    try { $build = [int](Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name CurrentBuildNumber -ErrorAction Stop).CurrentBuildNumber } catch { }
+    $packages = @()
+    try { $packages = @(Get-AppxPackage -ErrorAction Stop) } catch { }
+    $programs = @(Get-DRInstalledProgramEntries)
+    $hasApp = {
+        param([string]$App)
+        [bool](@($packages | Where-Object { Test-DRAIAppMatch -App $App -Name $_.Name -Publisher $_.Publisher }).Count -or
+               @($programs | Where-Object { Test-DRAIAppMatch -App $App -Name $_.Name -Publisher $_.Publisher }).Count)
+    }
+
+    foreach ($task in @(Get-DRTaskCatalog | Where-Object Category -eq 'AI')) {
+        $browser = Get-DRAIBrowserForTask -TaskId $task.Id
+        $present = switch ($task.Id) {
+            'ai.windows'     { $build -ge 22000 }
+            'ai.copilot-app' { & $hasApp 'Copilot' }
+            'ai.m365-app'    { & $hasApp 'M365Copilot' }
+            'ai.chatgpt-app' { & $hasApp 'ChatGPT' }
+            'ai.claude-app'  { & $hasApp 'Claude' }
+            'ai.restore'     { $true }
+            default          { [bool]($browser -and (Test-DRAIBrowserPresent -Browser $browser)) }
+        }
+        $needsSignIn = $browser -in @('Chrome','Edge','Firefox')
+        [pscustomobject]@{
+            TaskId      = $task.Id
+            Present     = [bool]$present
+            Browser     = $browser
+            NeedsSignIn = [bool]$needsSignIn
+            SignedIn    = [bool]($needsSignIn -and (Test-DRBrowserSignedIn -Browser $browser))
+        }
+    }
 }
 
 function Invoke-DRTask {
@@ -1385,6 +1969,25 @@ function Invoke-DRTask {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Defender preferences were not changed.' }
                 else { Set-MpPreference -DisableScanningNetworkFiles $false -ErrorAction Stop }
             }
+            'security.checkup' {
+                # Read-only, so it looks at the real PC even in test mode.
+                $status = @(Get-DRSecurityStatus)
+                foreach ($item in $status) {
+                    New-DREvent -TaskId $TaskId -State $(if ($item.Ok) { 'Information' } else { 'Warning' }) -Message $item.Message
+                }
+                $problems = @($status | Where-Object { -not $_.Ok })
+                if (-not $problems.Count) {
+                    New-DREvent -TaskId $TaskId -State Information -Message 'All protection is on. Nothing was changed.'
+                } elseif (@($problems | Where-Object Fixable).Count) {
+                    New-DREvent -TaskId $TaskId -State Warning -Message ('{0} thing(s) need attention. Tick "Turn protection back on" to fix them. Nothing was changed.' -f $problems.Count)
+                } else {
+                    New-DREvent -TaskId $TaskId -State Warning -Message ('{0} thing(s) need attention. Nothing was changed.' -f $problems.Count)
+                }
+            }
+            'security.checkup-fix' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: protection settings were not changed.' }
+                else { Repair-DRSecurityProtection -TaskId $TaskId }
+            }
             'security.typing-privacy' {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: typing settings were not changed.' }
                 else { Set-DRTypingPrivacy -TaskId $TaskId }
@@ -1421,6 +2024,23 @@ function Invoke-DRTask {
                     }
                     New-DREvent -TaskId $TaskId -State Information -Message ("Original exclusions exported to {0}." -f $backup)
                 }
+            }
+            'ai.windows' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Windows AI settings were not changed.' }
+                else { Set-DRAIPolicy -TaskId $TaskId -Target Windows }
+            }
+            'ai.edge'    { Invoke-DRAIBrowserTask -TaskId $TaskId -Browser Edge -TestRoot $TestRoot }
+            'ai.chrome'  { Invoke-DRAIBrowserTask -TaskId $TaskId -Browser Chrome -TestRoot $TestRoot }
+            'ai.brave'   { Invoke-DRAIBrowserTask -TaskId $TaskId -Browser Brave -TestRoot $TestRoot }
+            'ai.firefox' { Invoke-DRAIBrowserTask -TaskId $TaskId -Browser Firefox -TestRoot $TestRoot }
+            { $_ -in @('ai.copilot-app','ai.m365-app','ai.chatgpt-app','ai.claude-app') } {
+                $app = switch ($TaskId) { 'ai.copilot-app' {'Copilot'} 'ai.m365-app' {'M365Copilot'} 'ai.chatgpt-app' {'ChatGPT'} 'ai.claude-app' {'Claude'} }
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: no apps were removed.' }
+                else { Remove-DRAIApp -TaskId $TaskId -App $app }
+            }
+            'ai.restore' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: AI settings were not changed.' }
+                else { Restore-DRAIPolicy -TaskId $TaskId }
             }
             'health.chkdsk' { Invoke-DRChkdsk -TaskId $TaskId -TestRoot $TestRoot }
             'health.drive-check' { Invoke-DRDriveHealth -TaskId $TaskId -TestRoot $TestRoot }

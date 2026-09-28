@@ -296,6 +296,45 @@ $ErrorActionPreference = 'Stop'
                     </Trigger>
                 </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
+        <!-- AI Remover gets its own violet, so it never reads as just another cleanup page. -->
+        <Style x:Key="AINavButton" TargetType="Button" BasedOn="{StaticResource NavButton}">
+            <Setter Property="Foreground" Value="#E9D5FF"/><Setter Property="Background" Value="#2E1D5C"/><Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+                <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
+                    <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
+                    <Border x:Name="NavBorder" Background="{TemplateBinding Background}" BorderBrush="#8B5CF6" BorderThickness="1" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter/></Border>
+                    <Border x:Name="NavAccent" Width="3" Height="22" CornerRadius="2" Background="#C084FC" HorizontalAlignment="Left" VerticalAlignment="Center" Opacity="0"/>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="Tag" Value="Active">
+                        <Setter TargetName="NavBorder" Property="Background" Value="#5B21B6"/>
+                        <Setter TargetName="NavAccent" Property="Opacity" Value="1"/>
+                        <Setter Property="Foreground" Value="White"/>
+                    </Trigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="NavBorder" Property="Background" Value="#43287F"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Trigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="NavRoot" Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" To="6" Duration="0:0:0.18">
+                                        <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </Trigger.EnterActions>
+                        <Trigger.ExitActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="NavRoot" Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" To="0" Duration="0:0:0.24">
+                                        <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </Trigger.ExitActions>
+                    </Trigger>
+                </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+        </Style>
         <Style x:Key="Card" TargetType="Border"><Setter Property="Background" Value="White"/><Setter Property="CornerRadius" Value="14"/><Setter Property="BorderBrush" Value="{StaticResource Line}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="22"/><Setter Property="SnapsToDevicePixels" Value="True"/>
             <Setter Property="Effect"><Setter.Value><DropShadowEffect Color="#6B82A6" BlurRadius="26" ShadowDepth="5" Direction="270" Opacity="0.22"/></Setter.Value></Setter>
         </Style>
@@ -505,6 +544,7 @@ $ErrorActionPreference = 'Stop'
                     <Button x:Name="NavHardware" Style="{StaticResource NavButton}" Content="▤   Hardware"/>
                     <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   History"/>
                     <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Duplicate finder"/>
+                    <Button x:Name="NavAI" Style="{StaticResource AINavButton}" Content="⊘   AI Remover" Margin="10,16,10,2" ToolTip="Switch off AI in Windows and web browsers"/>
                 </StackPanel>
                 </ScrollViewer>
                 <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
@@ -769,7 +809,7 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','HardwareList','CheckDriversButton','NavDuplicates','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','HardwareList','CheckDriversButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -822,6 +862,8 @@ $selection = @{}
 $analysis = @{}
 $currentCategory = 'Dashboard'
 $script:driverPanel = $null
+# What the AI Remover page found on its last check (apps, browsers, sign-ins).
+$script:DRAIStatus = @()
 $runQueue = New-Object System.Collections.Generic.Queue[string]
 $runEvents = New-Object System.Collections.Generic.List[object]
 $runStartedAt = $null
@@ -897,17 +939,17 @@ function Start-DRFadeIn {
 function Set-Page {
     param([string]$Name)
     $ui.PageDashboard.Visibility = if ($Name -eq 'Dashboard') { 'Visible' } else { 'Collapsed' }
-    $ui.PageTasks.Visibility = if ($Name -in @('Cleanup','Repair','Security','Health')) { 'Visible' } else { 'Collapsed' }
+    $ui.PageTasks.Visibility = if ($Name -in @('Cleanup','Repair','Security','Health','AI')) { 'Visible' } else { 'Collapsed' }
     $ui.PageProgress.Visibility = if ($Name -eq 'Progress') { 'Visible' } else { 'Collapsed' }
     $ui.PageHistory.Visibility = if ($Name -eq 'History') { 'Visible' } else { 'Collapsed' }
     $ui.PageDuplicates.Visibility = if ($Name -eq 'Duplicates') { 'Visible' } else { 'Collapsed' }
     $ui.PageHardware.Visibility = if ($Name -eq 'Hardware') { 'Visible' } else { 'Collapsed' }
-    $ui.PageTitle.Text = switch ($Name) { 'Health' {'Drive health'} 'Progress' {'Maintenance progress'} 'Duplicates' {'Duplicate finder'} 'Hardware' {'Hardware'} default {$Name} }
+    $ui.PageTitle.Text = switch ($Name) { 'Health' {'Drive health'} 'AI' {'AI Remover'} 'Progress' {'Maintenance progress'} 'Duplicates' {'Duplicate finder'} 'Hardware' {'Hardware'} default {$Name} }
     $script:currentCategory = $Name
     $ui.CleanupPresetPanel.Visibility = if ($Name -eq 'Cleanup') { 'Visible' } else { 'Collapsed' }
-    $navMap = @{ Dashboard='NavDashboard'; Cleanup='NavCleanup'; Repair='NavRepair'; Security='NavSecurity'; Health='NavHealth'; History='NavHistory'; Progress='NavProgress'; Duplicates='NavDuplicates'; Hardware='NavHardware' }
+    $navMap = @{ Dashboard='NavDashboard'; Cleanup='NavCleanup'; Repair='NavRepair'; Security='NavSecurity'; Health='NavHealth'; History='NavHistory'; Progress='NavProgress'; Duplicates='NavDuplicates'; Hardware='NavHardware'; AI='NavAI' }
     foreach ($key in $navMap.Keys) { $ui[$navMap[$key]].Tag = if ($key -eq $Name) { 'Active' } else { $null } }
-    if ($Name -in @('Cleanup','Repair','Security','Health')) { Show-TaskCategory $Name }
+    if ($Name -in @('Cleanup','Repair','Security','Health','AI')) { Show-TaskCategory $Name }
     if ($Name -eq 'History') { Show-History }
     if ($Name -eq 'Dashboard') { Show-DashboardHistory }
     if ($Name -eq 'Hardware') { Show-Hardware }
@@ -1124,6 +1166,17 @@ function New-TaskRow {
         $accent = @{ Badge='#EEF2F7'; BadgeInk='#526079'; Label=$Task.Risk }
     }
 
+    # AI Remover rows share the page's violet and say plainly what each one does.
+    $aiStatus = $null
+    if ($Task.Category -eq 'AI') {
+        $aiLabel = if ($Task.Id -eq 'ai.restore') { 'UNDO' } elseif ($risk -eq 'Confirm') { 'UNINSTALLS' } else { 'CAN BE UNDONE' }
+        $accent = @{ Badge='#F1EAFE'; BadgeInk='#6D28D9'; Label=$aiLabel }
+        $border.BorderBrush = '#7C3AED'
+        $border.BorderThickness = '5,1,1,1'
+        $aiStatus = @($script:DRAIStatus | Where-Object { $_.TaskId -eq $Task.Id }) | Select-Object -First 1
+    }
+    $needsSignIn = [bool]($aiStatus -and $aiStatus.NeedsSignIn -and -not $aiStatus.SignedIn)
+
     $grid = New-Object Windows.Controls.Grid
     $grid.ColumnDefinitions.Add((New-Object Windows.Controls.ColumnDefinition -Property @{ Width='Auto' }))
     $grid.ColumnDefinitions.Add((New-Object Windows.Controls.ColumnDefinition -Property @{ Width='*' }))
@@ -1145,6 +1198,12 @@ function New-TaskRow {
             $border.ToolTip = 'Included with a full code. The free try covers the Safe scan.'
         }
     } catch { }
+    # A browser's AI is only switched off once the customer has signed in to it.
+    if ($needsSignIn) {
+        $check.IsEnabled = $false
+        $check.IsChecked = $false
+        $selection[$Task.Id] = $false
+    }
     $check.Add_Checked({
         param($sender,$args)
         $selection[$sender.Tag] = $true
@@ -1183,6 +1242,31 @@ function New-TaskRow {
     $titlePanel.Children.Add($name) | Out-Null; $titlePanel.Children.Add($badge) | Out-Null
     $description = New-Object Windows.Controls.TextBlock -Property @{ Text=$Task.Description; Foreground='#667085'; TextWrapping='Wrap'; Margin='0,5,12,0'; MaxWidth=650 }
     $copy.Children.Add($titlePanel) | Out-Null; $copy.Children.Add($description) | Out-Null
+
+    if ($needsSignIn) {
+        $where = switch ($aiStatus.Browser) {
+            'Edge'    { 'Open Edge, click the profile picture at the top left and sign in.' }
+            'Firefox' { 'Open Firefox, click the account button at the top right and sign in to a Mozilla account.' }
+            default   { 'Open {0}, click the profile picture at the top right and sign in.' -f $aiStatus.Browser }
+        }
+        $lockPanel = New-Object Windows.Controls.Grid -Property @{ Margin='0,9,12,0'; MaxWidth=650; HorizontalAlignment='Left' }
+        $lockPanel.ColumnDefinitions.Add((New-Object Windows.Controls.ColumnDefinition -Property @{ Width='*' }))
+        $lockPanel.ColumnDefinitions.Add((New-Object Windows.Controls.ColumnDefinition -Property @{ Width='Auto' }))
+        $lockText = New-Object Windows.Controls.TextBlock -Property @{
+            Text = ('{0} is not signed in. {1} Then click Check again.' -f $aiStatus.Browser, $where)
+            Foreground = '#96500A'; FontSize = 12; FontWeight = 'SemiBold'; TextWrapping = 'Wrap'; VerticalAlignment = 'Center'
+        }
+        $recheck = New-Object Windows.Controls.Button
+        $recheck.Style = $window.Resources['SecondaryButton']
+        $recheck.Content = 'Check again'
+        $recheck.Padding = '12,6'
+        $recheck.Margin = '12,0,0,0'
+        $recheck.VerticalAlignment = 'Center'
+        $recheck.Add_Click({ Show-TaskCategory 'AI' })
+        [Windows.Controls.Grid]::SetColumn($recheck, 1)
+        [void]$lockPanel.Children.Add($lockText); [void]$lockPanel.Children.Add($recheck)
+        [void]$copy.Children.Add($lockPanel)
+    }
 
     if ($isLoud) {
         $caution = 'You might have to sign in again to websites and webmail after this runs.'
@@ -1248,7 +1332,12 @@ function Get-VisibleTasksForCategory {
         if ($service -and -not (Test-DRCloudServicePresent $service)) { $hidden += $task.Id }
     }
 
-    if ($Category -eq 'Cleanup' -and $hidden.Count) {
+    # An AI row only appears for an app or browser that is on this PC.
+    if ($Category -eq 'AI') {
+        foreach ($status in @($script:DRAIStatus)) { if (-not $status.Present) { $hidden += $status.TaskId } }
+    }
+
+    if ($Category -in @('Cleanup','AI') -and $hidden.Count) {
         return @($tasks | Where-Object { $hidden -notcontains $_.Id })
     }
 
@@ -1294,13 +1383,21 @@ function Show-TaskCategory {
         'Repair' { 'Windows repairs are separate from cleanup. Creating a restore point is recommended before repair operations.' }
         'Security' { 'Run Defender operations independently. Existing exclusions are never removed automatically.' }
         'Health' { 'Drive health checks are read-only and do not schedule repairs or restarts.' }
+        'AI' { 'Tick the AI to switch off. Each browser has to be signed in first. Passwords, bookmarks, files and sign-ins are not touched, and "Put AI back" undoes the settings.' }
+    }
+    if ($Category -eq 'AI') {
+        # Checked fresh every time, so signing in and coming back unlocks the row.
+        try {
+            $window.Cursor = [System.Windows.Input.Cursors]::Wait
+            $script:DRAIStatus = @(Get-DRAIStatus)
+        } catch { $script:DRAIStatus = @() } finally { $window.Cursor = $null }
     }
     $visible = @(Get-VisibleTasksForCategory -Category $Category)
     # A row that is not on screen must not run. Dropping to Safe after ticking
     # cookie cleanup on Advanced would otherwise leave it selected but invisible.
-    if ($Category -eq 'Cleanup') {
+    if ($Category -in @('Cleanup','AI')) {
         $visibleIds = @($visible | ForEach-Object { $_.Id })
-        foreach ($task in @($catalog | Where-Object Category -eq 'Cleanup')) {
+        foreach ($task in @($catalog | Where-Object Category -eq $Category)) {
             if ($visibleIds -notcontains $task.Id) { $selection[$task.Id] = $false }
         }
     }
@@ -1316,7 +1413,7 @@ function Update-SelectionSummary {
     # The badge sits beside one page's list, so it counts that page. A run still
     # covers every page, and the badge says so when something is ticked elsewhere.
     $here = @($selected | Where-Object { $_.Category -eq $script:currentCategory }).Count
-    if ($script:currentCategory -in @('Cleanup','Repair','Security','Health')) {
+    if ($script:currentCategory -in @('Cleanup','Repair','Security','Health','AI')) {
         $ui.SelectionSummary.Text = if ($total -gt $here) { "$here selected here, $total in total" } else { "$here selected" }
     } else {
         $ui.SelectionSummary.Text = "$total selected"
@@ -1342,6 +1439,10 @@ function Show-Confirmation {
     if ($selected.Risk -contains 'SignOut') { $warnings.Add('Cookie cleanup can end active website and webmail sessions.') }
     if ($selected.Id -contains 'cleanup.recycle-bin') { $warnings.Add('Recycle Bin contents will be permanently removed.') }
     if ($selected.Id -contains 'security.remove-exclusions') { $warnings.Add('All configured Defender exclusions will be exported to a backup and then removed.') }
+    if ($selected.Id -contains 'security.checkup-fix') { $warnings.Add('Any of the Windows firewall, Microsoft Defender real-time protection and Windows Update that is off will be switched back on.') }
+    if (@($selected | Where-Object { $_.Id -in @('ai.edge','ai.chrome','ai.brave','ai.firefox') }).Count) { $warnings.Add('The browsers you picked will show "Managed by your organization" - that is what keeps their AI off. "Put AI back" removes it.') }
+    if (@($selected | Where-Object { $_.Category -eq 'AI' -and $_.Risk -eq 'Confirm' }).Count) { $warnings.Add('The AI apps you picked will be uninstalled. They can be installed again from the Microsoft Store.') }
+    if ($selected.Id -contains 'ai.restore' -and @($selected | Where-Object { $_.Category -eq 'AI' -and $_.Id -ne 'ai.restore' }).Count) { $warnings.Add('"Put AI back" is also ticked, so it runs last and undoes the AI settings chosen above. Untick one of them.') }
     if (@($selected).Count -gt 0) { $warnings.Add('When everything has finished, Windows needs to restart. You will get a one-hour countdown first, and you can cancel it or restart sooner.') }
     $ui.ConfirmWarning.Visibility = if ($warnings.Count) { 'Visible' } else { 'Collapsed' }
     $ui.ConfirmWarningText.Text = $warnings -join "`n"
@@ -2247,6 +2348,7 @@ $ui.NavHardware.Add_Click({ Set-Page 'Hardware' })
 $ui.CheckDriversButton.Add_Click({ Start-DRDriverCheck })
 $ui.NavHistory.Add_Click({ Set-Page 'History' })
 $ui.NavDuplicates.Add_Click({ Set-Page 'Duplicates' })
+$ui.NavAI.Add_Click({ Set-Page 'AI' })
 $ui.NavProgress.Add_Click({ Set-Page 'Progress' })
 $ui.DashboardHistoryButton.Add_Click({ Set-Page 'History' })
 $ui.ScanButton.Add_Click({ Start-Analysis })
@@ -2937,6 +3039,9 @@ if ($NoShow) {
     Show-Confirmation
     if ($ui.ConfirmList.Children.Count -ne 1) { throw 'GUI smoke test could not build a one-item confirmation plan.' }
     $ui.ConfirmOverlay.Visibility = 'Collapsed'
+    Set-Page 'AI'
+    # "Put AI back" is always listed, so an empty page means the page broke.
+    if (-not @($ui.TaskList.Children).Count) { throw 'GUI smoke test could not render the AI Remover page.' }
     Set-Page 'Dashboard'
     $pollTimer.Stop()
     $window.Close()

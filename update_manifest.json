@@ -1,7 +1,7 @@
 {
-  "version": "1.4.23",
-  "notes": "Cleanup now also clears saved graphics files that games rebuild on their own. Laptops now show battery health on the Hardware page. The Security page has a new option to stop Windows sending your typing to Microsoft, with a button to undo it.",
-  "published": "2026-09-28T18:18:11.9634865-04:00",
+  "version": "1.4.24",
+  "notes": "New AI Remover: switch off Copilot, Gemini and other AI in Windows and your web browsers, or remove the Copilot, ChatGPT and Claude apps - your choice, and one click puts it all back. New Security checkup: checks that your firewall, virus protection and Windows Update are on, and can switch them back on.",
+  "published": "2026-09-28T19:29:44.9834623-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "864E39AB9727C8D27629055743B2C7DE69A74611A7DDB447F08F17914B523831",
-      "size": 190956
+      "sha256": "DD845D5B5F94175FEC33C553FB6ADB3B9F34244E9338C2AAA59E08A8AC2B82B4",
+      "size": 195842
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "7E6397EC1801C580C936D8FD19E4BAB521638817C3D83CA3C3E2BAB6BC40FF63",
-      "size": 95715
+      "sha256": "72475C30932F90B24748A87627F910FC577C4E319E7D7E55EA0842E472CA279C",
+      "size": 131555
     },
     {
       "name": "DRDirect Updater.ps1",
