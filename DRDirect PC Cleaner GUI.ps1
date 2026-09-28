@@ -962,6 +962,7 @@ function Test-TaskInOrderedPreset {
         'cleanup.wu-download-cache',
         'cleanup.old-update-backups',
         'cleanup.thumbnail-cache',
+        'cleanup.shader-cache',
         'cleanup.wer-queue',
         'cleanup.delivery-optimization-cache'
     )

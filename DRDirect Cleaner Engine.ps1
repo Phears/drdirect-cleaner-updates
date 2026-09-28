@@ -42,6 +42,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='cleanup.wu-download-cache'; Category='Cleanup'; Name='Windows Update download cache'; Description='Clears already-installed update installers cached under SoftwareDistribution\Download. Windows re-downloads only what it needs next time.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.old-update-backups'; Category='Cleanup'; Name='Old Windows Update backup folders'; Description='Removes SoftwareDistribution.old and catroot2.old, copies left behind by an earlier Windows Update fix. Windows no longer uses them. The Windows Update folders in use are never touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.thumbnail-cache'; Category='Cleanup'; Name='Thumbnail cache'; Description='Clears cached thumbnail images. Windows rebuilds them the next time you browse those files.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.shader-cache'; Category='Cleanup'; Name='Graphics shader cache'; Description='Clears saved graphics files from DirectX and the NVIDIA, AMD and Intel drivers. Games rebuild them by themselves, so the first launch afterwards can be choppy for a few seconds.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.icon-cache'; Category='Cleanup'; Name='Icon cache'; Description='Clears the icon cache and restarts Explorer to rebuild it. Fixes blank or wrong icons. The taskbar and desktop will flash off and back on and open folder windows will close. Do not run it while File Explorer is copying or moving files.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.wer-queue'; Category='Cleanup'; Name='Windows Error Reporting queue'; Description='Removes queued and archived crash reports waiting to be sent to Microsoft.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.delivery-optimization-cache'; Category='Cleanup'; Name='Delivery Optimization cache'; Description='Clears the peer-to-peer Windows Update cache. Windows rebuilds it as needed.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
@@ -69,6 +70,8 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='security.full-scan'; Category='Security'; Name='Defender full scan'; Description='Scans all accessible files. This may take several hours.'; Risk='Long'; Duration='1+ hours'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
         [pscustomobject]@{ Id='security.remove-exclusions'; Category='Security'; Name='Remove Defender exclusions'; Description='Exports and removes all configured Defender exclusions. Never runs automatically.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.network-files'; Category='Security'; Name='Enable network-file scanning'; Description='Enables Microsoft Defender scanning of files accessed over the network.'; Risk='Advanced'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='security.typing-privacy'; Category='Security'; Name='Stop sending typing data to Microsoft'; Description='Turns off "Improve inking and typing" and typing personalization, so Windows stops collecting what you type and write to tune its suggestions. Your current settings are saved first, and "Restore typing settings" puts them back.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='security.typing-privacy-restore'; Category='Security'; Name='Restore typing settings'; Description='Puts the typing settings back exactly as they were before "Stop sending typing data to Microsoft" changed them. Does nothing if that option was never run.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
 
         [pscustomobject]@{ Id='health.chkdsk'; Category='Health'; Name='CHKDSK disk check'; Description='Checks the C: file system for corruption while Windows keeps running. Reports what it finds, repairs what is safe to repair, and never schedules a restart.'; Risk='Safe'; Duration='5-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
         [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -175,6 +178,29 @@ function Get-DRCloudCachePatterns {
         ) }
         default { @() }
     }
+}
+
+function Get-DRShaderCachePaths {
+    <#
+        .SYNOPSIS
+            Where DirectX and the graphics drivers keep compiled shaders.
+        .DESCRIPTION
+            Every one of these is rebuilt on demand the next time a game or app
+            draws with it. Newer NVIDIA drivers moved theirs to LocalLow.
+    #>
+    $localLow = Join-Path (Split-Path -Parent $env:LOCALAPPDATA) 'LocalLow'
+    @(
+        (Join-Path $env:LOCALAPPDATA 'D3DSCache'),
+        (Join-Path $env:LOCALAPPDATA 'NVIDIA\DXCache'),
+        (Join-Path $env:LOCALAPPDATA 'NVIDIA\GLCache'),
+        (Join-Path $localLow 'NVIDIA\PerDriverVersion\DXCache'),
+        (Join-Path $localLow 'NVIDIA\PerDriverVersion\GLCache'),
+        (Join-Path $env:LOCALAPPDATA 'AMD\DxCache'),
+        (Join-Path $env:LOCALAPPDATA 'AMD\DxcCache'),
+        (Join-Path $env:LOCALAPPDATA 'AMD\GLCache'),
+        (Join-Path $env:LOCALAPPDATA 'AMD\VkCache'),
+        (Join-Path $env:LOCALAPPDATA 'Intel\ShaderCache')
+    ) | Where-Object { Test-Path -LiteralPath $_ -PathType Container }
 }
 
 function Get-DRBrowserCachePatterns {
@@ -423,6 +449,11 @@ function Get-DRAnalysis {
                     $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot -ErrorAction SilentlyContinue) } else { @(Get-DRPatternMatches @((Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Explorer\thumbcache_*.db'))) }
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
                     $detail = 'Rebuilt automatically as you browse files'
+                }
+                'cleanup.shader-cache' {
+                    $paths = if ($TestRoot) { @($TestRoot) } else { @(Get-DRShaderCachePaths) }
+                    foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
+                    $detail = 'Games rebuild these by themselves'
                 }
                 'cleanup.icon-cache' {
                     $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot -ErrorAction SilentlyContinue) } else { @(Get-DRPatternMatches @((Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Explorer\iconcache_*.db'))) }
@@ -815,6 +846,45 @@ function Get-DRDriverLookup {
     return $lookup
 }
 
+function Get-DRBatteryHealth {
+    <#
+        .SYNOPSIS
+            How much charge each laptop battery holds now, against when it was new.
+        .DESCRIPTION
+            Read-only. Windows keeps the designed and the current full-charge
+            capacity in root\wmi. A PC with no battery returns nothing, so the
+            Hardware page shows no battery section on a desktop.
+    #>
+    if (-not @(Get-DRCimValue 'Win32_Battery').Count) { return }
+
+    $static = @(); $full = @(); $cycles = @()
+    try { $static = @(Get-CimInstance -Namespace 'root\wmi' -ClassName 'BatteryStaticData' -ErrorAction Stop) } catch { }
+    try { $full = @(Get-CimInstance -Namespace 'root\wmi' -ClassName 'BatteryFullChargedCapacity' -ErrorAction Stop) } catch { }
+    try { $cycles = @(Get-CimInstance -Namespace 'root\wmi' -ClassName 'BatteryCycleCount' -ErrorAction Stop) } catch { }
+
+    $reported = 0
+    foreach ($entry in $static) {
+        $instance = Get-DRDiskProperty $entry 'InstanceName'
+        $design = Get-DRDiskProperty $entry 'DesignedCapacity'
+        $now = Get-DRDiskProperty (@($full | Where-Object { (Get-DRDiskProperty $_ 'InstanceName') -eq $instance }) | Select-Object -First 1) 'FullChargedCapacity'
+        $count = Get-DRDiskProperty (@($cycles | Where-Object { (Get-DRDiskProperty $_ 'InstanceName') -eq $instance }) | Select-Object -First 1) 'CycleCount'
+        if (-not $design -or -not $now) { continue }
+
+        # A new battery can hold slightly more than its rating; call that 100%.
+        $percent = [int][Math]::Min(100, [Math]::Round(100.0 * $now / $design))
+        $verdict = if ($percent -ge 80) { 'good' }
+                   elseif ($percent -ge 60) { 'worn - it runs out sooner than when new' }
+                   else { 'worn out - consider replacing the battery' }
+        $note = '{0:N0} of {1:N0} mWh' -f $now, $design
+        if ($count) { $note = '{0}, {1:N0} charge cycles' -f $note, $count }
+        $reported++
+        [pscustomobject]@{ Value = ('{0}% of its original capacity' -f $percent); Note = ('{0} - {1}' -f $note, $verdict) }
+    }
+    if (-not $reported) {
+        [pscustomobject]@{ Value = 'Not reported'; Note = 'This battery does not tell Windows how worn it is.' }
+    }
+}
+
 function Get-DRHardwareInventory {
     [CmdletBinding()]
     param()
@@ -851,6 +921,11 @@ function Get-DRHardwareInventory {
     $installed = Get-DRDiskProperty $os 'InstallDate'
     if ($installed) {
         $items.Add((New-DRHardwareItem 'This PC' 'Windows installed' (([datetime]$installed).ToString('d MMMM yyyy'))))
+    }
+
+    # Battery - laptops only
+    foreach ($battery in @(Get-DRBatteryHealth)) {
+        $items.Add((New-DRHardwareItem 'Battery' 'Battery health' $battery.Value $battery.Note))
     }
 
     # Processor
@@ -965,6 +1040,80 @@ function Get-DRDriverUpdateStatus {
             Error      = $_.Exception.Message
         }
     }
+}
+
+function Get-DRTypingPrivacyValues {
+    # The switches behind Settings > Privacy > "Improve inking and typing" and
+    # "Inking & typing personalization", with the value that turns each one off.
+    param([string]$Root = 'HKCU:\Software\Microsoft')
+    @(
+        [pscustomobject]@{ Key = Join-Path $Root 'Input\TIPC';                            Name = 'Enabled';                        Off = 0 },
+        [pscustomobject]@{ Key = Join-Path $Root 'InputPersonalization';                  Name = 'RestrictImplicitInkCollection';  Off = 1 },
+        [pscustomobject]@{ Key = Join-Path $Root 'InputPersonalization';                  Name = 'RestrictImplicitTextCollection'; Off = 1 },
+        [pscustomobject]@{ Key = Join-Path $Root 'InputPersonalization\TrainedDataStore'; Name = 'HarvestContacts';                Off = 0 },
+        [pscustomobject]@{ Key = Join-Path $Root 'Personalization\Settings';              Name = 'AcceptedPrivacyPolicy';          Off = 0 }
+    )
+}
+
+function Get-DRTypingPrivacyBackupPath {
+    Join-Path (Split-Path -Parent $script:DRReportRoot) 'Backups\Typing_Settings.json'
+}
+
+function Set-DRTypingPrivacy {
+    param(
+        [string]$TaskId,
+        [string]$Root = 'HKCU:\Software\Microsoft',
+        [string]$BackupPath = (Get-DRTypingPrivacyBackupPath)
+    )
+
+    $values = @(Get-DRTypingPrivacyValues -Root $Root)
+    # Save what was there before touching anything. A backup that already exists
+    # holds the customer's original settings, so a second run never replaces it.
+    if (-not (Test-Path -LiteralPath $BackupPath -PathType Leaf)) {
+        $before = foreach ($value in $values) {
+            $current = $null
+            $property = Get-ItemProperty -LiteralPath $value.Key -Name $value.Name -ErrorAction SilentlyContinue
+            if ($property) { $current = $property.($value.Name) }
+            [pscustomobject]@{ Key = $value.Key; Name = $value.Name; Existed = ($null -ne $property); Value = $current }
+        }
+        New-Item -Path (Split-Path -Parent $BackupPath) -ItemType Directory -Force | Out-Null
+        [System.IO.File]::WriteAllText($BackupPath, (ConvertTo-Json -InputObject @($before) -Depth 3), (New-Object System.Text.UTF8Encoding($false)))
+    }
+
+    foreach ($value in $values) {
+        if (-not (Test-Path -LiteralPath $value.Key)) { New-Item -Path $value.Key -Force | Out-Null }
+        New-ItemProperty -LiteralPath $value.Key -Name $value.Name -Value $value.Off -PropertyType DWord -Force | Out-Null
+    }
+    New-DREvent -TaskId $TaskId -State Information -Message 'Windows no longer collects typing and handwriting to tune its suggestions. Your previous settings were saved; "Restore typing settings" puts them back.'
+}
+
+function Restore-DRTypingPrivacy {
+    param(
+        [string]$TaskId,
+        [string]$Root = 'HKCU:\Software\Microsoft',
+        [string]$BackupPath = (Get-DRTypingPrivacyBackupPath)
+    )
+
+    if (-not (Test-Path -LiteralPath $BackupPath -PathType Leaf)) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'There was nothing to restore: the Cleaner has not changed the typing settings on this PC.'
+        return
+    }
+
+    $allowed = @(Get-DRTypingPrivacyValues -Root $Root)
+    # Windows PowerShell hands a JSON array back as one object; ForEach-Object unrolls it.
+    $saved = @(Get-Content -LiteralPath $BackupPath -Raw | ConvertFrom-Json | ForEach-Object { $_ })
+    foreach ($entry in $saved) {
+        # Only the switches this Cleaner changes; an edited backup cannot point anywhere else.
+        if (-not @($allowed | Where-Object { $_.Key -eq $entry.Key -and $_.Name -eq $entry.Name }).Count) { continue }
+        if ($entry.Existed) {
+            if (-not (Test-Path -LiteralPath $entry.Key)) { New-Item -Path $entry.Key -Force | Out-Null }
+            New-ItemProperty -LiteralPath $entry.Key -Name $entry.Name -Value ([int]$entry.Value) -PropertyType DWord -Force | Out-Null
+        } else {
+            Remove-ItemProperty -LiteralPath $entry.Key -Name $entry.Name -ErrorAction SilentlyContinue
+        }
+    }
+    Remove-DRSafeItem -LiteralPath $BackupPath -AllowedRoot (Split-Path -Parent $BackupPath) | Out-Null
+    New-DREvent -TaskId $TaskId -State Information -Message 'Typing settings are back to how they were before the Cleaner changed them.'
 }
 
 function Invoke-DRTask {
@@ -1109,6 +1258,17 @@ function Invoke-DRTask {
                     }
                 }
             }
+            'cleanup.shader-cache' {
+                # Each cache folder is its own approved root, so only what is inside
+                # it can go. Files a running game holds open are skipped quietly.
+                $folders = if ($TestRoot) { @($TestRoot) } else { @(Get-DRShaderCachePaths) }
+                if ($folders.Count -eq 0) {
+                    New-DREvent -TaskId $TaskId -State Information -Message 'No graphics shader caches were found on this PC.'
+                } else {
+                    foreach ($folder in $folders) { Clear-DRFolderContents -FolderPath $folder -TaskId $TaskId | Out-Null }
+                    New-DREvent -TaskId $TaskId -State Information -Message ('Cleared {0} graphics shader cache folder(s).' -f $folders.Count)
+                }
+            }
             'cleanup.icon-cache' {
                 if ($TestRoot) { Clear-DRFolderContents -FolderPath $TestRoot -TaskId $TaskId -TestRoot $TestRoot | Out-Null }
                 else {
@@ -1224,6 +1384,14 @@ function Invoke-DRTask {
             'security.network-files' {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Defender preferences were not changed.' }
                 else { Set-MpPreference -DisableScanningNetworkFiles $false -ErrorAction Stop }
+            }
+            'security.typing-privacy' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: typing settings were not changed.' }
+                else { Set-DRTypingPrivacy -TaskId $TaskId }
+            }
+            'security.typing-privacy-restore' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: typing settings were not changed.' }
+                else { Restore-DRTypingPrivacy -TaskId $TaskId }
             }
             'security.remove-exclusions' {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Defender exclusions were not changed.' }
