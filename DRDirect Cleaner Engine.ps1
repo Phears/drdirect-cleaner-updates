@@ -85,6 +85,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='ai.copilot-app'; Category='AI'; Name='Windows: remove the Copilot app'; Description='Uninstalls the Microsoft Copilot app for every account on this PC. It can be installed again from the Microsoft Store.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.m365-app'; Category='AI'; Name='Windows: remove the Microsoft 365 Copilot app'; Description='Uninstalls the Microsoft 365 Copilot app (the Copilot chat and Office start page). Word, Excel, Outlook and your documents are not touched. It can be installed again from the Microsoft Store.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.office-copilot'; Category='AI'; Name='Word and Excel: turn off Copilot'; Description='Opens Word so you can switch Copilot off: File > Options > Copilot, untick Enable Copilot, then OK. Do the same in Excel and PowerPoint. Office keeps this switch inside each app, so the last click is yours.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.zoom'; Category='AI'; Name='Zoom: turn off AI Companion'; Description='Opens Zoom so you can switch off Zoom AI Companion: profile picture > Settings > Zoom AI Companion, then turn off the meeting summary, meeting questions and writing help. Zoom keeps this switch in the app and your Zoom account, so the last click is yours.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.edge'; Category='AI'; Name='Edge: turn off Copilot'; Description='Turns off the Copilot sidebar, Copilot reading the page, Copilot on the new tab page, and AI writing help. Passwords, bookmarks and sign-ins are not touched. Edge will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.edge-button'; Category='AI'; Name='Edge: hide the Copilot button'; Description='Opens Edge so you can switch off the Copilot button on the toolbar: Settings, search for Copilot, switch the button off. The newest Edge keeps this switch to itself, so the last click is yours.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.chrome'; Category='AI'; Name='Chrome: turn off Gemini and AI Mode'; Description='Turns off Gemini in Chrome, the AI Mode button, "Help me write", and the AI tab and history features. Passwords, bookmarks and sign-ins are not touched. Chrome will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -102,6 +103,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='ai.copilot-app.on'; Category='AI'; Name='Reinstall the Copilot app'; Description='Opens the Copilot app in the Microsoft Store so you can install it again.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.m365-app.on'; Category='AI'; Name='Reinstall the Microsoft 365 Copilot app'; Description='Opens the Microsoft 365 Copilot app in the Microsoft Store so you can install it again.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.office-copilot.on'; Category='AI'; Name='Word and Excel: turn Copilot back on'; Description='Opens Word so you can tick Enable Copilot again.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.zoom.on'; Category='AI'; Name='Zoom: turn AI Companion back on'; Description='Opens Zoom so you can switch AI Companion back on.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.edge.on'; Category='AI'; Name='Edge: turn Copilot back on'; Description='Puts the Edge AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.edge-button.on'; Category='AI'; Name='Edge: show the Copilot button again'; Description='Opens Edge so you can switch the Copilot button back on.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.chrome.on'; Category='AI'; Name='Chrome: turn Gemini and AI Mode back on'; Description='Puts the Chrome AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -1714,6 +1716,12 @@ function Invoke-DRAIGuidedTask {
                        else { 'Word is opening. Click File > Options > Copilot, untick Enable Copilot and click OK, then close and reopen Word. Do the same in Excel and PowerPoint.' }
             if (-not $target) { $message = 'Word is not installed on this PC. Nothing was opened.' }
         }
+        'ai.zoom' {
+            $target = Get-DRZoomExe
+            $message = if ($TurnOn) { 'Zoom is opening. Click your profile picture > Settings > Zoom AI Companion, and turn the features back on.' }
+                       else { 'Zoom is opening. Click your profile picture > Settings > Zoom AI Companion, and turn off the meeting summary, meeting questions and writing help. Some switches are also in your Zoom account at zoom.us > Settings > AI Companion.' }
+            if (-not $target) { $message = 'Zoom is not installed on this PC. Nothing was opened.' }
+        }
         'ai.copilot-key' {
             $target = 'ms-settings:personalization-textinput'
             $message = if ($TurnOn) { 'Settings is open at Text input. Under "Customize Copilot key on keyboard", choose Copilot.' }
@@ -1989,6 +1997,15 @@ function Test-DRAIBrowserPresent {
     return [bool](Get-DRAIBrowserExe -Browser $Browser)
 }
 
+function Get-DRZoomExe {
+    $zoom = Get-DRAppPath -Exe 'Zoom.exe'
+    if ($zoom) { return $zoom }
+    foreach ($candidate in @((Join-Path $env:APPDATA 'Zoom\bin\Zoom.exe'), (Join-Path $env:ProgramFiles 'Zoom\bin\Zoom.exe'), (Join-Path ${env:ProgramFiles(x86)} 'Zoom\bin\Zoom.exe'))) {
+        if ($candidate -and (Test-Path -LiteralPath $candidate -PathType Leaf)) { return $candidate }
+    }
+    return $null
+}
+
 function Get-DRWordExe {
     $word = Get-DRAppPath -Exe 'WINWORD.EXE'
     if ($word) { return $word }
@@ -2256,6 +2273,7 @@ function Get-DRAIStatus {
             'ai.copilot-key' { $build -ge 22000 }
             'ai.remove-models' { $modelBytes -gt 0 }
             'ai.office-copilot' { [bool](Get-DRWordExe) }
+            'ai.zoom'        { [bool](Get-DRZoomExe) }
             'ai.block-sites' { [bool]@(@('Edge','Chrome','Brave','Firefox') | Where-Object { Test-DRAIBrowserPresent -Browser $_ }).Count }
             'ai.gmail'       { $true }
             'ai.copilot-app' { & $hasApp 'Copilot' }
@@ -2293,7 +2311,7 @@ function Get-DRAIStatus {
             $canOn = & $hasBackup 'Adobe'
         } elseif ($task.Id -eq 'ai.block-sites') {
             $canOn = [bool]@(Get-ChildItem -LiteralPath $backupFolder -Filter 'AI_Sites_*.json' -File -ErrorAction SilentlyContinue).Count
-        } elseif ($task.Id -in @('ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key')) {
+        } elseif ($task.Id -in @('ai.gmail','ai.office-copilot','ai.zoom','ai.edge-button','ai.copilot-key')) {
             $canOn = $true
         }
         $needsSignIn = $browser -in @('Chrome','Edge','Firefox')
@@ -2653,7 +2671,7 @@ function Invoke-DRTask {
             { $_ -like 'ai.*.on' } { Invoke-DRAITurnBackOn -TaskId $TaskId -TestRoot $TestRoot }
             # Read-only, so it looks at the real PC even in test mode.
             'ai.check' { Invoke-DRAICheck -TaskId $TaskId }
-            { $_ -in @('ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key') } { Invoke-DRAIGuidedTask -TaskId $TaskId -TestRoot $TestRoot }
+            { $_ -in @('ai.gmail','ai.office-copilot','ai.zoom','ai.edge-button','ai.copilot-key') } { Invoke-DRAIGuidedTask -TaskId $TaskId -TestRoot $TestRoot }
             { $_ -like 'ai.*.uninstall' } { Uninstall-DRAICompletely -TaskId $TaskId -TestRoot $TestRoot }
             { $_ -like 'ai.*.reinstall' } { Invoke-DRAIReinstall -TaskId $TaskId -TestRoot $TestRoot }
             { $_ -in @('ai.copilot-app','ai.m365-app','ai.chatgpt-app','ai.claude-app') } {

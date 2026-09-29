@@ -1028,7 +1028,7 @@ $script:driverPanel = $null
 $script:DRAIStatus = @()
 # These only look, or only open a page for the customer to finish, so a run of
 # nothing but these never needs Windows to restart.
-$script:DRNoRestartTaskIds = @('ai.check','ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key','ai.remove-models','ai.adobe','ai.adobe.on',
+$script:DRNoRestartTaskIds = @('ai.check','ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key','ai.remove-models','ai.adobe','ai.adobe.on','ai.zoom','ai.zoom.on',
     'ai.gmail.on','ai.office-copilot.on','ai.edge-button.on','ai.copilot-key.on',
     'ai.copilot-app.on','ai.m365-app.on','ai.chatgpt-app.on','ai.claude-app.on',
     'ai.edge.uninstall','ai.chrome.uninstall','ai.brave.uninstall','ai.firefox.uninstall',
