@@ -1,7 +1,7 @@
 {
-  "version": "1.4.34",
-  "notes": "New friendlier Dashboard: one-click Safe mode, Safe/Medium/Advanced plans shown before anything runs, a safety net with a Windows restore point, and Undo for AI changes.",
-  "published": "2026-09-29T17:46:46.9549218-04:00",
+  "version": "1.4.35",
+  "notes": "Friendlier Dashboard with the familiar stat cards and Analyze card on top.",
+  "published": "2026-09-29T17:50:54.3588533-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
