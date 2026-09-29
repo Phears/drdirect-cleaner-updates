@@ -1392,7 +1392,7 @@ function Show-DRAICheckResults {
             Text = $summary; FontWeight = 'Bold'; FontSize = 13; Margin = '0,8,0,0'; TextWrapping = 'Wrap'
             Foreground = $(if ($on) { '#BE123C' } else { '#15803D' }) }))
         [void]$panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{
-            Text = 'Gmail, Word and Excel, the Edge button and the Copilot key cannot be read from here.'
+            Text = 'Gmail, Zoom, Word and Excel, the Edge button and the Copilot key cannot be read from here.'
             Foreground = '#667085'; FontSize = 11.5; Margin = '0,4,0,0'; TextWrapping = 'Wrap' }))
     }
     [void]$copy.Children.Add($panel)
@@ -1745,11 +1745,14 @@ function New-TaskRow {
     # At the bottom of a row that knows its state: green when its AI is active, dark red when it is off.
     $stateBanner = $null
     if ($aiStatus -and $Task.Id -notin @('ai.restore', 'ai.check') -and -not $needsSignIn) {
-        $rowIsOff = [bool]($aiStatus.CanOn -or -not $aiStatus.CanOff)
-        $stateText = if ($rowIsOff) { 'AI is turned off' } else { 'AI is now activated' }
-        $stateInk = if ($rowIsOff) { '#9F1239' } else { '#166534' }
-        $stateFill = if ($rowIsOff) { '#FFE4E6' } else { '#DCFCE7' }
-        $stateEdge = if ($rowIsOff) { '#BE123C' } else { '#15803D' }
+        # The banner tells only what the Cleaner has verified: off, still on, or "cannot check".
+        $rowState = [string](Get-DRPropertyValue -InputObject $aiStatus -Name 'State')
+        $stateText = [string](Get-DRPropertyValue -InputObject $aiStatus -Name 'StateText')
+        if (-not $rowState) { $rowState = 'Unknown' }
+        if (-not $stateText) { $stateText = 'Cannot check - you decide' }
+        $stateInk  = switch ($rowState) { 'Off' { '#9F1239' } 'On' { '#166534' } default { '#475467' } }
+        $stateFill = switch ($rowState) { 'Off' { '#FFE4E6' } 'On' { '#DCFCE7' } default { '#EEF1F6' } }
+        $stateEdge = switch ($rowState) { 'Off' { '#BE123C' } 'On' { '#15803D' } default { '#98A2B3' } }
         # A wide banner centred along the bottom of the row, with a big solid dot.
         $stateLine = New-Object Windows.Controls.StackPanel -Property @{ Orientation='Horizontal'; HorizontalAlignment='Center' }
         $stateLine.Children.Add((New-Object Windows.Shapes.Ellipse -Property @{ Width=20; Height=20; Fill=$stateEdge; Stroke=$stateInk; StrokeThickness=3; Margin='0,0,12,0'; VerticalAlignment='Center' })) | Out-Null
