@@ -1,7 +1,7 @@
 {
-  "version": "1.4.29",
-  "notes": "The AI Remover now shows whether AI is on or off, buttons work instantly, and each box can uninstall or reinstall its AI.",
-  "published": "2026-09-29T10:31:22.7731523-04:00",
+  "version": "1.4.30",
+  "notes": "You can now choose when Windows restarts after a clean: right away, or in 5, 10 or 30 minutes, or 1, 2 or 3 hours.",
+  "published": "2026-09-29T10:42:00.9583610-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "604E47A1728CB131A57A14915472FFF77A6D12F1E2C92E548D4871B14B172F2D",
-      "size": 238241
+      "sha256": "4027295185A968FCA59A128DA47C0604BBAD366899BE0E3ECEACF181B7E09D7D",
+      "size": 240147
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

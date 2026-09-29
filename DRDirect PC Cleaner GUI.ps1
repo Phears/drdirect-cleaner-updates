@@ -894,7 +894,19 @@ $ErrorActionPreference = 'Stop'
                     <StackPanel><TextBlock Text="Review maintenance plan" Style="{StaticResource SectionText}"/><TextBlock Text="Only these selected operations will run, in the order shown." Style="{StaticResource MutedText}" Margin="0,5,0,14"/></StackPanel>
                     <ScrollViewer Grid.Row="1" MaxHeight="350" VerticalScrollBarVisibility="Auto"><StackPanel x:Name="ConfirmList"/></ScrollViewer>
                     <Border x:Name="ConfirmWarning" Grid.Row="2" Background="#FFF4E3" CornerRadius="8" Padding="12" Margin="0,14,0,0" Visibility="Collapsed"><TextBlock x:Name="ConfirmWarningText" Foreground="{StaticResource Warning}" TextWrapping="Wrap"/></Border>
-                    <Grid Grid.Row="3" Margin="0,20,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><CheckBox x:Name="ConfirmationCheck" Content="I reviewed this plan and approve the selected changes."/><StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0"><Button x:Name="ConfirmBackButton" Content="Go back" Style="{StaticResource SecondaryButton}"/><Button x:Name="ConfirmRunButton" Content="Run selected tasks" Style="{StaticResource PrimaryButton}" Margin="10,0,0,0" IsEnabled="False"/></StackPanel></Grid>
+                    <Grid Grid.Row="3" Margin="0,20,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                        <StackPanel x:Name="RestartDelayPanel" Grid.Row="0" Margin="0,0,0,16" Visibility="Collapsed"><TextBlock Text="When should Windows restart after the clean?" FontWeight="SemiBold" Margin="0,0,0,6"/>
+                            <ComboBox x:Name="RestartDelayCombo" SelectedIndex="6" FontSize="14" Padding="10,7">
+                                <ComboBoxItem Tag="10" Content="Right away (10 seconds after it finishes)"/>
+                                <ComboBoxItem Tag="300" Content="In 5 minutes"/>
+                                <ComboBoxItem Tag="600" Content="In 10 minutes"/>
+                                <ComboBoxItem Tag="1800" Content="In 30 minutes"/>
+                                <ComboBoxItem Tag="3600" Content="In 1 hour"/>
+                                <ComboBoxItem Tag="7200" Content="In 2 hours"/>
+                                <ComboBoxItem Tag="10800" Content="In 3 hours"/>
+                            </ComboBox>
+                            <TextBlock Text="You can still restart sooner, or cancel the restart, from the progress page." Style="{StaticResource MutedText}" FontSize="12" Margin="0,6,0,0"/></StackPanel>
+                        <CheckBox x:Name="ConfirmationCheck" Grid.Row="1" Content="I reviewed this plan and approve the selected changes."/><StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0"><Button x:Name="ConfirmBackButton" Content="Go back" Style="{StaticResource SecondaryButton}"/><Button x:Name="ConfirmRunButton" Content="Run selected tasks" Style="{StaticResource PrimaryButton}" Margin="10,0,0,0" IsEnabled="False"/></StackPanel></Grid>
                 </Grid>
             </Border>
         </Grid>
@@ -959,7 +971,7 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','HardwareList','CheckDriversButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','HardwareList','CheckDriversButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -1043,6 +1055,7 @@ $childPidFile = Join-Path $env:TEMP ('DRDirect_child_{0}.pid' -f $PID)
 $env:DRDIRECT_CHILD_PID_FILE = $childPidFile
 $script:restartCountdownTimer = $null
 $script:restartSecondsLeft = 0
+$script:restartDelaySeconds = 10800
 $script:restartCountdownBaseMessage = ''
 $analysisMode = $false
 $analysisTotal = 0
@@ -1955,7 +1968,9 @@ function Show-Confirmation {
     if ($selected.Id -contains 'ai.remove-models') { $warnings.Add('Close Chrome and Edge before running, so the AI model they downloaded can be deleted.') }
     if (@($selected | Where-Object { $_.Category -eq 'AI' -and $_.Risk -eq 'Confirm' }).Count) { $warnings.Add('The AI apps you picked will be uninstalled. They can be installed again from the Microsoft Store.') }
     if ($selected.Id -contains 'ai.restore' -and @($selected | Where-Object { $_.Category -eq 'AI' -and $_.Id -notin @('ai.restore','ai.check') -and $_.Id -notlike '*.on' -and $_.Id -notlike '*.uninstall' -and $_.Id -notlike '*.reinstall' }).Count) { $warnings.Add('"Turn everything back on" is also picked, so it runs last and undoes the AI settings you turned off. Pick one or the other.') }
-    if (@($selected | Where-Object { $script:DRNoRestartTaskIds -notcontains $_.Id }).Count -gt 0) { $warnings.Add('When everything has finished, Windows needs to restart. You will get a one-hour countdown first, and you can cancel it or restart sooner.') }
+    $needsRestartHere = @($selected | Where-Object { $script:DRNoRestartTaskIds -notcontains $_.Id }).Count -gt 0
+    $ui.RestartDelayPanel.Visibility = if ($needsRestartHere) { 'Visible' } else { 'Collapsed' }
+    if ($needsRestartHere) { $warnings.Add('When everything has finished, Windows needs to restart. Choose below when. You get a countdown first, and you can cancel it or restart sooner.') }
     $ui.ConfirmWarning.Visibility = if ($warnings.Count) { 'Visible' } else { 'Collapsed' }
     $ui.ConfirmWarningText.Text = $warnings -join "`n"
     $ui.ConfirmationCheck.IsChecked = $false
@@ -2075,6 +2090,13 @@ function Start-RunPlan {
     }
 
     Stop-DRRestartCountdown
+    # The person's choice of how long to wait before the restart. A plan started from an AI
+    # button never shows the box, so it keeps the 3 hour default.
+    $script:restartDelaySeconds = 10800
+    try {
+        $choice = $ui.RestartDelayCombo.SelectedItem
+        if ($ui.RestartDelayPanel.Visibility -eq 'Visible' -and $choice) { $script:restartDelaySeconds = [int]$choice.Tag }
+    } catch { }
     $selected = @($catalog | Where-Object { $selection[$_.Id] })
     $runQueue.Clear(); foreach ($task in $selected) { $runQueue.Enqueue($task.Id) }
     if (Test-Path -LiteralPath $script:childPidFile) { Remove-Item -LiteralPath $script:childPidFile -Force -ErrorAction SilentlyContinue }
@@ -2413,7 +2435,7 @@ function Complete-RunPlan {
         # to finish what they are doing and restart on their own terms. The
         # window also pushes itself to the front - see Show-DRRestartNotice -
         # so the restart is never a surprise.
-        Start-DRRestartCountdown -Seconds 10800 -BaseMessage $ui.ProgressSafetyText.Text
+        Start-DRRestartCountdown -Seconds $script:restartDelaySeconds -BaseMessage $ui.ProgressSafetyText.Text
     }
 }
 
