@@ -95,7 +95,22 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='ai.gmail'; Category='AI'; Name='Gmail: turn off Gemini'; Description='Opens Gmail settings in the web browser: untick the Smart features boxes and click Save changes. Google keeps this switch in the Google account, so the last click is yours.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.chatgpt-app'; Category='AI'; Name='Remove the ChatGPT app'; Description='Uninstalls the ChatGPT app. Chats saved in the ChatGPT account are not deleted, and the app can be installed again.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.claude-app'; Category='AI'; Name='Remove the Claude app'; Description='Uninstalls the Claude app. Chats saved in the Claude account are not deleted, and the app can be installed again.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='ai.restore'; Category='AI'; Name='Put AI back'; Description='Undoes the Windows and browser AI settings and the website blocks above, exactly as they were before, and the "Managed by your organization" message goes away. Removed apps are not reinstalled - get them again from the Microsoft Store. Switches you turned off yourself (Gmail, Word, the Edge button) are turned back on the same way.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        # The "Turn back on" choice of each row above. Shown inside its row, never as a row of its own.
+        [pscustomobject]@{ Id='ai.windows.on'; Category='AI'; Name='Windows: turn Recall and the AI in Paint and Notepad back on'; Description='Puts the Windows AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.copilot-key.on'; Category='AI'; Name='Copilot key: open Copilot again'; Description='Opens the Settings page for the Copilot key so you can choose Copilot again.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.copilot-app.on'; Category='AI'; Name='Reinstall the Copilot app'; Description='Opens the Copilot app in the Microsoft Store so you can install it again.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.m365-app.on'; Category='AI'; Name='Reinstall the Microsoft 365 Copilot app'; Description='Opens the Microsoft 365 Copilot app in the Microsoft Store so you can install it again.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.office-copilot.on'; Category='AI'; Name='Word and Excel: turn Copilot back on'; Description='Opens Word so you can tick Enable Copilot again.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.edge.on'; Category='AI'; Name='Edge: turn Copilot back on'; Description='Puts the Edge AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.edge-button.on'; Category='AI'; Name='Edge: show the Copilot button again'; Description='Opens Edge so you can switch the Copilot button back on.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.chrome.on'; Category='AI'; Name='Chrome: turn Gemini and AI Mode back on'; Description='Puts the Chrome AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.brave.on'; Category='AI'; Name='Brave: turn Leo AI back on'; Description='Puts the Brave AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.firefox.on'; Category='AI'; Name='Firefox: turn AI back on'; Description='Puts the Firefox AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.block-sites.on'; Category='AI'; Name='Unblock AI websites'; Description='Takes out only the AI websites the Cleaner blocked.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.gmail.on'; Category='AI'; Name='Gmail: turn Gemini back on'; Description='Opens Gmail settings so you can tick Smart features again.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.chatgpt-app.on'; Category='AI'; Name='Reinstall the ChatGPT app'; Description='Opens the official ChatGPT download page.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.claude-app.on'; Category='AI'; Name='Reinstall the Claude app'; Description='Opens the official Claude download page.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.restore'; Category='AI'; Name='Turn everything back on'; Description='Turns every Windows and browser AI setting and website block above back on, exactly as it was before, and the "Managed by your organization" message goes away. Apps, and the switches in Gmail, Word, Edge and the Copilot key, come back with their own "Reinstall" or "Turn back on" button.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
     )
 }
 
@@ -1465,12 +1480,14 @@ function Restore-DRAIPolicy {
     param(
         [string]$TaskId,
         [string]$Root = 'HKLM:\SOFTWARE',
-        [string]$BackupFolder = (Get-DRAIBackupFolder)
+        [string]$BackupFolder = (Get-DRAIBackupFolder),
+        # Website blocks first, so a browser key they emptied can go with its own target.
+        [string[]]$Targets = @('Sites_Chrome','Sites_Edge','Sites_Brave','Sites_Firefox','Windows','Edge','Chrome','Brave','Firefox')
     )
 
     $restored = @()
     $emptied = @()
-    foreach ($target in @('Sites_Chrome','Sites_Edge','Sites_Brave','Sites_Firefox','Windows','Edge','Chrome','Brave','Firefox')) {
+    foreach ($target in $Targets) {
         $backupPath = Join-Path $BackupFolder ('AI_{0}.json' -f $target)
         if (-not (Test-Path -LiteralPath $backupPath -PathType Leaf)) { continue }
         $allowed = if ($target -like 'Sites_*') { @([pscustomobject]@{ Key = (Get-DRAISiteBlockKey -Browser $target.Substring(6) -Root $Root) }) }
@@ -1524,7 +1541,7 @@ function Restore-DRAIPolicy {
         New-DREvent -TaskId $TaskId -State Information -Message 'There was nothing to put back: the Cleaner has not changed any AI settings on this PC.'
         return
     }
-    New-DREvent -TaskId $TaskId -State Information -Message ('AI settings are back to how they were for: {0}. Close and reopen those browsers. Removed apps are not put back - get them again from the Microsoft Store if you want them.' -f ($restored -join ', '))
+    New-DREvent -TaskId $TaskId -State Information -Message ('AI settings are back to how they were for: {0}. Close and reopen those browsers. Removed apps come back with their own "Reinstall" button.' -f ($restored -join ', '))
 }
 
 function Test-DRAIAllowedEntry {
@@ -1638,35 +1655,41 @@ function Open-DRForUser {
 function Invoke-DRAIGuidedTask {
     # For switches kept in an online account or inside an app: open the right place
     # and say exactly what to click. Nothing on this PC is changed.
-    param([string]$TaskId, [string]$TestRoot)
+    param([string]$TaskId, [string]$TestRoot, [switch]$TurnOn, [string]$EventTaskId)
+    $eventId = if ($EventTaskId) { $EventTaskId } else { $TaskId }
     $target = $null; $message = $null
     switch ($TaskId) {
         'ai.gmail' {
             $target = 'https://mail.google.com/mail/u/0/#settings/general'
-            $message = 'Gmail settings are open in the web browser. Sign in if asked, untick the Smart features boxes, then click Save changes at the bottom of the page.'
+            $message = if ($TurnOn) { 'Gmail settings are open in the web browser. Sign in if asked, tick the Smart features boxes, then click Save changes at the bottom of the page.' }
+                       else { 'Gmail settings are open in the web browser. Sign in if asked, untick the Smart features boxes, then click Save changes at the bottom of the page.' }
         }
         'ai.office-copilot' {
             $target = Get-DRWordExe
-            $message = 'Word is opening. Click File > Options > Copilot, untick Enable Copilot and click OK, then close and reopen Word. Do the same in Excel and PowerPoint.'
+            $message = if ($TurnOn) { 'Word is opening. Click File > Options > Copilot, tick Enable Copilot and click OK, then close and reopen Word. Do the same in Excel and PowerPoint.' }
+                       else { 'Word is opening. Click File > Options > Copilot, untick Enable Copilot and click OK, then close and reopen Word. Do the same in Excel and PowerPoint.' }
             if (-not $target) { $message = 'Word is not installed on this PC. Nothing was opened.' }
         }
         'ai.copilot-key' {
             $target = 'ms-settings:personalization-textinput'
-            $message = 'Settings is open at Text input. Under "Customize Copilot key on keyboard", choose Search.'
+            $message = if ($TurnOn) { 'Settings is open at Text input. Under "Customize Copilot key on keyboard", choose Copilot.' }
+                       else { 'Settings is open at Text input. Under "Customize Copilot key on keyboard", choose Search.' }
         }
         'ai.edge-button' {
-            if (-not (Test-DRBrowserSignedIn -Browser Edge)) {
-                New-DREvent -TaskId $TaskId -State Warning -Message 'Edge is not signed in, so nothing was opened. Sign in to Edge first, then run this again.'
+            # Turning AI off needs the sign-in first; showing the button again does not.
+            if (-not $TurnOn -and -not (Test-DRBrowserSignedIn -Browser Edge)) {
+                New-DREvent -TaskId $eventId -State Warning -Message 'Edge is not signed in, so nothing was opened. Sign in to Edge first, then run this again.'
                 return
             }
             $target = Get-DRAIBrowserExe -Browser Edge
-            $message = 'Edge is opening. Click the three dots at the top right, open Settings, search for "Copilot" and switch the Copilot button off.'
+            $message = if ($TurnOn) { 'Edge is opening. Click the three dots at the top right, open Settings, search for "Copilot" and switch the Copilot button on.' }
+                       else { 'Edge is opening. Click the three dots at the top right, open Settings, search for "Copilot" and switch the Copilot button off.' }
             if (-not $target) { $message = 'Edge was not found on this PC. Nothing was opened.' }
         }
     }
     if ($target -and $TestRoot) { $message = 'TEST MODE: nothing was opened. ' + $message }
     elseif ($target) { Open-DRForUser -Target $target }
-    New-DREvent -TaskId $TaskId -State Information -Message $message
+    New-DREvent -TaskId $eventId -State Information -Message $message
 }
 
 function Format-DRAIBytes {
@@ -1792,6 +1815,64 @@ function Invoke-DRAICheck {
     } else {
         New-DREvent -TaskId $TaskId -State Information -Message 'No AI that the Cleaner can switch off was found. Nothing was changed.'
     }
+}
+
+function Get-DRAIRemovedApps {
+    # The AI apps this Cleaner has removed on this PC, so their rows can offer
+    # "Reinstall" after they are gone.
+    param([string]$BackupFolder = (Get-DRAIBackupFolder))
+    $path = Join-Path $BackupFolder 'AI_RemovedApps.json'
+    if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { return @() }
+    # Windows PowerShell hands a JSON array back as one object; the first ForEach-Object unrolls it.
+    try { return @(Get-Content -LiteralPath $path -Raw | ConvertFrom-Json | ForEach-Object { $_ } | ForEach-Object { [string]$_ } | Where-Object { $_ }) } catch { return @() }
+}
+
+function Add-DRAIRemovedApp {
+    param([string]$App, [string]$BackupFolder = (Get-DRAIBackupFolder))
+    $apps = @(@(Get-DRAIRemovedApps -BackupFolder $BackupFolder) + $App | Select-Object -Unique)
+    New-Item -Path $BackupFolder -ItemType Directory -Force | Out-Null
+    [System.IO.File]::WriteAllText((Join-Path $BackupFolder 'AI_RemovedApps.json'), (ConvertTo-Json -InputObject @($apps)), (New-Object System.Text.UTF8Encoding($false)))
+}
+
+function Open-DRAIAppReinstall {
+    # The Microsoft Store page for Microsoft's own apps; the maker's official
+    # download page for ChatGPT and Claude.
+    param([string]$TaskId, [string]$App, [string]$TestRoot)
+    $label = Get-DRAIAppLabel -App $App
+    $target = switch ($App) {
+        'Copilot'     { 'ms-windows-store://pdp/?ProductId=9NHT9RB2F4HD' }
+        'M365Copilot' { 'ms-windows-store://pdp/?ProductId=9WZDNCRD29V9' }
+        'ChatGPT'     { 'https://chatgpt.com/download' }
+        'Claude'      { 'https://claude.com/download' }
+    }
+    $message = if ($App -in @('Copilot','M365Copilot')) { '{0} is open in the Microsoft Store. Click Get or Install.' -f $label }
+               else { 'The official {0} download page is open in the web browser. Download the app and run the installer.' -f $App }
+    if ($TestRoot) { $message = 'TEST MODE: nothing was opened. ' + $message }
+    else { Open-DRForUser -Target $target }
+    New-DREvent -TaskId $TaskId -State Information -Message $message
+}
+
+function Invoke-DRAITurnBackOn {
+    # The "Turn back on" choice of each AI Remover row. Task ids are the row id plus ".on".
+    param([string]$TaskId, [string]$TestRoot)
+    $base = $TaskId.Substring(0, $TaskId.Length - 3)
+    $policyTargets = switch ($base) {
+        'ai.windows'     { @('Windows') }
+        'ai.edge'        { @('Edge') }
+        'ai.chrome'      { @('Chrome') }
+        'ai.brave'       { @('Brave') }
+        'ai.firefox'     { @('Firefox') }
+        'ai.block-sites' { @('Sites_Chrome','Sites_Edge','Sites_Brave','Sites_Firefox') }
+        default          { $null }
+    }
+    if ($policyTargets) {
+        if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: AI settings were not changed.' }
+        else { Restore-DRAIPolicy -TaskId $TaskId -Targets $policyTargets }
+        return
+    }
+    $app = switch ($base) { 'ai.copilot-app' {'Copilot'} 'ai.m365-app' {'M365Copilot'} 'ai.chatgpt-app' {'ChatGPT'} 'ai.claude-app' {'Claude'} default { $null } }
+    if ($app) { Open-DRAIAppReinstall -TaskId $TaskId -App $app -TestRoot $TestRoot; return }
+    Invoke-DRAIGuidedTask -TaskId $base -TestRoot $TestRoot -TurnOn -EventTaskId $TaskId
 }
 
 function Test-DRBrowserSignedIn {
@@ -1957,7 +2038,8 @@ function Remove-DRAIApp {
         if (@(Get-DRAIAppxPackages -App $App -AllUsers).Count) {
             New-DREvent -TaskId $TaskId -State Warning -Message ('{0} is still installed. Close it if it is open and run this again, or remove it in Settings > Apps > Installed apps.' -f $label)
         } else {
-            New-DREvent -TaskId $TaskId -State Information -Message ('{0} was removed. It can be installed again from the Microsoft Store.' -f $label)
+            New-DREvent -TaskId $TaskId -State Information -Message ('{0} was removed. Its "Reinstall" button brings it back.' -f $label)
+            Add-DRAIRemovedApp -App $App
         }
     }
 }
@@ -1989,13 +2071,17 @@ function Get-DRAIStatus {
     $programs = @(Get-DRInstalledProgramEntries)
     $modelBytes = [int64]0
     foreach ($model in @(Get-DRAIModelFolders)) { $modelBytes += $model.Bytes }
+    $removedApps = @(Get-DRAIRemovedApps)
+    $backupFolder = Get-DRAIBackupFolder
+    $hasBackup = { param([string]$Name) Test-Path -LiteralPath (Join-Path $backupFolder ('AI_{0}.json' -f $Name)) -PathType Leaf }
+    $appOf = @{ 'ai.copilot-app' = 'Copilot'; 'ai.m365-app' = 'M365Copilot'; 'ai.chatgpt-app' = 'ChatGPT'; 'ai.claude-app' = 'Claude' }
     $hasApp = {
         param([string]$App)
         [bool](@($packages | Where-Object { Test-DRAIAppMatch -App $App -Name $_.Name -Publisher $_.Publisher }).Count -or
                @($programs | Where-Object { Test-DRAIAppMatch -App $App -Name $_.Name -Publisher $_.Publisher }).Count)
     }
 
-    foreach ($task in @(Get-DRTaskCatalog | Where-Object Category -eq 'AI')) {
+    foreach ($task in @(Get-DRTaskCatalog | Where-Object { $_.Category -eq 'AI' -and $_.Id -notlike '*.on' })) {
         $browser = Get-DRAIBrowserForTask -TaskId $task.Id
         $present = switch ($task.Id) {
             'ai.windows'     { $build -ge 22000 }
@@ -2012,6 +2098,22 @@ function Get-DRAIStatus {
             'ai.restore'     { $true }
             default          { [bool]($browser -and (Test-DRAIBrowserPresent -Browser $browser)) }
         }
+        # Which of the row's two choices can do anything right now.
+        $canOff = $true; $canOn = $false
+        if ($appOf.ContainsKey($task.Id)) {
+            # A removed app keeps its row, so it can be reinstalled from here.
+            $installed = [bool]$present
+            $removed = $removedApps -contains $appOf[$task.Id]
+            $present = $installed -or $removed
+            $canOff = $installed
+            $canOn = $removed -and -not $installed
+        } elseif ($task.Id -eq 'ai.windows' -or $task.Id -in @('ai.edge','ai.chrome','ai.brave','ai.firefox')) {
+            $canOn = & $hasBackup $(if ($task.Id -eq 'ai.windows') { 'Windows' } else { $browser })
+        } elseif ($task.Id -eq 'ai.block-sites') {
+            $canOn = [bool]@(Get-ChildItem -LiteralPath $backupFolder -Filter 'AI_Sites_*.json' -File -ErrorAction SilentlyContinue).Count
+        } elseif ($task.Id -in @('ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key')) {
+            $canOn = $true
+        }
         $needsSignIn = $browser -in @('Chrome','Edge','Firefox')
         [pscustomobject]@{
             TaskId      = $task.Id
@@ -2020,6 +2122,8 @@ function Get-DRAIStatus {
             NeedsSignIn = [bool]$needsSignIn
             SignedIn    = [bool]($needsSignIn -and (Test-DRBrowserSignedIn -Browser $browser))
             Detail      = $(if ($task.Id -eq 'ai.remove-models' -and $modelBytes -gt 0) { Format-DRAIBytes $modelBytes } else { $null })
+            CanOff      = [bool]$canOff
+            CanOn       = [bool]$canOn
         }
     }
 }
@@ -2359,6 +2463,7 @@ function Invoke-DRTask {
             'ai.firefox' { Invoke-DRAIBrowserTask -TaskId $TaskId -Browser Firefox -TestRoot $TestRoot }
             'ai.block-sites' { Invoke-DRAISiteBlock -TaskId $TaskId -TestRoot $TestRoot }
             'ai.remove-models' { Remove-DRAIModels -TaskId $TaskId -TestRoot $TestRoot }
+            { $_ -like 'ai.*.on' } { Invoke-DRAITurnBackOn -TaskId $TaskId -TestRoot $TestRoot }
             # Read-only, so it looks at the real PC even in test mode.
             'ai.check' { Invoke-DRAICheck -TaskId $TaskId }
             { $_ -in @('ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key') } { Invoke-DRAIGuidedTask -TaskId $TaskId -TestRoot $TestRoot }

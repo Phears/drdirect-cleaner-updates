@@ -1,7 +1,7 @@
 {
-  "version": "1.4.26",
-  "notes": "AI Remover can now show you what AI is on your PC, delete the large AI files your browser downloaded to free up space, and help you set the Copilot key to open Search.",
-  "published": "2026-09-28T19:53:54.5945598-04:00",
+  "version": "1.4.27",
+  "notes": "Every AI Remover item now has its own Turn off and Turn back on buttons, removed apps can be reinstalled with one click, and a new Turn off all AI button switches everything off at once.",
+  "published": "2026-09-28T20:08:41.6264698-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "763DA2E05B10A3F07E6FADB3AE3B50FED9EDFF6A576B3419207B807063E3F88C",
-      "size": 199948
+      "sha256": "86F1B8B2DE000BC89C8DCC1EFCBE963D239417DE22D1E98D5F6506AB5BB8EBA7",
+      "size": 209165
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "3913CCA9237444D0A89DAF1883FA06158E9B1BFD0A013063034C3BAE971DF6E3",
-      "size": 155181
+      "sha256": "E94A43A177E1F9171219B3FA29B2726FB43D6B6A986CFC740FE099F0290C714E",
+      "size": 166100
     },
     {
       "name": "DRDirect Updater.ps1",

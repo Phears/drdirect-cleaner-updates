@@ -335,6 +335,29 @@ $ErrorActionPreference = 'Stop'
                     </Trigger>
                 </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
+        <!-- The two choices on each AI Remover row: violet when "off" is picked, green when "back on" is. -->
+        <Style x:Key="AIChoice" TargetType="ToggleButton">
+            <Setter Property="Foreground" Value="#475467"/><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#D0D5DD"/>
+            <Setter Property="FontSize" Value="12"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Margin" Value="0,3"/><Setter Property="MinWidth" Value="116"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ToggleButton">
+                <Border x:Name="ChoiceBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="8" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ChoiceBorder" Property="BorderBrush" Value="#98A2B3"/></Trigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions><Condition Property="IsChecked" Value="True"/><Condition Property="Tag" Value="Off"/></MultiTrigger.Conditions>
+                        <Setter TargetName="ChoiceBorder" Property="Background" Value="#7C3AED"/><Setter TargetName="ChoiceBorder" Property="BorderBrush" Value="#7C3AED"/><Setter Property="Foreground" Value="White"/>
+                    </MultiTrigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions><Condition Property="IsChecked" Value="True"/><Condition Property="Tag" Value="On"/></MultiTrigger.Conditions>
+                        <Setter TargetName="ChoiceBorder" Property="Background" Value="#16835B"/><Setter TargetName="ChoiceBorder" Property="BorderBrush" Value="#16835B"/><Setter Property="Foreground" Value="White"/>
+                    </MultiTrigger>
+                    <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.4"/></Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate></Setter.Value></Setter>
+        </Style>
         <Style x:Key="Card" TargetType="Border"><Setter Property="Background" Value="White"/><Setter Property="CornerRadius" Value="14"/><Setter Property="BorderBrush" Value="{StaticResource Line}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="22"/><Setter Property="SnapsToDevicePixels" Value="True"/>
             <Setter Property="Effect"><Setter.Value><DropShadowEffect Color="#6B82A6" BlurRadius="26" ShadowDepth="5" Direction="270" Opacity="0.22"/></Setter.Value></Setter>
         </Style>
@@ -866,7 +889,11 @@ $script:driverPanel = $null
 $script:DRAIStatus = @()
 # These only look, or only open a page for the customer to finish, so a run of
 # nothing but these never needs Windows to restart.
-$script:DRNoRestartTaskIds = @('ai.check','ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key','ai.remove-models')
+$script:DRNoRestartTaskIds = @('ai.check','ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key','ai.remove-models',
+    'ai.gmail.on','ai.office-copilot.on','ai.edge-button.on','ai.copilot-key.on',
+    'ai.copilot-app.on','ai.m365-app.on','ai.chatgpt-app.on','ai.claude-app.on')
+# The "Turn off" choices "Turn off all AI" picks, filled as the AI rows are drawn.
+$script:DRAIOffButtons = New-Object System.Collections.ArrayList
 $runQueue = New-Object System.Collections.Generic.Queue[string]
 $runEvents = New-Object System.Collections.Generic.List[object]
 $runStartedAt = $null
@@ -1148,6 +1175,105 @@ function Apply-CleanupPreset {
     }
 }
 
+function New-DRAIChoiceButton {
+    # One of a row's two choices. Picking it selects that task; the other choice
+    # in the same row lets go, so a row can never be both "off" and "back on".
+    param([string]$Label, [ValidateSet('Off','On')][string]$Kind, [string]$TaskId, [bool]$Enabled, [string]$Reason)
+    $button = New-Object Windows.Controls.Primitives.ToggleButton
+    $button.Style = $window.Resources['AIChoice']
+    $button.Content = $Label
+    $button.Tag = $Kind
+    $button.CommandParameter = $TaskId
+    if ($Enabled) {
+        $button.IsChecked = [bool]$selection[$TaskId]
+    } else {
+        $button.IsEnabled = $false
+        $selection[$TaskId] = $false
+        if ($Reason) {
+            $button.ToolTip = $Reason
+            [Windows.Controls.ToolTipService]::SetShowOnDisabled($button, $true)
+        }
+    }
+    $button.Add_Checked({
+        param($sender, $e)
+        $selection[[string]$sender.CommandParameter] = $true
+        foreach ($other in @($sender.Parent.Children)) { if ($other -ne $sender -and $other.IsChecked) { $other.IsChecked = $false } }
+        Sync-CleanupPresetFromSelection
+        Update-SelectionSummary
+    })
+    $button.Add_Unchecked({
+        param($sender, $e)
+        $selection[[string]$sender.CommandParameter] = $false
+        Sync-CleanupPresetFromSelection
+        Update-SelectionSummary
+    })
+    return $button
+}
+
+function New-DRAIChoicePanel {
+    # "Turn off" and "Turn back on" (or "Remove" and "Reinstall") in place of a tick box.
+    param($Task, $Status, [bool]$NeedsSignIn)
+    $panel = New-Object Windows.Controls.StackPanel -Property @{ VerticalAlignment = 'Center'; Margin = '0,0,16,0' }
+    $id = [string]$Task.Id
+    $onId = "$id.on"
+    $offLabel = switch -Wildcard ($id) {
+        'ai.check'         { 'Check now' }
+        'ai.restore'       { 'Turn all back on' }
+        'ai.remove-models' { 'Delete' }
+        'ai.*-app'         { 'Remove' }
+        default            { 'Turn off' }
+    }
+    $offKind = if ($id -eq 'ai.restore') { 'On' } else { 'Off' }
+    $canOff = (-not $Status) -or [bool]$Status.CanOff
+    $offReason = $null
+    if ($NeedsSignIn) { $canOff = $false; $offReason = 'Sign in to the browser first.' }
+    elseif (-not $canOff) { $offReason = 'Already removed from this PC.' }
+    $offButton = New-DRAIChoiceButton -Label $offLabel -Kind $offKind -TaskId $id -Enabled $canOff -Reason $offReason
+    [void]$panel.Children.Add($offButton)
+    # "Turn off all AI" picks everything the Cleaner can finish by itself.
+    if ($offKind -eq 'Off' -and $id -ne 'ai.check' -and [string]$Task.Risk -ne 'Guided') { [void]$script:DRAIOffButtons.Add($offButton) }
+
+    if (@($catalog | Where-Object { $_.Id -eq $onId }).Count) {
+        $onLabel = if ($id -like 'ai.*-app') { 'Reinstall' } else { 'Turn back on' }
+        $canOn = [bool]($Status -and $Status.CanOn)
+        $onReason = if ($canOn) { $null } elseif ($id -like 'ai.*-app') { 'Already installed.' } else { 'Already on - the Cleaner has not turned it off on this PC.' }
+        [void]$panel.Children.Add((New-DRAIChoiceButton -Label $onLabel -Kind 'On' -TaskId $onId -Enabled $canOn -Reason $onReason))
+    }
+    return $panel
+}
+
+function New-DRAIAllOffCard {
+    # One click for "everything off", above the rows it picks.
+    $border = New-Object Windows.Controls.Border
+    $border.Style = $window.Resources['Card']
+    $border.Margin = '0,0,0,14'
+    $border.Background = '#F6F1FF'
+    $border.BorderBrush = '#7C3AED'
+    $border.BorderThickness = '2'
+    $grid = New-Object Windows.Controls.Grid
+    $grid.ColumnDefinitions.Add((New-Object Windows.Controls.ColumnDefinition -Property @{ Width = 'Auto' }))
+    $grid.ColumnDefinitions.Add((New-Object Windows.Controls.ColumnDefinition -Property @{ Width = '*' }))
+
+    $button = New-Object Windows.Controls.Primitives.ToggleButton
+    $button.Style = $window.Resources['AIChoice']
+    $button.Content = 'Turn off all AI'
+    $button.Tag = 'Off'
+    $button.VerticalAlignment = 'Center'
+    $button.Margin = '0,0,16,0'
+    $button.Add_Checked({ foreach ($choice in @($script:DRAIOffButtons)) { if ($choice.IsEnabled) { $choice.IsChecked = $true } } })
+    $button.Add_Unchecked({ foreach ($choice in @($script:DRAIOffButtons)) { if ($choice.IsEnabled) { $choice.IsChecked = $false } } })
+
+    $copy = New-Object Windows.Controls.StackPanel
+    [Windows.Controls.Grid]::SetColumn($copy, 1)
+    [void]$copy.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = 'Turn off all AI'; FontWeight = 'SemiBold'; FontSize = 16; Foreground = '#5B21B6' }))
+    [void]$copy.Children.Add((New-Object Windows.Controls.TextBlock -Property @{
+        Text = 'One click picks every "Turn off", "Remove" and "Delete" below that the Cleaner can do by itself. Gmail, Word, the Edge button and the Copilot key each open their own page, so pick those one by one. Nothing runs until you review and confirm.'
+        Foreground = '#667085'; TextWrapping = 'Wrap'; Margin = '0,5,12,0'; MaxWidth = 650 }))
+    [void]$grid.Children.Add($button); [void]$grid.Children.Add($copy)
+    $border.Child = $grid
+    return $border
+}
+
 function New-TaskRow {
     param($Task)
     $border = New-Object Windows.Controls.Border
@@ -1306,6 +1432,8 @@ function New-TaskRow {
     $sub = if ($analysis.ContainsKey($Task.Id) -and $analysis[$Task.Id].ItemCount -gt 0) { "$($analysis[$Task.Id].ItemCount) location(s)" } elseif ($Task.RequiresAdmin) { 'Administrator' } else { 'Current user' }
     $meta.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$sub; Foreground='#667085'; FontSize=11; HorizontalAlignment='Right'; Margin='0,4,0,0' })) | Out-Null
 
+    # AI Remover rows get "Turn off" / "Turn back on" in place of the tick box.
+    if ($Task.Category -eq 'AI') { $check = New-DRAIChoicePanel -Task $Task -Status $aiStatus -NeedsSignIn $needsSignIn }
     $grid.Children.Add($check) | Out-Null; $grid.Children.Add($copy) | Out-Null; $grid.Children.Add($meta) | Out-Null
     $border.Child = $grid
     return $border
@@ -1339,6 +1467,8 @@ function Get-VisibleTasksForCategory {
     # An AI row only appears for an app or browser that is on this PC.
     if ($Category -eq 'AI') {
         foreach ($status in @($script:DRAIStatus)) { if (-not $status.Present) { $hidden += $status.TaskId } }
+        # A "turn back on" task is a choice inside its row, not a row of its own.
+        $hidden += @($tasks | Where-Object { $_.Id -like '*.on' } | ForEach-Object { $_.Id })
     }
 
     if ($Category -in @('Cleanup','AI') -and $hidden.Count) {
@@ -1387,7 +1517,7 @@ function Show-TaskCategory {
         'Repair' { 'Windows repairs are separate from cleanup. Creating a restore point is recommended before repair operations.' }
         'Security' { 'Run Defender operations independently. Existing exclusions are never removed automatically.' }
         'Health' { 'Drive health checks are read-only and do not schedule repairs or restarts.' }
-        'AI' { 'Tick the AI to switch off. Each browser has to be signed in first. Passwords, bookmarks, files and sign-ins are not touched, and "Put AI back" undoes the settings.' }
+        'AI' { 'Pick "Turn off" or "Turn back on" for each item. A browser has to be signed in before its AI is turned off. Passwords, bookmarks, files and sign-ins are never touched.' }
     }
     if ($Category -eq 'AI') {
         # Checked fresh every time, so signing in and coming back unlocks the row.
@@ -1401,9 +1531,14 @@ function Show-TaskCategory {
     # cookie cleanup on Advanced would otherwise leave it selected but invisible.
     if ($Category -in @('Cleanup','AI')) {
         $visibleIds = @($visible | ForEach-Object { $_.Id })
+        if ($Category -eq 'AI') { $visibleIds += @($visibleIds | ForEach-Object { "$_.on" }) }
         foreach ($task in @($catalog | Where-Object Category -eq $Category)) {
             if ($visibleIds -notcontains $task.Id) { $selection[$task.Id] = $false }
         }
+    }
+    if ($Category -eq 'AI') {
+        $script:DRAIOffButtons.Clear()
+        $ui.TaskList.Children.Add((New-DRAIAllOffCard)) | Out-Null
     }
     foreach ($task in $visible) { $ui.TaskList.Children.Add((New-TaskRow $task)) | Out-Null }
     $script:renderedCleanupFilter = $script:cleanupLevel
@@ -1445,10 +1580,10 @@ function Show-Confirmation {
     if ($selected.Id -contains 'security.remove-exclusions') { $warnings.Add('All configured Defender exclusions will be exported to a backup and then removed.') }
     if ($selected.Id -contains 'security.checkup-fix') { $warnings.Add('Any of the Windows firewall, Microsoft Defender real-time protection and Windows Update that is off will be switched back on.') }
     if (@($selected | Where-Object { $_.Id -in @('ai.edge','ai.chrome','ai.brave','ai.firefox','ai.block-sites') }).Count) { $warnings.Add('The browsers you picked will show "Managed by your organization" - that is what keeps their AI off. "Put AI back" removes it.') }
-    if (@($selected | Where-Object { $_.Category -eq 'AI' -and $_.Risk -eq 'Guided' }).Count) { $warnings.Add('Some items open Gmail, Word, Edge or Settings at the right place. The last click there is yours - the steps show on each item.') }
+    if (@($selected | Where-Object { $_.Category -eq 'AI' -and $_.Risk -eq 'Guided' }).Count) { $warnings.Add('Some items open Gmail, Word, Edge, Settings, the Microsoft Store or a download page at the right place. The last click there is yours - the steps show when it runs.') }
     if ($selected.Id -contains 'ai.remove-models') { $warnings.Add('Close Chrome and Edge before running, so the AI model they downloaded can be deleted.') }
     if (@($selected | Where-Object { $_.Category -eq 'AI' -and $_.Risk -eq 'Confirm' }).Count) { $warnings.Add('The AI apps you picked will be uninstalled. They can be installed again from the Microsoft Store.') }
-    if ($selected.Id -contains 'ai.restore' -and @($selected | Where-Object { $_.Category -eq 'AI' -and $_.Id -ne 'ai.restore' }).Count) { $warnings.Add('"Put AI back" is also ticked, so it runs last and undoes the AI settings chosen above. Untick one of them.') }
+    if ($selected.Id -contains 'ai.restore' -and @($selected | Where-Object { $_.Category -eq 'AI' -and $_.Id -notin @('ai.restore','ai.check') -and $_.Id -notlike '*.on' }).Count) { $warnings.Add('"Turn everything back on" is also picked, so it runs last and undoes the AI settings turned off above. Pick one or the other.') }
     if (@($selected | Where-Object { $script:DRNoRestartTaskIds -notcontains $_.Id }).Count -gt 0) { $warnings.Add('When everything has finished, Windows needs to restart. You will get a one-hour countdown first, and you can cancel it or restart sooner.') }
     $ui.ConfirmWarning.Visibility = if ($warnings.Count) { 'Visible' } else { 'Collapsed' }
     $ui.ConfirmWarningText.Text = $warnings -join "`n"
@@ -3048,6 +3183,12 @@ if ($NoShow) {
     Set-Page 'AI'
     # "Put AI back" is always listed, so an empty page means the page broke.
     if (-not @($ui.TaskList.Children).Count) { throw 'GUI smoke test could not render the AI Remover page.' }
+    # "Turn off all AI" picks every "Turn off" the Cleaner can do, and clearing it lets them all go.
+    $allOff = $ui.TaskList.Children[0].Child.Children[0]
+    $allOff.IsChecked = $true
+    if (@($script:DRAIOffButtons | Where-Object { $_.IsEnabled -and -not $_.IsChecked }).Count) { throw 'GUI smoke test: "Turn off all AI" left a choice unpicked.' }
+    $allOff.IsChecked = $false
+    if (@($catalog | Where-Object { $_.Category -eq 'AI' -and $selection[$_.Id] }).Count) { throw 'GUI smoke test: clearing "Turn off all AI" left AI items picked.' }
     Set-Page 'Dashboard'
     $pollTimer.Stop()
     $window.Close()
