@@ -33,6 +33,7 @@ function New-DREvent {
 
 function Get-DRTaskCatalog {
     @(
+        [pscustomobject]@{ Id='safety.restore-point'; Category='Safety'; Name='Save a Windows restore point (safety net)'; Description='Saves a Windows restore point before anything changes, so Windows itself can go back. If Windows cannot make one, the Cleaner says so and carries on with its own backups.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.windows-temp'; Category='Cleanup'; Name='Windows temporary files'; Description='Removes temporary files no longer needed by Windows or applications.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.browser-cache'; Category='Cleanup'; Name='Browser caches'; Description='Clears cache files while preserving passwords, bookmarks, cookies, and active sessions.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.recycle-bin'; Category='Cleanup'; Name='Recycle Bin'; Description='Permanently removes Recycle Bin contents from available fixed drives.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
@@ -2618,6 +2619,17 @@ function Invoke-DRTask {
                     foreach ($log in @('Application','System')) {
                         $errorText = & wevtutil.exe cl $log 2>&1
                         if ($LASTEXITCODE -ne 0) { New-DREvent -TaskId $TaskId -State Warning -Message ("Could not clear {0}: {1}" -f $log, ($errorText | Out-String).Trim()) }
+                    }
+                }
+            }
+            'safety.restore-point' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: a Windows restore point would be saved here, before any change.' }
+                else {
+                    try {
+                        Checkpoint-Computer -Description 'DRDirect PC Cleaner - safety point before changes' -RestorePointType MODIFY_SETTINGS -ErrorAction Stop
+                        New-DREvent -TaskId $TaskId -State Information -Message 'A Windows restore point was saved before any change.'
+                    } catch {
+                        New-DREvent -TaskId $TaskId -State Warning -Message 'No restore point was saved (System Restore may be off, or Windows already made one in the last day). The Cleaner keeps its own backups of the settings it changes.'
                     }
                 }
             }

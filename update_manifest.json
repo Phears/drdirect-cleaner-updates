@@ -1,7 +1,7 @@
 {
-  "version": "1.4.33",
-  "notes": "AI Remover rows now show what is really on or off, with a new Windows Search row and clearer Zoom steps.",
-  "published": "2026-09-29T16:50:33.8125597-04:00",
+  "version": "1.4.34",
+  "notes": "New friendlier Dashboard: one-click Safe mode, Safe/Medium/Advanced plans shown before anything runs, a safety net with a Windows restore point, and Undo for AI changes.",
+  "published": "2026-09-29T17:18:49.2863738-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "9195C5B1CCB333283C66AFED908048C25E30FE922DC779666A5F41B342B75F89",
-      "size": 241565
+      "sha256": "59F5E11E96193B3BE301A7C9F4C6FAF6429045116C2573D2BD34F2043CCFB99E",
+      "size": 252751
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "1B4DB355F9435732493E5BF2AA380A369A8A6E0830B9FC2EF6808F9C57BB8F17",
-      "size": 189453
+      "sha256": "D0433A19840EBB0C97EDEB9DA0DD7F3CB21DF4AE8A233C5CF0F333BA30E1A5E0",
+      "size": 190817
     },
     {
       "name": "DRDirect Updater.ps1",

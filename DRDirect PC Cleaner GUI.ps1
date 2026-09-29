@@ -693,7 +693,7 @@ $ErrorActionPreference = 'Stop'
                     <Button x:Name="NavHealth" Style="{StaticResource NavButton}" Content="▰   Drive health"/>
                     <Button x:Name="NavProgress" Style="{StaticResource NavButton}" Content="◐   Maintenance progress" Visibility="Collapsed"/>
                     <Button x:Name="NavHardware" Style="{StaticResource NavButton}" Content="▤   Hardware"/>
-                    <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   History"/>
+                    <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   History &amp; Undo"/>
                     <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Duplicate finder"/>
                 </StackPanel>
                 </ScrollViewer>
@@ -708,6 +708,56 @@ $ErrorActionPreference = 'Stop'
             <Grid Grid.Row="1">
                 <ScrollViewer x:Name="PageDashboard" VerticalScrollBarVisibility="Auto">
                     <StackPanel>
+                        <Grid Margin="0,0,0,14"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                            <TextBlock Text="Everything here is checked with you first. Nothing runs until you say yes." Style="{StaticResource MutedText}" VerticalAlignment="Center" TextWrapping="Wrap"/>
+                            <Border Grid.Column="1" Background="#E4F6EE" CornerRadius="20" Padding="14,6" Margin="12,0,0,0"><TextBlock Text="●  Safe mode is ready" Foreground="#0E8A5F" FontWeight="SemiBold" FontSize="13"/></Border>
+                        </Grid>
+                        <Grid Margin="0,0,0,16"><Grid.ColumnDefinitions><ColumnDefinition Width="1.3*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
+                            <Border Style="{StaticResource Card}" Padding="26" Margin="0,0,16,0" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8">
+                                <StackPanel VerticalAlignment="Center">
+                                    <TextBlock Text="ONE-CLICK SAFE MODE" Foreground="#A8C4FF" FontSize="11" FontWeight="Bold"/>
+                                    <TextBlock Text="Make my PC cleaner the safe way" Foreground="White" FontSize="25" FontWeight="ExtraBold" TextWrapping="Wrap" Margin="0,8,0,8"/>
+                                    <TextBlock Text="Runs only the safest steps. Advanced and risky options stay off unless you turn them on." Foreground="#C9D9FF" TextWrapping="Wrap" MaxWidth="480" HorizontalAlignment="Left"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,18,0,0"><Button x:Name="SafeCleanButton" Content="Run safe clean" Style="{StaticResource HeroButton}"/><Button x:Name="SafePreviewButton" Content="Show me what it will do first" Style="{StaticResource HeroGhostButton}" Margin="10,0,0,0"/></StackPanel>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Style="{StaticResource Card}" Padding="22">
+                                <StackPanel>
+                                    <TextBlock Text="YOUR SAFETY NET" Foreground="#0E8A5F" FontSize="11" FontWeight="Bold"/>
+                                    <TextBlock Text="Everything can be reversed" FontSize="18" FontWeight="ExtraBold" Margin="0,6,0,6"/>
+                                    <TextBlock Text="Before any change, the Cleaner protects your PC in three ways." Style="{StaticResource MutedText}" TextWrapping="Wrap"/>
+                                    <Border Background="#E4F6EE" BorderBrush="#B8E6D1" BorderThickness="1" CornerRadius="12" Padding="14,12" Margin="0,12,0,0"><StackPanel>
+                                        <TextBlock Text="✓  A Windows restore point is saved first, when Windows allows it" TextWrapping="Wrap" Margin="0,0,0,5"/>
+                                        <TextBlock Text="✓  Backups are kept of the settings it changes" TextWrapping="Wrap" Margin="0,0,0,5"/>
+                                        <TextBlock Text="✓  Your files, passwords and logins are never touched" TextWrapping="Wrap"/>
+                                    </StackPanel></Border>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                        <Grid Margin="0,0,0,18"><Grid.ColumnDefinitions><ColumnDefinition Width="1*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
+                            <Border Style="{StaticResource Card}" Padding="22" Margin="0,0,16,0">
+                                <StackPanel>
+                                    <TextBlock Text="HERE IS WHAT WILL CHANGE" Foreground="{StaticResource Blue}" FontSize="11" FontWeight="Bold"/>
+                                    <TextBlock x:Name="SafePlanTitle" Text="What Safe mode does" FontSize="18" FontWeight="ExtraBold" Margin="0,6,0,2"/>
+                                    <TextBlock Text="Pick a level to see its steps. Nothing has run yet, and you confirm before anything starts." Style="{StaticResource MutedText}" TextWrapping="Wrap"/>
+                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0"><Button x:Name="SafeLevelSafeButton" Content="Safe" Style="{StaticResource SecondaryButton}" Padding="16,6"/><Button x:Name="SafeLevelMediumButton" Content="Medium" Style="{StaticResource SecondaryButton}" Padding="16,6" Margin="8,0,0,0"/><Button x:Name="SafeLevelAdvancedButton" Content="Advanced" Style="{StaticResource SecondaryButton}" Padding="16,6" Margin="8,0,0,0"/></StackPanel>
+                                    <StackPanel x:Name="SafePlanList" Margin="0,8,0,6"/>
+                                    <TextBlock x:Name="SafePlanNote" Foreground="#667085" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                    <Button x:Name="SafePlanRunButton" Content="Yes, review and run" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"/>
+                                </StackPanel>
+                            </Border>
+                            <Border Grid.Column="1" Style="{StaticResource Card}" Padding="22">
+                                <StackPanel>
+                                    <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                                        <TextBlock Text="HISTORY &amp; UNDO" Foreground="{StaticResource Blue}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
+                                        <Button x:Name="DashboardHistoryButton" Grid.Column="1" Content="See all" Style="{StaticResource SecondaryButton}" Padding="12,5"/>
+                                    </Grid>
+                                    <TextBlock Text="Your recent changes" FontSize="18" FontWeight="ExtraBold" Margin="0,6,0,2"/>
+                                    <StackPanel x:Name="DashboardHistoryList" Margin="0,8,0,10"/>
+                                    <Button x:Name="UndoAllDashButton" Content="↺  Undo all AI changes" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
                         <UniformGrid Columns="3" Margin="0,0,0,18">
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Violet}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource VioletSoft}"><TextBlock Text="◷" Foreground="{StaticResource Violet}" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="LAST MAINTENANCE" Foreground="{StaticResource Violet}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock Text="Not run yet" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="History will appear after a run" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Teal}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource TealSoft}"><TextBlock Text="▰" Foreground="{StaticResource Teal}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="FREE SPACE ON C:" Foreground="{StaticResource Teal}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="FreeSpaceText" Text="Checking…" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="Current Windows drive" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
@@ -718,19 +768,6 @@ $ErrorActionPreference = 'Stop'
                                 <StackPanel VerticalAlignment="Center"><TextBlock Text="SAFE ANALYSIS" Foreground="#A8C4FF" FontSize="11" FontWeight="Bold"/><TextBlock Text="See what can be improved before changing anything" Foreground="White" FontSize="27" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,10,0,10"/><TextBlock Text="Estimate recoverable space and review Windows maintenance options. Analysis does not delete files, change settings, or start repairs." Foreground="#C9D9FF" TextWrapping="Wrap" MaxWidth="600" HorizontalAlignment="Left"/><StackPanel Orientation="Horizontal" Margin="0,26,0,0"><Button x:Name="ScanButton" Content="Analyze this PC" Style="{StaticResource HeroButton}"/><Button x:Name="LastReportButton" Content="Open reports" Style="{StaticResource HeroGhostButton}" Margin="10,0,0,0"/><Button x:Name="CheckUpdatesButton" Content="Check for updates" Style="{StaticResource HeroGhostButton}" Margin="10,0,0,0"/></StackPanel></StackPanel>
                                 <Grid Grid.Column="1"><Ellipse Width="140" Height="140" Fill="#26FFFFFF" RenderTransformOrigin="0.5,0.5"><Ellipse.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Ellipse.RenderTransform><Ellipse.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="1" To="1.14" Duration="0:0:2.2"/><DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="1" To="1.14" Duration="0:0:2.2"/><DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.95" To="0.4" Duration="0:0:2.2"/></Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers></Ellipse><Ellipse Width="104" Height="104" Fill="#33FFFFFF" RenderTransformOrigin="0.5,0.5"><Ellipse.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Ellipse.RenderTransform><Ellipse.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="1" To="1.07" Duration="0:0:2.2" BeginTime="0:0:0.35"/><DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="1" To="1.07" Duration="0:0:2.2" BeginTime="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers></Ellipse><Ellipse Width="72" Height="72" Fill="White"/><TextBlock Text="⌕" Foreground="#1E40AF" FontSize="38" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Grid>
                             </Grid>
-                        </Border>
-                        <Border Style="{StaticResource Card}" Margin="0,18,0,0">
-                            <StackPanel>
-                                <Grid Margin="0,0,0,4">
-                                    <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Border Style="{StaticResource StatIcon}" Background="{StaticResource BlueSoft}"><TextBlock Text="&#9634;" Foreground="{StaticResource Blue}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
-                                        <TextBlock Text="RECENT ACTIVITY" Foreground="{StaticResource Blue}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/>
-                                    </StackPanel>
-                                    <Button x:Name="DashboardHistoryButton" Grid.Column="1" Content="See all" Style="{StaticResource SecondaryButton}" VerticalAlignment="Center"/>
-                                </Grid>
-                                <StackPanel x:Name="DashboardHistoryList" Margin="0,10,0,0"/>
-                            </StackPanel>
                         </Border>
                         <Border x:Name="TestModeBanner" Style="{StaticResource Card}" Background="#FFF4E3" BorderBrush="#F0C98C" Margin="0,18,0,0" Visibility="Collapsed"><TextBlock Text="TEST MODE is active. External Windows operations are simulated and file deletion is limited to the supplied test folder." Foreground="{StaticResource Warning}" TextWrapping="Wrap"/></Border>
                     </StackPanel>
@@ -849,7 +886,7 @@ $ErrorActionPreference = 'Stop'
 
                 <Grid x:Name="PageHistory" Visibility="Collapsed">
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-                    <Grid Margin="0,0,0,14"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="Reports are stored locally and include selected tasks, timestamps, results, warnings, and errors." Style="{StaticResource MutedText}" TextWrapping="Wrap"/><Button x:Name="OpenReportsButton" Grid.Column="1" Content="Open reports folder" Style="{StaticResource SecondaryButton}"/><Button x:Name="ClearHistoryButton" Grid.Column="2" Content="Clear all history" Style="{StaticResource DangerButton}" Margin="10,0,0,0"/></Grid>
+                    <Grid Margin="0,0,0,14"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="Reports are stored locally and include selected tasks, timestamps, results, warnings, and errors." Style="{StaticResource MutedText}" TextWrapping="Wrap"/><Button x:Name="OpenReportsButton" Grid.Column="1" Content="Open reports folder" Style="{StaticResource SecondaryButton}"/><Button x:Name="ClearHistoryButton" Grid.Column="2" Content="Clear all history" Style="{StaticResource DangerButton}" Margin="10,0,0,0"/><Button x:Name="UndoAllButton" Grid.Column="3" Content="↺  Undo all AI changes" Style="{StaticResource SecondaryButton}" Margin="10,0,0,0"/></Grid>
                     <Border Grid.Row="1" Style="{StaticResource Card}"><StackPanel x:Name="HistoryList"/></Border>
                 </Grid>
 
@@ -971,7 +1008,7 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','HardwareList','CheckDriversButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','HardwareList','CheckDriversButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -1964,17 +2001,27 @@ function Update-SelectionSummary {
 }
 
 function Show-Confirmation {
+    $selection['safety.restore-point'] = $false
     $selected = @($catalog | Where-Object { $selection[$_.Id] })
     $ui.ConfirmList.Children.Clear()
+    [void]$ui.ConfirmList.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text='Here is what will change. Nothing has run yet.'; FontWeight='ExtraBold'; FontSize=16; Margin='0,0,0,4' }))
+    [void]$ui.ConfirmList.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text='A Windows restore point is saved first when possible, and the Cleaner keeps backups of the settings it changes. Your files, passwords and logins are never touched.'; Foreground='#0E8A5F'; FontSize=12.5; TextWrapping='Wrap'; Margin='0,0,0,8' }))
     foreach ($task in $selected) {
         $row = New-Object Windows.Controls.Border -Property @{ BorderBrush='#E3E8F0'; BorderThickness='0,0,0,1'; Padding='0,10' }
         $grid = New-Object Windows.Controls.Grid
         $grid.ColumnDefinitions.Add((New-Object Windows.Controls.ColumnDefinition -Property @{ Width='*' }))
         $grid.ColumnDefinitions.Add((New-Object Windows.Controls.ColumnDefinition -Property @{ Width='Auto' }))
-        $grid.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$task.Name; FontWeight='SemiBold' })) | Out-Null
-        $risk = New-Object Windows.Controls.TextBlock -Property @{ Text=$task.Risk; Foreground='#667085'; FontSize=12 }
-        [Windows.Controls.Grid]::SetColumn($risk,1); $grid.Children.Add($risk) | Out-Null
-        $row.Child = $grid; $ui.ConfirmList.Children.Add($row) | Out-Null
+        $left = New-Object Windows.Controls.StackPanel
+        [void]$left.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$task.Name; FontWeight='SemiBold' }))
+        [void]$left.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$task.Description; Foreground='#667085'; FontSize=12; TextWrapping='Wrap'; Margin='0,3,12,0' }))
+        [void]$grid.Children.Add($left)
+        # Plain-words tag: what kind of step this is.
+        $tagText = switch ([string]$task.Risk) { 'Safe' {'SAFE'} 'Guided' {'YOU MAKE THE LAST CLICK'} 'SignOut' {'SIGNS YOU OUT'} 'Confirm' {'ASKS FIRST'} default { ([string]$task.Risk).ToUpperInvariant() } }
+        $tagInk = switch ([string]$task.Risk) { 'Safe' {'#0E8A5F'} 'Guided' {'#6D28D9'} default {'#C0143C'} }
+        $tagFill = switch ([string]$task.Risk) { 'Safe' {'#E4F6EE'} 'Guided' {'#EFE7FD'} default {'#FDE6EA'} }
+        $risk = New-Object Windows.Controls.Border -Property @{ Background=$tagFill; CornerRadius=10; Padding='9,3'; VerticalAlignment='Top'; Child=(New-Object Windows.Controls.TextBlock -Property @{ Text=$tagText; Foreground=$tagInk; FontSize=10.5; FontWeight='Bold' }) }
+        [Windows.Controls.Grid]::SetColumn($risk,1); [void]$grid.Children.Add($risk)
+        $row.Child = $grid; [void]$ui.ConfirmList.Children.Add($row)
     }
     $warnings = New-Object System.Collections.Generic.List[string]
     if ($selected.Risk -contains 'SignOut') { $warnings.Add('Cookie cleanup can end active website and webmail sessions.') }
@@ -2115,6 +2162,10 @@ function Start-RunPlan {
         $choice = $ui.RestartDelayCombo.SelectedItem
         if ($ui.RestartDelayPanel.Visibility -eq 'Visible' -and $choice) { $script:restartDelaySeconds = [int]$choice.Tag }
     } catch { }
+    # A Windows restore point goes first whenever the plan really changes something.
+    $selection['safety.restore-point'] = $false
+    $changing = @($catalog | Where-Object { $selection[$_.Id] -and $_.Category -in @('Cleanup','Repair','AI') -and $_.Risk -ne 'Guided' -and $_.Id -notin @('ai.check','repair.restore-point') })
+    if ($changing.Count -and (@($catalog | Where-Object Id -eq 'safety.restore-point').Count) -and -not $selection['repair.restore-point'] -and (Test-DRAdministrator)) { $selection['safety.restore-point'] = $true }
     $selected = @($catalog | Where-Object { $selection[$_.Id] })
     $runQueue.Clear(); foreach ($task in $selected) { $runQueue.Enqueue($task.Id) }
     if (Test-Path -LiteralPath $script:childPidFile) { Remove-Item -LiteralPath $script:childPidFile -Force -ErrorAction SilentlyContinue }
@@ -2899,6 +2950,48 @@ $ui.NavHealth.Add_Click({ Set-Page 'Health' })
 $ui.NavHardware.Add_Click({ Set-Page 'Hardware' })
 $ui.CheckDriversButton.Add_Click({ Start-DRDriverCheck })
 $ui.NavHistory.Add_Click({ Set-Page 'History' })
+$script:dashLevel = 'Safe'
+function Invoke-DRSafeClean { Apply-CleanupPreset -Preset 'Safe'; Show-Confirmation }
+function Invoke-DRLevelClean { Apply-CleanupPreset -Preset $script:dashLevel; Show-Confirmation }
+function Invoke-DRUndoAll {
+    $answer = [Windows.MessageBox]::Show("This puts back every AI and browser setting the Cleaner changed on this PC, using the backups it saved.`n`nDeleted files and cleared caches cannot be brought back.`n`nContinue?", 'DRDirect PC Cleaner',
+        [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question)
+    if ($answer -eq [Windows.MessageBoxResult]::Yes) { Invoke-DRAIRunNow -TaskIds @('ai.restore') }
+}
+function Show-SafePlan {
+    # The dashboard card lists the steps of the chosen level, from the same rule the Cleanup page uses.
+    param([string]$Level = 'Safe')
+    if (-not $ui.SafePlanList) { return }
+    $script:dashLevel = $Level
+    $ui.SafePlanList.Children.Clear()
+    $ui.SafePlanTitle.Text = switch ($Level) { 'Safe' {'What Safe mode does'} 'Medium' {'What Medium does'} default {'What Advanced does'} }
+    foreach ($pair in @(@('Safe','SafeLevelSafeButton'), @('Medium','SafeLevelMediumButton'), @('Advanced','SafeLevelAdvancedButton'))) {
+        $button = $ui[$pair[1]]
+        if ($button) { $on = ($pair[0] -eq $Level); $button.Background = $(if ($on) { '#2554D8' } else { '#F2F4F7' }); $button.Foreground = $(if ($on) { 'White' } else { '#344054' }) }
+    }
+    $planTasks = @($catalog | Where-Object { $_.Category -in @('Cleanup','Repair') -and (Test-TaskInOrderedPreset -Task $_ -Preset $Level) })
+    foreach ($task in $planTasks) {
+        $line = New-Object Windows.Controls.StackPanel -Property @{ Orientation='Horizontal'; Margin='0,4,0,0' }
+        [void]$line.Children.Add((New-Object Windows.Controls.Border -Property @{ Width=20; Height=20; CornerRadius=10; Background='#E4F6EE'; Margin='0,0,10,0'; Child=(New-Object Windows.Controls.TextBlock -Property @{ Text='✓'; Foreground='#0E8A5F'; FontWeight='Bold'; FontSize=12; HorizontalAlignment='Center'; VerticalAlignment='Center' }) }))
+        [void]$line.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$task.Name; VerticalAlignment='Center' }))
+        [void]$ui.SafePlanList.Children.Add($line)
+    }
+    if (-not $planTasks.Count) { [void]$ui.SafePlanList.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text='No steps are available on this PC.'; Foreground='#667085' })) }
+    $ui.SafePlanNote.Text = switch ($Level) {
+        'Safe'     { 'The safest steps only.' }
+        'Medium'   { 'Safe steps plus more cleanup. Cookies stay off.' }
+        default    { 'The full sweep. Cookies are never ticked, so nobody gets signed out.' }
+    }
+    $ui.SafePlanRunButton.Content = "Yes, review and run $Level"
+}
+foreach ($name in 'SafeCleanButton','SafePreviewButton') { if ($ui[$name]) { $ui[$name].Add_Click({ Invoke-DRSafeClean }) } }
+if ($ui.SafePlanRunButton) { $ui.SafePlanRunButton.Add_Click({ Invoke-DRLevelClean }) }
+if ($ui.SafeLevelSafeButton) { $ui.SafeLevelSafeButton.Add_Click({ Show-SafePlan -Level 'Safe' }) }
+if ($ui.SafeLevelMediumButton) { $ui.SafeLevelMediumButton.Add_Click({ Show-SafePlan -Level 'Medium' }) }
+if ($ui.SafeLevelAdvancedButton) { $ui.SafeLevelAdvancedButton.Add_Click({ Show-SafePlan -Level 'Advanced' }) }
+foreach ($name in 'UndoAllButton','UndoAllDashButton') { if ($ui[$name]) { $ui[$name].Add_Click({ Invoke-DRUndoAll }) } }
+Show-SafePlan
+
 $ui.NavDuplicates.Add_Click({ Set-Page 'Duplicates' })
 $ui.NavAI.Add_Click({ Set-Page 'AI' })
 $ui.NavProgress.Add_Click({ Set-Page 'Progress' })
@@ -3589,7 +3682,8 @@ if ($NoShow) {
     if (-not $firstTaskRow) { throw 'GUI smoke test could not render cleanup tasks.' }
     $firstTaskRow.Child.Children[0].IsChecked = $true
     Show-Confirmation
-    if ($ui.ConfirmList.Children.Count -ne 1) { throw 'GUI smoke test could not build a one-item confirmation plan.' }
+    # Two lines of reassurance sit above the plan rows, so the one task makes three children.
+    if (@($ui.ConfirmList.Children | Where-Object { $_ -is [Windows.Controls.Border] }).Count -ne 1) { throw 'GUI smoke test could not build a one-item confirmation plan.' }
     $ui.ConfirmOverlay.Visibility = 'Collapsed'
     Set-Page 'AI'
     # "Turn everything back on" is always listed, so an empty page means the page broke.
