@@ -79,8 +79,8 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
 
         # AI Remover. Nothing here is ever pre-selected or part of a cleanup level.
-        [pscustomobject]@{ Id='ai.check'; Category='AI'; Name='What AI is on this PC?'; Description='Only looks - nothing is changed. Lists the AI that is switched on or installed right now, so you can see what is left, or what a Windows or browser update brought back.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='ai.windows'; Category='AI'; Name='Windows: turn off Recall and AI in Paint and Notepad'; Description='Switches off Recall (the snapshots of your screen), Click to Do, and the AI tools in Paint and Notepad. Takes effect after the restart. "Put AI back" undoes it.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.check'; Category='AI'; Name='What AI is on this PC?'; Description='Only looks - nothing is changed. Click Check now and the AI still switched on or installed is listed right here - handy after a Windows or browser update brings something back.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.windows'; Category='AI'; Name='Windows: turn off Recall and AI in Paint and Notepad'; Description='Switches off Recall (the snapshots of your screen), Click to Do, and the AI tools in Paint and Notepad. Takes effect after the restart. "Turn back on" undoes it.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.copilot-key'; Category='AI'; Name='Copilot key: open Search instead'; Description='Opens the Settings page for the Copilot key on the keyboard (also Windows key + C): under "Customize Copilot key on keyboard", choose Search. Windows keeps this choice to itself, so the last click is yours.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.copilot-app'; Category='AI'; Name='Windows: remove the Copilot app'; Description='Uninstalls the Microsoft Copilot app for every account on this PC. It can be installed again from the Microsoft Store.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.m365-app'; Category='AI'; Name='Windows: remove the Microsoft 365 Copilot app'; Description='Uninstalls the Microsoft 365 Copilot app (the Copilot chat and Office start page). Word, Excel, Outlook and your documents are not touched. It can be installed again from the Microsoft Store.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
@@ -90,8 +90,8 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='ai.chrome'; Category='AI'; Name='Chrome: turn off Gemini and AI Mode'; Description='Turns off Gemini in Chrome, the AI Mode button, "Help me write", and the AI tab and history features. Passwords, bookmarks and sign-ins are not touched. Chrome will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.brave'; Category='AI'; Name='Brave: turn off Leo AI'; Description='Turns off Leo, the AI assistant built into Brave. Passwords, bookmarks and sign-ins are not touched. Brave will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.firefox'; Category='AI'; Name='Firefox: turn off AI'; Description='Turns off the AI chatbot sidebar, AI link previews and AI tab groups. Passwords, bookmarks and sign-ins are not touched. Firefox settings will say the browser is managed by your organization while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='ai.remove-models'; Category='AI'; Name='Delete downloaded AI models'; Description='Deletes the AI model Chrome and Edge download in the background - often 2 to 4 GB. Close the browser first, and also tick "Chrome: turn off Gemini" or "Edge: turn off Copilot", or the browser downloads it again. Only browsers that are signed in are changed.'; Risk='Cleanup'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='ai.block-sites'; Category='AI'; Name='Block AI websites'; Description='Blocks the ChatGPT, Gemini, Copilot, Claude, Perplexity, DeepSeek, Grok and Meta AI websites in Edge, Chrome, Brave and Firefox. Only browsers that are signed in are changed (Brave has no sign-in). The browsers will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.remove-models'; Category='AI'; Name='Delete downloaded AI models'; Description='Deletes the AI model Chrome and Edge download in the background - often 2 to 4 GB. Close the browser first, and also pick "Turn off" on the Chrome or Edge row, or the browser downloads it again. Only browsers that are signed in are changed.'; Risk='Cleanup'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.block-sites'; Category='AI'; Name='Block AI websites'; Description='Blocks the ChatGPT, Gemini, Copilot, Perplexity, DeepSeek, Grok and Meta AI websites in Edge, Chrome, Brave and Firefox. Claude is left open. Only browsers that are signed in are changed (Brave has no sign-in). The browsers will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.gmail'; Category='AI'; Name='Gmail: turn off Gemini'; Description='Opens Gmail settings in the web browser: untick the Smart features boxes and click Save changes. Google keeps this switch in the Google account, so the last click is yours.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.chatgpt-app'; Category='AI'; Name='Remove the ChatGPT app'; Description='Uninstalls the ChatGPT app. Chats saved in the ChatGPT account are not deleted, and the app can be installed again.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.claude-app'; Category='AI'; Name='Remove the Claude app'; Description='Uninstalls the Claude app. Chats saved in the Claude account are not deleted, and the app can be installed again.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
@@ -109,6 +109,19 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='ai.block-sites.on'; Category='AI'; Name='Unblock AI websites'; Description='Takes out only the AI websites the Cleaner blocked.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.gmail.on'; Category='AI'; Name='Gmail: turn Gemini back on'; Description='Opens Gmail settings so you can tick Smart features again.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.chatgpt-app.on'; Category='AI'; Name='Reinstall the ChatGPT app'; Description='Opens the official ChatGPT download page.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.windows.uninstall'; Category='AI'; Name='Windows: uninstall Recall completely'; Description='Removes the Recall feature from Windows altogether. Takes effect after a restart.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.copilot-app.uninstall'; Category='AI'; Name='Copilot app: uninstall completely'; Description='Removes the Copilot app for every account and stops Windows adding it to new accounts.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.m365-app.uninstall'; Category='AI'; Name='Microsoft 365 Copilot app: uninstall completely'; Description='Removes the Microsoft 365 Copilot app for every account. Word, Excel and your documents are not touched.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.chatgpt-app.uninstall'; Category='AI'; Name='ChatGPT app: uninstall completely'; Description='Removes the ChatGPT app, including a regular installed copy. Chats saved in the account are not deleted.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.claude-app.uninstall'; Category='AI'; Name='Claude app: uninstall completely'; Description='Removes the Claude app, including a regular installed copy. Chats saved in the account are not deleted.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.edge.uninstall'; Category='AI'; Name='Edge: uninstall completely'; Description='Windows does not allow Edge to be uninstalled.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.chrome.uninstall'; Category='AI'; Name='Chrome: uninstall completely'; Description='Uninstalls Chrome from this PC. Bookmarks and passwords stay in your Google account.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.brave.uninstall'; Category='AI'; Name='Brave: uninstall completely'; Description='Uninstalls Brave from this PC.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.firefox.uninstall'; Category='AI'; Name='Firefox: uninstall completely'; Description='Uninstalls Firefox from this PC. Bookmarks and passwords stay in your Mozilla account.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.windows.reinstall'; Category='AI'; Name='Windows: put Recall back'; Description='Installs the Recall feature in Windows again. Takes effect after a restart.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.chrome.reinstall'; Category='AI'; Name='Reinstall Chrome'; Description='Opens the official Chrome download page.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.brave.reinstall'; Category='AI'; Name='Reinstall Brave'; Description='Opens the official Brave download page.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.firefox.reinstall'; Category='AI'; Name='Reinstall Firefox'; Description='Opens the official Firefox download page.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.claude-app.on'; Category='AI'; Name='Reinstall the Claude app'; Description='Opens the official Claude download page.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.restore'; Category='AI'; Name='Turn everything back on'; Description='Turns every Windows and browser AI setting and website block on this page back on, exactly as it was before, and the "Managed by your organization" message goes away. Apps, and the switches in Gmail, Word, Edge and the Copilot key, come back with their own "Reinstall" or "Turn back on" button.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
     )
@@ -1281,7 +1294,7 @@ function Restore-DRTypingPrivacy {
 
 # ---------------------------------------------------------------------------
 # AI Remover. Windows and browser AI is switched off with the same policy
-# settings a company would use, saved first so "Put AI back" can undo it.
+# settings a company would use, saved first so "Turn back on" can undo it.
 # Passwords, bookmarks, sign-ins and browser profiles are never opened for
 # writing.
 # ---------------------------------------------------------------------------
@@ -1465,7 +1478,7 @@ function Set-DRAIPolicy {
         try { $opened.SetValue($value.Name, [int]$value.Off, [Microsoft.Win32.RegistryValueKind]::DWord) } finally { $opened.Close() }
     }
 
-    $managed = ' It will show "Managed by your organization" - that is what keeps the AI off. "Put AI back" removes it.'
+    $managed = ' It will show "Managed by your organization" - that is what keeps the AI off. "Turn back on" removes it.'
     $message = switch ($Target) {
         'Windows' { 'Recall, Click to Do, and the AI in Paint and Notepad are now off. They are gone after the restart.' }
         'Edge'    { 'Copilot is now off in Edge. Close Edge completely and open it again.' + $managed + ' If the Copilot button still shows on the toolbar, open Edge Settings, search for "Copilot" and switch the button off.' }
@@ -1556,7 +1569,8 @@ function Test-DRAIAllowedEntry {
 
 function Get-DRAIBlockedSites {
     param([ValidateSet('Chrome','Edge','Brave','Firefox')][string]$Browser)
-    $sites = @('chatgpt.com', 'chat.openai.com', 'gemini.google.com', 'copilot.microsoft.com', 'claude.ai',
+    # Claude is deliberately not on this list: DRDirect keeps Claude open.
+    $sites = @('chatgpt.com', 'chat.openai.com', 'gemini.google.com', 'copilot.microsoft.com',
                'perplexity.ai', 'chat.deepseek.com', 'grok.com', 'meta.ai')
     # Firefox takes match patterns; *.site also covers the site itself.
     if ($Browser -eq 'Firefox') { return @($sites | ForEach-Object { '*://*.{0}/*' -f $_ }) }
@@ -1578,7 +1592,7 @@ function Add-DRAISiteBlock {
     <#
         Adds the AI sites to a browser's block list beside anything already on it,
         and records exactly which numbered entries were added - before adding them -
-        so "Put AI back" takes out only those. Returns how many were added.
+        so "Turn back on" takes out only those. Returns how many were added.
     #>
     param(
         [ValidateSet('Chrome','Edge','Brave','Firefox')][string]$Browser,
@@ -1592,6 +1606,22 @@ function Add-DRAISiteBlock {
     # Earlier runs are added to, never replaced, so every entry ever added stays on record.
     $settings = if ($saved) { @(Get-DRDiskProperty $saved 'Settings' | Where-Object { $_ }) } else { @() }
     $newKeys  = if ($saved) { @(Get-DRDiskProperty $saved 'NewKeys' | Where-Object { $_ }) } else { @(Get-DRMissingRegistryKeys -Key $key -Root $Root) }
+
+    # Anything an earlier version added that is no longer blocked (claude.ai) comes
+    # out again, but only while it still holds exactly what the Cleaner put there.
+    $wanted = @(Get-DRAIBlockedSites -Browser $Browser)
+    $dropped = @($settings | Where-Object { $wanted -notcontains [string]$_.Value })
+    if ($dropped.Count) {
+        $opened = Open-DRRegistryKey -Key $key -Writable
+        if ($opened) {
+            try {
+                foreach ($entry in $dropped) {
+                    if ([string]$opened.GetValue($entry.Name) -eq [string]$entry.Value) { $opened.DeleteValue($entry.Name, $false) }
+                }
+            } finally { $opened.Close() }
+        }
+        $settings = @($settings | Where-Object { $wanted -contains [string]$_.Value })
+    }
 
     $names = @(); $present = @()
     $opened = Open-DRRegistryKey -Key $key
@@ -1609,7 +1639,14 @@ function Add-DRAISiteBlock {
         $names += [string]$next
         $plan += [pscustomobject]@{ Key = $key; Name = [string]$next; Existed = $false; Kind = 'String'; Value = $site }
     }
-    if (-not $plan.Count) { return 0 }
+    if (-not $plan.Count) {
+        # Nothing new to add, but the record still has to forget what was taken out.
+        if ($dropped.Count) {
+            $record = [pscustomobject]@{ Target = ('Sites_{0}' -f $Browser); Settings = @($settings); NewKeys = @($newKeys) }
+            [System.IO.File]::WriteAllText($backupPath, (ConvertTo-Json -InputObject $record -Depth 4), (New-Object System.Text.UTF8Encoding($false)))
+        }
+        return 0
+    }
 
     New-Item -Path $BackupFolder -ItemType Directory -Force | Out-Null
     $record = [pscustomobject]@{ Target = ('Sites_{0}' -f $Browser); Settings = @($settings + $plan); NewKeys = @($newKeys) }
@@ -1641,7 +1678,7 @@ function Invoke-DRAISiteBlock {
         New-DREvent -TaskId $TaskId -State Information -Message ('TEST MODE: nothing was changed. AI websites would be blocked in {0}.' -f ($blocked -join ', '))
         return
     }
-    New-DREvent -TaskId $TaskId -State Information -Message ('ChatGPT, Gemini, Copilot, Claude and other AI websites are now blocked in {0}. Close and reopen the browser. It will show "Managed by your organization" - that is what keeps them blocked. "Put AI back" removes it.' -f ($blocked -join ', '))
+    New-DREvent -TaskId $TaskId -State Information -Message ('ChatGPT, Gemini, Copilot and other AI websites are now blocked in {0}, and Claude is left open. Close and reopen the browser. It will show "Managed by your organization" - that is what keeps them blocked. "Turn back on" removes it.' -f ($blocked -join ', '))
 }
 
 function Open-DRForUser {
@@ -1785,7 +1822,8 @@ function Get-DRAIReport {
             @{ Id = 'ai.m365-app';    Label = 'Microsoft 365 Copilot app' },
             @{ Id = 'ai.chatgpt-app'; Label = 'ChatGPT app' },
             @{ Id = 'ai.claude-app';  Label = 'Claude app' })) {
-        if (& $isPresent $app.Id) { & $row $true ('{0}: installed' -f $app.Label) }
+        # Claude is kept on purpose, so it is listed but not counted as AI still on.
+        if (& $isPresent $app.Id) { & $row ($app.Id -ne 'ai.claude-app') ('{0}: installed{1}' -f $app.Label, $(if ($app.Id -eq 'ai.claude-app') { ' (kept)' } else { '' })) }
     }
     $browsers = @(@('Edge','Chrome','Brave','Firefox') | Where-Object { Test-DRAIBrowserPresent -Browser $_ })
     foreach ($browser in $browsers) {
@@ -1811,7 +1849,7 @@ function Invoke-DRAICheck {
     New-DREvent -TaskId $TaskId -State Information -Message 'Gemini in Gmail, Copilot in Word and Excel, the Edge Copilot button and the Copilot key are settings the Cleaner cannot read, so they are not listed.'
     $on = @($rows | Where-Object { $_.On }).Count
     if ($on) {
-        New-DREvent -TaskId $TaskId -State Warning -Message ('{0} AI item(s) are on or installed. Tick them on the AI Remover page to switch them off. Nothing was changed.' -f $on)
+        New-DREvent -TaskId $TaskId -State Warning -Message ('{0} AI item(s) are on or installed. Pick "Turn off" for them on the AI Remover page. Nothing was changed.' -f $on)
     } else {
         New-DREvent -TaskId $TaskId -State Information -Message 'No AI that the Cleaner can switch off was found. Nothing was changed.'
     }
@@ -2044,6 +2082,122 @@ function Remove-DRAIApp {
     }
 }
 
+function Get-DRProgramUninstallEntries {
+    # Classic programs from Installed apps, with the command Windows uses to remove each.
+    foreach ($root in @(
+            'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall',
+            'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall',
+            'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall')) {
+        foreach ($item in @(Get-ChildItem -LiteralPath $root -ErrorAction SilentlyContinue)) {
+            $properties = Get-ItemProperty -LiteralPath $item.PSPath -ErrorAction SilentlyContinue
+            $name = Get-DRDiskProperty $properties 'DisplayName'
+            if ($name) {
+                [pscustomobject]@{
+                    Name = [string]$name
+                    Publisher = [string](Get-DRDiskProperty $properties 'Publisher')
+                    Uninstall = [string](Get-DRDiskProperty $properties 'UninstallString')
+                    Quiet = [string](Get-DRDiskProperty $properties 'QuietUninstallString')
+                }
+            }
+        }
+    }
+}
+
+function Invoke-DRProgramUninstall {
+    # Runs one program's own uninstaller without asking questions. Returns $false when
+    # there is no way to do that safely, so the caller can say so instead of guessing.
+    param($Entry, [string]$Browser)
+    $command = $null
+    if ($Entry.Quiet) { $command = $Entry.Quiet }
+    elseif ($Entry.Uninstall -match '(?i)msiexec(\.exe)?"?\s+/[IX]\s*(\{[0-9A-F-]+\})') {
+        $command = 'msiexec.exe /x {0} /qn /norestart' -f $Matches[2]
+    }
+    elseif ($Browser -in @('Chrome','Brave') -and $Entry.Uninstall) { $command = $Entry.Uninstall + ' --force-uninstall' }
+    elseif ($Browser -eq 'Firefox' -and $Entry.Uninstall) { $command = $Entry.Uninstall + ' /S' }
+    if (-not $command) { return $false }
+    Start-Process -FilePath (Join-Path $env:WINDIR 'System32\cmd.exe') -ArgumentList ('/c "{0}"' -f $command) -WindowStyle Hidden -Wait -ErrorAction Stop
+    return $true
+}
+
+function Uninstall-DRAICompletely {
+    param([string]$TaskId, [string]$TestRoot)
+    $base = $TaskId -replace '\.uninstall$', ''
+    if ($base -eq 'ai.edge') {
+        New-DREvent -TaskId $TaskId -State Warning -Message 'Windows does not allow Edge to be uninstalled. Use "Turn off" for its AI instead.'
+        return
+    }
+    if ($TestRoot) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: nothing was uninstalled.'
+        return
+    }
+    if ($base -eq 'ai.windows') {
+        try {
+            $feature = Get-WindowsOptionalFeature -Online -FeatureName Recall -ErrorAction Stop
+            if ($feature.State -eq 'Disabled') { New-DREvent -TaskId $TaskId -State Information -Message 'Recall is not installed on this PC. Nothing was changed.' }
+            else {
+                Disable-WindowsOptionalFeature -Online -FeatureName Recall -NoRestart -ErrorAction Stop | Out-Null
+                Add-DRAIRemovedApp -App 'Recall'
+                New-DREvent -TaskId $TaskId -State Information -Message 'Recall was uninstalled. Restart Windows to finish. Its "Reinstall" button brings it back.'
+            }
+        } catch { New-DREvent -TaskId $TaskId -State Warning -Message ('Recall could not be uninstalled: {0}' -f $_.Exception.Message) }
+        return
+    }
+    $browser = switch ($base) { 'ai.chrome' {'Chrome'} 'ai.brave' {'Brave'} 'ai.firefox' {'Firefox'} default { $null } }
+    if ($browser) {
+        $pattern = switch ($browser) { 'Chrome' {'^Google Chrome$'} 'Brave' {'^Brave$'} 'Firefox' {'^Mozilla Firefox'} }
+        $entries = @(Get-DRProgramUninstallEntries | Where-Object { $_.Name -match $pattern })
+        if (-not $entries.Count) { New-DREvent -TaskId $TaskId -State Information -Message ('{0} is not installed on this PC. Nothing was changed.' -f $browser); return }
+        $done = $false
+        foreach ($entry in $entries) {
+            try { if (Invoke-DRProgramUninstall -Entry $entry -Browser $browser) { $done = $true } }
+            catch { New-DREvent -TaskId $TaskId -State Warning -Message ('{0} could not be uninstalled: {1}' -f $browser, $_.Exception.Message) }
+        }
+        if (-not $done) { New-DREvent -TaskId $TaskId -State Warning -Message ('{0} has to be uninstalled by hand: Settings > Apps > Installed apps.' -f $browser); return }
+        if (Test-DRAIBrowserPresent -Browser $browser) { New-DREvent -TaskId $TaskId -State Warning -Message ('{0} is still installed. Close it and run this again, or use Settings > Apps > Installed apps.' -f $browser) }
+        else {
+            Add-DRAIRemovedApp -App $browser
+            New-DREvent -TaskId $TaskId -State Information -Message ('{0} was uninstalled. Its "Reinstall" button brings it back.' -f $browser)
+        }
+        return
+    }
+    $app = switch ($base) { 'ai.copilot-app' {'Copilot'} 'ai.m365-app' {'M365Copilot'} 'ai.chatgpt-app' {'ChatGPT'} 'ai.claude-app' {'Claude'} default { $null } }
+    if (-not $app) { return }
+    # The Store package first, then a regular installed copy through its own silent uninstaller.
+    Remove-DRAIApp -TaskId $TaskId -App $app
+    foreach ($entry in @(Get-DRProgramUninstallEntries | Where-Object { Test-DRAIAppMatch -App $app -Name $_.Name -Publisher $_.Publisher })) {
+        try {
+            if (Invoke-DRProgramUninstall -Entry $entry -Browser '') { New-DREvent -TaskId $TaskId -State Information -Message ('{0} was uninstalled.' -f $entry.Name) }
+            else { New-DREvent -TaskId $TaskId -State Warning -Message ('{0} has no silent uninstaller: Settings > Apps > Installed apps > {0} > Uninstall.' -f $entry.Name) }
+        } catch { New-DREvent -TaskId $TaskId -State Warning -Message ('{0} could not be uninstalled: {1}' -f $entry.Name, $_.Exception.Message) }
+    }
+}
+
+function Invoke-DRAIReinstall {
+    # The "Reinstall" choice after "Uninstall completely": Recall is switched back on by
+    # Windows; a browser is installed from its maker's official download page.
+    param([string]$TaskId, [string]$TestRoot)
+    $base = $TaskId -replace '\.reinstall$', ''
+    if ($base -eq 'ai.windows') {
+        if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Recall was not installed.'; return }
+        try {
+            Enable-WindowsOptionalFeature -Online -FeatureName Recall -All -NoRestart -ErrorAction Stop | Out-Null
+            New-DREvent -TaskId $TaskId -State Information -Message 'Recall was installed again. Restart Windows to finish.'
+        } catch { New-DREvent -TaskId $TaskId -State Warning -Message ('Recall could not be installed: {0}' -f $_.Exception.Message) }
+        return
+    }
+    $browser = switch ($base) { 'ai.chrome' {'Chrome'} 'ai.brave' {'Brave'} 'ai.firefox' {'Firefox'} default { $null } }
+    if (-not $browser) { return }
+    $target = switch ($browser) {
+        'Chrome'  { 'https://www.google.com/chrome/' }
+        'Brave'   { 'https://brave.com/download/' }
+        'Firefox' { 'https://www.mozilla.org/firefox/new/' }
+    }
+    $message = 'The official {0} download page is open in the web browser. Download it and run the installer.' -f $browser
+    if ($TestRoot) { $message = 'TEST MODE: nothing was opened. ' + $message }
+    else { Open-DRForUser -Target $target }
+    New-DREvent -TaskId $TaskId -State Information -Message $message
+}
+
 function Invoke-DRAIBrowserTask {
     param([string]$TaskId, [string]$Browser, [string]$TestRoot)
     # The customer signs in first, so the AI is switched off for the account they use.
@@ -2081,7 +2235,7 @@ function Get-DRAIStatus {
                @($programs | Where-Object { Test-DRAIAppMatch -App $App -Name $_.Name -Publisher $_.Publisher }).Count)
     }
 
-    foreach ($task in @(Get-DRTaskCatalog | Where-Object { $_.Category -eq 'AI' -and $_.Id -notlike '*.on' })) {
+    foreach ($task in @(Get-DRTaskCatalog | Where-Object { $_.Category -eq 'AI' -and $_.Id -notlike '*.on' -and $_.Id -notlike '*.uninstall' -and $_.Id -notlike '*.reinstall' })) {
         $browser = Get-DRAIBrowserForTask -TaskId $task.Id
         $present = switch ($task.Id) {
             'ai.windows'     { $build -ge 22000 }
@@ -2099,7 +2253,7 @@ function Get-DRAIStatus {
             default          { [bool]($browser -and (Test-DRAIBrowserPresent -Browser $browser)) }
         }
         # Which of the row's two choices can do anything right now.
-        $canOff = $true; $canOn = $false
+        $canOff = $true; $canOn = $false; $canReinstall = $false
         if ($appOf.ContainsKey($task.Id)) {
             # A removed app keeps its row, so it can be reinstalled from here.
             $installed = [bool]$present
@@ -2109,6 +2263,18 @@ function Get-DRAIStatus {
             $canOn = $removed -and -not $installed
         } elseif ($task.Id -eq 'ai.windows' -or $task.Id -in @('ai.edge','ai.chrome','ai.brave','ai.firefox')) {
             $canOn = & $hasBackup $(if ($task.Id -eq 'ai.windows') { 'Windows' } else { $browser })
+            # A browser or Recall this Cleaner uninstalled keeps its row, so it can be put back from here.
+            $reinstallKey = switch ($task.Id) { 'ai.windows' {'Recall'} 'ai.chrome' {'Chrome'} 'ai.brave' {'Brave'} 'ai.firefox' {'Firefox'} default { $null } }
+            if ($reinstallKey) {
+                $wasRemoved = $removedApps -contains $reinstallKey
+                if ($task.Id -eq 'ai.windows') { $canReinstall = $wasRemoved }
+                else {
+                    $installed = [bool]$present
+                    $present = $installed -or $wasRemoved
+                    $canReinstall = $wasRemoved -and -not $installed
+                    if ($canReinstall) { $canOff = $false; $canOn = $false }
+                }
+            }
         } elseif ($task.Id -eq 'ai.block-sites') {
             $canOn = [bool]@(Get-ChildItem -LiteralPath $backupFolder -Filter 'AI_Sites_*.json' -File -ErrorAction SilentlyContinue).Count
         } elseif ($task.Id -in @('ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key')) {
@@ -2124,6 +2290,7 @@ function Get-DRAIStatus {
             Detail      = $(if ($task.Id -eq 'ai.remove-models' -and $modelBytes -gt 0) { Format-DRAIBytes $modelBytes } else { $null })
             CanOff      = [bool]$canOff
             CanOn       = [bool]$canOn
+            CanReinstall = [bool]$canReinstall
         }
     }
 }
@@ -2467,6 +2634,8 @@ function Invoke-DRTask {
             # Read-only, so it looks at the real PC even in test mode.
             'ai.check' { Invoke-DRAICheck -TaskId $TaskId }
             { $_ -in @('ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key') } { Invoke-DRAIGuidedTask -TaskId $TaskId -TestRoot $TestRoot }
+            { $_ -like 'ai.*.uninstall' } { Uninstall-DRAICompletely -TaskId $TaskId -TestRoot $TestRoot }
+            { $_ -like 'ai.*.reinstall' } { Invoke-DRAIReinstall -TaskId $TaskId -TestRoot $TestRoot }
             { $_ -in @('ai.copilot-app','ai.m365-app','ai.chatgpt-app','ai.claude-app') } {
                 $app = switch ($TaskId) { 'ai.copilot-app' {'Copilot'} 'ai.m365-app' {'M365Copilot'} 'ai.chatgpt-app' {'ChatGPT'} 'ai.claude-app' {'Claude'} }
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: no apps were removed.' }

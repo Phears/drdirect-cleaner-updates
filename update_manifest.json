@@ -1,7 +1,7 @@
 {
-  "version": "1.4.28",
-  "notes": "The AI Remover is now easier to use: colourful Turn off and Turn back on buttons, and Turn off all AI and Turn everything back on right at the top.",
-  "published": "2026-09-28T20:20:47.1339284-04:00",
+  "version": "1.4.29",
+  "notes": "The AI Remover now shows whether AI is on or off, buttons work instantly, and each box can uninstall or reinstall its AI.",
+  "published": "2026-09-29T10:31:22.7731523-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "CCB403175ABABD349A85106A68E21DC94CA3E8DD8027D75F1EDE69BE80BECB32",
-      "size": 222306
+      "sha256": "604E47A1728CB131A57A14915472FFF77A6D12F1E2C92E548D4871B14B172F2D",
+      "size": 238241
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "0710F3CA50AE1502B9664E566837B4B8FFF54A1D999EF9866A1C214E3C58D4DB",
-      "size": 163578
+      "sha256": "C8E03F6851618A7187F8D1D09C31A0F96A48962DC6D4AD08B7617DEDA267CAB8",
+      "size": 180852
     },
     {
       "name": "DRDirect Updater.ps1",

@@ -686,6 +686,7 @@ $ErrorActionPreference = 'Stop'
                 </ScrollViewer.Resources>
                 <StackPanel x:Name="Navigation">
                     <Button x:Name="NavDashboard" Style="{StaticResource NavButton}" Tag="Active" Content="⌂   Dashboard"/>
+                    <Button x:Name="NavAI" Style="{StaticResource AINavButton}" Content="⊘   AI Remover" Margin="10,4,10,4" ToolTip="Switch off AI in Windows and web browsers"/>
                     <Button x:Name="NavCleanup" Style="{StaticResource NavButton}" Content="✦   Cleanup"/>
                     <Button x:Name="NavRepair" Style="{StaticResource NavButton}" Content="⚒   Windows repair"/>
                     <Button x:Name="NavSecurity" Style="{StaticResource NavButton}" Content="⬡   Security"/>
@@ -694,7 +695,6 @@ $ErrorActionPreference = 'Stop'
                     <Button x:Name="NavHardware" Style="{StaticResource NavButton}" Content="▤   Hardware"/>
                     <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   History"/>
                     <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Duplicate finder"/>
-                    <Button x:Name="NavAI" Style="{StaticResource AINavButton}" Content="⊘   AI Remover" Margin="10,16,10,2" ToolTip="Switch off AI in Windows and web browsers"/>
                 </StackPanel>
                 </ScrollViewer>
                 <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
@@ -1018,10 +1018,14 @@ $script:DRAIStatus = @()
 # nothing but these never needs Windows to restart.
 $script:DRNoRestartTaskIds = @('ai.check','ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key','ai.remove-models',
     'ai.gmail.on','ai.office-copilot.on','ai.edge-button.on','ai.copilot-key.on',
-    'ai.copilot-app.on','ai.m365-app.on','ai.chatgpt-app.on','ai.claude-app.on')
+    'ai.copilot-app.on','ai.m365-app.on','ai.chatgpt-app.on','ai.claude-app.on',
+    'ai.edge.uninstall','ai.chrome.uninstall','ai.brave.uninstall','ai.firefox.uninstall',
+    'ai.copilot-app.uninstall','ai.m365-app.uninstall','ai.chatgpt-app.uninstall','ai.claude-app.uninstall',
+    'ai.chrome.reinstall','ai.brave.reinstall','ai.firefox.reinstall')
 # The "Turn off" choices "Turn off all AI" picks, filled as the AI rows are drawn.
 $script:DRAIOffButtons = New-Object System.Collections.ArrayList
 $script:DRAIAllOffButton = $null
+$script:DRAIUninstallButtons = New-Object System.Collections.ArrayList
 $script:DRAIRestoreButton = $null
 $runQueue = New-Object System.Collections.Generic.Queue[string]
 $runEvents = New-Object System.Collections.Generic.List[object]
@@ -1339,19 +1343,89 @@ function Set-DRAIRowTint {
     } catch { }
 }
 
+function Show-DRAICheckResults {
+    # The answer to "What AI is on this PC?", shown straight away inside its own row.
+    # It only reads, so it never joins the plan or asks for a restart.
+    param($Card)
+    if (-not ($Card -is [Windows.Controls.Border])) { return }
+    $copy = @($Card.Child.Children | Where-Object { [Windows.Controls.Grid]::GetColumn($_) -eq 1 }) | Select-Object -First 1
+    if (-not $copy) { return }
+    foreach ($old in @($copy.Children | Where-Object { $_.Tag -eq 'AICheckResults' })) { [void]$copy.Children.Remove($old) }
+
+    $rows = @(); $failed = $null
+    try {
+        $window.Cursor = [System.Windows.Input.Cursors]::Wait
+        $rows = @(Get-DRAIReport)
+    } catch { $failed = $_.Exception.Message } finally { $window.Cursor = $null }
+
+    $panel = New-Object Windows.Controls.StackPanel -Property @{ Margin = '0,12,12,0'; MaxWidth = 650; HorizontalAlignment = 'Left' }
+    $panel.Tag = 'AICheckResults'
+    if ($failed) {
+        [void]$panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = "The check could not finish: $failed"; Foreground = '#C63C3C'; TextWrapping = 'Wrap' }))
+    }
+    foreach ($item in $rows) {
+        $line = New-Object Windows.Controls.TextBlock -Property @{ TextWrapping = 'Wrap'; FontSize = 13; Margin = '0,3,0,0' }
+        $dot = New-Object Windows.Documents.Run -ArgumentList '●  '
+        $dot.Foreground = if ($item.On) { '#E11D48' } else { '#16A34A' }
+        $text = New-Object Windows.Documents.Run -ArgumentList ([string]$item.Text)
+        $text.Foreground = '#172033'
+        [void]$line.Inlines.Add($dot); [void]$line.Inlines.Add($text)
+        [void]$panel.Children.Add($line)
+    }
+    if (-not $failed) {
+        $on = @($rows | Where-Object { $_.On }).Count
+        $summary = if ($on) { '{0} AI item(s) still on - pick "Turn off" for them on this page.' -f $on } else { 'No AI that the Cleaner can switch off is still on.' }
+        [void]$panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{
+            Text = $summary; FontWeight = 'Bold'; FontSize = 13; Margin = '0,8,0,0'; TextWrapping = 'Wrap'
+            Foreground = $(if ($on) { '#BE123C' } else { '#15803D' }) }))
+        [void]$panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{
+            Text = 'Gmail, Word and Excel, the Edge button and the Copilot key cannot be read from here.'
+            Foreground = '#667085'; FontSize = 11.5; Margin = '0,4,0,0'; TextWrapping = 'Wrap' }))
+    }
+    [void]$copy.Children.Add($panel)
+    Start-DRFadeIn -Element $panel -Shift 8 -Seconds 0.3
+}
+
+function Invoke-DRAIRunNow {
+    # AI Remover buttons act as soon as they are clicked: only these tasks run,
+    # with no plan to review. Anything that uninstalls or deletes asks first.
+    param([string[]]$TaskIds)
+    $tasks = @($catalog | Where-Object { $TaskIds -contains $_.Id })
+    if (-not $tasks.Count) { return }
+    if (@($tasks | Where-Object { $_.Risk -in @('Confirm','Cleanup') }).Count) {
+        $names = ($tasks | ForEach-Object { $_.Name }) -join "`n"
+        $answer = [Windows.MessageBox]::Show("This will run now:`n`n$names`n`nContinue?", 'DRDirect PC Cleaner',
+            [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question)
+        if ($answer -ne [Windows.MessageBoxResult]::Yes) { return }
+    }
+    foreach ($key in @($selection.Keys)) { $selection[$key] = $false }
+    foreach ($task in $tasks) { $selection[$task.Id] = $true }
+    Start-RunPlan
+}
+
 function New-DRAIChoiceButton {
-    # One of a row's choices. Picking it selects that task; the other choice in
-    # the same row lets go, so a row can never be both "off" and "back on".
-    param([string]$Label, [ValidateSet('Off','On','Look')][string]$Kind, [string]$TaskId, [bool]$Enabled, [string]$Reason)
+    # One of a row's choices. Clicking it runs that task straight away. Rows that
+    # know their state show it: the choice that matches is dark, the other light.
+    param([string]$Label, [ValidateSet('Off','On','Look')][string]$Kind, [string]$TaskId, [bool]$Enabled, [string]$Reason, $Active = $null)
     $button = New-Object Windows.Controls.Primitives.ToggleButton
     $button.Style = $window.Resources['AIChoice']
     $button.Content = $Label
     $button.Tag = $Kind
     $button.CommandParameter = $TaskId
+    if ($null -ne $Active) {
+        $palette = if ($Kind -eq 'On') {
+            if ($Active) { @('#15803D', '#14532D', 'White') } else { @('#DCFCE7', '#86EFAC', '#15803D') }
+        } else {
+            if ($Active) { @('#BE123C', '#881337', 'White') } else { @('#FFE4E6', '#FDA4AF', '#BE123C') }
+        }
+        $button.Background = $palette[0]; $button.BorderBrush = $palette[1]; $button.Foreground = $palette[2]
+    }
     if ($Enabled) {
-        $button.IsChecked = [bool]$selection[$TaskId]
+        $button.IsChecked = $false
     } else {
         $button.IsEnabled = $false
+        # A choice that can't be used (browser not signed in, nothing to undo) fades, unless it is the state the row is in.
+        if (-not $Active) { $button.Opacity = 0.45 }
         $selection[$TaskId] = $false
         if ($Reason) {
             $button.ToolTip = $Reason
@@ -1360,20 +1434,15 @@ function New-DRAIChoiceButton {
     }
     $button.Add_Checked({
         param($sender, $e)
-        $selection[[string]$sender.CommandParameter] = $true
-        foreach ($other in @($sender.Parent.Children)) { if ($other -ne $sender -and $other.IsChecked) { $other.IsChecked = $false } }
-        if ([string]$sender.CommandParameter -eq 'ai.restore' -and $script:DRAIAllOffButton -and $script:DRAIAllOffButton.IsChecked) { $script:DRAIAllOffButton.IsChecked = $false }
-        # Choice panel -> row grid -> row card.
-        Set-DRAIRowTint -Card $sender.Parent.Parent.Parent -Kind ([string]$sender.Tag)
-        Sync-CleanupPresetFromSelection
-        Update-SelectionSummary
-    })
-    $button.Add_Unchecked({
-        param($sender, $e)
-        $selection[[string]$sender.CommandParameter] = $false
-        if (-not @($sender.Parent.Children | Where-Object { $_.IsChecked }).Count) { Set-DRAIRowTint -Card $sender.Parent.Parent.Parent -Kind '' }
-        Sync-CleanupPresetFromSelection
-        Update-SelectionSummary
+        # "Check now" answers straight away instead of joining the plan.
+        if ([string]$sender.CommandParameter -eq 'ai.check') {
+            Show-DRAICheckResults -Card $sender.Parent.Parent.Parent
+            $sender.IsChecked = $false
+            return
+        }
+        $taskId = [string]$sender.CommandParameter
+        $sender.IsChecked = $false
+        Invoke-DRAIRunNow -TaskIds @($taskId)
     })
     return $button
 }
@@ -1396,17 +1465,46 @@ function New-DRAIChoicePanel {
     $offReason = $null
     if ($NeedsSignIn) { $canOff = $false; $offReason = 'Sign in to the browser first.' }
     elseif (-not $canOff) { $offReason = 'Already removed from this PC.' }
-    $offButton = New-DRAIChoiceButton -Label $offLabel -Kind $offKind -TaskId $id -Enabled $canOff -Reason $offReason
+    # Rows that can tell whether their AI is on show it in dark green (on) or dark red (off).
+    $isOff = $null
+    if ($Status -and $offKind -eq 'Off') { $isOff = [bool]($Status.CanOn -or -not $Status.CanOff) }
+    $offButton = New-DRAIChoiceButton -Label $offLabel -Kind $offKind -TaskId $id -Enabled $canOff -Reason $offReason -Active $isOff
     [void]$panel.Children.Add($offButton)
     if ($id -eq 'ai.restore') { $script:DRAIRestoreButton = $offButton }
     # "Turn off all AI" picks everything the Cleaner can finish by itself.
-    if ($offKind -eq 'Off' -and [string]$Task.Risk -ne 'Guided') { [void]$script:DRAIOffButtons.Add($offButton) }
+    # Claude is never part of it: DRDirect keeps Claude.
+    if ($offKind -eq 'Off' -and [string]$Task.Risk -ne 'Guided' -and $id -ne 'ai.claude-app') { [void]$script:DRAIOffButtons.Add($offButton) }
 
     if (@($catalog | Where-Object { $_.Id -eq $onId }).Count) {
         $onLabel = if ($id -like 'ai.*-app') { '↻  Reinstall' } else { '✓  Turn back on' }
         $canOn = [bool]($Status -and $Status.CanOn)
         $onReason = if ($canOn) { $null } elseif ($id -like 'ai.*-app') { 'Already installed.' } else { 'Already on - the Cleaner has not turned it off on this PC.' }
-        [void]$panel.Children.Add((New-DRAIChoiceButton -Label $onLabel -Kind 'On' -TaskId $onId -Enabled $canOn -Reason $onReason))
+        [void]$panel.Children.Add((New-DRAIChoiceButton -Label $onLabel -Kind 'On' -TaskId $onId -Enabled $canOn -Reason $onReason -Active $(if ($null -ne $isOff) { -not $isOff } else { $null })))
+    }
+
+    # The third choice: uninstall the browser. Windows does the removing in Installed apps.
+    $uninstallId = "$id.uninstall"
+    if (@($catalog | Where-Object { $_.Id -eq $uninstallId }).Count) {
+        $canUninstall = $id -ne 'ai.edge'
+        $uninstallReason = if ($canUninstall) { $null } else { 'Windows does not let Edge be uninstalled. Turn its AI off instead.' }
+        # An app that is already removed has nothing left to uninstall.
+        if ($canUninstall -and $id -like 'ai.*-app' -and $Status -and -not $Status.CanOff) { $canUninstall = $false; $uninstallReason = 'Not installed.' }
+        if ($canUninstall -and $Status -and $Status.CanReinstall) { $canUninstall = $false; $uninstallReason = 'Already uninstalled. Use Reinstall to put it back.' }
+        $uninstallButton = New-DRAIChoiceButton -Label '🗑  Uninstall completely' -Kind 'Look' -TaskId $uninstallId -Enabled $canUninstall -Reason $uninstallReason
+        $uninstallButton.Background = '#EEF2FF'; $uninstallButton.BorderBrush = '#4338CA'; $uninstallButton.Foreground = '#312E81'
+        [void]$panel.Children.Add($uninstallButton)
+        # "Uninstall all AI" runs every one of these. DRDirect keeps Claude, so it is never in it.
+        if ($canUninstall -and $id -ne 'ai.claude-app') { [void]$script:DRAIUninstallButtons.Add($uninstallButton) }
+    }
+
+    # The fourth choice, once a browser or Recall has been uninstalled: put it back.
+    $reinstallId = "$id.reinstall"
+    if (@($catalog | Where-Object { $_.Id -eq $reinstallId }).Count) {
+        $canReinstall = [bool]($Status -and $Status.CanReinstall)
+        $reinstallReason = if ($canReinstall) { $null } else { 'Already installed.' }
+        $reinstallButton = New-DRAIChoiceButton -Label '⬇  Reinstall' -Kind 'On' -TaskId $reinstallId -Enabled $canReinstall -Reason $reinstallReason -Active $canReinstall
+        if (-not $canReinstall) { $reinstallButton.Background = '#DCFCE7'; $reinstallButton.BorderBrush = '#86EFAC'; $reinstallButton.Foreground = '#15803D' }
+        [void]$panel.Children.Add($reinstallButton)
     }
     return $panel
 }
@@ -1437,22 +1535,72 @@ function New-DRAIAllOffCard {
     $button.Margin = '0,0,18,0'
     $button.Add_Checked({
         param($sender, $e)
-        foreach ($choice in @($script:DRAIOffButtons)) { if ($choice.IsEnabled) { $choice.IsChecked = $true } }
-        if ($script:DRAIRestoreButton -and $script:DRAIRestoreButton.IsChecked) { $script:DRAIRestoreButton.IsChecked = $false }
-        Set-DRAIRowTint -Card $sender.Parent.Parent -Kind 'Off' -KeepEdge
+        $sender.IsChecked = $false
+        $ids = @($script:DRAIOffButtons | Where-Object { $_.IsEnabled } | ForEach-Object { [string]$_.CommandParameter })
+        $answer = [Windows.MessageBox]::Show("Turn off all AI the Cleaner can switch off ($($ids.Count) items)? Claude is left alone.", 'DRDirect PC Cleaner',
+            [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question)
+        if ($answer -ne [Windows.MessageBoxResult]::Yes) { return }
+        if ($ids.Count) { Invoke-DRAIRunNow -TaskIds $ids }
     })
     $script:DRAIAllOffButton = $button
-    $button.Add_Unchecked({
-        param($sender, $e)
-        foreach ($choice in @($script:DRAIOffButtons)) { if ($choice.IsEnabled) { $choice.IsChecked = $false } }
-        Set-DRAIRowTint -Card $sender.Parent.Parent -Kind '' -KeepEdge
-    })
 
     $copy = New-Object Windows.Controls.StackPanel
     [Windows.Controls.Grid]::SetColumn($copy, 1)
     [void]$copy.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = 'Turn off all AI'; FontWeight = 'Bold'; FontSize = 17; Foreground = '#5B21B6' }))
     [void]$copy.Children.Add((New-Object Windows.Controls.TextBlock -Property @{
-        Text = 'One click picks every "Turn off", "Remove" and "Delete" below that the Cleaner can do by itself. Gmail, Word, the Edge button and the Copilot key each open their own page, so pick those one by one. Nothing runs until you review and confirm.'
+        Text = 'One click picks every "Turn off", "Remove" and "Delete" below that the Cleaner can do by itself. Claude is always left alone. Gmail, Word, the Edge button and the Copilot key each open their own page, so pick those one by one. Nothing runs until you review and confirm.'
+        Foreground = '#667085'; TextWrapping = 'Wrap'; Margin = '0,5,12,0'; MaxWidth = 650 }))
+    [void]$grid.Children.Add($button); [void]$grid.Children.Add($copy)
+    $border.Child = $grid
+    return $border
+}
+
+function New-DRAIUninstallAllCard {
+    # The choice to remove every AI app and browser in one go, under "Turn off all AI".
+    $border = New-Object Windows.Controls.Border
+    $border.Style = $window.Resources['Card']
+    $border.Margin = '0,0,0,14'
+    $border.Background = '#EEF2FF'
+    $border.Tag = '#EEF2FF'
+    $border.BorderThickness = '2'
+    Start-DRAIGlowEdge -Card $border -From '#4338CA' -To '#BE123C'
+
+    $grid = New-Object Windows.Controls.Grid
+    $grid.ColumnDefinitions.Add((New-Object Windows.Controls.ColumnDefinition -Property @{ Width = 'Auto' }))
+    $grid.ColumnDefinitions.Add((New-Object Windows.Controls.ColumnDefinition -Property @{ Width = '*' }))
+
+    $button = New-Object Windows.Controls.Primitives.ToggleButton
+    $button.Style = $window.Resources['AIChoice']
+    $button.Content = '🗑  Uninstall all AI'
+    $button.Tag = 'Look'
+    $button.FontSize = 14
+    $button.Padding = '16,10'
+    $button.MinWidth = 170
+    $button.VerticalAlignment = 'Center'
+    $button.Margin = '0,0,18,0'
+    $button.Background = '#EEF2FF'; $button.BorderBrush = '#4338CA'; $button.Foreground = '#312E81'
+    $button.Add_Checked({
+        param($sender, $e)
+        $sender.IsChecked = $false
+        $ids = @($script:DRAIUninstallButtons | Where-Object { $_.IsEnabled } | ForEach-Object { [string]$_.CommandParameter })
+        if (-not $ids.Count) {
+            [void][Windows.MessageBox]::Show('There is no AI app or browser here that can be uninstalled.', 'DRDirect PC Cleaner', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information)
+            return
+        }
+        $names = (@($catalog | Where-Object { $ids -contains $_.Id } | ForEach-Object { $_.Name -replace ': uninstall completely$', '' -replace ' uninstall completely$', '' })) -join "`n"
+        $answer = [Windows.MessageBox]::Show("This will uninstall ALL of these from this PC:`n`n$names`n`nClaude is left alone. Bookmarks, passwords and chats stay in their accounts.`n`nContinue?", 'DRDirect PC Cleaner',
+            [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Warning)
+        if ($answer -ne [Windows.MessageBoxResult]::Yes) { return }
+        foreach ($key in @($selection.Keys)) { $selection[$key] = $false }
+        foreach ($id in $ids) { $selection[$id] = $true }
+        Start-RunPlan
+    })
+
+    $copy = New-Object Windows.Controls.StackPanel
+    [Windows.Controls.Grid]::SetColumn($copy, 1)
+    [void]$copy.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = 'Uninstall all AI'; FontWeight = 'Bold'; FontSize = 17; Foreground = '#312E81' }))
+    [void]$copy.Children.Add((New-Object Windows.Controls.TextBlock -Property @{
+        Text = 'Your choice: one click uninstalls every AI app and browser listed below that can be removed. Claude is always left alone, and Edge cannot be removed by Windows. You are asked to confirm first.'
         Foreground = '#667085'; TextWrapping = 'Wrap'; Margin = '0,5,12,0'; MaxWidth = 650 }))
     [void]$grid.Children.Add($button); [void]$grid.Children.Add($copy)
     $border.Child = $grid
@@ -1485,8 +1633,9 @@ function New-TaskRow {
     if ($Task.Category -eq 'AI') {
         $aiLabel = if ($Task.Id -eq 'ai.restore') { 'UNDO' } elseif ($Task.Id -eq 'ai.check') { 'ONLY LOOKS' } elseif ($risk -eq 'Cleanup') { 'FREES SPACE' } elseif ($risk -eq 'Confirm') { 'UNINSTALLS' } elseif ($risk -eq 'Guided') { 'YOU MAKE THE LAST CLICK' } else { 'CAN BE UNDONE' }
         $accent = @{ Badge='#F1EAFE'; BadgeInk='#6D28D9'; Label=$aiLabel }
-        $border.BorderBrush = '#7C3AED'
-        $border.BorderThickness = '5,1,1,1'
+        # A thick dark blue outline all the way round each AI row.
+        $border.BorderBrush = '#1E3A8A'
+        $border.BorderThickness = '8'
         $aiStatus = @($script:DRAIStatus | Where-Object { $_.TaskId -eq $Task.Id }) | Select-Object -First 1
         if ($Task.Id -eq 'ai.restore') {
             $border.Background = '#F0FDF4'
@@ -1540,7 +1689,8 @@ function New-TaskRow {
 
     $copy = New-Object Windows.Controls.StackPanel
     [Windows.Controls.Grid]::SetColumn($copy,1)
-    $titlePanel = New-Object Windows.Controls.StackPanel -Property @{ Orientation='Horizontal' }
+    # A long AI title lets its badge drop to the next line instead of cutting it off.
+    $titlePanel = if ($Task.Category -eq 'AI') { New-Object Windows.Controls.WrapPanel } else { New-Object Windows.Controls.StackPanel -Property @{ Orientation='Horizontal' } }
     $name = New-Object Windows.Controls.TextBlock -Property @{ Text=$Task.Name; FontWeight='SemiBold'; FontSize=15; VerticalAlignment='Center' }
     $badgePadding = if ($isLoud) { '9,4' } else { '8,3' }
     $badge = New-Object Windows.Controls.Border -Property @{ Background=$accent.Badge; CornerRadius=10; Padding=$badgePadding; Margin='10,0,0,0' }
@@ -1563,6 +1713,21 @@ function New-TaskRow {
     $titlePanel.Children.Add($name) | Out-Null; $titlePanel.Children.Add($badge) | Out-Null
     $description = New-Object Windows.Controls.TextBlock -Property @{ Text=$Task.Description; Foreground='#667085'; TextWrapping='Wrap'; Margin='0,5,12,0'; MaxWidth=650 }
     $copy.Children.Add($titlePanel) | Out-Null; $copy.Children.Add($description) | Out-Null
+
+    # At the bottom of a row that knows its state: green when its AI is active, dark red when it is off.
+    $stateBanner = $null
+    if ($aiStatus -and $Task.Id -notin @('ai.restore', 'ai.check') -and -not $needsSignIn) {
+        $rowIsOff = [bool]($aiStatus.CanOn -or -not $aiStatus.CanOff)
+        $stateText = if ($rowIsOff) { 'AI is turned off' } else { 'AI is now activated' }
+        $stateInk = if ($rowIsOff) { '#9F1239' } else { '#166534' }
+        $stateFill = if ($rowIsOff) { '#FFE4E6' } else { '#DCFCE7' }
+        $stateEdge = if ($rowIsOff) { '#BE123C' } else { '#15803D' }
+        # A wide banner centred along the bottom of the row, with a big solid dot.
+        $stateLine = New-Object Windows.Controls.StackPanel -Property @{ Orientation='Horizontal'; HorizontalAlignment='Center' }
+        $stateLine.Children.Add((New-Object Windows.Shapes.Ellipse -Property @{ Width=20; Height=20; Fill=$stateEdge; Stroke=$stateInk; StrokeThickness=3; Margin='0,0,12,0'; VerticalAlignment='Center' })) | Out-Null
+        $stateLine.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$stateText; Foreground=$stateInk; FontWeight='ExtraBold'; FontSize=19; VerticalAlignment='Center' })) | Out-Null
+        $stateBanner = New-Object Windows.Controls.Border -Property @{ Background=$stateFill; BorderBrush=$stateEdge; BorderThickness=3; CornerRadius=12; Padding='26,9'; Margin='0,14,0,0'; HorizontalAlignment='Center'; Child=$stateLine }
+    }
 
     if ($needsSignIn) {
         $where = switch ($aiStatus.Browser) {
@@ -1627,6 +1792,12 @@ function New-TaskRow {
     # AI Remover rows get "Turn off" / "Turn back on" in place of the tick box.
     if ($Task.Category -eq 'AI') { $check = New-DRAIChoicePanel -Task $Task -Status $aiStatus -NeedsSignIn $needsSignIn }
     $grid.Children.Add($check) | Out-Null; $grid.Children.Add($copy) | Out-Null; $grid.Children.Add($meta) | Out-Null
+    if ($stateBanner) {
+        $grid.RowDefinitions.Add((New-Object Windows.Controls.RowDefinition -Property @{ Height='Auto' }))
+        $grid.RowDefinitions.Add((New-Object Windows.Controls.RowDefinition -Property @{ Height='Auto' }))
+        [Windows.Controls.Grid]::SetRow($stateBanner, 1); [Windows.Controls.Grid]::SetColumnSpan($stateBanner, 3)
+        $grid.Children.Add($stateBanner) | Out-Null
+    }
     $border.Child = $grid
     if ($Task.Category -eq 'AI') {
         $picked = @($check.Children | Where-Object { $_.IsChecked }) | Select-Object -First 1
@@ -1664,7 +1835,7 @@ function Get-VisibleTasksForCategory {
     if ($Category -eq 'AI') {
         foreach ($status in @($script:DRAIStatus)) { if (-not $status.Present) { $hidden += $status.TaskId } }
         # A "turn back on" task is a choice inside its row, not a row of its own.
-        $hidden += @($tasks | Where-Object { $_.Id -like '*.on' } | ForEach-Object { $_.Id })
+        $hidden += @($tasks | Where-Object { $_.Id -like '*.on' -or $_.Id -like '*.uninstall' -or $_.Id -like '*.reinstall' } | ForEach-Object { $_.Id })
     }
 
     if ($Category -in @('Cleanup','AI') -and $hidden.Count) {
@@ -1727,15 +1898,17 @@ function Show-TaskCategory {
     # cookie cleanup on Advanced would otherwise leave it selected but invisible.
     if ($Category -in @('Cleanup','AI')) {
         $visibleIds = @($visible | ForEach-Object { $_.Id })
-        if ($Category -eq 'AI') { $visibleIds += @($visibleIds | ForEach-Object { "$_.on" }) }
+        if ($Category -eq 'AI') { $visibleIds += @($visibleIds | ForEach-Object { "$_.on"; "$_.uninstall"; "$_.reinstall" }) }
         foreach ($task in @($catalog | Where-Object Category -eq $Category)) {
             if ($visibleIds -notcontains $task.Id) { $selection[$task.Id] = $false }
         }
     }
     if ($Category -eq 'AI') {
         $script:DRAIOffButtons.Clear()
+        $script:DRAIUninstallButtons.Clear()
         $script:DRAIRestoreButton = $null
         $ui.TaskList.Children.Add((New-DRAIAllOffCard)) | Out-Null
+        $ui.TaskList.Children.Add((New-DRAIUninstallAllCard)) | Out-Null
         $visible = @(@($visible | Where-Object { $_.Id -eq 'ai.restore' }) + @($visible | Where-Object { $_.Id -ne 'ai.restore' }))
     }
     foreach ($task in $visible) { $ui.TaskList.Children.Add((New-TaskRow $task)) | Out-Null }
@@ -1777,11 +1950,11 @@ function Show-Confirmation {
     if ($selected.Id -contains 'cleanup.recycle-bin') { $warnings.Add('Recycle Bin contents will be permanently removed.') }
     if ($selected.Id -contains 'security.remove-exclusions') { $warnings.Add('All configured Defender exclusions will be exported to a backup and then removed.') }
     if ($selected.Id -contains 'security.checkup-fix') { $warnings.Add('Any of the Windows firewall, Microsoft Defender real-time protection and Windows Update that is off will be switched back on.') }
-    if (@($selected | Where-Object { $_.Id -in @('ai.edge','ai.chrome','ai.brave','ai.firefox','ai.block-sites') }).Count) { $warnings.Add('The browsers you picked will show "Managed by your organization" - that is what keeps their AI off. "Put AI back" removes it.') }
+    if (@($selected | Where-Object { $_.Id -in @('ai.edge','ai.chrome','ai.brave','ai.firefox','ai.block-sites') }).Count) { $warnings.Add('The browsers you picked will show "Managed by your organization" - that is what keeps their AI off. "Turn back on" removes it.') }
     if (@($selected | Where-Object { $_.Category -eq 'AI' -and $_.Risk -eq 'Guided' }).Count) { $warnings.Add('Some items open Gmail, Word, Edge, Settings, the Microsoft Store or a download page at the right place. The last click there is yours - the steps show when it runs.') }
     if ($selected.Id -contains 'ai.remove-models') { $warnings.Add('Close Chrome and Edge before running, so the AI model they downloaded can be deleted.') }
     if (@($selected | Where-Object { $_.Category -eq 'AI' -and $_.Risk -eq 'Confirm' }).Count) { $warnings.Add('The AI apps you picked will be uninstalled. They can be installed again from the Microsoft Store.') }
-    if ($selected.Id -contains 'ai.restore' -and @($selected | Where-Object { $_.Category -eq 'AI' -and $_.Id -notin @('ai.restore','ai.check') -and $_.Id -notlike '*.on' }).Count) { $warnings.Add('"Turn everything back on" is also picked, so it runs last and undoes the AI settings you turned off. Pick one or the other.') }
+    if ($selected.Id -contains 'ai.restore' -and @($selected | Where-Object { $_.Category -eq 'AI' -and $_.Id -notin @('ai.restore','ai.check') -and $_.Id -notlike '*.on' -and $_.Id -notlike '*.uninstall' -and $_.Id -notlike '*.reinstall' }).Count) { $warnings.Add('"Turn everything back on" is also picked, so it runs last and undoes the AI settings you turned off. Pick one or the other.') }
     if (@($selected | Where-Object { $script:DRNoRestartTaskIds -notcontains $_.Id }).Count -gt 0) { $warnings.Add('When everything has finished, Windows needs to restart. You will get a one-hour countdown first, and you can cancel it or restart sooner.') }
     $ui.ConfirmWarning.Visibility = if ($warnings.Count) { 'Visible' } else { 'Collapsed' }
     $ui.ConfirmWarningText.Text = $warnings -join "`n"
@@ -3379,14 +3552,17 @@ if ($NoShow) {
     if ($ui.ConfirmList.Children.Count -ne 1) { throw 'GUI smoke test could not build a one-item confirmation plan.' }
     $ui.ConfirmOverlay.Visibility = 'Collapsed'
     Set-Page 'AI'
-    # "Put AI back" is always listed, so an empty page means the page broke.
+    # "Turn everything back on" is always listed, so an empty page means the page broke.
     if (-not @($ui.TaskList.Children).Count) { throw 'GUI smoke test could not render the AI Remover page.' }
-    # "Turn off all AI" picks every "Turn off" the Cleaner can do, and clearing it lets them all go.
-    $allOff = $ui.TaskList.Children[0].Child.Children[0]
-    $allOff.IsChecked = $true
-    if (@($script:DRAIOffButtons | Where-Object { $_.IsEnabled -and -not $_.IsChecked }).Count) { throw 'GUI smoke test: "Turn off all AI" left a choice unpicked.' }
-    $allOff.IsChecked = $false
-    if (@($catalog | Where-Object { $_.Category -eq 'AI' -and $selection[$_.Id] }).Count) { throw 'GUI smoke test: clearing "Turn off all AI" left AI items picked.' }
+    # "Turn off all AI" acts straight away (and asks first), so the test only checks it and the row buttons exist.
+    if (-not $script:DRAIAllOffButton) { throw 'GUI smoke test: "Turn off all AI" is missing.' }
+    if (-not @($script:DRAIOffButtons).Count) { throw 'GUI smoke test: the AI rows have no "Turn off" buttons.' }
+    # "Check now" shows its answer in its own row and picks nothing.
+    $checkCard = @($ui.TaskList.Children | Where-Object { $_.Child.Children[0] -is [Windows.Controls.StackPanel] -and [string]$_.Child.Children[0].Children[0].CommandParameter -eq 'ai.check' }) | Select-Object -First 1
+    if (-not $checkCard) { throw 'GUI smoke test: the "What AI is on this PC?" row is missing.' }
+    $checkCard.Child.Children[0].Children[0].IsChecked = $true
+    if (-not @($checkCard.Child.Children[1].Children | Where-Object { $_.Tag -eq 'AICheckResults' }).Count) { throw 'GUI smoke test: "Check now" showed no results.' }
+    if ($selection['ai.check']) { throw 'GUI smoke test: "Check now" was added to the plan.' }
     Set-Page 'Dashboard'
     $pollTimer.Stop()
     $window.Close()
