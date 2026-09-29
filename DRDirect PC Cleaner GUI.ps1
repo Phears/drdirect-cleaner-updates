@@ -335,28 +335,155 @@ $ErrorActionPreference = 'Stop'
                     </Trigger>
                 </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
-        <!-- The two choices on each AI Remover row: violet when "off" is picked, green when "back on" is. -->
+        <!-- The choices on each AI Remover row: rose for "off", green for "back on", violet for
+             "only looks". Coloured before they are picked; picked ones fill in, pop and glow. -->
         <Style x:Key="AIChoice" TargetType="ToggleButton">
             <Setter Property="Foreground" Value="#475467"/><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#D0D5DD"/>
-            <Setter Property="FontSize" Value="12"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Padding" Value="10,6"/>
-            <Setter Property="Margin" Value="0,3"/><Setter Property="MinWidth" Value="116"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="12.5"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="Padding" Value="12,7"/>
+            <Setter Property="Margin" Value="0,4"/><Setter Property="MinWidth" Value="124"/><Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ToggleButton">
-                <Border x:Name="ChoiceBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="8" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
-                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Border x:Name="ChoiceBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="10" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True" RenderTransformOrigin="0.5,0.5">
+                    <Border.RenderTransform>
+                        <TransformGroup>
+                            <ScaleTransform ScaleX="1" ScaleY="1"/>
+                            <TranslateTransform X="0" Y="0"/>
+                        </TransformGroup>
+                    </Border.RenderTransform>
+                    <Border.Effect>
+                        <DropShadowEffect Color="#E11D48" BlurRadius="18" ShadowDepth="0" Opacity="0"/>
+                    </Border.Effect>
+                    <ContentPresenter x:Name="ChoiceText" TextElement.Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <ControlTemplate.Triggers>
-                    <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="ChoiceBorder" Property="BorderBrush" Value="#98A2B3"/></Trigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Trigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)" To="1.06" Duration="0:0:0.16">
+                                        <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)" To="1.06" Duration="0:0:0.16">
+                                        <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)" To="-2" Duration="0:0:0.16"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </Trigger.EnterActions>
+                        <Trigger.ExitActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.2"/>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.2"/>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[1].(TranslateTransform.Y)" To="0" Duration="0:0:0.2"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </Trigger.ExitActions>
+                    </Trigger>
+                    <Trigger Property="IsPressed" Value="True">
+                        <Trigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)" To="0.94" Duration="0:0:0.07"/>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)" To="0.94" Duration="0:0:0.07"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </Trigger.EnterActions>
+                    </Trigger>
                     <MultiTrigger>
                         <MultiTrigger.Conditions><Condition Property="IsChecked" Value="True"/><Condition Property="Tag" Value="Off"/></MultiTrigger.Conditions>
-                        <Setter TargetName="ChoiceBorder" Property="Background" Value="#7C3AED"/><Setter TargetName="ChoiceBorder" Property="BorderBrush" Value="#7C3AED"/><Setter Property="Foreground" Value="White"/>
+                        <Setter TargetName="ChoiceBorder" Property="Background">
+                            <Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#FB7185" Offset="0"/><GradientStop Color="#E11D48" Offset="1"/></LinearGradientBrush></Setter.Value>
+                        </Setter>
+                        <Setter TargetName="ChoiceBorder" Property="BorderBrush" Value="#E11D48"/>
+                        <Setter TargetName="ChoiceText" Property="TextElement.Foreground" Value="White"/>
+                        <MultiTrigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ColorAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Color)" To="#E11D48" Duration="0:0:0"/>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)" From="0.86" To="1" Duration="0:0:0.35">
+                                        <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)" From="0.86" To="1" Duration="0:0:0.35">
+                                        <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)" From="0.3" To="0.85" Duration="0:0:1.1" AutoReverse="True" RepeatBehavior="Forever"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </MultiTrigger.EnterActions>
+                        <MultiTrigger.ExitActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)" To="0" Duration="0:0:0.2"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </MultiTrigger.ExitActions>
                     </MultiTrigger>
                     <MultiTrigger>
                         <MultiTrigger.Conditions><Condition Property="IsChecked" Value="True"/><Condition Property="Tag" Value="On"/></MultiTrigger.Conditions>
-                        <Setter TargetName="ChoiceBorder" Property="Background" Value="#16835B"/><Setter TargetName="ChoiceBorder" Property="BorderBrush" Value="#16835B"/><Setter Property="Foreground" Value="White"/>
+                        <Setter TargetName="ChoiceBorder" Property="Background">
+                            <Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#4ADE80" Offset="0"/><GradientStop Color="#16A34A" Offset="1"/></LinearGradientBrush></Setter.Value>
+                        </Setter>
+                        <Setter TargetName="ChoiceBorder" Property="BorderBrush" Value="#16A34A"/>
+                        <Setter TargetName="ChoiceText" Property="TextElement.Foreground" Value="White"/>
+                        <MultiTrigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ColorAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Color)" To="#16A34A" Duration="0:0:0"/>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)" From="0.86" To="1" Duration="0:0:0.35">
+                                        <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)" From="0.86" To="1" Duration="0:0:0.35">
+                                        <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)" From="0.3" To="0.85" Duration="0:0:1.1" AutoReverse="True" RepeatBehavior="Forever"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </MultiTrigger.EnterActions>
+                        <MultiTrigger.ExitActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)" To="0" Duration="0:0:0.2"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </MultiTrigger.ExitActions>
                     </MultiTrigger>
-                    <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.4"/></Trigger>
+                    <MultiTrigger>
+                        <MultiTrigger.Conditions><Condition Property="IsChecked" Value="True"/><Condition Property="Tag" Value="Look"/></MultiTrigger.Conditions>
+                        <Setter TargetName="ChoiceBorder" Property="Background">
+                            <Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#A78BFA" Offset="0"/><GradientStop Color="#7C3AED" Offset="1"/></LinearGradientBrush></Setter.Value>
+                        </Setter>
+                        <Setter TargetName="ChoiceBorder" Property="BorderBrush" Value="#7C3AED"/>
+                        <Setter TargetName="ChoiceText" Property="TextElement.Foreground" Value="White"/>
+                        <MultiTrigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <ColorAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Color)" To="#7C3AED" Duration="0:0:0"/>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)" From="0.86" To="1" Duration="0:0:0.35">
+                                        <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)" From="0.86" To="1" Duration="0:0:0.35">
+                                        <DoubleAnimation.EasingFunction><BackEase EasingMode="EaseOut" Amplitude="0.6"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)" From="0.3" To="0.85" Duration="0:0:1.1" AutoReverse="True" RepeatBehavior="Forever"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </MultiTrigger.EnterActions>
+                        <MultiTrigger.ExitActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="ChoiceBorder" Storyboard.TargetProperty="(UIElement.Effect).(DropShadowEffect.Opacity)" To="0" Duration="0:0:0.2"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </MultiTrigger.ExitActions>
+                    </MultiTrigger>
+                    <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.35"/></Trigger>
                 </ControlTemplate.Triggers>
             </ControlTemplate></Setter.Value></Setter>
+            <Style.Triggers>
+                <Trigger Property="Tag" Value="Off"><Setter Property="Background" Value="#FFF1F2"/><Setter Property="BorderBrush" Value="#FDA4AF"/><Setter Property="Foreground" Value="#BE123C"/></Trigger>
+                <Trigger Property="Tag" Value="On"><Setter Property="Background" Value="#ECFDF3"/><Setter Property="BorderBrush" Value="#86EFAC"/><Setter Property="Foreground" Value="#15803D"/></Trigger>
+                <Trigger Property="Tag" Value="Look"><Setter Property="Background" Value="#F5F3FF"/><Setter Property="BorderBrush" Value="#C4B5FD"/><Setter Property="Foreground" Value="#6D28D9"/></Trigger>
+            </Style.Triggers>
         </Style>
         <Style x:Key="Card" TargetType="Border"><Setter Property="Background" Value="White"/><Setter Property="CornerRadius" Value="14"/><Setter Property="BorderBrush" Value="{StaticResource Line}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="22"/><Setter Property="SnapsToDevicePixels" Value="True"/>
             <Setter Property="Effect"><Setter.Value><DropShadowEffect Color="#6B82A6" BlurRadius="26" ShadowDepth="5" Direction="270" Opacity="0.22"/></Setter.Value></Setter>
@@ -894,6 +1021,8 @@ $script:DRNoRestartTaskIds = @('ai.check','ai.gmail','ai.office-copilot','ai.edg
     'ai.copilot-app.on','ai.m365-app.on','ai.chatgpt-app.on','ai.claude-app.on')
 # The "Turn off" choices "Turn off all AI" picks, filled as the AI rows are drawn.
 $script:DRAIOffButtons = New-Object System.Collections.ArrayList
+$script:DRAIAllOffButton = $null
+$script:DRAIRestoreButton = $null
 $runQueue = New-Object System.Collections.Generic.Queue[string]
 $runEvents = New-Object System.Collections.Generic.List[object]
 $runStartedAt = $null
@@ -1175,10 +1304,45 @@ function Apply-CleanupPreset {
     }
 }
 
+function Start-DRAIGlowEdge {
+    # A border that slowly shifts between two colours, for the two "everything"
+    # boxes at the top of the AI Remover page.
+    param($Card, [string]$From, [string]$To)
+    try {
+        $edge = New-Object Windows.Media.SolidColorBrush ([Windows.Media.Color][Windows.Media.ColorConverter]::ConvertFromString($From))
+        $Card.BorderBrush = $edge
+        $shift = New-Object Windows.Media.Animation.ColorAnimation
+        $shift.To = [Windows.Media.Color][Windows.Media.ColorConverter]::ConvertFromString($To)
+        $shift.Duration = [Windows.Duration][TimeSpan]::FromSeconds(1.8)
+        $shift.AutoReverse = $true
+        $shift.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
+        $edge.BeginAnimation([Windows.Media.SolidColorBrush]::ColorProperty, $shift)
+    } catch { $Card.BorderBrush = $From }
+}
+
+function Set-DRAIRowTint {
+    # The row lights up in the colour of the choice picked on it, and fades back
+    # to white when nothing on it is picked.
+    param($Card, [string]$Kind, [switch]$KeepEdge)
+    if (-not ($Card -is [Windows.Controls.Border])) { return }
+    $colors = @{ Off = @('#FFF1F2', '#E11D48'); On = @('#F0FDF4', '#16A34A'); Look = @('#F5F3FF', '#7C3AED') }
+    $restFill = if ($Card.Tag -is [string] -and $Card.Tag -like '#*') { [string]$Card.Tag } else { '#FFFFFF' }
+    $fill, $edge = if ($Kind -and $colors.ContainsKey($Kind)) { $colors[$Kind] } else { @($restFill, '#7C3AED') }
+    if ($Card.BorderBrush -is [Windows.Media.SolidColorBrush] -and $Card.BorderBrush.HasAnimatedProperties) { $KeepEdge = [switch]$true }
+    try {
+        $from = if ($Card.Background -is [Windows.Media.SolidColorBrush]) { $Card.Background.Color } else { [Windows.Media.Colors]::White }
+        $brush = New-Object Windows.Media.SolidColorBrush $from
+        $Card.Background = $brush
+        $fade = New-Object Windows.Media.Animation.ColorAnimation -ArgumentList ([Windows.Media.Color][Windows.Media.ColorConverter]::ConvertFromString($fill)), ([Windows.Duration][TimeSpan]::FromMilliseconds(280))
+        $brush.BeginAnimation([Windows.Media.SolidColorBrush]::ColorProperty, $fade)
+        if (-not $KeepEdge) { $Card.BorderBrush = $edge }
+    } catch { }
+}
+
 function New-DRAIChoiceButton {
-    # One of a row's two choices. Picking it selects that task; the other choice
-    # in the same row lets go, so a row can never be both "off" and "back on".
-    param([string]$Label, [ValidateSet('Off','On')][string]$Kind, [string]$TaskId, [bool]$Enabled, [string]$Reason)
+    # One of a row's choices. Picking it selects that task; the other choice in
+    # the same row lets go, so a row can never be both "off" and "back on".
+    param([string]$Label, [ValidateSet('Off','On','Look')][string]$Kind, [string]$TaskId, [bool]$Enabled, [string]$Reason)
     $button = New-Object Windows.Controls.Primitives.ToggleButton
     $button.Style = $window.Resources['AIChoice']
     $button.Content = $Label
@@ -1198,12 +1362,16 @@ function New-DRAIChoiceButton {
         param($sender, $e)
         $selection[[string]$sender.CommandParameter] = $true
         foreach ($other in @($sender.Parent.Children)) { if ($other -ne $sender -and $other.IsChecked) { $other.IsChecked = $false } }
+        if ([string]$sender.CommandParameter -eq 'ai.restore' -and $script:DRAIAllOffButton -and $script:DRAIAllOffButton.IsChecked) { $script:DRAIAllOffButton.IsChecked = $false }
+        # Choice panel -> row grid -> row card.
+        Set-DRAIRowTint -Card $sender.Parent.Parent.Parent -Kind ([string]$sender.Tag)
         Sync-CleanupPresetFromSelection
         Update-SelectionSummary
     })
     $button.Add_Unchecked({
         param($sender, $e)
         $selection[[string]$sender.CommandParameter] = $false
+        if (-not @($sender.Parent.Children | Where-Object { $_.IsChecked }).Count) { Set-DRAIRowTint -Card $sender.Parent.Parent.Parent -Kind '' }
         Sync-CleanupPresetFromSelection
         Update-SelectionSummary
     })
@@ -1217,24 +1385,25 @@ function New-DRAIChoicePanel {
     $id = [string]$Task.Id
     $onId = "$id.on"
     $offLabel = switch -Wildcard ($id) {
-        'ai.check'         { 'Check now' }
-        'ai.restore'       { 'Turn all back on' }
-        'ai.remove-models' { 'Delete' }
-        'ai.*-app'         { 'Remove' }
-        default            { 'Turn off' }
+        'ai.check'         { '⌕  Check now' }
+        'ai.restore'       { '↺  Turn all back on' }
+        'ai.remove-models' { '✕  Delete' }
+        'ai.*-app'         { '✕  Remove' }
+        default            { '✕  Turn off' }
     }
-    $offKind = if ($id -eq 'ai.restore') { 'On' } else { 'Off' }
+    $offKind = switch ($id) { 'ai.restore' { 'On' } 'ai.check' { 'Look' } default { 'Off' } }
     $canOff = (-not $Status) -or [bool]$Status.CanOff
     $offReason = $null
     if ($NeedsSignIn) { $canOff = $false; $offReason = 'Sign in to the browser first.' }
     elseif (-not $canOff) { $offReason = 'Already removed from this PC.' }
     $offButton = New-DRAIChoiceButton -Label $offLabel -Kind $offKind -TaskId $id -Enabled $canOff -Reason $offReason
     [void]$panel.Children.Add($offButton)
+    if ($id -eq 'ai.restore') { $script:DRAIRestoreButton = $offButton }
     # "Turn off all AI" picks everything the Cleaner can finish by itself.
-    if ($offKind -eq 'Off' -and $id -ne 'ai.check' -and [string]$Task.Risk -ne 'Guided') { [void]$script:DRAIOffButtons.Add($offButton) }
+    if ($offKind -eq 'Off' -and [string]$Task.Risk -ne 'Guided') { [void]$script:DRAIOffButtons.Add($offButton) }
 
     if (@($catalog | Where-Object { $_.Id -eq $onId }).Count) {
-        $onLabel = if ($id -like 'ai.*-app') { 'Reinstall' } else { 'Turn back on' }
+        $onLabel = if ($id -like 'ai.*-app') { '↻  Reinstall' } else { '✓  Turn back on' }
         $canOn = [bool]($Status -and $Status.CanOn)
         $onReason = if ($canOn) { $null } elseif ($id -like 'ai.*-app') { 'Already installed.' } else { 'Already on - the Cleaner has not turned it off on this PC.' }
         [void]$panel.Children.Add((New-DRAIChoiceButton -Label $onLabel -Kind 'On' -TaskId $onId -Enabled $canOn -Reason $onReason))
@@ -1243,29 +1412,45 @@ function New-DRAIChoicePanel {
 }
 
 function New-DRAIAllOffCard {
-    # One click for "everything off", above the rows it picks.
+    # One click for "everything off", above the rows it picks. Its border slowly
+    # shifts between violet and pink so it is the first thing the eye finds.
     $border = New-Object Windows.Controls.Border
     $border.Style = $window.Resources['Card']
     $border.Margin = '0,0,0,14'
     $border.Background = '#F6F1FF'
-    $border.BorderBrush = '#7C3AED'
+    $border.Tag = '#F6F1FF'
     $border.BorderThickness = '2'
+    Start-DRAIGlowEdge -Card $border -From '#7C3AED' -To '#EC4899'
+
     $grid = New-Object Windows.Controls.Grid
     $grid.ColumnDefinitions.Add((New-Object Windows.Controls.ColumnDefinition -Property @{ Width = 'Auto' }))
     $grid.ColumnDefinitions.Add((New-Object Windows.Controls.ColumnDefinition -Property @{ Width = '*' }))
 
     $button = New-Object Windows.Controls.Primitives.ToggleButton
     $button.Style = $window.Resources['AIChoice']
-    $button.Content = 'Turn off all AI'
+    $button.Content = '✕  Turn off all AI'
     $button.Tag = 'Off'
+    $button.FontSize = 14
+    $button.Padding = '16,10'
+    $button.MinWidth = 170
     $button.VerticalAlignment = 'Center'
-    $button.Margin = '0,0,16,0'
-    $button.Add_Checked({ foreach ($choice in @($script:DRAIOffButtons)) { if ($choice.IsEnabled) { $choice.IsChecked = $true } } })
-    $button.Add_Unchecked({ foreach ($choice in @($script:DRAIOffButtons)) { if ($choice.IsEnabled) { $choice.IsChecked = $false } } })
+    $button.Margin = '0,0,18,0'
+    $button.Add_Checked({
+        param($sender, $e)
+        foreach ($choice in @($script:DRAIOffButtons)) { if ($choice.IsEnabled) { $choice.IsChecked = $true } }
+        if ($script:DRAIRestoreButton -and $script:DRAIRestoreButton.IsChecked) { $script:DRAIRestoreButton.IsChecked = $false }
+        Set-DRAIRowTint -Card $sender.Parent.Parent -Kind 'Off' -KeepEdge
+    })
+    $script:DRAIAllOffButton = $button
+    $button.Add_Unchecked({
+        param($sender, $e)
+        foreach ($choice in @($script:DRAIOffButtons)) { if ($choice.IsEnabled) { $choice.IsChecked = $false } }
+        Set-DRAIRowTint -Card $sender.Parent.Parent -Kind '' -KeepEdge
+    })
 
     $copy = New-Object Windows.Controls.StackPanel
     [Windows.Controls.Grid]::SetColumn($copy, 1)
-    [void]$copy.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = 'Turn off all AI'; FontWeight = 'SemiBold'; FontSize = 16; Foreground = '#5B21B6' }))
+    [void]$copy.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = 'Turn off all AI'; FontWeight = 'Bold'; FontSize = 17; Foreground = '#5B21B6' }))
     [void]$copy.Children.Add((New-Object Windows.Controls.TextBlock -Property @{
         Text = 'One click picks every "Turn off", "Remove" and "Delete" below that the Cleaner can do by itself. Gmail, Word, the Edge button and the Copilot key each open their own page, so pick those one by one. Nothing runs until you review and confirm.'
         Foreground = '#667085'; TextWrapping = 'Wrap'; Margin = '0,5,12,0'; MaxWidth = 650 }))
@@ -1303,6 +1488,13 @@ function New-TaskRow {
         $border.BorderBrush = '#7C3AED'
         $border.BorderThickness = '5,1,1,1'
         $aiStatus = @($script:DRAIStatus | Where-Object { $_.TaskId -eq $Task.Id }) | Select-Object -First 1
+        if ($Task.Id -eq 'ai.restore') {
+            $border.Background = '#F0FDF4'
+            $border.Tag = '#F0FDF4'
+            $border.BorderThickness = '2'
+            $border.Margin = '0,0,0,18'
+            Start-DRAIGlowEdge -Card $border -From '#16A34A' -To '#14B8A6'
+        }
     }
     $needsSignIn = [bool]($aiStatus -and $aiStatus.NeedsSignIn -and -not $aiStatus.SignedIn)
 
@@ -1436,6 +1628,10 @@ function New-TaskRow {
     if ($Task.Category -eq 'AI') { $check = New-DRAIChoicePanel -Task $Task -Status $aiStatus -NeedsSignIn $needsSignIn }
     $grid.Children.Add($check) | Out-Null; $grid.Children.Add($copy) | Out-Null; $grid.Children.Add($meta) | Out-Null
     $border.Child = $grid
+    if ($Task.Category -eq 'AI') {
+        $picked = @($check.Children | Where-Object { $_.IsChecked }) | Select-Object -First 1
+        if ($picked) { Set-DRAIRowTint -Card $border -Kind ([string]$picked.Tag) }
+    }
     return $border
 }
 
@@ -1538,7 +1734,9 @@ function Show-TaskCategory {
     }
     if ($Category -eq 'AI') {
         $script:DRAIOffButtons.Clear()
+        $script:DRAIRestoreButton = $null
         $ui.TaskList.Children.Add((New-DRAIAllOffCard)) | Out-Null
+        $visible = @(@($visible | Where-Object { $_.Id -eq 'ai.restore' }) + @($visible | Where-Object { $_.Id -ne 'ai.restore' }))
     }
     foreach ($task in $visible) { $ui.TaskList.Children.Add((New-TaskRow $task)) | Out-Null }
     $script:renderedCleanupFilter = $script:cleanupLevel
@@ -1583,7 +1781,7 @@ function Show-Confirmation {
     if (@($selected | Where-Object { $_.Category -eq 'AI' -and $_.Risk -eq 'Guided' }).Count) { $warnings.Add('Some items open Gmail, Word, Edge, Settings, the Microsoft Store or a download page at the right place. The last click there is yours - the steps show when it runs.') }
     if ($selected.Id -contains 'ai.remove-models') { $warnings.Add('Close Chrome and Edge before running, so the AI model they downloaded can be deleted.') }
     if (@($selected | Where-Object { $_.Category -eq 'AI' -and $_.Risk -eq 'Confirm' }).Count) { $warnings.Add('The AI apps you picked will be uninstalled. They can be installed again from the Microsoft Store.') }
-    if ($selected.Id -contains 'ai.restore' -and @($selected | Where-Object { $_.Category -eq 'AI' -and $_.Id -notin @('ai.restore','ai.check') -and $_.Id -notlike '*.on' }).Count) { $warnings.Add('"Turn everything back on" is also picked, so it runs last and undoes the AI settings turned off above. Pick one or the other.') }
+    if ($selected.Id -contains 'ai.restore' -and @($selected | Where-Object { $_.Category -eq 'AI' -and $_.Id -notin @('ai.restore','ai.check') -and $_.Id -notlike '*.on' }).Count) { $warnings.Add('"Turn everything back on" is also picked, so it runs last and undoes the AI settings you turned off. Pick one or the other.') }
     if (@($selected | Where-Object { $script:DRNoRestartTaskIds -notcontains $_.Id }).Count -gt 0) { $warnings.Add('When everything has finished, Windows needs to restart. You will get a one-hour countdown first, and you can cancel it or restart sooner.') }
     $ui.ConfirmWarning.Visibility = if ($warnings.Count) { 'Visible' } else { 'Collapsed' }
     $ui.ConfirmWarningText.Text = $warnings -join "`n"
