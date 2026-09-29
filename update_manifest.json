@@ -1,7 +1,7 @@
 {
   "version": "1.4.33",
   "notes": "AI Remover rows now show what is really on or off, with a new Windows Search row and clearer Zoom steps.",
-  "published": "2026-09-29T16:45:29.5428294-04:00",
+  "published": "2026-09-29T16:50:33.8125597-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
