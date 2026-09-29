@@ -2993,9 +2993,9 @@ function Show-SafePlan {
         [void]$ui.SafePlanList.Children.Add($line)
     }
     if (-not $planTasks.Count) { [void]$ui.SafePlanList.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text='No steps are available on this PC.'; Foreground='#667085' })) }
-    # Cookies are never part of a level, so every level shows them with an empty box and says why.
+    # Cookies are never part of a level; Advanced, the full sweep, shows them with an empty box and says why.
     $cookieTask = @($catalog | Where-Object { [string]$_.Risk -eq 'SignOut' } | Select-Object -First 1)
-    if ($cookieTask.Count -and $cookieTask[0]) {
+    if ($Level -eq 'Advanced' -and $cookieTask.Count -and $cookieTask[0]) {
         $cookieLine = New-Object Windows.Controls.StackPanel -Property @{ Margin='0,10,0,0' }
         $cookieTop = New-Object Windows.Controls.StackPanel -Property @{ Orientation='Horizontal' }
         [void]$cookieTop.Children.Add((New-Object Windows.Controls.Border -Property @{ Width=20; Height=20; CornerRadius=4; BorderBrush='#C63C3C'; BorderThickness=2; Background='White'; Margin='0,0,10,0' }))

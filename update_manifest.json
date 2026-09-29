@@ -1,7 +1,7 @@
 {
   "version": "1.4.35",
-  "notes": "Friendlier Dashboard with the familiar stat cards and Analyze card on top.",
-  "published": "2026-09-29T17:50:54.3588533-04:00",
+  "notes": "Friendlier Dashboard: stat cards and Analyze on top, one-click Safe mode, Safe/Medium/Advanced plans, safety net, Undo for AI changes, and a cookie reminder on Advanced.",
+  "published": "2026-09-29T17:54:23.8342277-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F1A7EC929F5425DB8FC13189924C79ECA2AB8C83C192FBCD6F8964AF80DC760E",
-      "size": 257634
+      "sha256": "ACAC0E366B225E800E72FAF063E2A5F5DF09FF0EB2B2F2C4FA510D1A89A5E224",
+      "size": 257672
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
