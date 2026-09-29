@@ -1823,7 +1823,7 @@ function New-TaskRow {
     }
 
     if ($isLoud) {
-        $caution = 'You might have to sign in again to websites and webmail after this runs.'
+        $caution = 'Clearing cookies helps protect your privacy by removing trackers and saved sign-ins. Before you tick it, make sure you know all your email addresses and passwords, and keep them in a safe place. You may have to sign in again. Only tick it if you are sure and ready to do so. DRDirect is not responsible for any sign-in or password you cannot get back.'
         $cautionText = New-Object Windows.Controls.TextBlock -Property @{
             Text = $caution
             Foreground = '#96500A'
@@ -2960,35 +2960,97 @@ function Invoke-DRUndoAll {
 }
 function Show-SafePlan {
     # The dashboard card lists the steps of the chosen level, from the same rule the Cleanup page uses.
-    param([string]$Level = 'Safe')
+    # Safe is green, Medium is blue, Advanced is red; a click springs the button and slides the steps in.
+    param([string]$Level = 'Safe', [switch]$Animate)
     if (-not $ui.SafePlanList) { return }
     $script:dashLevel = $Level
+    $palette = @{
+        Safe     = @{ Solid = '#0E8A5F'; Soft = '#E4F6EE'; Button = 'SafeLevelSafeButton' }
+        Medium   = @{ Solid = '#2554D8'; Soft = '#E6EDFC'; Button = 'SafeLevelMediumButton' }
+        Advanced = @{ Solid = '#C0143C'; Soft = '#FDE6EA'; Button = 'SafeLevelAdvancedButton' }
+    }
+    $mine = $palette[$Level]
     $ui.SafePlanList.Children.Clear()
     $ui.SafePlanTitle.Text = switch ($Level) { 'Safe' {'What Safe mode does'} 'Medium' {'What Medium does'} default {'What Advanced does'} }
-    foreach ($pair in @(@('Safe','SafeLevelSafeButton'), @('Medium','SafeLevelMediumButton'), @('Advanced','SafeLevelAdvancedButton'))) {
-        $button = $ui[$pair[1]]
-        if ($button) { $on = ($pair[0] -eq $Level); $button.Background = $(if ($on) { '#2554D8' } else { '#F2F4F7' }); $button.Foreground = $(if ($on) { 'White' } else { '#344054' }) }
+    $ui.SafePlanTitle.Foreground = $mine.Solid
+    foreach ($key in 'Safe','Medium','Advanced') {
+        $button = $ui[$palette[$key].Button]
+        if (-not $button) { continue }
+        $on = ($key -eq $Level)
+        $button.Background = $(if ($on) { $palette[$key].Solid } else { $palette[$key].Soft })
+        $button.Foreground = $(if ($on) { 'White' } else { $palette[$key].Solid })
+        $button.BorderBrush = $palette[$key].Solid
+        $button.BorderThickness = $(if ($on) { '2' } else { '1.5' })
+        $button.FontWeight = $(if ($on) { 'ExtraBold' } else { 'SemiBold' })
     }
     $planTasks = @($catalog | Where-Object { $_.Category -in @('Cleanup','Repair') -and (Test-TaskInOrderedPreset -Task $_ -Preset $Level) })
     foreach ($task in $planTasks) {
-        $line = New-Object Windows.Controls.StackPanel -Property @{ Orientation='Horizontal'; Margin='0,4,0,0' }
-        [void]$line.Children.Add((New-Object Windows.Controls.Border -Property @{ Width=20; Height=20; CornerRadius=10; Background='#E4F6EE'; Margin='0,0,10,0'; Child=(New-Object Windows.Controls.TextBlock -Property @{ Text='✓'; Foreground='#0E8A5F'; FontWeight='Bold'; FontSize=12; HorizontalAlignment='Center'; VerticalAlignment='Center' }) }))
-        [void]$line.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$task.Name; VerticalAlignment='Center' }))
+        $line = New-Object Windows.Controls.StackPanel -Property @{ Margin='0,6,0,0' }
+        $top = New-Object Windows.Controls.StackPanel -Property @{ Orientation='Horizontal' }
+        [void]$top.Children.Add((New-Object Windows.Controls.Border -Property @{ Width=20; Height=20; CornerRadius=10; Background=$mine.Soft; Margin='0,0,10,0'; Child=(New-Object Windows.Controls.TextBlock -Property @{ Text='✓'; Foreground=$mine.Solid; FontWeight='Bold'; FontSize=12; HorizontalAlignment='Center'; VerticalAlignment='Center' }) }))
+        [void]$top.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$task.Name; VerticalAlignment='Center' }))
+        [void]$line.Children.Add($top)
         [void]$ui.SafePlanList.Children.Add($line)
     }
     if (-not $planTasks.Count) { [void]$ui.SafePlanList.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text='No steps are available on this PC.'; Foreground='#667085' })) }
+    # Cookies are never part of a level, so every level shows them with an empty box and says why.
+    $cookieTask = @($catalog | Where-Object { [string]$_.Risk -eq 'SignOut' } | Select-Object -First 1)
+    if ($cookieTask.Count -and $cookieTask[0]) {
+        $cookieLine = New-Object Windows.Controls.StackPanel -Property @{ Margin='0,10,0,0' }
+        $cookieTop = New-Object Windows.Controls.StackPanel -Property @{ Orientation='Horizontal' }
+        [void]$cookieTop.Children.Add((New-Object Windows.Controls.Border -Property @{ Width=20; Height=20; CornerRadius=4; BorderBrush='#C63C3C'; BorderThickness=2; Background='White'; Margin='0,0,10,0' }))
+        [void]$cookieTop.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=[string]$cookieTask[0].Name; VerticalAlignment='Center'; FontWeight='SemiBold' }))
+        [void]$cookieTop.Children.Add((New-Object Windows.Controls.Border -Property @{ Background='#FDE2E2'; CornerRadius=10; Padding='8,2'; Margin='10,0,0,0'; VerticalAlignment='Center'; Child=(New-Object Windows.Controls.TextBlock -Property @{ Text='⚠  SIGNS YOU OUT'; Foreground='#A32020'; FontSize=10.5; FontWeight='Bold' }) }))
+        [void]$cookieLine.Children.Add($cookieTop)
+        [void]$cookieLine.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text='Left unticked on purpose. Before you tick it yourself on the Cleanup page, make sure you know all your email addresses and passwords, and keep them in a safe place. You may have to sign in again.'; Foreground='#96500A'; FontSize=12; FontWeight='SemiBold'; TextWrapping='Wrap'; Margin='30,3,0,0' }))
+        [void]$ui.SafePlanList.Children.Add($cookieLine)
+    }
     $ui.SafePlanNote.Text = switch ($Level) {
         'Safe'     { 'The safest steps only.' }
         'Medium'   { 'Safe steps plus more cleanup. Cookies stay off.' }
         default    { 'The full sweep. Cookies are never ticked, so nobody gets signed out.' }
     }
+    $ui.SafePlanNote.Foreground = $mine.Solid
     $ui.SafePlanRunButton.Content = "Yes, review and run $Level"
+    $ui.SafePlanRunButton.Background = $mine.Solid
+
+    if ($Animate) {
+        # Cosmetic only: wrapped so an animation problem can never stop the card working.
+        try {
+            $chosen = $ui[$mine.Button]
+            $chosen.RenderTransformOrigin = New-Object Windows.Point(0.5, 0.5)
+            $scale = New-Object Windows.Media.ScaleTransform(0.82, 0.82)
+            $chosen.RenderTransform = $scale
+            $spring = New-Object Windows.Media.Animation.ElasticEase
+            $spring.EasingMode = 'EaseOut'; $spring.Oscillations = 2; $spring.Springiness = 5
+            $pop = New-Object Windows.Media.Animation.DoubleAnimation(0.82, 1.0, [Windows.Duration][TimeSpan]::FromMilliseconds(520))
+            $pop.EasingFunction = $spring
+            $scale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleXProperty, $pop)
+            $scale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleYProperty, $pop)
+            $glide = New-Object Windows.Media.Animation.CubicEase
+            $glide.EasingMode = 'EaseOut'
+            $step = 0
+            foreach ($line in @($ui.SafePlanList.Children)) {
+                $line.Opacity = 0
+                $slide = New-Object Windows.Media.TranslateTransform(-18, 0)
+                $line.RenderTransform = $slide
+                $delay = [TimeSpan]::FromMilliseconds(40 * $step)
+                $fade = New-Object Windows.Media.Animation.DoubleAnimation(0.0, 1.0, [Windows.Duration][TimeSpan]::FromMilliseconds(260))
+                $fade.BeginTime = $delay
+                $move = New-Object Windows.Media.Animation.DoubleAnimation(-18.0, 0.0, [Windows.Duration][TimeSpan]::FromMilliseconds(320))
+                $move.BeginTime = $delay; $move.EasingFunction = $glide
+                $line.BeginAnimation([Windows.UIElement]::OpacityProperty, $fade)
+                $slide.BeginAnimation([Windows.Media.TranslateTransform]::XProperty, $move)
+                $step++
+            }
+        } catch { }
+    }
 }
 foreach ($name in 'SafeCleanButton','SafePreviewButton') { if ($ui[$name]) { $ui[$name].Add_Click({ Invoke-DRSafeClean }) } }
 if ($ui.SafePlanRunButton) { $ui.SafePlanRunButton.Add_Click({ Invoke-DRLevelClean }) }
-if ($ui.SafeLevelSafeButton) { $ui.SafeLevelSafeButton.Add_Click({ Show-SafePlan -Level 'Safe' }) }
-if ($ui.SafeLevelMediumButton) { $ui.SafeLevelMediumButton.Add_Click({ Show-SafePlan -Level 'Medium' }) }
-if ($ui.SafeLevelAdvancedButton) { $ui.SafeLevelAdvancedButton.Add_Click({ Show-SafePlan -Level 'Advanced' }) }
+if ($ui.SafeLevelSafeButton) { $ui.SafeLevelSafeButton.Add_Click({ Show-SafePlan -Level 'Safe' -Animate }) }
+if ($ui.SafeLevelMediumButton) { $ui.SafeLevelMediumButton.Add_Click({ Show-SafePlan -Level 'Medium' -Animate }) }
+if ($ui.SafeLevelAdvancedButton) { $ui.SafeLevelAdvancedButton.Add_Click({ Show-SafePlan -Level 'Advanced' -Animate }) }
 foreach ($name in 'UndoAllButton','UndoAllDashButton') { if ($ui[$name]) { $ui[$name].Add_Click({ Invoke-DRUndoAll }) } }
 Show-SafePlan
 
