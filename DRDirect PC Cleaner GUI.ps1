@@ -1028,7 +1028,7 @@ $script:driverPanel = $null
 $script:DRAIStatus = @()
 # These only look, or only open a page for the customer to finish, so a run of
 # nothing but these never needs Windows to restart.
-$script:DRNoRestartTaskIds = @('ai.check','ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key','ai.remove-models',
+$script:DRNoRestartTaskIds = @('ai.check','ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key','ai.remove-models','ai.adobe','ai.adobe.on',
     'ai.gmail.on','ai.office-copilot.on','ai.edge-button.on','ai.copilot-key.on',
     'ai.copilot-app.on','ai.m365-app.on','ai.chatgpt-app.on','ai.claude-app.on',
     'ai.edge.uninstall','ai.chrome.uninstall','ai.brave.uninstall','ai.firefox.uninstall',
@@ -1705,6 +1705,21 @@ function New-TaskRow {
     # A long AI title lets its badge drop to the next line instead of cutting it off.
     $titlePanel = if ($Task.Category -eq 'AI') { New-Object Windows.Controls.WrapPanel } else { New-Object Windows.Controls.StackPanel -Property @{ Orientation='Horizontal' } }
     $name = New-Object Windows.Controls.TextBlock -Property @{ Text=$Task.Name; FontWeight='SemiBold'; FontSize=15; VerticalAlignment='Center' }
+    # AI Remover rows show every product name (Edge, Chrome, Brave, Firefox, Gmail, Claude...) in big bold letters.
+    if ($Task.Category -eq 'AI') {
+        $title = [string]$Task.Name
+        $brand = $null
+        if ($title.Contains(': ')) { $brand = $title.Substring(0, $title.IndexOf(': ')) }
+        elseif ($title -match '(ChatGPT|Claude|Copilot|Gmail|Edge|Chrome|Brave|Firefox|Adobe Acrobat|Windows)') { $brand = $Matches[1] }
+        $name.Text = ''
+        $addRun = { param([string]$Text, [bool]$Big) if ($Text) { [void]$name.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text = $Text; FontWeight = $(if ($Big) { 'ExtraBold' } else { 'SemiBold' }); FontSize = $(if ($Big) { 22 } else { 15 }) })) } }
+        if ($brand) {
+            $at = $title.IndexOf($brand)
+            & $addRun $title.Substring(0, $at) $false
+            & $addRun $brand $true
+            & $addRun $title.Substring($at + $brand.Length) $false
+        } else { & $addRun $title $true }
+    }
     $badgePadding = if ($isLoud) { '9,4' } else { '8,3' }
     $badge = New-Object Windows.Controls.Border -Property @{ Background=$accent.Badge; CornerRadius=10; Padding=$badgePadding; Margin='10,0,0,0' }
     $badgeText = New-Object Windows.Controls.TextBlock -Property @{ Text=$accent.Label; Foreground=$accent.BadgeInk; FontSize=11 }

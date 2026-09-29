@@ -92,6 +92,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='ai.firefox'; Category='AI'; Name='Firefox: turn off AI'; Description='Turns off the AI chatbot sidebar, AI link previews and AI tab groups. Passwords, bookmarks and sign-ins are not touched. Firefox settings will say the browser is managed by your organization while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.remove-models'; Category='AI'; Name='Delete downloaded AI models'; Description='Deletes the AI model Chrome and Edge download in the background - often 2 to 4 GB. Close the browser first, and also pick "Turn off" on the Chrome or Edge row, or the browser downloads it again. Only browsers that are signed in are changed.'; Risk='Cleanup'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.block-sites'; Category='AI'; Name='Block AI websites'; Description='Blocks the ChatGPT, Gemini, Copilot, Perplexity, DeepSeek, Grok and Meta AI websites in Edge, Chrome, Brave and Firefox. Claude is left open. Only browsers that are signed in are changed (Brave has no sign-in). The browsers will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.adobe'; Category='AI'; Name='Adobe Acrobat: turn off AI Assistant'; Description='Turns off the AI Assistant and generative AI features in Adobe Acrobat and Acrobat Reader. Only shown when Adobe Acrobat or Reader is installed. Your PDFs and Adobe sign-in are not touched. Close and reopen Acrobat afterwards. Acrobat may show that some settings are managed by your organization while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.gmail'; Category='AI'; Name='Gmail: turn off Gemini'; Description='Opens Gmail settings in the web browser: untick the Smart features boxes and click Save changes. Google keeps this switch in the Google account, so the last click is yours.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.chatgpt-app'; Category='AI'; Name='Remove the ChatGPT app'; Description='Uninstalls the ChatGPT app. Chats saved in the ChatGPT account are not deleted, and the app can be installed again.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.claude-app'; Category='AI'; Name='Remove the Claude app'; Description='Uninstalls the Claude app. Chats saved in the Claude account are not deleted, and the app can be installed again.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
@@ -107,6 +108,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='ai.brave.on'; Category='AI'; Name='Brave: turn Leo AI back on'; Description='Puts the Brave AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.firefox.on'; Category='AI'; Name='Firefox: turn AI back on'; Description='Puts the Firefox AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.block-sites.on'; Category='AI'; Name='Unblock AI websites'; Description='Takes out only the AI websites the Cleaner blocked.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.adobe.on'; Category='AI'; Name='Adobe Acrobat: turn AI Assistant back on'; Description='Puts the Adobe Acrobat AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.gmail.on'; Category='AI'; Name='Gmail: turn Gemini back on'; Description='Opens Gmail settings so you can tick Smart features again.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.chatgpt-app.on'; Category='AI'; Name='Reinstall the ChatGPT app'; Description='Opens the official ChatGPT download page.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.windows.uninstall'; Category='AI'; Name='Windows: uninstall Recall completely'; Description='Removes the Recall feature from Windows altogether. Takes effect after a restart.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
@@ -1315,7 +1317,7 @@ function Get-DRAIPolicyValues {
     # The policy switches behind each AI option, with the value that turns the AI
     # off. They sit under HKLM so they cover every account; Root only moves for tests.
     param(
-        [ValidateSet('Windows','Edge','Chrome','Brave','Firefox')][string]$Target,
+        [ValidateSet('Windows','Edge','Chrome','Brave','Firefox','Adobe')][string]$Target,
         [string]$Root = 'HKLM:\SOFTWARE'
     )
     $spec = switch ($Target) {
@@ -1352,6 +1354,10 @@ function Get-DRAIPolicyValues {
         ) }
         'Brave' { @(
             'Policies\BraveSoftware\Brave|BraveAIChatEnabled|0'
+        ) }
+        'Adobe' { @(
+            'Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown|bEnableGentech|0'     # AI Assistant and generative AI in Acrobat
+            'Policies\Adobe\Acrobat Reader\DC\FeatureLockDown|bEnableGentech|0'   # the same for the free Reader
         ) }
         'Firefox' { @(
             'Policies\Mozilla\Firefox\GenerativeAI|Enabled|0'
@@ -1454,7 +1460,7 @@ function Get-DRAIBackupFolder {
 function Set-DRAIPolicy {
     param(
         [string]$TaskId,
-        [ValidateSet('Windows','Edge','Chrome','Brave','Firefox')][string]$Target,
+        [ValidateSet('Windows','Edge','Chrome','Brave','Firefox','Adobe')][string]$Target,
         [string]$Root = 'HKLM:\SOFTWARE',
         [string]$BackupFolder = (Get-DRAIBackupFolder)
     )
@@ -1484,6 +1490,7 @@ function Set-DRAIPolicy {
         'Edge'    { 'Copilot is now off in Edge. Close Edge completely and open it again.' + $managed + ' If the Copilot button still shows on the toolbar, open Edge Settings, search for "Copilot" and switch the button off.' }
         'Chrome'  { 'Gemini and AI Mode are now off in Chrome. Close Chrome completely and open it again.' + $managed }
         'Brave'   { 'Leo AI is now off in Brave. Close Brave completely and open it again.' + $managed }
+        'Adobe'   { 'The AI Assistant is now off in Adobe Acrobat and Reader. Close Acrobat completely and open it again. Acrobat may say some settings are managed by your organization - that is what keeps the AI off. "Turn back on" removes it.' }
         'Firefox' { 'AI is now off in Firefox. Close Firefox completely and open it again.' + $managed }
     }
     New-DREvent -TaskId $TaskId -State Information -Message $message
@@ -1495,7 +1502,7 @@ function Restore-DRAIPolicy {
         [string]$Root = 'HKLM:\SOFTWARE',
         [string]$BackupFolder = (Get-DRAIBackupFolder),
         # Website blocks first, so a browser key they emptied can go with its own target.
-        [string[]]$Targets = @('Sites_Chrome','Sites_Edge','Sites_Brave','Sites_Firefox','Windows','Edge','Chrome','Brave','Firefox')
+        [string[]]$Targets = @('Sites_Chrome','Sites_Edge','Sites_Brave','Sites_Firefox','Windows','Edge','Chrome','Brave','Firefox','Adobe')
     )
 
     $restored = @()
@@ -1787,7 +1794,7 @@ function Remove-DRAIModels {
 
 function Test-DRAIPolicyApplied {
     # True when every switch for that target is set to the value that turns the AI off.
-    param([ValidateSet('Windows','Edge','Chrome','Brave','Firefox')][string]$Target, [string]$Root = 'HKLM:\SOFTWARE')
+    param([ValidateSet('Windows','Edge','Chrome','Brave','Firefox','Adobe')][string]$Target, [string]$Root = 'HKLM:\SOFTWARE')
     foreach ($value in @(Get-DRAIPolicyValues -Target $Target -Root $Root)) {
         $state = Get-DRRegistryValueState -Key $value.Key -Name $value.Name
         if (-not $state.Existed -or [string]$state.Value -ne [string]$value.Off) { return $false }
@@ -1816,6 +1823,10 @@ function Get-DRAIReport {
     if (& $isPresent 'ai.windows') {
         $off = Test-DRAIPolicyApplied -Target Windows
         & $row (-not $off) ('Recall, Click to Do and the AI in Paint and Notepad: {0}' -f $(if ($off) { 'switched off' } else { 'ON' }))
+    }
+    if (& $isPresent 'ai.adobe') {
+        $off = Test-DRAIPolicyApplied -Target Adobe
+        & $row (-not $off) ('Adobe Acrobat AI Assistant: {0}' -f $(if ($off) { 'switched off' } else { 'ON' }))
     }
     foreach ($app in @(
             @{ Id = 'ai.copilot-app'; Label = 'Copilot app' },
@@ -1900,6 +1911,7 @@ function Invoke-DRAITurnBackOn {
         'ai.chrome'      { @('Chrome') }
         'ai.brave'       { @('Brave') }
         'ai.firefox'     { @('Firefox') }
+        'ai.adobe'       { @('Adobe') }
         'ai.block-sites' { @('Sites_Chrome','Sites_Edge','Sites_Brave','Sites_Firefox') }
         default          { $null }
     }
@@ -1996,6 +2008,7 @@ function Test-DRAIAppMatch {
         'Copilot'     { return ($Name -eq 'Microsoft.Copilot') }
         'M365Copilot' { return ($Name -eq 'Microsoft.MicrosoftOfficeHub') }
         'ChatGPT'     { return ($Name -match 'ChatGPT' -and ($Publisher -match 'OpenAI' -or $Name -match '^OpenAI\.')) }
+        'Adobe'       { return ($Name -match '^Adobe (Acrobat|Reader)' -and $Publisher -match 'Adobe') }
         'Claude'      { return ($Name -match 'Claude' -and $Name -notmatch 'Code' -and $Publisher -match 'Anthropic') }
     }
     return $false
@@ -2249,6 +2262,7 @@ function Get-DRAIStatus {
             'ai.m365-app'    { & $hasApp 'M365Copilot' }
             'ai.chatgpt-app' { & $hasApp 'ChatGPT' }
             'ai.claude-app'  { & $hasApp 'Claude' }
+            'ai.adobe'       { & $hasApp 'Adobe' }
             'ai.restore'     { $true }
             default          { [bool]($browser -and (Test-DRAIBrowserPresent -Browser $browser)) }
         }
@@ -2275,6 +2289,8 @@ function Get-DRAIStatus {
                     if ($canReinstall) { $canOff = $false; $canOn = $false }
                 }
             }
+        } elseif ($task.Id -eq 'ai.adobe') {
+            $canOn = & $hasBackup 'Adobe'
         } elseif ($task.Id -eq 'ai.block-sites') {
             $canOn = [bool]@(Get-ChildItem -LiteralPath $backupFolder -Filter 'AI_Sites_*.json' -File -ErrorAction SilentlyContinue).Count
         } elseif ($task.Id -in @('ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key')) {
@@ -2623,6 +2639,10 @@ function Invoke-DRTask {
             'ai.windows' {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Windows AI settings were not changed.' }
                 else { Set-DRAIPolicy -TaskId $TaskId -Target Windows }
+            }
+            'ai.adobe' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Adobe AI settings were not changed.' }
+                else { Set-DRAIPolicy -TaskId $TaskId -Target Adobe }
             }
             'ai.edge'    { Invoke-DRAIBrowserTask -TaskId $TaskId -Browser Edge -TestRoot $TestRoot }
             'ai.chrome'  { Invoke-DRAIBrowserTask -TaskId $TaskId -Browser Chrome -TestRoot $TestRoot }

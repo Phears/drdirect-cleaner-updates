@@ -1,7 +1,7 @@
 {
-  "version": "1.4.30",
-  "notes": "You can now choose when Windows restarts after a clean: right away, or in 5, 10 or 30 minutes, or 1, 2 or 3 hours.",
-  "published": "2026-09-29T10:42:00.9583610-04:00",
+  "version": "1.4.31",
+  "notes": "AI Remover now turns off the AI Assistant in Adobe Acrobat and Reader, and product names are easier to read.",
+  "published": "2026-09-29T12:34:56.1564571-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "4027295185A968FCA59A128DA47C0604BBAD366899BE0E3ECEACF181B7E09D7D",
-      "size": 240147
+      "sha256": "6B3BCF171EAEECB1B71D9B0A2BE97ACDA41AEFEEF0E125625AC2A171440E6F49",
+      "size": 241180
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "C8E03F6851618A7187F8D1D09C31A0F96A48962DC6D4AD08B7617DEDA267CAB8",
-      "size": 180852
+      "sha256": "BF88BE3A1602BB1C41020CD7DCE92F6E0E7AFB20D0FA3367D0D60BFB49FD7BB8",
+      "size": 183115
     },
     {
       "name": "DRDirect Updater.ps1",
