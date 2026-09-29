@@ -1,7 +1,7 @@
 {
   "version": "1.4.34",
   "notes": "New friendlier Dashboard: one-click Safe mode, Safe/Medium/Advanced plans shown before anything runs, a safety net with a Windows restore point, and Undo for AI changes.",
-  "published": "2026-09-29T17:42:09.7896217-04:00",
+  "published": "2026-09-29T17:46:46.9549218-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "EFF9A58D621BA70D39687AE0648D09518D18E9DDCFDB65D1CF3D40A9321FDD57",
-      "size": 257616
+      "sha256": "F1A7EC929F5425DB8FC13189924C79ECA2AB8C83C192FBCD6F8964AF80DC760E",
+      "size": 257634
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
