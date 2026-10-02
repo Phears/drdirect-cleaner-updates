@@ -1,7 +1,7 @@
 {
-  "version": "1.4.35",
-  "notes": "Friendlier Dashboard: stat cards and Analyze on top, one-click Safe mode, Safe/Medium/Advanced plans, safety net, Undo for AI changes, and a cookie reminder on Advanced.",
-  "published": "2026-09-29T17:54:23.8342277-04:00",
+  "version": "1.4.36",
+  "notes": "Adds PC checkup, Free up memory, Startup apps and Find large files to Drive health, and moves the Microsoft PC Manager button to the top-right of the dashboard.",
+  "published": "2026-10-02T19:07:59.1317676-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "ACAC0E366B225E800E72FAF063E2A5F5DF09FF0EB2B2F2C4FA510D1A89A5E224",
-      "size": 257672
+      "sha256": "A2095DEA1BA0980F5EE696E8114ED38B966470BF7A4337AFEA001B86442CB184",
+      "size": 258834
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "D0433A19840EBB0C97EDEB9DA0DD7F3CB21DF4AE8A233C5CF0F333BA30E1A5E0",
-      "size": 190817
+      "sha256": "07E3E5A0BA7DF935B564604DE8E14CE417FE749B1DBD79DAB59C28BA65ADBB5A",
+      "size": 201570
     },
     {
       "name": "DRDirect Updater.ps1",

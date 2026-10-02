@@ -78,6 +78,10 @@ function Get-DRTaskCatalog {
 
         [pscustomobject]@{ Id='health.chkdsk'; Category='Health'; Name='CHKDSK disk check'; Description='Checks the C: file system for corruption while Windows keeps running. Reports what it finds, repairs what is safe to repair, and never schedules a restart.'; Risk='Safe'; Duration='5-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
         [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='health.pc-checkup'; Category='Health'; Name='PC checkup'; Description='One quick summary of memory use, free disk space, how long Windows has been running, startup programs and any restart waiting. Nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='health.boost-memory'; Category='Health'; Name='Free up memory (Boost)'; Description='Asks Windows to release idle memory held by running programs, like PC Manager Boost. Nothing is closed and no data is lost; programs reload what they need.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='health.startup-apps'; Category='Health'; Name='Startup apps'; Description='Lists the programs that start with Windows so you can see what slows sign-in. Only looks - nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='health.large-files'; Category='Health'; Name='Find large files'; Description='Lists the 25 biggest files (over 100 MB) in your user folders so you can decide what to remove. Only looks - nothing is deleted.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
 
         # AI Remover. Nothing here is ever pre-selected or part of a cleanup level.
         [pscustomobject]@{ Id='ai.check'; Category='AI'; Name='What AI is on this PC?'; Description='Only looks - nothing is changed. Click Check now and the AI still switched on or installed is listed right here - handy after a Windows or browser update brings something back.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -859,6 +863,149 @@ function Invoke-DRDriveHealth {
     } else {
         New-DREvent -TaskId $TaskId -State Information -Message ('All {0} drive(s) reported normal health. Nothing was changed on this PC.' -f $disks.Count)
     }
+}
+
+function Format-DRSize {
+    param([double]$Bytes)
+    if ($Bytes -ge 1GB) { return ('{0:N1} GB' -f ($Bytes / 1GB)) }
+    if ($Bytes -ge 1MB) { return ('{0:N0} MB' -f ($Bytes / 1MB)) }
+    return ('{0:N0} KB' -f ($Bytes / 1KB))
+}
+
+# PC Manager "Boost": asks Windows to move idle memory out of running programs.
+# Nothing is closed and no data is lost - programs simply reload what they need.
+function Invoke-DRMemoryBoost {
+    param([string]$TaskId, [string]$TestRoot)
+    if ($TestRoot) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: memory was not trimmed.'
+        return
+    }
+    if (-not ('DRDirect.MemoryTrim' -as [type])) {
+        Add-Type -Namespace DRDirect -Name MemoryTrim -MemberDefinition '[System.Runtime.InteropServices.DllImport("psapi.dll")] public static extern int EmptyWorkingSet(System.IntPtr handle);'
+    }
+    $os = Get-CimInstance Win32_OperatingSystem -ErrorAction Stop
+    $freeBefore = [double]$os.FreePhysicalMemory * 1KB
+    $skip = @('System','Idle','Registry','Memory Compression','csrss','smss','wininit','services','lsass','winlogon')
+    $trimmed = 0
+    foreach ($process in @(Get-Process -ErrorAction SilentlyContinue)) {
+        if ($skip -contains $process.ProcessName) { continue }
+        try {
+            if ([DRDirect.MemoryTrim]::EmptyWorkingSet($process.Handle) -ne 0) { $trimmed++ }
+        } catch { }
+    }
+    Start-Sleep -Seconds 2
+    $os = Get-CimInstance Win32_OperatingSystem -ErrorAction Stop
+    $freeAfter = [double]$os.FreePhysicalMemory * 1KB
+    $gained = [Math]::Max([double]0, $freeAfter - $freeBefore)
+    New-DREvent -TaskId $TaskId -State Information -Message ('Freed about {0} of memory from {1} program(s). Nothing was closed. Free memory is now {2} of {3}.' -f (Format-DRSize $gained), $trimmed, (Format-DRSize $freeAfter), (Format-DRSize ([double]$os.TotalVisibleMemorySize * 1KB)))
+}
+
+# PC Manager "Startup apps": lists what starts with Windows. Read-only.
+function Get-DRStartupEntries {
+    $entries = New-Object System.Collections.Generic.List[object]
+    $keys = @(
+        @{ Path='HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run'; Scope='This user' },
+        @{ Path='HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run'; Scope='All users' },
+        @{ Path='HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run'; Scope='All users' }
+    )
+    foreach ($key in $keys) {
+        $item = Get-Item -LiteralPath $key.Path -ErrorAction SilentlyContinue
+        if (-not $item) { continue }
+        foreach ($name in $item.GetValueNames()) {
+            if (-not $name) { continue }
+            $entries.Add([pscustomobject]@{ Name=$name; Command=[string]$item.GetValue($name); Scope=$key.Scope })
+        }
+    }
+    $folders = @(
+        @{ Path=(Join-Path $env:APPDATA 'Microsoft\Windows\Start Menu\Programs\Startup'); Scope='This user' },
+        @{ Path=(Join-Path $env:ProgramData 'Microsoft\Windows\Start Menu\Programs\Startup'); Scope='All users' }
+    )
+    foreach ($folder in $folders) {
+        foreach ($file in @(Get-ChildItem -LiteralPath $folder.Path -File -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -ne 'desktop.ini' })) {
+            $entries.Add([pscustomobject]@{ Name=$file.BaseName; Command=$file.FullName; Scope=$folder.Scope })
+        }
+    }
+    return $entries.ToArray()
+}
+
+function Invoke-DRStartupReport {
+    param([string]$TaskId, [string]$TestRoot)
+    if ($TestRoot) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the startup list was not read.'
+        return
+    }
+    $entries = @(Get-DRStartupEntries)
+    if (-not $entries.Count) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'No programs are set to start with Windows from the usual places. Nothing was changed.'
+        return
+    }
+    $lines = foreach ($entry in ($entries | Sort-Object Name)) { ("{0}  ({1})`r`n    {2}" -f $entry.Name, $entry.Scope, $entry.Command) }
+    New-DREvent -TaskId $TaskId -State Information -Message ("{0} program(s) start with Windows:`r`n  {1}" -f $entries.Count, ($lines -join "`r`n  "))
+    if ($entries.Count -ge 12) {
+        New-DREvent -TaskId $TaskId -State Warning -Message 'That is a lot of startup programs and can slow sign-in. Turn the ones you do not need off in Windows Settings > Apps > Startup. Nothing was changed.'
+    } else {
+        New-DREvent -TaskId $TaskId -State Information -Message 'To turn any off, use Windows Settings > Apps > Startup. Nothing was changed.'
+    }
+}
+
+# PC Manager "Manage large files": shows the biggest files in the user's folders. Read-only.
+function Invoke-DRLargeFiles {
+    param([string]$TaskId, [string]$TestRoot)
+    $roots = if ($TestRoot) { @($TestRoot) } else { @($env:USERPROFILE) }
+    $skipPattern = '\\(AppData|\.git|node_modules)(\\|$)'
+    $found = New-Object System.Collections.Generic.List[object]
+    foreach ($root in $roots) {
+        foreach ($file in @(Get-ChildItem -LiteralPath $root -File -Recurse -Force -ErrorAction SilentlyContinue)) {
+            if ($file.FullName.Substring($root.Length) -match $skipPattern) { continue }
+            if ($file.Length -ge 100MB -or $TestRoot) { $found.Add($file) }
+        }
+    }
+    $top = @($found | Sort-Object Length -Descending | Select-Object -First 25)
+    if (-not $top.Count) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'No files over 100 MB were found in your user folders. Nothing was changed.'
+        return
+    }
+    $lines = foreach ($file in $top) { '{0,10}  {1}' -f (Format-DRSize $file.Length), $file.FullName }
+    New-DREvent -TaskId $TaskId -State Information -Message ("The {0} biggest file(s) in your folders:`r`n  {1}" -f $top.Count, ($lines -join "`r`n  "))
+    New-DREvent -TaskId $TaskId -State Information -Message 'These are only listed. Nothing was changed or deleted - check each one yourself before removing it.'
+}
+
+# PC Manager "Health check": one summary of memory, disk space, uptime, startup load and pending restart.
+function Invoke-DRPCCheckup {
+    param([string]$TaskId, [string]$TestRoot)
+    if ($TestRoot) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the PC checkup was not run.'
+        return
+    }
+    $os = Get-CimInstance Win32_OperatingSystem -ErrorAction Stop
+    $total = [double]$os.TotalVisibleMemorySize * 1KB
+    $free = [double]$os.FreePhysicalMemory * 1KB
+    $memUsed = if ($total -gt 0) { [int](100 * ($total - $free) / $total) } else { 0 }
+    $drive = Get-CimInstance Win32_LogicalDisk -Filter ("DeviceID='{0}'" -f $env:SystemDrive) -ErrorAction SilentlyContinue
+    $uptime = (Get-Date) - $os.LastBootUpTime
+    $startup = @(Get-DRStartupEntries).Count
+    $rebootPending = (Test-Path -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired') -or
+        (Test-Path -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending')
+
+    $notes = New-Object System.Collections.Generic.List[string]
+    $issues = 0
+    $notes.Add(('Memory in use: {0}% ({1} free of {2})' -f $memUsed, (Format-DRSize $free), (Format-DRSize $total)))
+    if ($memUsed -ge 85) { $issues++; $notes.Add('  Memory is nearly full. Run "Free up memory" or close programs you are not using.') }
+    if ($drive -and $drive.Size) {
+        $freePct = [int](100 * [double]$drive.FreeSpace / [double]$drive.Size)
+        $notes.Add(('Free space on {0} {1}% ({2} of {3})' -f $env:SystemDrive, $freePct, (Format-DRSize $drive.FreeSpace), (Format-DRSize $drive.Size)))
+        if ($freePct -lt 10) { $issues++; $notes.Add('  Space is low. Run the Cleanup tasks and the large files list.') }
+    }
+    $notes.Add(('Windows has been running for {0} day(s) {1} hour(s).' -f [int]$uptime.TotalDays, $uptime.Hours))
+    if ($uptime.TotalDays -ge 14) { $issues++; $notes.Add('  A restart is a good idea.') }
+    $notes.Add(('Programs starting with Windows: {0}' -f $startup))
+    if ($startup -ge 12) { $issues++; $notes.Add('  Many startup programs can slow sign-in.') }
+    if ($rebootPending) { $issues++; $notes.Add('A restart is waiting to finish installing updates.') }
+
+    $state = if ($issues -gt 0) { 'Warning' } else { 'Information' }
+    New-DREvent -TaskId $TaskId -State $state -Message ($notes -join "`r`n")
+    $summary = if ($issues -gt 0) { '{0} thing(s) could be improved. Nothing was changed on this PC.' -f $issues } else { 'Everything looks good. Nothing was changed on this PC.' }
+    New-DREvent -TaskId $TaskId -State Information -Message $summary
 }
 
 function New-DRHardwareItem {
@@ -2740,6 +2887,10 @@ function Invoke-DRTask {
             }
             'health.chkdsk' { Invoke-DRChkdsk -TaskId $TaskId -TestRoot $TestRoot }
             'health.drive-check' { Invoke-DRDriveHealth -TaskId $TaskId -TestRoot $TestRoot }
+            'health.pc-checkup' { Invoke-DRPCCheckup -TaskId $TaskId -TestRoot $TestRoot }
+            'health.boost-memory' { Invoke-DRMemoryBoost -TaskId $TaskId -TestRoot $TestRoot }
+            'health.startup-apps' { Invoke-DRStartupReport -TaskId $TaskId -TestRoot $TestRoot }
+            'health.large-files' { Invoke-DRLargeFiles -TaskId $TaskId -TestRoot $TestRoot }
         }
         New-DREvent -TaskId $TaskId -State Completed -Message ("{0} completed." -f $task.Name) -Percent 100
     } catch {
