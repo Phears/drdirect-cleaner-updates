@@ -1,7 +1,7 @@
 {
-  "version": "1.4.36",
-  "notes": "Adds PC checkup, Free up memory, Startup apps and Find large files to Drive health, and moves the Microsoft PC Manager button to the top-right of the dashboard.",
-  "published": "2026-10-02T19:07:59.1317676-04:00",
+  "version": "1.4.37",
+  "notes": "The Microsoft PC Manager button now uses Microsoft colors.",
+  "published": "2026-10-02T19:18:07.1715851-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "A2095DEA1BA0980F5EE696E8114ED38B966470BF7A4337AFEA001B86442CB184",
-      "size": 258834
+      "sha256": "A5A93E1F15712123B98206546EA62F856BA1F81174419FBB51754823AC00C955",
+      "size": 255685
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
