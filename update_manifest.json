@@ -1,7 +1,7 @@
 {
-  "version": "1.4.49",
-  "notes": "Check my drives and Check my RAM now run in one click and show a clear result: a green tick when all is well and a yellow warning when something needs attention, with the drive's age, life left and how often it was switched on. The result stays on the menu for 3 months. The Cleaner now starts as administrator, the window can be resized by its edges, and the menu is easier to read.",
-  "published": "2026-10-03T16:45:49.0274705-04:00",
+  "version": "1.4.50",
+  "notes": "The History page is now called Cleaning history, in bright cyan so it is easy to spot. It shows what the Cleaner did and lets you open the reports.",
+  "published": "2026-10-03T16:49:11.3502042-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "92DC2B2E95A70C6C50A70F82A60A5AB1C740463B06EBB54EB23E7C1491B337F6",
-      "size": 280791
+      "sha256": "C840289C30D2AF12A4409AD101BD52E481A778A43C5345A0603B7E9EB0C0506B",
+      "size": 280913
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
