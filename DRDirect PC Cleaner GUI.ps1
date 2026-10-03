@@ -917,7 +917,7 @@ $ErrorActionPreference = 'Stop'
                     </Border>
                     <ProgressBar x:Name="OverallProgress" Grid.Row="1" Height="8" Minimum="0" Maximum="100" Value="0" Margin="0,96,0,18" Foreground="{StaticResource Blue}" Background="#DEE5F0" BorderThickness="0"/>
                     <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"><StackPanel x:Name="ProgressList"/></ScrollViewer>
-                    <Grid Grid.Row="3" Margin="0,16,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="ProgressSafetyText" Text="Long-running Windows commands finish before the next task begins." Style="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center"/><Button x:Name="RestartButton" Grid.Column="1" Content="Restart now" Style="{StaticResource PrimaryButton}" Margin="0,0,10,0" Visibility="Collapsed"/><Button x:Name="CancelPlanButton" Grid.Column="2" Content="Stop after current task" Style="{StaticResource SecondaryButton}"/></Grid>
+                    <Grid Grid.Row="3" Margin="0,16,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Border x:Name="RunRestartPanel" Grid.Row="0" Grid.ColumnSpan="3" Visibility="Collapsed" Background="#EEF4FF" BorderBrush="#C7D7F5" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,0,0,12"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="When the clean-up finishes, restart Windows:" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,14,0"/><ComboBox x:Name="RunRestartCombo" Grid.Column="1" MinWidth="290" FontSize="13" Padding="10,6" SelectedIndex="7"><ComboBoxItem Tag="0" Content="No, I will restart myself"/><ComboBoxItem Tag="10" Content="Right away (10 seconds after it finishes)"/><ComboBoxItem Tag="300" Content="In 5 minutes"/><ComboBoxItem Tag="600" Content="In 10 minutes"/><ComboBoxItem Tag="1800" Content="In 30 minutes"/><ComboBoxItem Tag="3600" Content="In 1 hour"/><ComboBoxItem Tag="7200" Content="In 2 hours"/><ComboBoxItem Tag="10800" Content="In 3 hours"/></ComboBox></Grid></Border><TextBlock Grid.Row="1" x:Name="ProgressSafetyText" Text="Long-running Windows commands finish before the next task begins." Style="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center"/><Button x:Name="RestartButton" Grid.Row="1" Grid.Column="1" Content="Restart now" Style="{StaticResource PrimaryButton}" Margin="0,0,10,0" Visibility="Collapsed"/><Button x:Name="CancelPlanButton" Grid.Row="1" Grid.Column="2" Content="Stop after current task" Style="{StaticResource SecondaryButton}"/></Grid>
                 </Grid>
 
                 <Grid x:Name="PageHistory" Visibility="Collapsed">
@@ -986,7 +986,8 @@ $ErrorActionPreference = 'Stop'
                     <Border x:Name="ConfirmWarning" Grid.Row="2" Background="#FFF4E3" CornerRadius="8" Padding="12" Margin="0,14,0,0" Visibility="Collapsed"><TextBlock x:Name="ConfirmWarningText" Foreground="{StaticResource Warning}" TextWrapping="Wrap"/></Border>
                     <Grid Grid.Row="3" Margin="0,20,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                         <StackPanel x:Name="RestartDelayPanel" Grid.Row="0" Margin="0,0,0,16" Visibility="Collapsed"><TextBlock Text="When should Windows restart after the clean?" FontWeight="SemiBold" Margin="0,0,0,6"/>
-                            <ComboBox x:Name="RestartDelayCombo" SelectedIndex="6" FontSize="14" Padding="10,7">
+                            <ComboBox x:Name="RestartDelayCombo" SelectedIndex="7" FontSize="14" Padding="10,7">
+                                <ComboBoxItem Tag="0" Content="No, I will restart myself"/>
                                 <ComboBoxItem Tag="10" Content="Right away (10 seconds after it finishes)"/>
                                 <ComboBoxItem Tag="300" Content="In 5 minutes"/>
                                 <ComboBoxItem Tag="600" Content="In 10 minutes"/>
@@ -1061,7 +1062,7 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','UpdateBanner','UpdateBannerText','UpdateBannerButton','HeroUpdateButton','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','UpdateBanner','UpdateBannerText','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -2391,6 +2392,13 @@ function Start-RunPlan {
     $ui.OverallProgress.Value=0; $ui.ProgressPercent.Text='0%'; $ui.CancelPlanButton.IsEnabled=$true; $ui.CancelPlanButton.Content='Stop after current task'
     $ui.RestartButton.Visibility='Collapsed'
     Set-ProgressScanLevel -Preset $script:cleanupPreset
+    # While it runs, the person can still change when Windows restarts afterwards, or turn the automatic restart off.
+    try {
+        $needsRestartRun = (@($selected | Where-Object { $script:DRNoRestartTaskIds -notcontains $_.Id }).Count -gt 0)
+        $ui.RunRestartPanel.Visibility = if ($needsRestartRun) { 'Visible' } else { 'Collapsed' }
+        $match = @($ui.RunRestartCombo.Items | Where-Object { [int]$_.Tag -eq [int]$script:restartDelaySeconds } | Select-Object -First 1)
+        if ($match.Count) { $ui.RunRestartCombo.SelectedItem = $match[0] }
+    } catch { }
     $ui.NavProgress.Visibility='Visible'
     $ui.ConfirmOverlay.Visibility='Collapsed'; Set-Page 'Progress'; Start-NextTask
 }
@@ -2681,6 +2689,7 @@ function Complete-RunPlan {
     else {
         'Collapsed'
     }
+    $ui.RunRestartPanel.Visibility = 'Collapsed'
     $ui.RestartButton.IsEnabled = $true
     $ui.RestartButton.Content = 'Restart now'
     if ($needsRestart) {
@@ -2714,7 +2723,12 @@ function Complete-RunPlan {
         # to finish what they are doing and restart on their own terms. The
         # window also pushes itself to the front - see Show-DRRestartNotice -
         # so the restart is never a surprise.
-        Start-DRRestartCountdown -Seconds $script:restartDelaySeconds -BaseMessage $ui.ProgressSafetyText.Text
+        if ($script:restartDelaySeconds -gt 0) {
+            Start-DRRestartCountdown -Seconds $script:restartDelaySeconds -BaseMessage $ui.ProgressSafetyText.Text
+        } else {
+            # The person chose to restart on their own: no countdown, only the buttons.
+            $ui.ProgressSafetyText.Text = ($ui.ProgressSafetyText.Text + '  A restart is needed to finish. Click Restart now when you are ready. Windows will not restart by itself.').Trim()
+        }
     }
 }
 
@@ -3208,6 +3222,9 @@ $ui.NavSecurity.Add_Click({ Set-Page 'Security' })
 Restore-DRCheckMarks
 # One click, one check: these two menu items run just that check straight away.
 $ui.RunStrip.Add_MouseLeftButtonUp({ Set-Page 'Progress' })
+$ui.RunRestartCombo.Add_SelectionChanged({
+    try { $choice = $ui.RunRestartCombo.SelectedItem; if ($choice) { $script:restartDelaySeconds = [int]$choice.Tag } } catch { }
+})
 $ui.NavHealth.Add_Click({ Invoke-DRAIRunNow -TaskIds @('health.drive-check') })
 $ui.NavMemory.Add_Click({ Invoke-DRAIRunNow -TaskIds @('health.ram-check') })
 $ui.NavSpeed.Add_Click({ Set-Page 'Speed' })
