@@ -3145,6 +3145,12 @@ foreach ($l in $raw) {
     }
 }
 
+# Apps left out on purpose (Warp updates itself and its download stalls).
+$skipIds = @('Warp.Warp')
+foreach ($s in @($pkgs | Where-Object { $skipIds -contains $_.Id })) {
+    Write-Host (RGB 150 150 255 "⏭️  Skipping $($s.Name) [$($s.Id)]")
+}
+$pkgs = @($pkgs | Where-Object { $skipIds -notcontains $_.Id })
 if ($pkgs.Count -eq 0) {
     Write-Host (RGB 150 150 255 '😎 Everything is already up to date!')
     exit 0

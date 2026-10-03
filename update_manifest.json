@@ -1,7 +1,7 @@
 {
-  "version": "1.4.45",
-  "notes": "Fix winget window and exit codes",
-  "published": "2026-10-03T00:46:01.1587211-04:00",
+  "version": "1.4.46",
+  "notes": "winget upgrade skips Warp",
+  "published": "2026-10-03T00:52:12.8731920-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "13CD520BA2BC4F2A0ADEE2142BD6A8F934F93C70FD1994DDE61FF117DCC1EC2A",
-      "size": 271373
+      "sha256": "3BFCC73ECBD1445F38F815206C2DC84A3DB85DE8A3CDB50161DBE6ED5A6117D3",
+      "size": 271684
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
