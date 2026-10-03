@@ -695,7 +695,7 @@ $ErrorActionPreference = 'Stop'
                     <Button x:Name="NavHardware" Style="{StaticResource NavButton}" Content="▤   Hardware"/>
                     <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   History &amp; Undo"/>
                     <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Duplicate finder"/>
-                    <Button x:Name="NavAppUpdates" Style="{StaticResource NavButton}" Content="⭳   winget upgrade --all"/>
+                    <Button x:Name="NavAppUpdates" Style="{StaticResource NavButton}"><TextBlock x:Name="NavAppUpdatesLabel"><Run Text="⭳   " Foreground="#FF3DDC84"/><Run Text="winget " Foreground="#FFFF2BD6"/><Run Text="upgrade " Foreground="#FFFFD60A"/><Run Text="--all" Foreground="#FF00E5FF"/></TextBlock></Button>
                 </StackPanel>
                 </ScrollViewer>
                 <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
@@ -1027,7 +1027,7 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','NavAppUpdatesLabel','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -3027,15 +3027,172 @@ Read-Host 'Press Enter to close this window'
 $ui.ListAppUpdatesButton.Add_Click({
     Start-DRWingetWindow 'upgrade --source winget' 'Listing available updates in a console window. Nothing is installed.'
 })
+function Start-DRFlashyUpgrade {
+    # Colourful winget upgrade in its own PowerShell window (live progress, per-app timeout).
+    # The script is written to %TEMP% as UTF-8 with BOM so Windows PowerShell reads the emoji correctly.
+    $flashy = @'
+# Flashy winget upgrade --all  (live progress, per-package timeout)
+# Usage: .\winget-upgrade-all.ps1 [-IncludeUnknown] [-NoAnim] [-TimeoutMinutes 10]
+param([switch]$IncludeUnknown, [switch]$NoAnim, [int]$TimeoutMinutes = 10)
+
+$ESC = [char]27
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+
+function RGB($r, $g, $b, $text) { "$ESC[38;2;${r};${g};${b}m$text$ESC[0m" }
+function Hue($i, $n) {
+    $h = ($i / [math]::Max($n, 1)) * 6
+    $x = [int](255 * (1 - [math]::Abs(($h % 2) - 1)))
+    switch ([int][math]::Floor($h) % 6) {
+        0 { 255, $x, 0 } 1 { $x, 255, 0 } 2 { 0, 255, $x }
+        3 { 0, $x, 255 } 4 { $x, 0, 255 } default { 255, 0, $x }
+    }
+}
+function Rainbow($text, $shift = 0) {
+    $n = $text.Length; $out = ''
+    for ($i = 0; $i -lt $n; $i++) {
+        $c = Hue (($i + $shift) % $n) $n
+        $out += RGB $c[0] $c[1] $c[2] $text[$i]
+    }
+    $out
+}
+
+$banner = @(
+    '  __        _____ _   _  ____ _____ _____   _   _ ____   ____ ____      _    ____  _____ ',
+    '  \ \      / /_ _| \ | |/ ___| ____|_   _| | | | |  _ \ / ___|  _ \    / \  |  _ \| ____|',
+    '   \ \ /\ / / | ||  \| | |  _|  _|   | |   | | | | |_) | |  _| |_) |  / _ \ | | | |  _|  ',
+    '    \ V  V /  | || |\  | |_| | |___  | |   | |_| |  __/| |_| |  _ <  / ___ \| |_| | |___ ',
+    '     \_/\_/  |___|_| \_|\____|_____| |_|    \___/|_|    \____|_| \_\/_/   \_\____/|_____|'
+)
+
+try { Clear-Host } catch {}
+$frames = if ($NoAnim) { 1 } else { 24 }
+for ($f = 0; $f -lt $frames; $f++) {
+    if ($f -gt 0) { try { [Console]::SetCursorPosition(0, 0) } catch {} }
+    Write-Host ''
+    foreach ($line in $banner) { Write-Host (Rainbow $line ($f * 3)) }
+    Write-Host ''
+    if (-not $NoAnim) { Start-Sleep -Milliseconds 40 }
+}
+Write-Host (Rainbow ('=' * 90))
+Write-Host ''
+
+if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+    Write-Host (RGB 255 60 90 '💥 winget not found. Install "App Installer" from the Microsoft Store.')
+    exit 1
+}
+
+# ---- 1. find what needs upgrading -------------------------------------------
+Write-Host (RGB 0 255 200 '🔎 Checking for upgrades...')
+$listArgs = @('upgrade', '--accept-source-agreements')
+if ($IncludeUnknown) { $listArgs += '--include-unknown' }
+$raw = (& winget @listArgs 2>&1 | Out-String) -split "`r?`n"
+
+$pkgs = @(); $idCol = -1; $verCol = -1; $inTable = $false
+foreach ($l in $raw) {
+    $l = ($l -split "`r")[-1]                       # drop spinner prefixes
+    if ($l -match '^Name\s+Id\s+Version') {
+        if ($pkgs.Count -gt 0) { break }            # 2nd table = needs explicit targeting
+        $idCol = $l.IndexOf('Id'); $verCol = $l.IndexOf('Version'); $inTable = $false; continue
+    }
+    if ($idCol -ge 0 -and $l -match '^-{5,}') { $inTable = $true; continue }
+    if ($inTable) {
+        if ($l -match 'upgrades? available' -or $l.Trim() -eq '') { $inTable = $false; continue }
+        if ($l.Length -gt $verCol) {
+            $pkgs += [pscustomobject]@{
+                Name = $l.Substring(0, $idCol).Trim()
+                Id   = $l.Substring($idCol, $verCol - $idCol).Trim()
+            }
+        }
+    }
+}
+
+if ($pkgs.Count -eq 0) {
+    Write-Host (RGB 150 150 255 '😎 Everything is already up to date!')
+    exit 0
+}
+
+Write-Host (RGB 255 160 0 "📦 $($pkgs.Count) packages to upgrade:")
+$pkgs | ForEach-Object { Write-Host (RGB 255 0 200 "   ✨ $($_.Name) ") -NoNewline; Write-Host (RGB 150 150 255 "[$($_.Id)]") }
+Write-Host ''
+
+$wingetExe = (Get-Command winget).Source
+# ---- 2. upgrade each one with live winget progress --------------------------
+$ok = @(); $fail = @(); $start = Get-Date; $i = 0
+foreach ($p in $pkgs) {
+    $i++
+    Write-Host (Rainbow ('-' * 90))
+    Write-Host (RGB 255 230 0 "⚡ [$i/$($pkgs.Count)] $($p.Name)") -NoNewline
+    Write-Host (RGB 150 150 255 "  [$($p.Id)]  (timeout ${TimeoutMinutes}m)")
+
+    $a = @('upgrade', '--id', $p.Id, '--exact', '--silent', '--accept-source-agreements', '--accept-package-agreements')
+    $proc = Start-Process $wingetExe -ArgumentList $a -NoNewWindow -PassThru   # shares console => real progress bar
+    $done = $proc.WaitForExit($TimeoutMinutes * 60000)
+    if (-not $done) {
+        try { Stop-Process -Id $proc.Id -Force } catch {}
+        Write-Host (RGB 255 60 90 "⏰ $($p.Name) timed out after ${TimeoutMinutes}m - skipped")
+        $fail += "$($p.Name) (timeout)"
+    }
+    elseif ($proc.ExitCode -eq 0) {
+        Write-Host (RGB 80 255 120 "✅ $($p.Name) upgraded")
+        $ok += $p.Name
+    }
+    else {
+        Write-Host (RGB 255 60 90 "💥 $($p.Name) failed (exit code $($proc.ExitCode))")
+        $fail += "$($p.Name) (exit $($proc.ExitCode))"
+    }
+}
+
+# ---- 3. summary -------------------------------------------------------------
+$secs = [int]((Get-Date) - $start).TotalSeconds
+Write-Host ''
+Write-Host (Rainbow ('=' * 90))
+Write-Host (RGB 80 255 120 "🎉 Done in ${secs}s") -NoNewline
+Write-Host (RGB 255 230 0 "   ✅ $($ok.Count) upgraded") -NoNewline
+Write-Host (RGB 255 60 90 "   💥 $($fail.Count) problems")
+foreach ($f in $fail) { Write-Host (RGB 255 60 90 "   - $f") }
+Write-Host (Rainbow ('=' * 90))
+Write-Host ''
+Read-Host 'Press Enter to close' | Out-Null
+
+'@
+    try {
+        $file = Join-Path $env:TEMP 'DRDirect-Winget-Upgrade.ps1'
+        [IO.File]::WriteAllText($file, $flashy, (New-Object Text.UTF8Encoding $true))
+        Start-Process -FilePath 'powershell.exe' -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', ""$file"" | Out-Null
+        $ui.AppUpdatesStatus.Text = 'Updating apps in a colour PowerShell window. Close it when it says it has finished.'
+    } catch {
+        $ui.AppUpdatesStatus.Text = "Could not start the update window: $($_.Exception.Message)"
+    }
+}
 function Invoke-DRUpdateAllApps {
     $answer = [Windows.MessageBox]::Show("This runs 'winget upgrade --all' and updates every app winget can update on this PC.`n`nSome apps may close or restart during their update. Save your work first.`n`nContinue?", 'DRDirect PC Cleaner',
         [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question)
     if ($answer -ne [Windows.MessageBoxResult]::Yes) { return }
+    if (Get-Command winget -ErrorAction SilentlyContinue) { Start-DRFlashyUpgrade; return }
     Start-DRWingetWindow 'upgrade --all --silent --accept-source-agreements --accept-package-agreements' 'Updating apps in a console window. Close it when it says it has finished.'
 }
 $ui.UpdateAllAppsButton.Add_Click({ Invoke-DRUpdateAllApps })
 # The sidebar item runs the update straight away (after confirming) instead of opening a page first.
 $ui.NavAppUpdates.Add_Click({ Invoke-DRUpdateAllApps })
+# Lively sidebar label: each part glides through the rainbow, offset so they chase each other.
+try {
+    $palette = '#FFFF2BD6', '#FFFFD60A', '#FF3DDC84', '#FF00E5FF', '#FF7C5CFF'
+    $labelRuns = @($ui.NavAppUpdatesLabel.Inlines)
+    for ($i = 0; $i -lt $labelRuns.Count; $i++) {
+        $brush = New-Object Windows.Media.SolidColorBrush ([Windows.Media.Colors]::White)
+        $colorAnim = New-Object Windows.Media.Animation.ColorAnimationUsingKeyFrames
+        $colorAnim.Duration = [TimeSpan]::FromSeconds(5)
+        $colorAnim.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
+        $colorAnim.BeginTime = [TimeSpan]::FromSeconds(-1.0 * $i)
+        for ($k = 0; $k -le $palette.Count; $k++) {
+            $color = [Windows.Media.ColorConverter]::ConvertFromString($palette[$k % $palette.Count])
+            $time = [Windows.Media.Animation.KeyTime]::FromPercent($k / $palette.Count)
+            [void]$colorAnim.KeyFrames.Add([Windows.Media.Animation.LinearColorKeyFrame]::new($color, $time))
+        }
+        $labelRuns[$i].Foreground = $brush
+        $brush.BeginAnimation([Windows.Media.SolidColorBrush]::ColorProperty, $colorAnim)
+    }
+} catch { }
 $ui.PCManagerButton.Add_Click({
     # Opens PC Manager if it is installed, otherwise its Store page. Nothing is
     # installed here; the person chooses that in the Store.

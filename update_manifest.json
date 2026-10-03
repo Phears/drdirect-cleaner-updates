@@ -1,7 +1,7 @@
 {
-  "version": "1.4.42",
-  "notes": "If winget is missing, the Cleaner can now install it for you (after you confirm), then updates all your apps.",
-  "published": "2026-10-02T23:56:59.6067794-04:00",
+  "version": "1.4.43",
+  "notes": "Colour PowerShell winget window and animated label",
+  "published": "2026-10-03T00:32:23.8443667-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "59FA67639C7ECAF49674E6E42212087A7D47ED561186347E937B7EDDD2DBA795",
-      "size": 261778
+      "sha256": "F23C892A91B4CFF517220B4648664473A123D987B8543D8DF54D1E7D6F46D86F",
+      "size": 269207
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
