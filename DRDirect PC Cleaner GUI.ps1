@@ -694,8 +694,8 @@ $ErrorActionPreference = 'Stop'
                     <Button x:Name="NavProgress" Style="{StaticResource NavButton}" Content="◐   Maintenance progress" Visibility="Collapsed"/>
                     <Button x:Name="NavHardware" Style="{StaticResource NavButton}" Content="▤   Hardware"/>
                     <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   History &amp; Undo"/>
-                    <Button x:Name="NavAppUpdates" Style="{StaticResource NavButton}" Content="⭳   Update all apps"/>
                     <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Duplicate finder"/>
+                    <Button x:Name="NavAppUpdates" Style="{StaticResource NavButton}" Content="⭳   winget upgrade --all"/>
                 </StackPanel>
                 </ScrollViewer>
                 <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
