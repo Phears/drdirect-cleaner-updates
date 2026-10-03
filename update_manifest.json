@@ -1,7 +1,7 @@
 {
-  "version": "1.4.51",
-  "notes": "When a new update is waiting, the Dashboard now shows a bright green banner saying so, and the Update button turns green too. The Cleaner looks for updates every time it opens.",
-  "published": "2026-10-03T16:53:27.6620332-04:00",
+  "version": "1.4.52",
+  "notes": "Fixes the checks wiping a clean-up in progress: Check my drives and Check my RAM are now greyed out while the Cleaner is working. A new progress box at the bottom of the left menu shows how far a clean-up is on every page, and takes you back to it with one click.",
+  "published": "2026-10-03T17:09:42.7251574-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "3B2005CA10B80DC65AECD4068F266FF36C3C8FB53AA32AE5AE26D0BC6D5D6272",
-      "size": 282250
+      "sha256": "63B9A1DFC196D2E0F5125F3B6A1D0C8BD1DCA680547C5BAE8DA12EBF20B2CABB",
+      "size": 285286
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

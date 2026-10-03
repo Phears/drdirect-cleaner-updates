@@ -762,7 +762,7 @@ $ErrorActionPreference = 'Stop'
                     <Button x:Name="NavProgress" Style="{StaticResource NavButton}" Content="◐   Maintenance progress" Visibility="Collapsed"/>
                 </StackPanel>
                 </ScrollViewer>
-                <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
+                <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="RunStrip" Visibility="Collapsed" Background="#12306B" BorderBrush="#2E6DEB" BorderThickness="1" CornerRadius="9" Padding="12,10" Margin="0,0,0,12" Cursor="Hand" ToolTip="Click to go to the progress page"><StackPanel><TextBlock x:Name="RunStripTitle" Text="Working..." Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock x:Name="RunStripDetail" Text="" Foreground="#B9C9DD" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,2,0,6"/><ProgressBar x:Name="RunStripBar" Height="6" Minimum="0" Maximum="100" Value="0" Foreground="#2BE37A" Background="#2A3F66" BorderThickness="0"/></StackPanel></Border><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
             </Grid>
         </Border>
 
@@ -1061,7 +1061,7 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','UpdateBanner','UpdateBannerText','UpdateBannerButton','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','UpdateBanner','UpdateBannerText','UpdateBannerButton','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -1126,6 +1126,8 @@ $script:DRNoRestartTaskIds = @('health.chkdsk','health.drive-check','health.pc-c
     'ai.chrome.reinstall','ai.brave.reinstall','ai.firefox.reinstall')
 # The "Turn off" choices "Turn off all AI" picks, filled as the AI rows are drawn.
 $script:DRCheckWarned = @{}
+$script:DRWasBusy = $false
+$script:DRFinishedUnseen = $false
 $script:DRAIOffButtons = New-Object System.Collections.ArrayList
 $script:DRAIAllOffButton = $null
 $script:DRAIUninstallButtons = New-Object System.Collections.ArrayList
@@ -1496,10 +1498,21 @@ function Show-DRAICheckResults {
     Start-DRFadeIn -Element $panel -Shift 8 -Seconds 0.3
 }
 
+function Test-DRRunBusy {
+    # True while a clean-up or check is still running. Starting another run now would
+    # throw away the progress on screen and the tasks still waiting, so it must wait.
+    return (($runQueue.Count -gt 0) -or ($script:activeAsync -and -not $script:activeAsync.IsCompleted))
+}
+
 function Invoke-DRAIRunNow {
     # AI Remover buttons act as soon as they are clicked: only these tasks run,
     # with no plan to review. Anything that uninstalls or deletes asks first.
     param([string[]]$TaskIds)
+    if (Test-DRRunBusy) {
+        [void][Windows.MessageBox]::Show("Something is already running.`n`nWait for it to finish, then try again. Starting another now would cancel the progress you can see.", 'DRDirect PC Cleaner',
+            [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information)
+        return
+    }
     $tasks = @($catalog | Where-Object { $TaskIds -contains $_.Id })
     if (-not $tasks.Count) { return }
     if (@($tasks | Where-Object { $_.Risk -in @('Confirm','Cleanup') }).Count) {
@@ -3017,6 +3030,35 @@ function Show-History {
 $pollTimer = New-Object Windows.Threading.DispatcherTimer
 $pollTimer.Interval = [TimeSpan]::FromMilliseconds(180)
 $pollTimer.Add_Tick({
+    # While a clean-up or check is running, the two one-click checks are greyed out and
+    # cannot be pressed: a second run would wipe the first one's progress.
+    try {
+        $busyNow = Test-DRRunBusy
+        # The progress box: always shows where a run is up to, on every page, and takes
+        # you back to the progress page when clicked.
+        if ($busyNow) { $script:DRWasBusy = $true }
+        elseif ($script:DRWasBusy) { $script:DRWasBusy = $false; $script:DRFinishedUnseen = $true }
+        if ($script:currentCategory -eq 'Progress') { $script:DRFinishedUnseen = $false }
+        if ($busyNow -and $script:currentCategory -ne 'Progress') {
+            $ui.RunStrip.Visibility = 'Visible'
+            $ui.RunStripTitle.Text = 'Working... ' + $ui.ProgressPercent.Text
+            $ui.RunStripDetail.Text = [string]$ui.ProgressMessage.Text
+            $ui.RunStripBar.Value = [double]$ui.OverallProgress.Value
+        } elseif ($script:DRFinishedUnseen) {
+            $ui.RunStrip.Visibility = 'Visible'
+            $ui.RunStripTitle.Text = [string][char]0x2714 + '  Finished. Click to see it'
+            $ui.RunStripDetail.Text = [string]$ui.ProgressHeading.Text
+            $ui.RunStripBar.Value = 100
+        } else {
+            $ui.RunStrip.Visibility = 'Collapsed'
+        }
+        if ($ui.NavHealth.IsEnabled -eq $busyNow) {
+            foreach ($navName in @('NavHealth', 'NavMemory')) {
+                $ui[$navName].IsEnabled = (-not $busyNow)
+                $ui[$navName].Opacity = if ($busyNow) { 0.35 } else { 1 }
+            }
+        }
+    } catch { }
     if (-not $script:activeAsync) { return }
     Update-DRElapsedDisplay
     while ($script:activeOutput -and $script:activeOutputIndex -lt $script:activeOutput.Count) {
@@ -3149,6 +3191,7 @@ $ui.NavSecurity.Add_Click({ Set-Page 'Security' })
 # A recent result stays on the menu between sessions; a small red dot means a check is due.
 Restore-DRCheckMarks
 # One click, one check: these two menu items run just that check straight away.
+$ui.RunStrip.Add_MouseLeftButtonUp({ Set-Page 'Progress' })
 $ui.NavHealth.Add_Click({ Invoke-DRAIRunNow -TaskIds @('health.drive-check') })
 $ui.NavMemory.Add_Click({ Invoke-DRAIRunNow -TaskIds @('health.ram-check') })
 $ui.NavSpeed.Add_Click({ Set-Page 'Speed' })
