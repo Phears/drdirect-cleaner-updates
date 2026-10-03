@@ -335,6 +335,45 @@ $ErrorActionPreference = 'Stop'
                     </Trigger>
                 </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
+        <!-- The winget update button gets its own very bright electric blue, in the same style as AI Remover's violet. -->
+        <Style x:Key="WingetNavButton" TargetType="Button" BasedOn="{StaticResource NavButton}">
+            <Setter Property="Foreground" Value="#FFFFFF"/><Setter Property="Background" Value="#0061FF"/><Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+                <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
+                    <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
+                    <Border x:Name="NavBorder" Background="{TemplateBinding Background}" BorderBrush="#00E5FF" BorderThickness="1" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter/></Border>
+                    <Border x:Name="NavAccent" Width="3" Height="22" CornerRadius="2" Background="#FFFFFF" HorizontalAlignment="Left" VerticalAlignment="Center" Opacity="0"/>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="Tag" Value="Active">
+                        <Setter TargetName="NavBorder" Property="Background" Value="#2D8CFF"/>
+                        <Setter TargetName="NavAccent" Property="Opacity" Value="1"/>
+                        <Setter Property="Foreground" Value="White"/>
+                    </Trigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="NavBorder" Property="Background" Value="#1F7AFF"/>
+                        <Setter Property="Foreground" Value="White"/>
+                        <Trigger.EnterActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="NavRoot" Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" To="6" Duration="0:0:0.18">
+                                        <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </Trigger.EnterActions>
+                        <Trigger.ExitActions>
+                            <BeginStoryboard>
+                                <Storyboard>
+                                    <DoubleAnimation Storyboard.TargetName="NavRoot" Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" To="0" Duration="0:0:0.24">
+                                        <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                    </DoubleAnimation>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </Trigger.ExitActions>
+                    </Trigger>
+                </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+        </Style>
         <!-- The choices on each AI Remover row: rose for "off", green for "back on", violet for
              "only looks". Coloured before they are picked; picked ones fill in, pop and glow. -->
         <Style x:Key="AIChoice" TargetType="ToggleButton">
@@ -695,7 +734,7 @@ $ErrorActionPreference = 'Stop'
                     <Button x:Name="NavHardware" Style="{StaticResource NavButton}" Content="▤   Hardware"/>
                     <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   History &amp; Undo"/>
                     <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Duplicate finder"/>
-                    <Button x:Name="NavAppUpdates" Style="{StaticResource NavButton}"><TextBlock x:Name="NavAppUpdatesLabel"><Run Text="⭳   " Foreground="#FF3DDC84"/><Run Text="winget " Foreground="#FFFF2BD6"/><Run Text="upgrade " Foreground="#FFFFD60A"/><Run Text="--all" Foreground="#FF00E5FF"/></TextBlock></Button>
+                    <Button x:Name="NavAppUpdates" Style="{StaticResource WingetNavButton}" Content="⭳   winget upgrade --all" Margin="10,4,10,4" ToolTip="Update every app with winget, in a colour PowerShell window"/>
                 </StackPanel>
                 </ScrollViewer>
                 <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
@@ -1027,7 +1066,7 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','NavAppUpdatesLabel','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -3174,25 +3213,7 @@ function Invoke-DRUpdateAllApps {
 $ui.UpdateAllAppsButton.Add_Click({ Invoke-DRUpdateAllApps })
 # The sidebar item runs the update straight away (after confirming) instead of opening a page first.
 $ui.NavAppUpdates.Add_Click({ Invoke-DRUpdateAllApps })
-# Lively sidebar label: each part glides through the rainbow, offset so they chase each other.
-try {
-    $palette = '#FFFF2BD6', '#FFFFD60A', '#FF3DDC84', '#FF00E5FF', '#FF7C5CFF'
-    $labelRuns = @($ui.NavAppUpdatesLabel.Inlines)
-    for ($i = 0; $i -lt $labelRuns.Count; $i++) {
-        $brush = New-Object Windows.Media.SolidColorBrush ([Windows.Media.Colors]::White)
-        $colorAnim = New-Object Windows.Media.Animation.ColorAnimationUsingKeyFrames
-        $colorAnim.Duration = [TimeSpan]::FromSeconds(5)
-        $colorAnim.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
-        $colorAnim.BeginTime = [TimeSpan]::FromSeconds(-1.0 * $i)
-        for ($k = 0; $k -le $palette.Count; $k++) {
-            $color = [Windows.Media.ColorConverter]::ConvertFromString($palette[$k % $palette.Count])
-            $time = [Windows.Media.Animation.KeyTime]::FromPercent($k / $palette.Count)
-            [void]$colorAnim.KeyFrames.Add([Windows.Media.Animation.LinearColorKeyFrame]::new($color, $time))
-        }
-        $labelRuns[$i].Foreground = $brush
-        $brush.BeginAnimation([Windows.Media.SolidColorBrush]::ColorProperty, $colorAnim)
-    }
-} catch { }
+
 $ui.PCManagerButton.Add_Click({
     # Opens PC Manager if it is installed, otherwise its Store page. Nothing is
     # installed here; the person chooses that in the Store.
