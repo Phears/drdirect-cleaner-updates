@@ -45,6 +45,20 @@ if (-not $drStartedByDRDirect) {
     exit 2
 }
 
+# Opened without administrator rights (for example from a script launcher)? Ask
+# Windows for them once, so every task can do its job. Test mode and the smoke
+# test never ask, and saying No simply carries on as a standard user.
+if (-not $TestMode -and -not $NoShow -and $PSCommandPath) {
+    $drIsAdmin = $false
+    try { $drIsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) } catch { }
+    if (-not $drIsAdmin) {
+        try {
+            Start-Process -FilePath 'powershell.exe' -Verb RunAs -ArgumentList @('-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-WindowStyle', 'Hidden', '-File', ('"{0}"' -f $PSCommandPath)) | Out-Null
+            exit 0
+        } catch { }
+    }
+}
+
 function Resolve-DREnginePath {
     $runtimeRoots = New-Object System.Collections.Generic.List[string]
 
@@ -725,16 +739,20 @@ $ErrorActionPreference = 'Stop'
                 </ScrollViewer.Resources>
                 <StackPanel x:Name="Navigation">
                     <Button x:Name="NavDashboard" Style="{StaticResource NavButton}" Tag="Active" Content="⌂   Dashboard"/>
-                    <Button x:Name="NavAI" Style="{StaticResource AINavButton}" Content="⊘   AI Remover" Margin="10,4,10,4" ToolTip="Switch off AI in Windows and web browsers"/>
-                    <Button x:Name="NavCleanup" Style="{StaticResource NavButton}" Content="✦   Cleanup"/>
-                    <Button x:Name="NavRepair" Style="{StaticResource NavButton}" Content="⚒   Windows repair"/>
-                    <Button x:Name="NavSecurity" Style="{StaticResource NavButton}" Content="⬡   Security"/>
-                    <Button x:Name="NavHealth" Style="{StaticResource NavButton}" Content="▰   Drive health"/>
+                    <TextBlock Text="CLEAN" Foreground="#7F94AE" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
+                    <Button x:Name="NavCleanup" Style="{StaticResource NavButton}" Content="✦   Clean my PC"/>
+                    <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Find duplicate files"/>
+                    <TextBlock Text="FIX" Foreground="#7F94AE" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
+                    <Button x:Name="NavRepair" Style="{StaticResource NavButton}" Content="⚒   Fix Windows problems"/>
+                    <Button x:Name="NavAI" Style="{StaticResource AINavButton}" Content="⊘   Switch off AI" Margin="10,4,10,4" ToolTip="Switch off AI in Windows and web browsers"/>
+                    <TextBlock Text="PROTECT" Foreground="#7F94AE" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
+                    <Button x:Name="NavSecurity" Style="{StaticResource NavButton}" Content="⬡   Check my security"/>
+                    <Button x:Name="NavHealth" Style="{StaticResource NavButton}" Content="▰   Check my drives"/>
+                    <Button x:Name="NavHardware" Style="{StaticResource NavButton}" Content="▤   About my PC"/>
+                    <TextBlock Text="UPDATE" Foreground="#7F94AE" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
+                    <Button x:Name="NavAppUpdates" Style="{StaticResource WingetNavButton}" Content="⭳   Update my apps" Margin="10,4,10,4" ToolTip="Update every app with winget, in a colour PowerShell window"/>
+                    <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   Undo changes"/>
                     <Button x:Name="NavProgress" Style="{StaticResource NavButton}" Content="◐   Maintenance progress" Visibility="Collapsed"/>
-                    <Button x:Name="NavHardware" Style="{StaticResource NavButton}" Content="▤   Hardware"/>
-                    <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   History &amp; Undo"/>
-                    <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Duplicate finder"/>
-                    <Button x:Name="NavAppUpdates" Style="{StaticResource WingetNavButton}" Content="⭳   winget upgrade --all" Margin="10,4,10,4" ToolTip="Update every app with winget, in a colour PowerShell window"/>
                 </StackPanel>
                 </ScrollViewer>
                 <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
@@ -746,53 +764,23 @@ $ErrorActionPreference = 'Stop'
             <Grid Grid.Row="0" Margin="0,0,0,20"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock x:Name="PageEyebrow" Text="THIS PC" Style="{StaticResource MutedText}" FontSize="11" FontWeight="SemiBold"/><TextBlock x:Name="PageTitle" Text="Dashboard" Style="{StaticResource TitleText}"/></StackPanel><Border Grid.Column="1" CornerRadius="16" Background="#E7F6EF" Padding="12,7" VerticalAlignment="Center"><TextBlock Text="●  Protected mode" Foreground="{StaticResource Success}" FontSize="12"/></Border></Grid>
 
             <Grid Grid.Row="1">
-                <ScrollViewer x:Name="PageDashboard" VerticalScrollBarVisibility="Auto">
-                    <StackPanel>
-                        <UniformGrid Columns="3" Margin="0,0,0,18">
-                            <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Violet}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource VioletSoft}"><TextBlock Text="◷" Foreground="{StaticResource Violet}" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="LAST MAINTENANCE" Foreground="{StaticResource Violet}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock Text="Not run yet" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="History will appear after a run" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
-                            <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Teal}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource TealSoft}"><TextBlock Text="▰" Foreground="{StaticResource Teal}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="FREE SPACE ON C:" Foreground="{StaticResource Teal}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="FreeSpaceText" Text="Checking…" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="Current Windows drive" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
-                            <Border Style="{StaticResource Card}" BorderBrush="{StaticResource Amber}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource AmberSoft}"><TextBlock Text="⬡" Foreground="{StaticResource Amber}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="WINDOWS STATUS" Foreground="{StaticResource Amber}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="WindowsStatusText" Text="Not checked" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="Run analysis for details" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
+                <ScrollViewer x:Name="PageDashboard" VerticalScrollBarVisibility="Auto"><StackPanel>
+<Border Style="{StaticResource Card}" Padding="34" Margin="0,0,0,18" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8"><StackPanel><TextBlock Text="START HERE" Foreground="#A8C4FF" FontSize="11" FontWeight="Bold"/><TextBlock Text="Make my PC cleaner" Foreground="White" FontSize="32" FontWeight="ExtraBold" Margin="0,8,0,8"/><TextBlock Text="One click. We only do the safe things, and we ask you before anything starts." Foreground="#C9D9FF" FontSize="16" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left"/><StackPanel Orientation="Horizontal" Margin="0,24,0,0"><Button x:Name="SafeCleanButton" Content="Make my PC cleaner" Style="{StaticResource HeroButton}"/><Button x:Name="SafePreviewButton" Content="Show me first" Style="{StaticResource HeroGhostButton}" Margin="10,0,0,0"/></StackPanel><TextBlock Text="✓  Everything can be undone.   ✓  Your files and passwords are never touched." Foreground="#DDE8FF" FontSize="13" Margin="0,20,0,0" TextWrapping="Wrap"/></StackPanel></Border>
+<UniformGrid Columns="3" Margin="0,0,0,22">
+                            <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Violet}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource VioletSoft}"><TextBlock Text="◷" Foreground="{StaticResource Violet}" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="LAST CLEAN" Foreground="{StaticResource Violet}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock Text="Not yet" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="Shows here after your first clean" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
+                            <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Teal}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource TealSoft}"><TextBlock Text="▰" Foreground="{StaticResource Teal}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="FREE SPACE" Foreground="{StaticResource Teal}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="FreeSpaceText" Text="Checking…" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="On your main drive" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
+                            <Border Style="{StaticResource Card}" BorderBrush="{StaticResource Amber}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource AmberSoft}"><TextBlock Text="⬡" Foreground="{StaticResource Amber}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="WINDOWS HEALTH" Foreground="{StaticResource Amber}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="WindowsStatusText" Text="Not checked" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="Press &quot;Check my PC&quot; to find out" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
                         </UniformGrid>
-                        <Border Style="{StaticResource Card}" Padding="34" Margin="0,0,0,18" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8">
-                            <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="170"/></Grid.ColumnDefinitions>
-                                <StackPanel VerticalAlignment="Center"><TextBlock Text="SAFE ANALYSIS" Foreground="#A8C4FF" FontSize="11" FontWeight="Bold"/><TextBlock Text="See what can be improved before changing anything" Foreground="White" FontSize="27" FontWeight="SemiBold" TextWrapping="Wrap" Margin="0,10,0,10"/><TextBlock Text="Estimate recoverable space and review Windows maintenance options. Analysis does not delete files, change settings, or start repairs." Foreground="#C9D9FF" TextWrapping="Wrap" MaxWidth="600" HorizontalAlignment="Left"/><WrapPanel Orientation="Horizontal" Margin="0,26,0,0"><Button x:Name="ScanButton" Content="Analyze this PC" Style="{StaticResource HeroButton}"/><Button x:Name="LastReportButton" Content="Open reports" Style="{StaticResource HeroGhostButton}" Margin="10,0,0,0"/><Button x:Name="CheckUpdatesButton" Content="Check for updates" Style="{StaticResource HeroGhostButton}" Margin="10,0,0,0"/></WrapPanel></StackPanel>
-                                <Grid Grid.Column="1"><Ellipse Width="140" Height="140" Fill="#26FFFFFF" RenderTransformOrigin="0.5,0.5"><Ellipse.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Ellipse.RenderTransform><Ellipse.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="1" To="1.14" Duration="0:0:2.2"/><DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="1" To="1.14" Duration="0:0:2.2"/><DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.95" To="0.4" Duration="0:0:2.2"/></Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers></Ellipse><Ellipse Width="104" Height="104" Fill="#33FFFFFF" RenderTransformOrigin="0.5,0.5"><Ellipse.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Ellipse.RenderTransform><Ellipse.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" From="1" To="1.07" Duration="0:0:2.2" BeginTime="0:0:0.35"/><DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" From="1" To="1.07" Duration="0:0:2.2" BeginTime="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers></Ellipse><Ellipse Width="72" Height="72" Fill="White"/><TextBlock Text="⌕" Foreground="#1E40AF" FontSize="38" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/></Grid>
-                                <Button x:Name="PCManagerButton" Style="{StaticResource HeroGhostButton}" Background="#0078D4" Foreground="White" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-14,-14,0" ToolTip="Opens Microsoft PC Manager, or its Microsoft Store page if it is not installed"><StackPanel Orientation="Horizontal"><Grid Width="16" Height="16" Margin="0,0,10,0" VerticalAlignment="Center"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions><Rectangle Fill="#F25022" Margin="0,0,1,1"/><Rectangle Grid.Column="1" Fill="#7FBA00" Margin="1,0,0,1"/><Rectangle Grid.Row="1" Fill="#00A4EF" Margin="0,1,1,0"/><Rectangle Grid.Row="1" Grid.Column="1" Fill="#FFB900" Margin="1,1,0,0"/></Grid><TextBlock Text="Microsoft PC Manager" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button>
-                            </Grid>
-                        </Border>
-                        <Grid Margin="0,0,0,14"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                            <TextBlock Text="Everything here is checked with you first. Nothing runs until you say yes." Style="{StaticResource MutedText}" VerticalAlignment="Center" TextWrapping="Wrap"/>
-                            <Border Grid.Column="1" Background="#E4F6EE" CornerRadius="20" Padding="14,6" Margin="12,0,0,0"><TextBlock Text="●  Safe mode is ready" Foreground="#0E8A5F" FontWeight="SemiBold" FontSize="13"/></Border>
-                        </Grid>
-                        <Grid Margin="0,0,0,16"><Grid.ColumnDefinitions><ColumnDefinition Width="1.3*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
-                            <Border Style="{StaticResource Card}" Padding="26" Margin="0,0,16,0" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8">
-                                <StackPanel VerticalAlignment="Center">
-                                    <TextBlock Text="ONE-CLICK SAFE MODE" Foreground="#A8C4FF" FontSize="11" FontWeight="Bold"/>
-                                    <TextBlock Text="Make my PC cleaner the safe way" Foreground="White" FontSize="25" FontWeight="ExtraBold" TextWrapping="Wrap" Margin="0,8,0,8"/>
-                                    <TextBlock Text="Runs only the safest steps. Advanced and risky options stay off unless you turn them on." Foreground="#C9D9FF" TextWrapping="Wrap" MaxWidth="480" HorizontalAlignment="Left"/>
-                                    <StackPanel Orientation="Horizontal" Margin="0,18,0,0"><Button x:Name="SafeCleanButton" Content="Run safe clean" Style="{StaticResource HeroButton}"/><Button x:Name="SafePreviewButton" Content="Show me what it will do first" Style="{StaticResource HeroGhostButton}" Margin="10,0,0,0"/></StackPanel>
-                                </StackPanel>
-                            </Border>
-                            <Border Grid.Column="1" Style="{StaticResource Card}" Padding="22">
-                                <StackPanel>
-                                    <TextBlock Text="YOUR SAFETY NET" Foreground="#0E8A5F" FontSize="11" FontWeight="Bold"/>
-                                    <TextBlock Text="Everything can be reversed" FontSize="18" FontWeight="ExtraBold" Margin="0,6,0,6"/>
-                                    <TextBlock Text="Before any change, the Cleaner protects your PC in three ways." Style="{StaticResource MutedText}" TextWrapping="Wrap"/>
-                                    <Border Background="#E4F6EE" BorderBrush="#B8E6D1" BorderThickness="1" CornerRadius="12" Padding="14,12" Margin="0,12,0,0"><StackPanel>
-                                        <TextBlock Text="✓  A Windows restore point is saved first, when Windows allows it" TextWrapping="Wrap" Margin="0,0,0,5"/>
-                                        <TextBlock Text="✓  Backups are kept of the settings it changes" TextWrapping="Wrap" Margin="0,0,0,5"/>
-                                        <TextBlock Text="✓  Your files, passwords and logins are never touched" TextWrapping="Wrap"/>
-                                    </StackPanel></Border>
-                                </StackPanel>
-                            </Border>
-                        </Grid>
-                        <Grid Margin="0,0,0,18"><Grid.ColumnDefinitions><ColumnDefinition Width="1*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
+<TextBlock Text="Other things you can do" FontSize="18" FontWeight="ExtraBold" Margin="0,0,0,10"/>
+<UniformGrid Columns="3" Margin="0,0,0,14"><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Check my PC" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="See how much space you can free. Nothing is changed." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="ScanButton" Content="Check my PC" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"/></StackPanel></Border><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Past results" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Look at what the Cleaner did before." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="LastReportButton" Content="See past results" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"/></StackPanel></Border><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Update this program" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Look for a newer version of the Cleaner." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="CheckUpdatesButton" Content="Update this program" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"/></StackPanel></Border></UniformGrid>
+<StackPanel Margin="0,0,0,22"><TextBlock Text="MS Tools" FontSize="18" FontWeight="ExtraBold" Margin="0,0,0,10"/><Button x:Name="PCManagerButton" Style="{StaticResource HeroGhostButton}" Background="#0078D4" Foreground="White" HorizontalAlignment="Left" Margin="0,0,0,0" ToolTip="Opens Microsoft PC Manager, or its Microsoft Store page if it is not installed"><StackPanel Orientation="Horizontal"><Grid Width="16" Height="16" Margin="0,0,10,0" VerticalAlignment="Center"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions><Rectangle Fill="#F25022" Margin="0,0,1,1"/><Rectangle Grid.Column="1" Fill="#7FBA00" Margin="1,0,0,1"/><Rectangle Grid.Row="1" Fill="#00A4EF" Margin="0,1,1,0"/><Rectangle Grid.Row="1" Grid.Column="1" Fill="#FFB900" Margin="1,1,0,0"/></Grid><TextBlock Text="Microsoft PC Manager" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button><TextBlock Text="If it did not do the job, or you want your PC spick and span, use DRDirect PC Cleaner for a deeper clean-up." Style="{StaticResource MutedText}" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left" Margin="0,10,0,0"/></StackPanel>
+<Expander Header="More options: choose how deep to clean, and see recent changes" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,18"><StackPanel Margin="0,12,0,0"><Grid Margin="0,0,0,18"><Grid.ColumnDefinitions><ColumnDefinition Width="1*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
                             <Border Style="{StaticResource Card}" Padding="22" Margin="0,0,16,0">
                                 <StackPanel>
                                     <TextBlock Text="HERE IS WHAT WILL CHANGE" Foreground="{StaticResource Blue}" FontSize="11" FontWeight="Bold"/>
                                     <TextBlock x:Name="SafePlanTitle" Text="What Safe mode does" FontSize="18" FontWeight="ExtraBold" Margin="0,6,0,2"/>
                                     <TextBlock Text="Pick a level to see its steps. Nothing has run yet, and you confirm before anything starts." Style="{StaticResource MutedText}" TextWrapping="Wrap"/>
-                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0"><Button x:Name="SafeLevelSafeButton" Content="Safe" Style="{StaticResource SecondaryButton}" Padding="16,6"/><Button x:Name="SafeLevelMediumButton" Content="Medium" Style="{StaticResource SecondaryButton}" Padding="16,6" Margin="8,0,0,0"/><Button x:Name="SafeLevelAdvancedButton" Content="Advanced" Style="{StaticResource SecondaryButton}" Padding="16,6" Margin="8,0,0,0"/></StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,10,0,0"><Button x:Name="SafeLevelSafeButton" Content="Easy" Style="{StaticResource SecondaryButton}" Padding="16,6"/><Button x:Name="SafeLevelMediumButton" Content="Deeper" Style="{StaticResource SecondaryButton}" Padding="16,6" Margin="8,0,0,0"/><Button x:Name="SafeLevelAdvancedButton" Content="Expert" Style="{StaticResource SecondaryButton}" Padding="16,6" Margin="8,0,0,0"/></StackPanel>
                                     <StackPanel x:Name="SafePlanList" Margin="0,8,0,6"/>
                                     <TextBlock x:Name="SafePlanNote" Foreground="#667085" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,10"/>
                                     <Button x:Name="SafePlanRunButton" Content="Yes, review and run" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"/>
@@ -809,10 +797,9 @@ $ErrorActionPreference = 'Stop'
                                     <Button x:Name="UndoAllDashButton" Content="↺  Undo all AI changes" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"/>
                                 </StackPanel>
                             </Border>
-                        </Grid>
-                        <Border x:Name="TestModeBanner" Style="{StaticResource Card}" Background="#FFF4E3" BorderBrush="#F0C98C" Margin="0,18,0,0" Visibility="Collapsed"><TextBlock Text="TEST MODE is active. External Windows operations are simulated and file deletion is limited to the supplied test folder." Foreground="{StaticResource Warning}" TextWrapping="Wrap"/></Border>
-                    </StackPanel>
-                </ScrollViewer>
+                        </Grid></StackPanel></Expander>
+<Border x:Name="TestModeBanner" Style="{StaticResource Card}" Background="#FFF4E3" BorderBrush="#F0C98C" Margin="0,18,0,0" Visibility="Collapsed"><TextBlock Text="TEST MODE is active. External Windows operations are simulated and file deletion is limited to the supplied test folder." Foreground="{StaticResource Warning}" TextWrapping="Wrap"/></Border>
+</StackPanel></ScrollViewer>
 
                 <Grid x:Name="PageTasks" Visibility="Collapsed">
                     <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
@@ -1216,7 +1203,7 @@ function Set-Page {
     $ui.PageDuplicates.Visibility = if ($Name -eq 'Duplicates') { 'Visible' } else { 'Collapsed' }
     $ui.PageHardware.Visibility = if ($Name -eq 'Hardware') { 'Visible' } else { 'Collapsed' }
     $ui.PageAppUpdates.Visibility = if ($Name -eq 'AppUpdates') { 'Visible' } else { 'Collapsed' }
-    $ui.PageTitle.Text = switch ($Name) { 'AppUpdates' {'App updates'} 'Health' {'Drive health'} 'AI' {'AI Remover'} 'Progress' {'Maintenance progress'} 'Duplicates' {'Duplicate finder'} 'Hardware' {'Hardware'} default {$Name} }
+    $ui.PageTitle.Text = switch ($Name) { 'Cleanup' {'Clean my PC'} 'Repair' {'Fix Windows problems'} 'Security' {'Check my security'} 'Health' {'Check my drives'} 'Hardware' {'About my PC'} 'History' {'Undo changes'} 'Duplicates' {'Find duplicate files'} 'AI' {'Switch off AI'} 'AppUpdates' {'Update my apps'} 'Progress' {'Maintenance progress'} default {$Name} }
     $script:currentCategory = $Name
     $ui.CleanupPresetPanel.Visibility = if ($Name -eq 'Cleanup') { 'Visible' } else { 'Collapsed' }
     $navMap = @{ Dashboard='NavDashboard'; Cleanup='NavCleanup'; Repair='NavRepair'; Security='NavSecurity'; Health='NavHealth'; History='NavHistory'; Progress='NavProgress'; Duplicates='NavDuplicates'; Hardware='NavHardware'; AppUpdates='NavAppUpdates'; AI='NavAI' }
@@ -1288,7 +1275,9 @@ function Test-TaskInOrderedPreset {
         'cleanup.cloud-google',
         'cleanup.cloud-onedrive',
         'cleanup.cloud-dropbox',
-        'cleanup.cloud-mega'
+        'cleanup.cloud-mega',
+        'cleanup.cloud-appcaches',
+        'cleanup.cloud-store'
     )
     $mediumIds = $safeIds + @('cleanup.disk-cleanup') + $cloudCacheIds
     # Apart from the Recycle Bin, Safe and Medium never pre-select anything that
@@ -1301,7 +1290,9 @@ function Test-TaskInOrderedPreset {
         'cleanup.jumplists',
         'cleanup.memory-dumps',
         'cleanup.old-restore-points',
-        'cleanup.event-logs'
+        'cleanup.event-logs',
+        'health.drive-check',
+        'health.ram-check'
     )
 
     if ($Preset -eq 'Safe') {
@@ -1990,6 +1981,8 @@ function Test-DRCloudServicePresent {
         # client was uninstalled, which made this a false positive.
         'OneDrive'     { @("$env:LOCALAPPDATA\Microsoft\OneDrive\OneDrive.exe", "$env:ProgramFiles\Microsoft OneDrive\OneDrive.exe", "${env:ProgramFiles(x86)}\Microsoft OneDrive\OneDrive.exe") }
         'Dropbox'      { @("$env:LOCALAPPDATA\Dropbox", (Join-Path $env:USERPROFILE 'Dropbox')) }
+        'App caches'   { @("$env:APPDATA\discord", "$env:LOCALAPPDATA\Spotify", "$env:APPDATA\Slack", "$env:APPDATA\Microsoft\Teams", "$env:LOCALAPPDATA\Steam") }
+        'Microsoft Store' { @("$env:LOCALAPPDATA\Packages\Microsoft.WindowsStore_8wekyb3d8bbwe") }
         'MEGA'         { @("$env:LOCALAPPDATA\Mega Limited", (Join-Path $env:USERPROFILE 'MEGA')) }
         default        { @() }
     }
@@ -3302,7 +3295,7 @@ function Show-SafePlan {
         default    { 'The full sweep. Cookies are never ticked, so nobody gets signed out.' }
     }
     $ui.SafePlanNote.Foreground = $mine.Solid
-    $ui.SafePlanRunButton.Content = "Yes, review and run $Level"
+    $ui.SafePlanRunButton.Content = "Yes, go ahead with " + @{Safe='Easy';Medium='Deeper';Advanced='Expert'}[$Level]
     $ui.SafePlanRunButton.Background = $mine.Solid
 
     if ($Animate) {
@@ -3900,7 +3893,7 @@ $ui.CheckUpdatesButton.Add_Click({
     }
     finally {
         $ui.CheckUpdatesButton.IsEnabled = $true
-        $ui.CheckUpdatesButton.Content = 'Check for updates'
+        $ui.CheckUpdatesButton.Content = 'Update this program'
     }
 })
 

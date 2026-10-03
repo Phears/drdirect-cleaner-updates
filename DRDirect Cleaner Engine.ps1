@@ -51,11 +51,17 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='cleanup.memory-dumps'; Category='Cleanup'; Name='Memory dump files'; Description='Removes saved crash dump files (Memory.dmp and Minidump). These are only useful for diagnosing a specific past crash.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.old-restore-points'; Category='Cleanup'; Name='Old restore points'; Description='Deletes older System Restore snapshots, keeping only the most recent one. Reduces how far back you can roll back Windows.'; Risk='Advanced'; Duration='< 5 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.event-logs'; Category='Cleanup'; Name='Windows Event Logs'; Description='Clears the Application and System event logs. Removes diagnostic history used for troubleshooting. The Security log is never touched.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.event-defender'; Category='Cleanup'; Name='Windows Defender history log'; Description='Clears the log of what Microsoft Defender found and scanned in the past. Defender stays on and keeps protecting this PC; only the history is removed.'; Risk='Advanced'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.event-applogs'; Category='Cleanup'; Name='App and PowerShell logs'; Description='Clears the Microsoft Store and PowerShell logs, including the record of PowerShell commands that were run. Disk and driver logs are left alone so they can still help with troubleshooting.'; Risk='Advanced'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.cloud-icloud'; Category='Cleanup'; Name='iCloud cache'; Description='Clears the local cache and logs iCloud leaves on this PC. Your synced files are not touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$true; Destructive=$true; Interruptible=$false; CloudService='iCloud' }
         [pscustomobject]@{ Id='cleanup.cloud-google'; Category='Cleanup'; Name='Google Drive cache'; Description='Clears the local cache and logs Google Drive leaves on this PC. Your synced files are not touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$true; Destructive=$true; Interruptible=$false; CloudService='Google Drive' }
         [pscustomobject]@{ Id='cleanup.cloud-onedrive'; Category='Cleanup'; Name='OneDrive cache'; Description='Clears the local cache and logs OneDrive leaves on this PC. Your synced files are not touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$true; Destructive=$true; Interruptible=$false; CloudService='OneDrive' }
         [pscustomobject]@{ Id='cleanup.cloud-dropbox'; Category='Cleanup'; Name='Dropbox cache'; Description='Clears the local cache and logs Dropbox leaves on this PC. Your synced files are not touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$true; Destructive=$true; Interruptible=$false; CloudService='Dropbox' }
         [pscustomobject]@{ Id='cleanup.cloud-mega'; Category='Cleanup'; Name='MEGA cache'; Description='Clears the local cache and logs MEGA leaves on this PC. Your synced files are not touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$true; Destructive=$true; Interruptible=$false; CloudService='MEGA' }
+        [pscustomobject]@{ Id='cleanup.cloud-appcaches'; Category='Cleanup'; Name='App caches (Discord, Spotify, Slack, Teams, Steam)'; Description='Clears the temporary cache these apps keep on this PC. They rebuild it by themselves, so the first start afterwards can be a little slower. Logins, chats and downloaded music are not touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true; Interruptible=$false; CloudService='App caches' }
+        [pscustomobject]@{ Id='cleanup.cloud-store'; Category='Cleanup'; Name='Microsoft Store cache'; Description='Clears the Microsoft Store cache. This fixes a Store that will not open or update. Your apps and purchases are not touched.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true; Interruptible=$false; CloudService='Microsoft Store' }
+        [pscustomobject]@{ Id='cleanup.hibernate-off'; Category='Cleanup'; Name='Hibernation file (frees several GB)'; Description='Turns off Hibernate and Fast Startup and deletes the hibernation file, which is usually 3 to 12 GB. Sleep keeps working. You can switch Hibernate back on with the row below.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true; Interruptible=$false; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.hibernate-on'; Category='Cleanup'; Name='Turn Hibernate back on'; Description='Switches Hibernate and Fast Startup back on. Needs free space on C: about the size of your memory. If there is not enough room, the Cleaner leaves it off and tells you to use Sleep instead.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false; Interruptible=$false; CloudService=$null }
 
         [pscustomobject]@{ Id='cleanup.disk-cleanup'; Category='Cleanup'; Name='Windows Disk Cleanup'; Description='Runs the Windows Disk Cleanup profile for the C: drive.'; Risk='Safe'; Duration='1-10 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$true ; CloudService=$null }
 
@@ -77,11 +83,13 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='security.typing-privacy-restore'; Category='Security'; Name='Restore typing settings'; Description='Puts the typing settings back exactly as they were before "Stop sending typing data to Microsoft" changed them. Does nothing if that option was never run.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
 
         [pscustomobject]@{ Id='health.chkdsk'; Category='Health'; Name='CHKDSK disk check'; Description='Checks the C: file system for corruption while Windows keeps running. Reports what it finds, repairs what is safe to repair, and never schedules a restart.'; Risk='Safe'; Duration='5-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
-        [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='health.pc-checkup'; Category='Health'; Name='PC checkup'; Description='One quick summary of memory use, free disk space, how long Windows has been running, startup programs and any restart waiting. Nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='health.boost-memory'; Category='Health'; Name='Free up memory (Boost)'; Description='Asks Windows to release idle memory held by running programs, like PC Manager Boost. Nothing is closed and no data is lost; programs reload what they need.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='health.startup-apps'; Category='Health'; Name='Startup apps'; Description='Lists the programs that start with Windows so you can see what slows sign-in. Only looks - nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='health.large-files'; Category='Health'; Name='Find large files'; Description='Lists the 25 biggest files (over 100 MB) in your user folders so you can decide what to remove. Only looks - nothing is deleted.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='health.ram-check'; Category='Health'; Name='Memory (RAM) check'; Description='Shows the memory installed in this PC (size, type, speed), how much is in use, and whether Windows has recorded memory errors in the last 30 days. Only looks - nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='health.ram-test'; Category='Health'; Name='Memory test (Windows Memory Diagnostic)'; Description='Opens the Windows memory test. It is the thorough way to find faulty RAM, but it needs a restart: Windows asks whether to restart now or at the next start, and the test takes 10 to 30 minutes. The Cleaner never restarts the PC by itself.'; Risk='Guided'; Duration='1 min to start'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
 
         # AI Remover. Nothing here is ever pre-selected or part of a cleanup level.
         [pscustomobject]@{ Id='ai.check'; Category='AI'; Name='What AI is on this PC?'; Description='Only looks - nothing is changed. Click Check now and the AI still switched on or installed is listed right here - handy after a Windows or browser update brings something back.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -194,6 +202,14 @@ function Get-DRPathSize {
     } catch { return [int64]0 }
 }
 
+function Get-DRHibernateRoom {
+    <# Hibernate keeps a file on C: of up to 75% of the memory size. Returns what is needed and what is free. #>
+    $ramBytes = [double](Get-CimInstance Win32_ComputerSystem -ErrorAction Stop).TotalPhysicalMemory
+    $needed = [int64]($ramBytes * 0.75) + [int64](5GB)
+    $drive = Get-PSDrive -Name ($env:SystemDrive.TrimEnd(':')) -ErrorAction Stop
+    [pscustomobject]@{ Needed = $needed; Free = [int64]$drive.Free; Enough = ([int64]$drive.Free -ge $needed) }
+}
+
 function Get-DRPatternMatches {
     param([string[]]$Patterns)
     $found = New-Object System.Collections.Generic.List[object]
@@ -235,6 +251,16 @@ function Get-DRCloudCachePatterns {
         'MEGA' { @(
             "$env:LOCALAPPDATA\Mega Limited\MEGAsync\logs",
             "$env:USERPROFILE\MEGA\.debris"
+        ) }
+        'App caches' { @(
+            "$env:APPDATA\discord\Cache", "$env:APPDATA\discord\Code Cache", "$env:APPDATA\discord\GPUCache",
+            "$env:LOCALAPPDATA\Spotify\Data",
+            "$env:APPDATA\Slack\Cache", "$env:APPDATA\Slack\Code Cache", "$env:APPDATA\Slack\GPUCache",
+            "$env:APPDATA\Microsoft\Teams\Cache", "$env:APPDATA\Microsoft\Teams\Code Cache", "$env:APPDATA\Microsoft\Teams\GPUCache",
+            "$env:LOCALAPPDATA\Steam\htmlcache"
+        ) }
+        'Microsoft Store' { @(
+            "$env:LOCALAPPDATA\Packages\Microsoft.WindowsStore_8wekyb3d8bbwe\LocalCache"
         ) }
         default { @() }
     }
@@ -461,6 +487,22 @@ function Get-DRAnalysis {
                     $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'iCloud')) }
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
                     $detail = 'Cache and logs only; synced files are not touched'
+                }
+                'cleanup.cloud-appcaches' {
+                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'App caches')) }
+                    foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
+                    $detail = 'Temporary cache only; logins and chats are kept'
+                }
+                'cleanup.cloud-store' {
+                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'Microsoft Store')) }
+                    foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
+                    $detail = 'Store cache only; apps and purchases are kept'
+                }
+                'cleanup.hibernate-off' {
+                    $hib = Get-Item -LiteralPath (Join-Path $env:SystemDrive 'hiberfil.sys') -Force -ErrorAction SilentlyContinue
+                    if ($TestRoot) { $detail = 'TEST MODE: Hibernate is not changed' }
+                    elseif ($hib) { $bytes += $hib.Length; $items = 1; $detail = 'The hibernation file; Hibernate and Fast Startup stop until turned back on' }
+                    else { $detail = 'Hibernate is already off on this PC' }
                 }
                 'cleanup.cloud-google' {
                     $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'Google Drive')) }
@@ -814,10 +856,15 @@ function Invoke-DRDriveHealth {
         $lines = New-Object System.Collections.Generic.List[string]
         if ($sizeBytes) { $lines.Add(('Size: {0:N0} GB' -f ($sizeBytes / 1GB))) }
         if ($media) { $lines.Add(('Type: {0}' -f $media)) }
+        $bus = Get-DRDiskProperty $disk 'BusType'
+        if ($bus) { $lines.Add(('Connection: {0}' -f $bus)) }
 
         $counter = $null
         try { $counter = $disk | Get-StorageReliabilityCounter -ErrorAction Stop } catch { $counter = $null }
 
+        if ($null -eq $counter) {
+            $lines.Add('Temperature, wear and error counts are not available for this drive (some USB and RAID drives do not report them).')
+        }
         $wear = Get-DRDiskProperty $counter 'Wear'
         $temperature = Get-DRDiskProperty $counter 'Temperature'
         $hours = Get-DRDiskProperty $counter 'PowerOnHours'
@@ -827,7 +874,9 @@ function Invoke-DRDriveHealth {
         if ($null -ne $temperature -and $temperature -gt 0) { $lines.Add(('Temperature: {0} C' -f $temperature)) }
         # Wear is a write-life figure. It means something on a solid-state drive and
         # nothing on a spinning one, which does not wear out by being written to.
-        $isSolidState = ($media -eq 'SSD')
+        # Many SATA and USB SSDs report their type as "Unspecified", so NVMe and
+        # any non-HDD drive that reports a wear figure also count as solid-state.
+        $isSolidState = ($media -eq 'SSD') -or ($bus -eq 'NVMe') -or ($media -ne 'HDD' -and $null -ne $wear)
         if ($null -ne $wear -and $isSolidState) {
             $left = 100 - $wear
             if ($left -lt 0) { $left = 0 }
@@ -847,6 +896,16 @@ function Invoke-DRDriveHealth {
         if ($null -ne $readErrors -and $readErrors -gt 0) {
             $concerns++
             $lines.Add(('This drive has failed to read data {0} time(s) without being able to correct it. That is an early sign of a failing drive.' -f $readErrors))
+        }
+        $writeErrors = Get-DRDiskProperty $counter 'WriteErrorsUncorrected'
+        if ($null -ne $writeErrors -and $writeErrors -gt 0) {
+            $concerns++
+            $lines.Add(('This drive has failed to write data {0} time(s) without being able to correct it. That is an early sign of a failing drive.' -f $writeErrors))
+        }
+        $operational = @(Get-DRDiskProperty $disk 'OperationalStatus' | Where-Object { $_ -and ([string]$_ -ne 'OK') })
+        if ($operational.Count) {
+            $concerns++
+            $lines.Add(('Windows reports this drive status as: {0}.' -f ($operational -join ', ')))
         }
         if ($null -ne $wear -and $isSolidState -and $wear -ge 80) {
             $concerns++
@@ -898,6 +957,78 @@ function Invoke-DRMemoryBoost {
     $freeAfter = [double]$os.FreePhysicalMemory * 1KB
     $gained = [Math]::Max([double]0, $freeAfter - $freeBefore)
     New-DREvent -TaskId $TaskId -State Information -Message ('Freed about {0} of memory from {1} program(s). Nothing was closed. Free memory is now {2} of {3}.' -f (Format-DRSize $gained), $trimmed, (Format-DRSize $freeAfter), (Format-DRSize ([double]$os.TotalVisibleMemorySize * 1KB)))
+}
+
+function Invoke-DRRamCheck {
+    param([string]$TaskId, [string]$TestRoot)
+    if ($TestRoot) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the memory check was not run.'
+        return
+    }
+
+    $typeNames = @{ 20 = 'DDR'; 21 = 'DDR2'; 24 = 'DDR3'; 26 = 'DDR4'; 34 = 'DDR5'; 35 = 'LPDDR5' }
+    $modules = @()
+    try { $modules = @(Get-CimInstance Win32_PhysicalMemory -ErrorAction Stop) } catch { }
+    if ($modules.Count) {
+        $index = 0
+        foreach ($module in $modules) {
+            $index++
+            $sizeGb = [math]::Round([double]$module.Capacity / 1GB, 0)
+            $kind = if ($typeNames.ContainsKey([int]$module.SMBIOSMemoryType)) { $typeNames[[int]$module.SMBIOSMemoryType] } else { 'Memory' }
+            $speed = if ($module.ConfiguredClockSpeed) { [int]$module.ConfiguredClockSpeed } else { [int]$module.Speed }
+            $maker = ([string]$module.Manufacturer).Trim()
+            New-DREvent -TaskId $TaskId -State Information -Message ('Stick {0}: {1} GB {2} at {3} MHz{4}' -f $index, $sizeGb, $kind, $speed, $(if ($maker) { ' (' + $maker + ')' } else { '' }))
+        }
+    } else {
+        New-DREvent -TaskId $TaskId -State Warning -Message 'Windows did not list the memory sticks. Some PCs hide this. Nothing was changed.'
+    }
+
+    try {
+        $os = Get-CimInstance Win32_OperatingSystem -ErrorAction Stop
+        $total = [double]$os.TotalVisibleMemorySize * 1KB
+        $free = [double]$os.FreePhysicalMemory * 1KB
+        $usedPercent = [int](100 * ($total - $free) / [Math]::Max([double]1, $total))
+        New-DREvent -TaskId $TaskId -State Information -Message ('In use now: {0} of {1} ({2}%).' -f (Format-DRSize ($total - $free)), (Format-DRSize $total), $usedPercent)
+        if ($usedPercent -ge 90) {
+            New-DREvent -TaskId $TaskId -State Warning -Message 'Memory is almost full. Close programs you are not using, or use "Free up memory (Boost)".'
+        }
+    } catch { }
+
+    # Memory errors Windows has logged: hardware errors that mention memory, and the
+    # result of any earlier Windows Memory Diagnostic run.
+    $since = (Get-Date).AddDays(-30)
+    $memoryErrors = 0
+    try {
+        $events = @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; ProviderName = 'Microsoft-Windows-WHEA-Logger'; StartTime = $since } -MaxEvents 200 -ErrorAction Stop)
+        $memoryErrors = @($events | Where-Object { $_.Message -match 'memory' }).Count
+    } catch { }
+    if ($memoryErrors -gt 0) {
+        New-DREvent -TaskId $TaskId -State Warning -Message ('Windows recorded {0} hardware error(s) mentioning memory in the last 30 days. That can mean faulty or badly seated RAM. Run the "Memory test" row to check it properly.' -f $memoryErrors)
+    } else {
+        New-DREvent -TaskId $TaskId -State Information -Message 'Windows has recorded no memory hardware errors in the last 30 days.'
+    }
+
+    try {
+        $last = @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; ProviderName = 'Microsoft-Windows-MemoryDiagnostics-Results' } -MaxEvents 1 -ErrorAction Stop)
+        if ($last.Count) {
+            $when = $last[0].TimeCreated.ToString('d MMM yyyy')
+            if ($last[0].Id -eq 1101) { New-DREvent -TaskId $TaskId -State Information -Message ('The last Windows memory test ({0}) found no errors.' -f $when) }
+            else { New-DREvent -TaskId $TaskId -State Warning -Message ('The last Windows memory test ({0}) reported a problem. Replace or reseat the RAM, and back up anything important.' -f $when) }
+        }
+    } catch {
+        New-DREvent -TaskId $TaskId -State Information -Message 'The Windows memory test has not been run on this PC yet. The "Memory test" row runs it.'
+    }
+    New-DREvent -TaskId $TaskId -State Information -Message 'This check looks at what Windows has recorded. Only the memory test can prove RAM is fault-free. Nothing was changed on this PC.'
+}
+
+function Invoke-DRRamTest {
+    param([string]$TaskId, [string]$TestRoot)
+    if ($TestRoot) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the Windows memory test was not opened.'
+        return
+    }
+    Start-Process -FilePath (Join-Path $env:SystemRoot 'System32\MdSched.exe') | Out-Null
+    New-DREvent -TaskId $TaskId -State Information -Message 'The Windows memory test is open. Choose "Restart now" or "Check for problems the next time I start my computer". Save your work first. The result appears after Windows starts again.'
 }
 
 # PC Manager "Startup apps": lists what starts with Windows. Read-only.
@@ -2726,6 +2857,27 @@ function Invoke-DRTask {
                     }
                 }
             }
+            'cleanup.hibernate-off' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Hibernate was not changed.' }
+                else {
+                    $result = Start-DRHiddenProcess -FilePath 'powercfg.exe' -Arguments @('/hibernate','off')
+                    if ($result.ExitCode -ne 0) { throw ('Windows could not turn Hibernate off (exit code {0}).' -f $result.ExitCode) }
+                    New-DREvent -TaskId $TaskId -State Information -Message 'Hibernate and Fast Startup are off and the hibernation file was removed. Sleep still works. Use "Turn Hibernate back on" to undo this.'
+                }
+            }
+            'cleanup.hibernate-on' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Hibernate was not changed.' }
+                else {
+                    $room = Get-DRHibernateRoom
+                    if (-not $room.Enough) {
+                        New-DREvent -TaskId $TaskId -State Warning -Message ('Hibernate was NOT turned on. It needs about {0} free on {1}, and only {2} is free. Use Sleep instead (Start, Power, Sleep): it needs no disk space and wakes up fast.' -f (Format-DRSize $room.Needed), $env:SystemDrive, (Format-DRSize $room.Free))
+                    } else {
+                        $result = Start-DRHiddenProcess -FilePath 'powercfg.exe' -Arguments @('/hibernate','on')
+                        if ($result.ExitCode -ne 0) { throw ('Windows could not turn Hibernate on (exit code {0}).' -f $result.ExitCode) }
+                        New-DREvent -TaskId $TaskId -State Information -Message 'Hibernate and Fast Startup are back on.'
+                    }
+                }
+            }
             'cleanup.memory-dumps' {
                 if ($TestRoot) { Clear-DRFolderContents -FolderPath $TestRoot -TaskId $TaskId -TestRoot $TestRoot | Out-Null }
                 else {
@@ -2754,6 +2906,24 @@ function Invoke-DRTask {
                             else { New-DREvent -TaskId $TaskId -State Warning -Message ("Could not remove restore point '{0}' (code {1})." -f $point.Description, $result) }
                         }
                         New-DREvent -TaskId $TaskId -State Information -Message ("Removed {0} older restore point(s); the most recent one was kept." -f $removedPoints)
+                    }
+                }
+            }
+            'cleanup.event-defender' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the Defender history log was not cleared.' }
+                else {
+                    $errorText = & wevtutil.exe cl 'Microsoft-Windows-Windows Defender/Operational' 2>&1
+                    if ($LASTEXITCODE -ne 0) { New-DREvent -TaskId $TaskId -State Warning -Message ('Could not clear the Defender history log: {0}' -f ($errorText | Out-String).Trim()) }
+                    else { New-DREvent -TaskId $TaskId -State Information -Message 'Defender history cleared. Defender is still on and protecting this PC.' }
+                }
+            }
+            'cleanup.event-applogs' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the app and PowerShell logs were not cleared.' }
+                else {
+                    foreach ($log in @('Microsoft-Windows-Store/Operational','Windows PowerShell','Microsoft-Windows-PowerShell/Operational','PowerShellCore/Operational')) {
+                        $errorText = & wevtutil.exe cl $log 2>&1
+                        # A log that is not on this PC (for example PowerShell 7) is not a problem.
+                        if ($LASTEXITCODE -ne 0 -and ($errorText | Out-String) -notmatch 'could not be found|not found|15007') { New-DREvent -TaskId $TaskId -State Warning -Message ('Could not clear {0}: {1}' -f $log, ($errorText | Out-String).Trim()) }
                     }
                 }
             }
@@ -2889,6 +3059,8 @@ function Invoke-DRTask {
             'health.drive-check' { Invoke-DRDriveHealth -TaskId $TaskId -TestRoot $TestRoot }
             'health.pc-checkup' { Invoke-DRPCCheckup -TaskId $TaskId -TestRoot $TestRoot }
             'health.boost-memory' { Invoke-DRMemoryBoost -TaskId $TaskId -TestRoot $TestRoot }
+            'health.ram-check' { Invoke-DRRamCheck -TaskId $TaskId -TestRoot $TestRoot }
+            'health.ram-test' { Invoke-DRRamTest -TaskId $TaskId -TestRoot $TestRoot }
             'health.startup-apps' { Invoke-DRStartupReport -TaskId $TaskId -TestRoot $TestRoot }
             'health.large-files' { Invoke-DRLargeFiles -TaskId $TaskId -TestRoot $TestRoot }
         }

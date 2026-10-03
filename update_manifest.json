@@ -1,7 +1,7 @@
 {
-  "version": "1.4.47",
-  "notes": "Quietly skip apps with an installer-type mismatch",
-  "published": "2026-10-03T01:05:36.9658348-04:00",
+  "version": "1.4.48",
+  "notes": "A simpler Cleaner: plain-English menu and a one-click Make my PC cleaner screen. New checks for drive health (hard drives, SSDs and NVMe) and memory (RAM). New clean-ups for app caches, the Microsoft Store, Defender history and app logs, and an optional Hibernate switch. The Cleaner now asks for administrator rights by itself.",
+  "published": "2026-10-03T15:49:17.4014703-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "A18A50E5BE5EEF8BE94F1F30B868CDBD3BF2F7201D636A5787F5997E230BDFE3",
-      "size": 271930
+      "sha256": "9A5F037DCBFDEE260E7ACC8EA07D1B5964501DE05D51FEE65CE938045DB980B5",
+      "size": 270371
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "07E3E5A0BA7DF935B564604DE8E14CE417FE749B1DBD79DAB59C28BA65ADBB5A",
-      "size": 201570
+      "sha256": "8A442E64E15CBED5BE86EE6F957D24B5170F0B77499AB6F2C1899DA73F41DA29",
+      "size": 217090
     },
     {
       "name": "DRDirect Updater.ps1",
