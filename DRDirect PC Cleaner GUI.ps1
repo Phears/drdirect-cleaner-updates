@@ -1126,6 +1126,8 @@ $script:DRNoRestartTaskIds = @('health.chkdsk','health.drive-check','health.pc-c
     'ai.chrome.reinstall','ai.brave.reinstall','ai.firefox.reinstall')
 # The "Turn off" choices "Turn off all AI" picks, filled as the AI rows are drawn.
 $script:DRCheckWarned = @{}
+$script:DRNavState = @{}
+$script:DRSavedSelection = $null
 $script:DRWasBusy = $false
 $script:DRFinishedUnseen = $false
 $script:DRAIOffButtons = New-Object System.Collections.ArrayList
@@ -1520,6 +1522,11 @@ function Invoke-DRAIRunNow {
         $answer = [Windows.MessageBox]::Show("This will run now:`n`n$names`n`nContinue?", 'DRDirect PC Cleaner',
             [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question)
         if ($answer -ne [Windows.MessageBoxResult]::Yes) { return }
+    }
+    # The one-click checks must not cost the person the ticks they had already set.
+    if (@($TaskIds | Where-Object { $_ -in @('health.drive-check', 'health.ram-check') }).Count) {
+        $script:DRSavedSelection = @{}
+        foreach ($key in @($selection.Keys)) { $script:DRSavedSelection[$key] = [bool]$selection[$key] }
     }
     foreach ($key in @($selection.Keys)) { $selection[$key] = $false }
     foreach ($task in $tasks) { $selection[$task.Id] = $true }
@@ -2145,13 +2152,15 @@ function Set-DRNavCheckMark {
     param([string]$NavName, [string]$Label, [ValidateSet('Unchecked','Good','Attention')][string]$Status, [string]$Tip = '')
     $button = $ui[$NavName]
     if (-not $button) { return }
+    $script:DRNavState[$NavName] = $Status
+    [Windows.Controls.ToolTipService]::SetShowOnDisabled($button, $true)
     $panel = New-Object Windows.Controls.StackPanel -Property @{ Orientation = 'Horizontal' }
     [void]$panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = $Label; VerticalAlignment = 'Center' }))
     $mark = switch ($Status) { 'Good' { [string][char]0x2714 } 'Attention' { [string][char]0x26A0 } default { [string][char]0x25CF } }
     $color = switch ($Status) { 'Good' { '#2BE37A' } 'Attention' { '#FACC15' } default { '#EF4444' } }
     [void]$panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = $mark; Margin = '10,0,0,0'; Foreground = $color; FontWeight = 'Bold'; FontSize = $(if ($Status -eq 'Unchecked') { 11 } else { 17 }); VerticalAlignment = 'Center' }))
     $button.Content = $panel
-    $button.ToolTip = if ($Tip) { $Tip } else { switch ($Status) { 'Good' { 'Checked: all good. Click to check again.' } 'Attention' { 'Checked: something needs attention. Click to check again.' } default { 'Not checked yet. Click to check.' } } }
+    $button.ToolTip = if ($Tip) { $Tip } else { switch ($Status) { 'Good' { 'All good. No need to check again for now.' } 'Attention' { 'Checked: something needs attention. Click to check again.' } default { 'Not checked yet. Click to check.' } } }
 }
 
 # How long a check result stays valid. After this the menu item goes back to the red
@@ -2205,7 +2214,7 @@ function Restore-DRCheckMarks {
             $when = $saved[$taskId].Date.ToString('d MMM yyyy')
             if ($ageDays -le $script:DRCheckValidDays) {
                 $status = if ($saved[$taskId].Attention) { 'Attention' } else { 'Good' }
-                $tip = if ($saved[$taskId].Attention) { "Last checked ${when}: something needs attention. Click to check again." } else { "Last checked ${when}: all good. Click to check again." }
+                $tip = if ($saved[$taskId].Attention) { "Last checked ${when}: something needs attention. Click to check again." } else { "Last checked ${when}: all good. No need to check again until the red dot comes back." }
             } else {
                 $tip = "Last checked $when. It is time to check again."
             }
@@ -2247,7 +2256,7 @@ function Set-ProgressRowState {
         if ($State -in @('Completed','Failed')) {
             $attention = $false
             if ($script:DRCheckWarned.ContainsKey($TaskId)) { $attention = [bool]$script:DRCheckWarned[$TaskId] }
-            Set-DRNavCheckMark -NavName $navFor[$TaskId][0] -Label $navFor[$TaskId][1] -Status $(if ($attention) { 'Attention' } else { 'Good' }) -Tip ("Checked today: " + $(if ($attention) { 'something needs attention.' } else { 'all good.' }) + " Click to check again.")
+            Set-DRNavCheckMark -NavName $navFor[$TaskId][0] -Label $navFor[$TaskId][1] -Status $(if ($attention) { 'Attention' } else { 'Good' }) -Tip $(if ($attention) { 'Checked today: something needs attention. Click to check again.' } else { 'Checked today: all good. No need to check again for now.' })
             Save-DRCheckStatus -TaskId $TaskId -Attention $attention
         }
     }
@@ -3037,7 +3046,13 @@ $pollTimer.Add_Tick({
         # The progress box: always shows where a run is up to, on every page, and takes
         # you back to the progress page when clicked.
         if ($busyNow) { $script:DRWasBusy = $true }
-        elseif ($script:DRWasBusy) { $script:DRWasBusy = $false; $script:DRFinishedUnseen = $true }
+        elseif ($script:DRWasBusy) {
+            $script:DRWasBusy = $false; $script:DRFinishedUnseen = $true
+            if ($script:DRSavedSelection) {
+                foreach ($key in @($script:DRSavedSelection.Keys)) { $selection[$key] = $script:DRSavedSelection[$key] }
+                $script:DRSavedSelection = $null
+            }
+        }
         if ($script:currentCategory -eq 'Progress') { $script:DRFinishedUnseen = $false }
         if ($busyNow -and $script:currentCategory -ne 'Progress') {
             $ui.RunStrip.Visibility = 'Visible'
@@ -3052,11 +3067,12 @@ $pollTimer.Add_Tick({
         } else {
             $ui.RunStrip.Visibility = 'Collapsed'
         }
-        if ($ui.NavHealth.IsEnabled -eq $busyNow) {
-            foreach ($navName in @('NavHealth', 'NavMemory')) {
-                $ui[$navName].IsEnabled = (-not $busyNow)
-                $ui[$navName].Opacity = if ($busyNow) { 0.35 } else { 1 }
-            }
+        foreach ($navName in @('NavHealth', 'NavMemory')) {
+            $locked = ($script:DRNavState.ContainsKey($navName) -and $script:DRNavState[$navName] -eq 'Good')
+            $wantEnabled = ((-not $busyNow) -and (-not $locked))
+            if ($ui[$navName].IsEnabled -ne $wantEnabled) { $ui[$navName].IsEnabled = $wantEnabled }
+            $wantOpacity = if ($busyNow) { 0.35 } else { 1 }
+            if ($ui[$navName].Opacity -ne $wantOpacity) { $ui[$navName].Opacity = $wantOpacity }
         }
     } catch { }
     if (-not $script:activeAsync) { return }
