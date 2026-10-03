@@ -1,7 +1,7 @@
 {
-  "version": "1.4.38",
-  "notes": "Added App updates page (winget upgrade --all)",
-  "published": "2026-10-02T22:29:28.5878826-04:00",
+  "version": "1.4.39",
+  "notes": "Fixes the Cleaner not opening after the last update. Includes the new App updates page.",
+  "published": "2026-10-02T23:45:37.1868691-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "19A9F513180B7FEF9253104FFA5342046D3714C3F865A26DE613C398AA38A488",
-      "size": 260164
+      "sha256": "CB65EBB20E8E6A8F4EB1B92B85B282BB712BC9DD0DC9C0239E6425904FC27138",
+      "size": 260261
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
