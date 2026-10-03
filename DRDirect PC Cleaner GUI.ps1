@@ -3165,6 +3165,7 @@ foreach ($p in $pkgs) {
 
     $a = @('upgrade', '--id', $p.Id, '--exact', '--silent', '--accept-source-agreements', '--accept-package-agreements')
     $proc = Start-Process $wingetExe -ArgumentList $a -NoNewWindow -PassThru   # shares console => real progress bar
+    $null = $proc.Handle   # without this, ExitCode comes back empty after a timed WaitForExit
     $done = $proc.WaitForExit($TimeoutMinutes * 60000)
     if (-not $done) {
         try { Stop-Process -Id $proc.Id -Force } catch {}
@@ -3197,7 +3198,8 @@ Read-Host 'Press Enter to close' | Out-Null
     try {
         $file = Join-Path $env:TEMP 'DRDirect-Winget-Upgrade.ps1'
         [IO.File]::WriteAllText($file, $flashy, (New-Object Text.UTF8Encoding $true))
-        Start-Process -FilePath 'powershell.exe' -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', ""$file"" | Out-Null
+        # 'start' forces a real new console window, like the cmd route that always showed one; -NoExit keeps it open if the script stops early.
+        Start-Process -FilePath 'cmd.exe' -ArgumentList ('/c start "DRDirect winget upgrade" powershell.exe -NoProfile -NoExit -ExecutionPolicy Bypass -File "' + $file + '"') -WindowStyle Hidden | Out-Null
         $ui.AppUpdatesStatus.Text = 'Updating apps in a colour PowerShell window. Close it when it says it has finished.'
     } catch {
         $ui.AppUpdatesStatus.Text = "Could not start the update window: $($_.Exception.Message)"

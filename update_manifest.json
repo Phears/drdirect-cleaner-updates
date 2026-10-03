@@ -1,7 +1,7 @@
 {
-  "version": "1.4.44",
-  "notes": "Electric blue winget button and colour PowerShell update window",
-  "published": "2026-10-03T00:36:42.4937248-04:00",
+  "version": "1.4.45",
+  "notes": "Fix winget window and exit codes",
+  "published": "2026-10-03T00:46:01.1587211-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "3464C13871F5E0ECAD8BC86592590DD4A7F8D2AD3AB9361D89ED46746716DC03",
-      "size": 271063
+      "sha256": "13CD520BA2BC4F2A0ADEE2142BD6A8F934F93C70FD1994DDE61FF117DCC1EC2A",
+      "size": 271373
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
