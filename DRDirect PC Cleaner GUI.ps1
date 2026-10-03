@@ -3178,6 +3178,10 @@ foreach ($p in $pkgs) {
         Write-Host (RGB 255 60 90 "⏰ $($p.Name) timed out after ${TimeoutMinutes}m - skipped")
         $fail += "$($p.Name) (timeout)"
     }
+    elseif ($proc.ExitCode -eq -1978335090) {
+        # Installed with a different installer type than winget updates with (e.g. an old Store copy).
+        # Nothing is broken and the app is untouched, so it is not reported as a problem.
+    }
     elseif ($proc.ExitCode -eq 0) {
         Write-Host (RGB 80 255 120 "✅ $($p.Name) upgraded")
         $ok += $p.Name

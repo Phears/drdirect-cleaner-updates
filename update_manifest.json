@@ -1,7 +1,7 @@
 {
-  "version": "1.4.46",
-  "notes": "winget upgrade skips Warp",
-  "published": "2026-10-03T00:53:42.3134726-04:00",
+  "version": "1.4.47",
+  "notes": "Quietly skip apps with an installer-type mismatch",
+  "published": "2026-10-03T01:05:36.9658348-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "3BFCC73ECBD1445F38F815206C2DC84A3DB85DE8A3CDB50161DBE6ED5A6117D3",
-      "size": 271684
+      "sha256": "A18A50E5BE5EEF8BE94F1F30B868CDBD3BF2F7201D636A5787F5997E230BDFE3",
+      "size": 271930
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
