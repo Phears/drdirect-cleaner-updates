@@ -1,7 +1,7 @@
 {
-  "version": "1.4.50",
-  "notes": "The History page is now called Cleaning history, in bright cyan so it is easy to spot. It shows what the Cleaner did and lets you open the reports.",
-  "published": "2026-10-03T16:49:11.3502042-04:00",
+  "version": "1.4.51",
+  "notes": "When a new update is waiting, the Dashboard now shows a bright green banner saying so, and the Update button turns green too. The Cleaner looks for updates every time it opens.",
+  "published": "2026-10-03T16:53:27.6620332-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "C840289C30D2AF12A4409AD101BD52E481A778A43C5345A0603B7E9EB0C0506B",
-      "size": 280913
+      "sha256": "3B2005CA10B80DC65AECD4068F266FF36C3C8FB53AA32AE5AE26D0BC6D5D6272",
+      "size": 282250
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

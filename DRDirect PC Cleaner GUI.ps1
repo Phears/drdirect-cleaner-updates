@@ -772,6 +772,7 @@ $ErrorActionPreference = 'Stop'
 
             <Grid Grid.Row="1">
                 <ScrollViewer x:Name="PageDashboard" VerticalScrollBarVisibility="Auto"><StackPanel>
+<Border x:Name="UpdateBanner" Visibility="Collapsed" Background="#12C25B" CornerRadius="12" Padding="20,14" Margin="0,0,0,16"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal" VerticalAlignment="Center"><TextBlock Text="&#10004;" Foreground="White" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,12,0"/><TextBlock x:Name="UpdateBannerText" Text="There is a new update" Foreground="White" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"/></StackPanel><Button x:Name="UpdateBannerButton" Grid.Column="1" Content="See what is new and update" Style="{StaticResource HeroButton}" Foreground="#0B7A3B" Margin="16,0,0,0"/></Grid></Border>
 <Border Style="{StaticResource Card}" Padding="34" Margin="0,0,0,18" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8"><StackPanel><TextBlock Text="START HERE" Foreground="#A8C4FF" FontSize="11" FontWeight="Bold"/><TextBlock Text="Make my PC cleaner" Foreground="White" FontSize="32" FontWeight="ExtraBold" Margin="0,8,0,8"/><TextBlock Text="One click. We only do the safe things, and we ask you before anything starts." Foreground="#C9D9FF" FontSize="16" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left"/><StackPanel Orientation="Horizontal" Margin="0,24,0,0"><Button x:Name="SafeCleanButton" Content="Make my PC cleaner" Style="{StaticResource HeroButton}"/><Button x:Name="SafePreviewButton" Content="Show me first" Style="{StaticResource HeroGhostButton}" Margin="10,0,0,0"/></StackPanel><TextBlock Text="✓  Settings changes can be undone.   ✓  Your files and passwords are never touched." Foreground="#DDE8FF" FontSize="13" Margin="0,20,0,0" TextWrapping="Wrap"/></StackPanel></Border>
 <UniformGrid Columns="3" Margin="0,0,0,22">
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Violet}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource VioletSoft}"><TextBlock Text="◷" Foreground="{StaticResource Violet}" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="LAST CLEAN" Foreground="{StaticResource Violet}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock Text="Not yet" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="Shows here after your first clean" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
@@ -1060,7 +1061,7 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','UpdateBanner','UpdateBannerText','UpdateBannerButton','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -3939,13 +3940,8 @@ function Start-DRQuietUpdateCheck {
             is downloaded.
     #>
     $stampFile = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\lastupdatecheck.txt'
-    try {
-        if (Test-Path -LiteralPath $stampFile) {
-            $last = ([System.IO.File]::ReadAllText($stampFile)).Trim()
-            if ($last -eq (Get-Date).ToString('yyyy-MM-dd')) { return }
-        }
-    } catch { }
-
+    # Checked on every start: it is one small request, and a waiting update should
+    # never be hidden for a day because the last look was this morning.
     $installed = try { Get-DRInstalledVersion } catch { [version]'0.0.0' }
 
     $probe = {
@@ -3987,8 +3983,11 @@ function Start-DRQuietUpdateCheck {
                 $line = [string](@($script:DRCheckPs.EndInvoke($script:DRCheckAsync)) | Select-Object -Last 1)
                 if ($line -like 'AVAILABLE*') {
                     $version = ($line -split ' ')[1]
-                    $ui.CheckUpdatesButton.Content = "Update available - $version"
+                    $ui.CheckUpdatesButton.Content = "New update available - $version"
                     $ui.CheckUpdatesButton.FontWeight = 'Bold'
+                    try { $ui.CheckUpdatesButton.Background = '#12C25B'; $ui.CheckUpdatesButton.Foreground = 'White'; $ui.CheckUpdatesButton.BorderBrush = '#0B7A3B' } catch { }
+                    $ui.UpdateBannerText.Text = "There is a new update - version $version"
+                    $ui.UpdateBanner.Visibility = 'Visible'
                     $ui.CheckUpdatesButton.ToolTip =
                         "Version $version is ready. Click to see what changed and install it."
                 }
@@ -4003,6 +4002,10 @@ function Start-DRQuietUpdateCheck {
         $script:DRCheckTimer.Start()
     } catch { }
 }
+
+$ui.UpdateBannerButton.Add_Click({
+    $ui.CheckUpdatesButton.RaiseEvent((New-Object Windows.RoutedEventArgs([Windows.Controls.Primitives.ButtonBase]::ClickEvent)))
+})
 
 $ui.CheckUpdatesButton.Add_Click({
     # A copy waiting to be activated gets the code box here too - some people
@@ -4034,6 +4037,7 @@ $ui.CheckUpdatesButton.Add_Click({
 
         $ui.CheckUpdatesButton.Content = 'Updating...'
         $result = Install-DRUpdate -Manifest $check.Manifest
+        if ($result.Success) { $ui.UpdateBanner.Visibility = 'Collapsed' }
         $icon = if ($result.Success) { [Windows.MessageBoxImage]::Information } else { [Windows.MessageBoxImage]::Warning }
         [Windows.MessageBox]::Show($result.Message, 'DRDirect PC Cleaner',
             [Windows.MessageBoxButton]::OK, $icon) | Out-Null
