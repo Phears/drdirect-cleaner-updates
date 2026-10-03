@@ -694,7 +694,7 @@ $ErrorActionPreference = 'Stop'
                     <Button x:Name="NavProgress" Style="{StaticResource NavButton}" Content="◐   Maintenance progress" Visibility="Collapsed"/>
                     <Button x:Name="NavHardware" Style="{StaticResource NavButton}" Content="▤   Hardware"/>
                     <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   History &amp; Undo"/>
-                    <Button x:Name="NavAppUpdates" Style="{StaticResource NavButton}" Content="⭳   App updates"/>
+                    <Button x:Name="NavAppUpdates" Style="{StaticResource NavButton}" Content="⭳   Update all apps"/>
                     <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Duplicate finder"/>
                 </StackPanel>
                 </ScrollViewer>
@@ -2970,7 +2970,6 @@ $ui.NavSecurity.Add_Click({ Set-Page 'Security' })
 $ui.NavHealth.Add_Click({ Set-Page 'Health' })
 $ui.NavHardware.Add_Click({ Set-Page 'Hardware' })
 $ui.CheckDriversButton.Add_Click({ Start-DRDriverCheck })
-$ui.NavAppUpdates.Add_Click({ Set-Page 'AppUpdates' })
 
 function Start-DRWingetWindow {
     param([string]$WingetArgs, [string]$StartedText)
@@ -3002,12 +3001,15 @@ function Start-DRWingetWindow {
 $ui.ListAppUpdatesButton.Add_Click({
     Start-DRWingetWindow 'upgrade --source winget' 'Listing available updates in a console window. Nothing is installed.'
 })
-$ui.UpdateAllAppsButton.Add_Click({
+function Invoke-DRUpdateAllApps {
     $answer = [Windows.MessageBox]::Show("This runs 'winget upgrade --all' and updates every app winget can update on this PC.`n`nSome apps may close or restart during their update. Save your work first.`n`nContinue?", 'DRDirect PC Cleaner',
         [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question)
     if ($answer -ne [Windows.MessageBoxResult]::Yes) { return }
     Start-DRWingetWindow 'upgrade --all --silent --accept-source-agreements --accept-package-agreements' 'Updating apps in a console window. Close it when it says it has finished.'
-})
+}
+$ui.UpdateAllAppsButton.Add_Click({ Invoke-DRUpdateAllApps })
+# The sidebar item runs the update straight away (after confirming) instead of opening a page first.
+$ui.NavAppUpdates.Add_Click({ Invoke-DRUpdateAllApps })
 $ui.PCManagerButton.Add_Click({
     # Opens PC Manager if it is installed, otherwise its Store page. Nothing is
     # installed here; the person chooses that in the Store.
