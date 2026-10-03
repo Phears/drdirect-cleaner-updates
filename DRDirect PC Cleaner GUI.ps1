@@ -4042,12 +4042,8 @@ function Start-DRQuietUpdateCheck {
                 $line = [string](@($script:DRCheckPs.EndInvoke($script:DRCheckAsync)) | Select-Object -Last 1)
                 if ($line -like 'AVAILABLE*') {
                     $version = ($line -split ' ')[1]
-                    $ui.CheckUpdatesButton.Content = "New update available - $version"
-                    $ui.CheckUpdatesButton.FontWeight = 'Bold'
-                    try { $ui.CheckUpdatesButton.Background = '#12C25B'; $ui.CheckUpdatesButton.Foreground = 'White'; $ui.CheckUpdatesButton.BorderBrush = '#0B7A3B' } catch { }
-                    try { $ui.HeroUpdateButton.Content = 'New update available'; $ui.HeroUpdateButton.Background = '#12C25B'; $ui.HeroUpdateButton.Foreground = 'White'; $ui.HeroUpdateButton.BorderBrush = '#0B7A3B' } catch { }
-                    $ui.UpdateBannerText.Text = "There is a new update - version $version"
-                    $ui.UpdateBanner.Visibility = 'Visible'
+                    # Only the Check for updates button in the blue box turns green; nothing else changes.
+                    try { $ui.HeroUpdateButton.Content = 'New update'; $ui.HeroUpdateButton.FontWeight = 'Bold'; $ui.HeroUpdateButton.Background = '#12C25B'; $ui.HeroUpdateButton.Foreground = 'White'; $ui.HeroUpdateButton.BorderBrush = '#0B7A3B' } catch { }
                     $ui.CheckUpdatesButton.ToolTip =
                         "Version $version is ready. Click to see what changed and install it."
                 }

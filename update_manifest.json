@@ -1,7 +1,7 @@
 {
-  "version": "1.4.54",
-  "notes": "A Check for updates button is back in the big blue box on the Dashboard. When a new update is waiting it turns bright green and says New update available.",
-  "published": "2026-10-03T18:13:57.0038352-04:00",
+  "version": "1.4.55",
+  "notes": "When a new update is waiting, only the Check for updates button in the big blue box turns bright green and says New update. The green banner at the top and the green tile button are gone.",
+  "published": "2026-10-03T18:22:07.8109880-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "CFDAC71C54CC8DF264B9E50D3E2685BD3BBDDBD9734B8ACCE7209323993F3549",
-      "size": 286938
+      "sha256": "D06E9A00D9F0D419105A9C4B1731A5452283CF45CA8A262A80D228B336AF21EA",
+      "size": 286599
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
