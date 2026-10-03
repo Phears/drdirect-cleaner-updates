@@ -1,7 +1,7 @@
 {
   "version": "1.4.46",
   "notes": "winget upgrade skips Warp",
-  "published": "2026-10-03T00:52:12.8731920-04:00",
+  "published": "2026-10-03T00:53:42.3134726-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
