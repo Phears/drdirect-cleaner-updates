@@ -1,7 +1,7 @@
 {
-  "version": "1.4.53",
-  "notes": "Once Check my drives or Check my RAM shows a green tick, it is locked for about 3 months so it cannot be pressed by mistake. A yellow warning or a red dot can still be pressed. Running one of these checks no longer clears the tick boxes you had already set on other pages.",
-  "published": "2026-10-03T17:54:58.3089872-04:00",
+  "version": "1.4.54",
+  "notes": "A Check for updates button is back in the big blue box on the Dashboard. When a new update is waiting it turns bright green and says New update available.",
+  "published": "2026-10-03T18:13:57.0038352-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "06ACCDD0397784A28B8F37F24B9F67CF7AF4C8D2B0D436A81BF757CEF8533A68",
-      "size": 286340
+      "sha256": "CFDAC71C54CC8DF264B9E50D3E2685BD3BBDDBD9734B8ACCE7209323993F3549",
+      "size": 286938
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
