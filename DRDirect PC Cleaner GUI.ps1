@@ -2974,18 +2974,44 @@ $ui.CheckDriversButton.Add_Click({ Start-DRDriverCheck })
 function Start-DRWingetWindow {
     param([string]$WingetArgs, [string]$StartedText)
     if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
-        $answer = [Windows.MessageBox]::Show("winget (Windows Package Manager) is not installed on this PC.`n`nOpen the Microsoft Store page for 'App Installer' so you can install it?", 'DRDirect PC Cleaner',
+        $answer = [Windows.MessageBox]::Show("winget (Windows Package Manager) is not installed on this PC.`n`nInstall it now? The Cleaner downloads Microsoft's own installer (about 20 MB) from aka.ms/getwinget, installs it, then continues.", 'DRDirect PC Cleaner',
             [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question)
-        if ($answer -eq [Windows.MessageBoxResult]::Yes) {
-            try {
-                # Only opens the Store page; the person chooses Install there.
-                Start-Process 'ms-windows-store://pdp/?productid=9NBLGGH4NNS1' | Out-Null
-                $ui.AppUpdatesStatus.Text = 'Opened the Microsoft Store. Install "App Installer", then come back and try again.'
-            } catch {
-                $ui.AppUpdatesStatus.Text = "Could not open the Microsoft Store: $($_.Exception.Message)"
-            }
-        } else {
-            $ui.AppUpdatesStatus.Text = 'winget is not installed. Install "App Installer" from the Microsoft Store to use this page.'
+        if ($answer -ne [Windows.MessageBoxResult]::Yes) {
+            $ui.AppUpdatesStatus.Text = 'winget is not installed, so apps were not updated.'
+            return
+        }
+        # One console window does everything so progress is visible. If the install
+        # fails, it opens Microsoft's download page and the Store page instead.
+        $installScript = @"
+`$ErrorActionPreference = 'Stop'
+`$ProgressPreference = 'SilentlyContinue'
+try {
+    Write-Host 'Downloading winget from Microsoft...'
+    `$file = Join-Path `$env:TEMP 'DRDirect-winget.msixbundle'
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    Invoke-WebRequest -Uri 'https://aka.ms/getwinget' -OutFile `$file -UseBasicParsing
+    Write-Host 'Installing winget...'
+    Add-AppxPackage -Path `$file
+    Remove-Item -LiteralPath `$file -Force -ErrorAction SilentlyContinue
+    `$exe = Join-Path `$env:LOCALAPPDATA 'Microsoft\WindowsApps\winget.exe'
+    for (`$i = 0; `$i -lt 15 -and -not (Test-Path -LiteralPath `$exe); `$i++) { Start-Sleep -Seconds 1 }
+    Write-Host 'winget is installed.'
+    Write-Host ''
+    & `$exe $WingetArgs
+} catch {
+    Write-Host ('Could not install winget: ' + `$_.Exception.Message) -ForegroundColor Yellow
+    Write-Host 'Opening Microsoft''s download page so you can install it by hand.'
+    Start-Process 'https://aka.ms/getwinget'
+}
+Write-Host ''
+Read-Host 'Press Enter to close this window'
+"@
+        try {
+            $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($installScript))
+            Start-Process -FilePath 'powershell.exe' -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encoded | Out-Null
+            $ui.AppUpdatesStatus.Text = 'Installing winget from Microsoft in a console window. It then runs the update by itself.'
+        } catch {
+            $ui.AppUpdatesStatus.Text = "Could not start the winget install: $($_.Exception.Message)"
         }
         return
     }

@@ -1,7 +1,7 @@
 {
-  "version": "1.4.41",
-  "notes": "The winget upgrade --all button is now at the bottom of the left menu and updates all your apps in one click, after you confirm.",
-  "published": "2026-10-02T23:53:44.9783135-04:00",
+  "version": "1.4.42",
+  "notes": "If winget is missing, the Cleaner can now install it for you (after you confirm), then updates all your apps.",
+  "published": "2026-10-02T23:56:59.6067794-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "17EF4FFAA3AA24A1328E25BAEC568CF7ECC0A504649583D906D99C3D661D6678",
-      "size": 260431
+      "sha256": "59FA67639C7ECAF49674E6E42212087A7D47ED561186347E937B7EDDD2DBA795",
+      "size": 261778
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
