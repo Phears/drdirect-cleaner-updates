@@ -694,6 +694,7 @@ $ErrorActionPreference = 'Stop'
                     <Button x:Name="NavProgress" Style="{StaticResource NavButton}" Content="◐   Maintenance progress" Visibility="Collapsed"/>
                     <Button x:Name="NavHardware" Style="{StaticResource NavButton}" Content="▤   Hardware"/>
                     <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   History &amp; Undo"/>
+                    <Button x:Name="NavAppUpdates" Style="{StaticResource NavButton}" Content="⭳   App updates"/>
                     <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Duplicate finder"/>
                 </StackPanel>
                 </ScrollViewer>
@@ -895,6 +896,23 @@ $ErrorActionPreference = 'Stop'
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                     <Grid Margin="0,0,0,14"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="What is inside this PC, and where there is room to improve it. Nothing here is changed or installed." Style="{StaticResource MutedText}" TextWrapping="Wrap" VerticalAlignment="Center"/><Button x:Name="CheckDriversButton" Grid.Column="1" Content="Check for driver updates" Style="{StaticResource SecondaryButton}" Margin="10,0,0,0"/></Grid>
                     <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"><StackPanel x:Name="HardwareList"/></ScrollViewer>
+                </Grid>
+
+                <Grid x:Name="PageAppUpdates" Visibility="Collapsed">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <TextBlock Text="Updates the apps installed on this PC using Windows Package Manager (winget). Your files and settings are not touched." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,0,0,14"/>
+                    <Border Grid.Row="1" Style="{StaticResource Card}" VerticalAlignment="Top" Padding="30">
+                        <StackPanel>
+                            <TextBlock Text="KEEP APPS CURRENT" Foreground="{StaticResource Blue}" FontSize="11" FontWeight="Bold"/>
+                            <TextBlock Text="Update all apps" FontSize="24" FontWeight="SemiBold" Margin="0,8,0,10"/>
+                            <TextBlock Text="'Show available updates' only lists what is out of date. 'Update all apps' runs winget upgrade --all after you confirm. Progress is shown in a console window." Style="{StaticResource MutedText}" TextWrapping="Wrap" MaxWidth="620" HorizontalAlignment="Left"/>
+                            <TextBlock x:Name="AppUpdatesStatus" Text="Nothing has run yet." Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap" Margin="0,12,0,0"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,22,0,0">
+                                <Button x:Name="ListAppUpdatesButton" Content="Show available updates" Style="{StaticResource SecondaryButton}"/>
+                                <Button x:Name="UpdateAllAppsButton" Content="Update all apps" Style="{StaticResource PrimaryButton}" Margin="10,0,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
                 </Grid>
 
                 <Grid x:Name="PageDuplicates" Visibility="Collapsed">
@@ -1158,10 +1176,11 @@ function Set-Page {
     $ui.PageHistory.Visibility = if ($Name -eq 'History') { 'Visible' } else { 'Collapsed' }
     $ui.PageDuplicates.Visibility = if ($Name -eq 'Duplicates') { 'Visible' } else { 'Collapsed' }
     $ui.PageHardware.Visibility = if ($Name -eq 'Hardware') { 'Visible' } else { 'Collapsed' }
-    $ui.PageTitle.Text = switch ($Name) { 'Health' {'Drive health'} 'AI' {'AI Remover'} 'Progress' {'Maintenance progress'} 'Duplicates' {'Duplicate finder'} 'Hardware' {'Hardware'} default {$Name} }
+    $ui.PageAppUpdates.Visibility = if ($Name -eq 'AppUpdates') { 'Visible' } else { 'Collapsed' }
+    $ui.PageTitle.Text = switch ($Name) { 'AppUpdates' {'App updates'} 'Health' {'Drive health'} 'AI' {'AI Remover'} 'Progress' {'Maintenance progress'} 'Duplicates' {'Duplicate finder'} 'Hardware' {'Hardware'} default {$Name} }
     $script:currentCategory = $Name
     $ui.CleanupPresetPanel.Visibility = if ($Name -eq 'Cleanup') { 'Visible' } else { 'Collapsed' }
-    $navMap = @{ Dashboard='NavDashboard'; Cleanup='NavCleanup'; Repair='NavRepair'; Security='NavSecurity'; Health='NavHealth'; History='NavHistory'; Progress='NavProgress'; Duplicates='NavDuplicates'; Hardware='NavHardware'; AI='NavAI' }
+    $navMap = @{ Dashboard='NavDashboard'; Cleanup='NavCleanup'; Repair='NavRepair'; Security='NavSecurity'; Health='NavHealth'; History='NavHistory'; Progress='NavProgress'; Duplicates='NavDuplicates'; Hardware='NavHardware'; AppUpdates='NavAppUpdates'; AI='NavAI' }
     foreach ($key in $navMap.Keys) { $ui[$navMap[$key]].Tag = if ($key -eq $Name) { 'Active' } else { $null } }
     if ($Name -in @('Cleanup','Repair','Security','Health','AI')) { Show-TaskCategory $Name }
     if ($Name -eq 'History') { Show-History }
@@ -1174,6 +1193,7 @@ function Set-Page {
         'History'   { $ui.PageHistory }
         'Duplicates' { $ui.PageDuplicates }
         'Hardware'  { $ui.PageHardware }
+        'AppUpdates' { $ui.PageAppUpdates }
         default     { $ui.PageTasks }
     }
     Start-DRFadeIn -Element $activePage
@@ -2950,6 +2970,44 @@ $ui.NavSecurity.Add_Click({ Set-Page 'Security' })
 $ui.NavHealth.Add_Click({ Set-Page 'Health' })
 $ui.NavHardware.Add_Click({ Set-Page 'Hardware' })
 $ui.CheckDriversButton.Add_Click({ Start-DRDriverCheck })
+$ui.NavAppUpdates.Add_Click({ Set-Page 'AppUpdates' })
+
+function Start-DRWingetWindow {
+    param([string]$WingetArgs, [string]$StartedText)
+    if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
+        $answer = [Windows.MessageBox]::Show("winget (Windows Package Manager) is not installed on this PC.`n`nOpen the Microsoft Store page for 'App Installer' so you can install it?", 'DRDirect PC Cleaner',
+            [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question)
+        if ($answer -eq [Windows.MessageBoxResult]::Yes) {
+            try {
+                # Only opens the Store page; the person chooses Install there.
+                Start-Process 'ms-windows-store://pdp/?productid=9NBLGGH4NNS1' | Out-Null
+                $ui.AppUpdatesStatus.Text = 'Opened the Microsoft Store. Install "App Installer", then come back and try again.'
+            } catch {
+                $ui.AppUpdatesStatus.Text = "Could not open the Microsoft Store: $($_.Exception.Message)"
+            }
+        } else {
+            $ui.AppUpdatesStatus.Text = 'winget is not installed. Install "App Installer" from the Microsoft Store to use this page.'
+        }
+        return
+    }
+    try {
+        # Own console window so progress is visible; 'pause' keeps it open to read the result.
+        Start-Process -FilePath 'cmd.exe' -ArgumentList "/c winget $WingetArgs & echo. & pause" | Out-Null
+        $ui.AppUpdatesStatus.Text = $StartedText
+    } catch {
+        $ui.AppUpdatesStatus.Text = "Could not start winget: $($_.Exception.Message)"
+    }
+}
+
+$ui.ListAppUpdatesButton.Add_Click({
+    Start-DRWingetWindow 'upgrade --source winget' 'Listing available updates in a console window. Nothing is installed.'
+})
+$ui.UpdateAllAppsButton.Add_Click({
+    $answer = [Windows.MessageBox]::Show("This runs 'winget upgrade --all' and updates every app winget can update on this PC.`n`nSome apps may close or restart during their update. Save your work first.`n`nContinue?", 'DRDirect PC Cleaner',
+        [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question)
+    if ($answer -ne [Windows.MessageBoxResult]::Yes) { return }
+    Start-DRWingetWindow 'upgrade --all --silent --accept-source-agreements --accept-package-agreements' 'Updating apps in a console window. Close it when it says it has finished.'
+})
 $ui.PCManagerButton.Add_Click({
     # Opens PC Manager if it is installed, otherwise its Store page. Nothing is
     # installed here; the person chooses that in the Store.
