@@ -46,14 +46,19 @@ if (-not $drStartedByDRDirect) {
 }
 
 # Opened without administrator rights (for example from a script launcher)? Ask
-# Windows for them once, so every task can do its job. Test mode and the smoke
-# test never ask, and saying No simply carries on as a standard user.
-if (-not $TestMode -and -not $NoShow -and $PSCommandPath) {
+# Windows for them once, so every check and clean-up can do its job - without
+# them, drive health, memory and many cleaners cannot read or change anything.
+# Test mode asks too, so what you see is what a customer sees. Only the silent
+# smoke test never asks, and saying No carries on as a standard user.
+if (-not $NoShow -and $PSCommandPath) {
     $drIsAdmin = $false
     try { $drIsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) } catch { }
     if (-not $drIsAdmin) {
         try {
-            Start-Process -FilePath 'powershell.exe' -Verb RunAs -ArgumentList @('-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-WindowStyle', 'Hidden', '-File', ('"{0}"' -f $PSCommandPath)) | Out-Null
+            $drArgs = @('-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-WindowStyle', 'Hidden', '-File', ('"{0}"' -f $PSCommandPath))
+            if ($TestMode) { $drArgs += '-TestMode' }
+            if ($TestRoot) { $drArgs += @('-TestRoot', ('"{0}"' -f $TestRoot)) }
+            Start-Process -FilePath 'powershell.exe' -Verb RunAs -ArgumentList $drArgs | Out-Null
             exit 0
         } catch { }
     }
@@ -697,7 +702,7 @@ $ErrorActionPreference = 'Stop'
             </Grid>
         </Border>
         <Grid Grid.Row="1">
-        <Grid.ColumnDefinitions><ColumnDefinition Width="224"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="256"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
         <Border Grid.Column="0">
             <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#1A2E4C" Offset="0"/><GradientStop Color="#12203A" Offset="1"/></LinearGradientBrush></Border.Background>
             <Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
@@ -739,19 +744,21 @@ $ErrorActionPreference = 'Stop'
                 </ScrollViewer.Resources>
                 <StackPanel x:Name="Navigation">
                     <Button x:Name="NavDashboard" Style="{StaticResource NavButton}" Tag="Active" Content="⌂   Dashboard"/>
-                    <TextBlock Text="CLEAN" Foreground="#7F94AE" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
+                    <TextBlock Text="CLEAN" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
                     <Button x:Name="NavCleanup" Style="{StaticResource NavButton}" Content="✦   Clean my PC"/>
                     <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Find duplicate files"/>
-                    <TextBlock Text="FIX" Foreground="#7F94AE" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
-                    <Button x:Name="NavRepair" Style="{StaticResource NavButton}" Content="⚒   Fix Windows problems"/>
+                    <Button x:Name="NavSpeed" Style="{StaticResource NavButton}" Content="◈   Speed and space"/>
+                    <TextBlock Text="FIX" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
+                    <Button x:Name="NavRepair" Style="{StaticResource NavButton}" Content="⚒   Fix Windows"/>
                     <Button x:Name="NavAI" Style="{StaticResource AINavButton}" Content="⊘   Switch off AI" Margin="10,4,10,4" ToolTip="Switch off AI in Windows and web browsers"/>
-                    <TextBlock Text="PROTECT" Foreground="#7F94AE" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
+                    <TextBlock Text="PROTECT" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
                     <Button x:Name="NavSecurity" Style="{StaticResource NavButton}" Content="⬡   Check my security"/>
-                    <Button x:Name="NavHealth" Style="{StaticResource NavButton}" Content="▰   Check my drives"/>
+                    <Button x:Name="NavHealth" Style="{StaticResource NavButton}" Foreground="#FACC15" Content="▰   Check my drives"/>
+                    <Button x:Name="NavMemory" Style="{StaticResource NavButton}" Foreground="#FACC15" Content="▦   Check my RAM"/>
                     <Button x:Name="NavHardware" Style="{StaticResource NavButton}" Content="▤   About my PC"/>
-                    <TextBlock Text="UPDATE" Foreground="#7F94AE" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
+                    <TextBlock Text="UPDATE" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
                     <Button x:Name="NavAppUpdates" Style="{StaticResource WingetNavButton}" Content="⭳   Update my apps" Margin="10,4,10,4" ToolTip="Update every app with winget, in a colour PowerShell window"/>
-                    <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   Undo changes"/>
+                    <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   Past runs and undo"/>
                     <Button x:Name="NavProgress" Style="{StaticResource NavButton}" Content="◐   Maintenance progress" Visibility="Collapsed"/>
                 </StackPanel>
                 </ScrollViewer>
@@ -765,7 +772,7 @@ $ErrorActionPreference = 'Stop'
 
             <Grid Grid.Row="1">
                 <ScrollViewer x:Name="PageDashboard" VerticalScrollBarVisibility="Auto"><StackPanel>
-<Border Style="{StaticResource Card}" Padding="34" Margin="0,0,0,18" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8"><StackPanel><TextBlock Text="START HERE" Foreground="#A8C4FF" FontSize="11" FontWeight="Bold"/><TextBlock Text="Make my PC cleaner" Foreground="White" FontSize="32" FontWeight="ExtraBold" Margin="0,8,0,8"/><TextBlock Text="One click. We only do the safe things, and we ask you before anything starts." Foreground="#C9D9FF" FontSize="16" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left"/><StackPanel Orientation="Horizontal" Margin="0,24,0,0"><Button x:Name="SafeCleanButton" Content="Make my PC cleaner" Style="{StaticResource HeroButton}"/><Button x:Name="SafePreviewButton" Content="Show me first" Style="{StaticResource HeroGhostButton}" Margin="10,0,0,0"/></StackPanel><TextBlock Text="✓  Everything can be undone.   ✓  Your files and passwords are never touched." Foreground="#DDE8FF" FontSize="13" Margin="0,20,0,0" TextWrapping="Wrap"/></StackPanel></Border>
+<Border Style="{StaticResource Card}" Padding="34" Margin="0,0,0,18" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8"><StackPanel><TextBlock Text="START HERE" Foreground="#A8C4FF" FontSize="11" FontWeight="Bold"/><TextBlock Text="Make my PC cleaner" Foreground="White" FontSize="32" FontWeight="ExtraBold" Margin="0,8,0,8"/><TextBlock Text="One click. We only do the safe things, and we ask you before anything starts." Foreground="#C9D9FF" FontSize="16" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left"/><StackPanel Orientation="Horizontal" Margin="0,24,0,0"><Button x:Name="SafeCleanButton" Content="Make my PC cleaner" Style="{StaticResource HeroButton}"/><Button x:Name="SafePreviewButton" Content="Show me first" Style="{StaticResource HeroGhostButton}" Margin="10,0,0,0"/></StackPanel><TextBlock Text="✓  Settings changes can be undone.   ✓  Your files and passwords are never touched." Foreground="#DDE8FF" FontSize="13" Margin="0,20,0,0" TextWrapping="Wrap"/></StackPanel></Border>
 <UniformGrid Columns="3" Margin="0,0,0,22">
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Violet}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource VioletSoft}"><TextBlock Text="◷" Foreground="{StaticResource Violet}" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="LAST CLEAN" Foreground="{StaticResource Violet}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock Text="Not yet" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="Shows here after your first clean" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Teal}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource TealSoft}"><TextBlock Text="▰" Foreground="{StaticResource Teal}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="FREE SPACE" Foreground="{StaticResource Teal}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="FreeSpaceText" Text="Checking…" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="On your main drive" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
@@ -1053,13 +1060,13 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
 # Wrapped so a cosmetic hiccup can never crash the run.
 function Invoke-DRCleanReveal {
-    param([int]$TaskCount)
+    param([int]$TaskCount, [switch]$ChecksOnly)
     if (-not $ui.CleanDone) { return }
   try {
     Add-Type -AssemblyName PresentationCore | Out-Null
@@ -1067,7 +1074,7 @@ function Invoke-DRCleanReveal {
     $ease.EasingMode = 'EaseOut'
 
     $s = if ($TaskCount -ne 1) { 's' } else { '' }
-    $ui.CleanDoneSub.Text = "$TaskCount task$s finished. Your PC has been cleaned up."
+    $ui.CleanDoneSub.Text = if ($ChecksOnly) { "$TaskCount check$s finished. Nothing was changed on this PC." } else { "$TaskCount task$s finished. Your PC has been cleaned up." }
     $ui.CleanDone.Visibility = 'Visible'
 
     $badgeFade = New-Object System.Windows.Media.Animation.DoubleAnimation(0, 1, ([Windows.Duration]([TimeSpan]::FromMilliseconds(300))))
@@ -1110,13 +1117,14 @@ $script:driverPanel = $null
 $script:DRAIStatus = @()
 # These only look, or only open a page for the customer to finish, so a run of
 # nothing but these never needs Windows to restart.
-$script:DRNoRestartTaskIds = @('ai.check','ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key','ai.remove-models','ai.adobe','ai.adobe.on','ai.zoom','ai.zoom.on',
+$script:DRNoRestartTaskIds = @('health.chkdsk','health.drive-check','health.pc-checkup','health.ram-check','health.ram-test','health.boost-memory','health.startup-apps','health.large-files','security.checkup','cleanup.hibernate-off','cleanup.hibernate-on','ai.check','ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key','ai.remove-models','ai.adobe','ai.adobe.on','ai.zoom','ai.zoom.on',
     'ai.gmail.on','ai.office-copilot.on','ai.edge-button.on','ai.copilot-key.on',
     'ai.copilot-app.on','ai.m365-app.on','ai.chatgpt-app.on','ai.claude-app.on',
     'ai.edge.uninstall','ai.chrome.uninstall','ai.brave.uninstall','ai.firefox.uninstall',
     'ai.copilot-app.uninstall','ai.m365-app.uninstall','ai.chatgpt-app.uninstall','ai.claude-app.uninstall',
     'ai.chrome.reinstall','ai.brave.reinstall','ai.firefox.reinstall')
 # The "Turn off" choices "Turn off all AI" picks, filled as the AI rows are drawn.
+$script:DRCheckWarned = @{}
 $script:DRAIOffButtons = New-Object System.Collections.ArrayList
 $script:DRAIAllOffButton = $null
 $script:DRAIUninstallButtons = New-Object System.Collections.ArrayList
@@ -1197,18 +1205,18 @@ function Start-DRFadeIn {
 function Set-Page {
     param([string]$Name)
     $ui.PageDashboard.Visibility = if ($Name -eq 'Dashboard') { 'Visible' } else { 'Collapsed' }
-    $ui.PageTasks.Visibility = if ($Name -in @('Cleanup','Repair','Security','Health','AI')) { 'Visible' } else { 'Collapsed' }
+    $ui.PageTasks.Visibility = if ($Name -in @('Cleanup','Repair','Security','Health','Memory','Speed','AI')) { 'Visible' } else { 'Collapsed' }
     $ui.PageProgress.Visibility = if ($Name -eq 'Progress') { 'Visible' } else { 'Collapsed' }
     $ui.PageHistory.Visibility = if ($Name -eq 'History') { 'Visible' } else { 'Collapsed' }
     $ui.PageDuplicates.Visibility = if ($Name -eq 'Duplicates') { 'Visible' } else { 'Collapsed' }
     $ui.PageHardware.Visibility = if ($Name -eq 'Hardware') { 'Visible' } else { 'Collapsed' }
     $ui.PageAppUpdates.Visibility = if ($Name -eq 'AppUpdates') { 'Visible' } else { 'Collapsed' }
-    $ui.PageTitle.Text = switch ($Name) { 'Cleanup' {'Clean my PC'} 'Repair' {'Fix Windows problems'} 'Security' {'Check my security'} 'Health' {'Check my drives'} 'Hardware' {'About my PC'} 'History' {'Undo changes'} 'Duplicates' {'Find duplicate files'} 'AI' {'Switch off AI'} 'AppUpdates' {'Update my apps'} 'Progress' {'Maintenance progress'} default {$Name} }
+    $ui.PageTitle.Text = switch ($Name) { 'Cleanup' {'Clean my PC'} 'Repair' {'Fix Windows problems'} 'Security' {'Check my security'} 'Health' {'Check my drives'} 'Memory' {'Check my memory'} 'Speed' {'Speed and space'} 'Hardware' {'About my PC'} 'History' {'Past runs and undo'} 'Duplicates' {'Find duplicate files'} 'AI' {'Switch off AI'} 'AppUpdates' {'Update my apps'} 'Progress' {'Maintenance progress'} default {$Name} }
     $script:currentCategory = $Name
     $ui.CleanupPresetPanel.Visibility = if ($Name -eq 'Cleanup') { 'Visible' } else { 'Collapsed' }
-    $navMap = @{ Dashboard='NavDashboard'; Cleanup='NavCleanup'; Repair='NavRepair'; Security='NavSecurity'; Health='NavHealth'; History='NavHistory'; Progress='NavProgress'; Duplicates='NavDuplicates'; Hardware='NavHardware'; AppUpdates='NavAppUpdates'; AI='NavAI' }
+    $navMap = @{ Dashboard='NavDashboard'; Cleanup='NavCleanup'; Repair='NavRepair'; Security='NavSecurity'; Health='NavHealth'; Memory='NavMemory'; Speed='NavSpeed'; History='NavHistory'; Progress='NavProgress'; Duplicates='NavDuplicates'; Hardware='NavHardware'; AppUpdates='NavAppUpdates'; AI='NavAI' }
     foreach ($key in $navMap.Keys) { $ui[$navMap[$key]].Tag = if ($key -eq $Name) { 'Active' } else { $null } }
-    if ($Name -in @('Cleanup','Repair','Security','Health','AI')) { Show-TaskCategory $Name }
+    if ($Name -in @('Cleanup','Repair','Security','Health','Memory','Speed','AI')) { Show-TaskCategory $Name }
     if ($Name -eq 'History') { Show-History }
     if ($Name -eq 'Dashboard') { Show-DashboardHistory }
     if ($Name -eq 'Hardware') { Show-Hardware }
@@ -1311,7 +1319,7 @@ function Test-TaskInOrderedPreset {
         # has to have those re-entered afterwards, and a remote session drops
         # while the address renews. It stays on the Repair page to tick by hand.
         return (($advancedIds -contains $Task.Id) -or
-                ($Task.Category -eq 'Repair' -and $Task.Id -ne 'repair.network-reset') -or
+                ($Task.Category -eq 'Repair' -and $Task.Id -notin @('repair.network-reset','health.chkdsk','health.ram-test')) -or
                 $Task.Id -eq 'security.quick-scan')
     }
 
@@ -2005,6 +2013,8 @@ function Show-TaskCategory {
         'Repair' { 'Windows repairs are separate from cleanup. Creating a restore point is recommended before repair operations.' }
         'Security' { 'Run Defender operations independently. Existing exclusions are never removed automatically.' }
         'Health' { 'Drive health checks are read-only and do not schedule repairs or restarts.' }
+        'Speed' { 'These checks only look at the PC and show what is using space or slowing it down. Nothing is changed or deleted.' }
+        'Memory' { 'The memory check only looks. The Windows memory test needs a restart that Windows asks about, and this app never restarts the PC by itself.' }
         'AI' { 'Pick "Turn off" or "Turn back on" for each item. A browser has to be signed in before its AI is turned off. Passwords, bookmarks, files and sign-ins are never touched.' }
     }
     if ($Category -eq 'AI') {
@@ -2044,7 +2054,7 @@ function Update-SelectionSummary {
     # The badge sits beside one page's list, so it counts that page. A run still
     # covers every page, and the badge says so when something is ticked elsewhere.
     $here = @($selected | Where-Object { $_.Category -eq $script:currentCategory }).Count
-    if ($script:currentCategory -in @('Cleanup','Repair','Security','Health','AI')) {
+    if ($script:currentCategory -in @('Cleanup','Repair','Security','Health','Memory','Speed','AI')) {
         $ui.SelectionSummary.Text = if ($total -gt $here) { "$here selected here, $total in total" } else { "$here selected" }
     } else {
         $ui.SelectionSummary.Text = "$total selected"
@@ -2108,16 +2118,139 @@ function New-ProgressRow {
     $panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$Task.Name; FontWeight='SemiBold' })) | Out-Null
     $state = New-Object Windows.Controls.TextBlock -Property @{ Text='Waiting'; Foreground='#667085'; FontSize=12; Margin='0,3,0,0'; Name='StateText' }
     $panel.Children.Add($state) | Out-Null
+    # What a read-only check found (drive by drive, stick by stick) is shown here.
+    $found = New-Object Windows.Controls.StackPanel -Property @{ Visibility='Collapsed'; Name='ResultText' }
+    $panel.Children.Add($found) | Out-Null
     $grid.Children.Add($dot) | Out-Null; $grid.Children.Add($panel) | Out-Null; $border.Child = $grid
     return $border
 }
 
+function Set-DRNavCheckMark {
+    # The mark beside a menu item: a small red dot until its check has run, then a
+    # green tick when it passed or a yellow warning sign when something needs attention.
+    param([string]$NavName, [string]$Label, [ValidateSet('Unchecked','Good','Attention')][string]$Status, [string]$Tip = '')
+    $button = $ui[$NavName]
+    if (-not $button) { return }
+    $panel = New-Object Windows.Controls.StackPanel -Property @{ Orientation = 'Horizontal' }
+    [void]$panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = $Label; VerticalAlignment = 'Center' }))
+    $mark = switch ($Status) { 'Good' { [string][char]0x2714 } 'Attention' { [string][char]0x26A0 } default { [string][char]0x25CF } }
+    $color = switch ($Status) { 'Good' { '#2BE37A' } 'Attention' { '#FACC15' } default { '#EF4444' } }
+    [void]$panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = $mark; Margin = '10,0,0,0'; Foreground = $color; FontWeight = 'Bold'; FontSize = $(if ($Status -eq 'Unchecked') { 11 } else { 17 }); VerticalAlignment = 'Center' }))
+    $button.Content = $panel
+    $button.ToolTip = if ($Tip) { $Tip } else { switch ($Status) { 'Good' { 'Checked: all good. Click to check again.' } 'Attention' { 'Checked: something needs attention. Click to check again.' } default { 'Not checked yet. Click to check.' } } }
+}
+
+# How long a check result stays valid. After this the menu item goes back to the red
+# dot, as a reminder to check again.
+$script:DRCheckValidDays = 90
+$script:DRCheckMarks = @{
+    'health.drive-check' = @{ Nav = 'NavHealth'; Label = ([string][char]0x25B0 + '   Check my drives') }
+    'health.ram-check'   = @{ Nav = 'NavMemory'; Label = ([string][char]0x25A6 + '   Check my RAM') }
+}
+
+function Get-DRCheckStatusPath {
+    if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) { return $null }
+    return (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\check_status.json')
+}
+
+function Read-DRCheckStatus {
+    $result = @{}
+    $file = Get-DRCheckStatusPath
+    if (-not $file -or -not (Test-Path -LiteralPath $file -PathType Leaf)) { return $result }
+    try {
+        $saved = [System.IO.File]::ReadAllText($file) | ConvertFrom-Json
+        foreach ($property in $saved.PSObject.Properties) {
+            $result[$property.Name] = @{ Date = [datetime]$property.Value.date; Attention = [bool]$property.Value.attention }
+        }
+    } catch { }
+    return $result
+}
+
+function Save-DRCheckStatus {
+    param([string]$TaskId, [bool]$Attention)
+    $file = Get-DRCheckStatusPath
+    if (-not $file) { return }
+    try {
+        $all = Read-DRCheckStatus
+        $all[$TaskId] = @{ Date = (Get-Date); Attention = $Attention }
+        $out = [ordered]@{}
+        foreach ($key in $all.Keys) { $out[$key] = [ordered]@{ date = $all[$key].Date.ToString('o'); attention = $all[$key].Attention } }
+        [void][System.IO.Directory]::CreateDirectory([System.IO.Path]::GetDirectoryName($file))
+        [System.IO.File]::WriteAllText($file, ($out | ConvertTo-Json), (New-Object System.Text.UTF8Encoding($false)))
+    } catch { }
+}
+
+function Restore-DRCheckMarks {
+    # On start: show each saved result while it is recent, otherwise the red dot.
+    $saved = Read-DRCheckStatus
+    foreach ($taskId in $script:DRCheckMarks.Keys) {
+        $info = $script:DRCheckMarks[$taskId]
+        $status = 'Unchecked'; $tip = ''
+        if ($saved.ContainsKey($taskId)) {
+            $ageDays = [int]((Get-Date) - $saved[$taskId].Date).TotalDays
+            $when = $saved[$taskId].Date.ToString('d MMM yyyy')
+            if ($ageDays -le $script:DRCheckValidDays) {
+                $status = if ($saved[$taskId].Attention) { 'Attention' } else { 'Good' }
+                $tip = if ($saved[$taskId].Attention) { "Last checked ${when}: something needs attention. Click to check again." } else { "Last checked ${when}: all good. Click to check again." }
+            } else {
+                $tip = "Last checked $when. It is time to check again."
+            }
+        }
+        Set-DRNavCheckMark -NavName $info.Nav -Label $info.Label -Status $status -Tip $tip
+    }
+}
+
+function New-DRResultCard {
+    # One finding of a check that only looks: a green card with a tick when all is well,
+    # an amber one with a warning sign when something needs attention.
+    param([string]$Message, [string]$State)
+    $parts = @($Message -split "\r?\n" | ForEach-Object { $_.TrimEnd() })
+    $head = $parts[0].Trim()
+    $body = (@($parts | Select-Object -Skip 1 | ForEach-Object { $_.Trim() } | Where-Object { $_ }) -join "`n")
+    $good = ($State -eq 'Information') -and ($head -match 'NO PROBLEMS FOUND|great health')
+    $bad = ($State -eq 'Warning')
+    if ($good) { $fill = '#E4F6EE'; $edge = '#8FD3B4'; $ink = '#0E8A5F'; $mark = [string][char]0x2714 + '  ' }
+    elseif ($bad) { $fill = '#FFF4E3'; $edge = '#F0C98C'; $ink = '#A86412'; $mark = [string][char]0x26A0 + '  ' }
+    else { $fill = '#F3F6FB'; $edge = '#D9E1EE'; $ink = '#344054'; $mark = '' }
+    $box = New-Object Windows.Controls.Border -Property @{ Background=$fill; BorderBrush=$edge; BorderThickness='1'; CornerRadius='10'; Padding='16,12'; Margin='0,10,0,0' }
+    $stack = New-Object Windows.Controls.StackPanel
+    $title = New-Object Windows.Controls.TextBlock -Property @{ Text=($mark + $head); Foreground=$ink; FontSize=$(if ($good -or $bad) { 17 } else { 14 }); FontWeight='SemiBold'; TextWrapping='Wrap' }
+    [void]$stack.Children.Add($title)
+    if ($body) {
+        [void]$stack.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$body; Foreground='#475467'; FontSize=13; TextWrapping='Wrap'; Margin='0,6,0,0'; LineHeight=20 }))
+    }
+    $box.Child = $stack
+    return $box
+}
+
 function Set-ProgressRowState {
     param([string]$TaskId,[string]$State,[string]$Message)
+    # The two quick checks leave their result on the menu.
+    $navFor = @{ 'health.drive-check' = @('NavHealth', ([string][char]0x25B0 + '   Check my drives')); 'health.ram-check' = @('NavMemory', ([string][char]0x25A6 + '   Check my RAM')) }
+    if ($navFor.ContainsKey($TaskId)) {
+        if ($State -eq 'Started') { $script:DRCheckWarned[$TaskId] = $false }
+        if ($State -in @('Warning','Failed')) { $script:DRCheckWarned[$TaskId] = $true }
+        if ($State -in @('Completed','Failed')) {
+            $attention = $false
+            if ($script:DRCheckWarned.ContainsKey($TaskId)) { $attention = [bool]$script:DRCheckWarned[$TaskId] }
+            Set-DRNavCheckMark -NavName $navFor[$TaskId][0] -Label $navFor[$TaskId][1] -Status $(if ($attention) { 'Attention' } else { 'Good' }) -Tip ("Checked today: " + $(if ($attention) { 'something needs attention.' } else { 'all good.' }) + " Click to check again.")
+            Save-DRCheckStatus -TaskId $TaskId -Attention $attention
+        }
+    }
     $row = @($ui.ProgressList.Children | Where-Object Tag -eq $TaskId | Select-Object -First 1)
     if (-not $row) { return }
     $dot = $row.Child.Children[0]; $text = $row.Child.Children[1].Children[1]
+    $found = $row.Child.Children[1].Children[2]
     $dot.Fill = switch ($State) { 'Started' {'#2563EB'} 'Progress' {'#2563EB'} 'Completed' {'#16835B'} 'Failed' {'#C63C3C'} 'Warning' {'#A86412'} default {'#98A2B3'} }
+    # A check that only looks keeps what it found on screen instead of losing it
+    # behind the final "completed" line.
+    $taskInfo = @($catalog | Where-Object Id -eq $TaskId | Select-Object -First 1)
+    $onlyLooks = ($taskInfo.Count -gt 0) -and (-not [bool]$taskInfo[0].Destructive) -and ($TaskId -notlike 'ai.*')
+    if ($onlyLooks -and $State -in @('Information','Warning')) {
+        [void]$found.Children.Add((New-DRResultCard -Message $Message -State $State))
+        $found.Visibility = 'Visible'
+        return
+    }
     $text.Text = $Message
     if ($TaskId -eq $script:activeTaskId) { Set-Variable -Name activeTaskMessage -Value $Message -Scope Script }
     if ($State -eq 'Failed') { $text.Foreground = '#C63C3C' }
@@ -2492,6 +2625,7 @@ function Complete-RunPlan {
         }
     }
 
+    $onlyChecks = (@($selectedIds | Where-Object { $id = $_; @($catalog | Where-Object { $_.Id -eq $id -and (([bool]$_.Destructive) -or $_.Category -eq 'AI') }).Count -gt 0 }).Count -eq 0)
     if ($cancelAfterTask) {
         $ui.ProgressHeading.Text = 'Plan stopped safely'
         $ui.ProgressMessage.Text = 'No additional tasks were started.'
@@ -2501,8 +2635,8 @@ function Complete-RunPlan {
         $ui.ProgressMessage.Text = "$($selectedIds.Count) selected task(s) finished."
     }
     else {
-        $ui.ProgressHeading.Text = 'Maintenance complete'
-        $ui.ProgressMessage.Text = "$($selectedIds.Count) selected task(s) finished."
+        $ui.ProgressHeading.Text = if ($onlyChecks) { 'Check complete' } else { 'Maintenance complete' }
+        $ui.ProgressMessage.Text = if ($onlyChecks) { 'The result is shown below. Nothing was changed on this PC.' } else { "$($selectedIds.Count) selected task(s) finished." }
     }
 
     $ui.ProgressPercent.Text = '100%'
@@ -2515,7 +2649,7 @@ function Complete-RunPlan {
     # Every completed Safe, Medium, or Advanced plan asks about restart and
     # starts the 90-second automatic restart countdown.
     if ($ui.CleaningAnimation) { $ui.CleaningAnimation.Visibility='Collapsed' }
-    if (-not $cancelAfterTask) { Invoke-DRCleanReveal -TaskCount $selectedIds.Count }
+    if (-not $cancelAfterTask) { Invoke-DRCleanReveal -TaskCount $selectedIds.Count -ChecksOnly:([bool]$onlyChecks) }
     $needsRestart = (-not $cancelAfterTask) -and (@($selectedIds | Where-Object { $script:DRNoRestartTaskIds -notcontains $_ }).Count -gt 0)
 
     $ui.RestartButton.Visibility = if ($needsRestart) {
@@ -2973,6 +3107,18 @@ function Set-DRWorkAreaLimit {
 
 try { Add-Type -AssemblyName System.Windows.Forms -ErrorAction Stop } catch { }
 
+# The window has no title bar, so the only edge Windows can grab is a hairline.
+# A wider invisible resize border all round lets people drag any edge or corner
+# to make it bigger or smaller. The title bar is still dragged by the code above.
+try {
+    $drChrome = New-Object System.Windows.Shell.WindowChrome
+    $drChrome.CaptionHeight = 0
+    $drChrome.ResizeBorderThickness = New-Object System.Windows.Thickness(8)
+    $drChrome.GlassFrameThickness = New-Object System.Windows.Thickness(0)
+    $drChrome.CornerRadius = New-Object System.Windows.CornerRadius(0)
+    $drChrome.UseAeroCaptionButtons = $false
+    [System.Windows.Shell.WindowChrome]::SetWindowChrome($window, $drChrome)
+} catch { }
 $window.Add_SourceInitialized({ Set-DRWorkAreaLimit })
 $window.Add_StateChanged({
     if ($window.WindowState -eq [System.Windows.WindowState]::Maximized) { Set-DRWorkAreaLimit }
@@ -2999,7 +3145,12 @@ $ui.NavDashboard.Add_Click({ Set-Page 'Dashboard' })
 $ui.NavCleanup.Add_Click({ Set-Page 'Cleanup' })
 $ui.NavRepair.Add_Click({ Set-Page 'Repair' })
 $ui.NavSecurity.Add_Click({ Set-Page 'Security' })
-$ui.NavHealth.Add_Click({ Set-Page 'Health' })
+# A recent result stays on the menu between sessions; a small red dot means a check is due.
+Restore-DRCheckMarks
+# One click, one check: these two menu items run just that check straight away.
+$ui.NavHealth.Add_Click({ Invoke-DRAIRunNow -TaskIds @('health.drive-check') })
+$ui.NavMemory.Add_Click({ Invoke-DRAIRunNow -TaskIds @('health.ram-check') })
+$ui.NavSpeed.Add_Click({ Set-Page 'Speed' })
 $ui.NavHardware.Add_Click({ Set-Page 'Hardware' })
 $ui.CheckDriversButton.Add_Click({ Start-DRDriverCheck })
 

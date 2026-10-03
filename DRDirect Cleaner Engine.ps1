@@ -82,14 +82,14 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='security.typing-privacy'; Category='Security'; Name='Stop sending typing data to Microsoft'; Description='Turns off "Improve inking and typing" and typing personalization, so Windows stops collecting what you type and write to tune its suggestions. Your current settings are saved first, and "Restore typing settings" puts them back.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.typing-privacy-restore'; Category='Security'; Name='Restore typing settings'; Description='Puts the typing settings back exactly as they were before "Stop sending typing data to Microsoft" changed them. Does nothing if that option was never run.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
 
-        [pscustomobject]@{ Id='health.chkdsk'; Category='Health'; Name='CHKDSK disk check'; Description='Checks the C: file system for corruption while Windows keeps running. Reports what it finds, repairs what is safe to repair, and never schedules a restart.'; Risk='Safe'; Duration='5-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
+        [pscustomobject]@{ Id='health.chkdsk'; Category='Repair'; Name='CHKDSK disk check (deep drive test)'; Description='Checks the C: file system for corruption while Windows keeps running. Reports what it finds, repairs what is safe to repair, and never schedules a restart.'; Risk='Safe'; Duration='5-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
         [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='health.pc-checkup'; Category='Health'; Name='PC checkup'; Description='One quick summary of memory use, free disk space, how long Windows has been running, startup programs and any restart waiting. Nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='health.boost-memory'; Category='Health'; Name='Free up memory (Boost)'; Description='Asks Windows to release idle memory held by running programs, like PC Manager Boost. Nothing is closed and no data is lost; programs reload what they need.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='health.startup-apps'; Category='Health'; Name='Startup apps'; Description='Lists the programs that start with Windows so you can see what slows sign-in. Only looks - nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='health.large-files'; Category='Health'; Name='Find large files'; Description='Lists the 25 biggest files (over 100 MB) in your user folders so you can decide what to remove. Only looks - nothing is deleted.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='health.ram-check'; Category='Health'; Name='Memory (RAM) check'; Description='Shows the memory installed in this PC (size, type, speed), how much is in use, and whether Windows has recorded memory errors in the last 30 days. Only looks - nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='health.ram-test'; Category='Health'; Name='Memory test (Windows Memory Diagnostic)'; Description='Opens the Windows memory test. It is the thorough way to find faulty RAM, but it needs a restart: Windows asks whether to restart now or at the next start, and the test takes 10 to 30 minutes. The Cleaner never restarts the PC by itself.'; Risk='Guided'; Duration='1 min to start'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='health.pc-checkup'; Category='Speed'; Name='PC checkup'; Description='One quick summary of memory use, free disk space, how long Windows has been running, startup programs and any restart waiting. Nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='health.ram-check'; Category='Memory'; Name='Memory (RAM) check'; Description='Shows the memory installed in this PC (size, type, speed), how much is in use, and whether Windows has recorded memory errors in the last 30 days. Only looks - nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='health.ram-test'; Category='Repair'; Name='Memory test (Windows Memory Diagnostic)'; Description='Opens the Windows memory test. It is the thorough way to find faulty RAM, but it needs a restart: Windows asks whether to restart now or at the next start, and the test takes 10 to 30 minutes. The Cleaner never restarts the PC by itself.'; Risk='Guided'; Duration='1 min to start'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='health.boost-memory'; Category='Speed'; Name='Free up memory (Boost)'; Description='Asks Windows to release idle memory held by running programs, like PC Manager Boost. Nothing is closed and no data is lost; programs reload what they need.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='health.startup-apps'; Category='Speed'; Name='Startup apps'; Description='Lists the programs that start with Windows so you can see what slows sign-in. Only looks - nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='health.large-files'; Category='Speed'; Name='Find large files'; Description='Lists the 25 biggest files (over 100 MB) in your user folders so you can decide what to remove. Only looks - nothing is deleted.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
 
         # AI Remover. Nothing here is ever pre-selected or part of a cleanup level.
         [pscustomobject]@{ Id='ai.check'; Category='AI'; Name='What AI is on this PC?'; Description='Only looks - nothing is changed. Click Check now and the AI still switched on or installed is listed right here - handy after a Windows or browser update brings something back.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -827,10 +827,7 @@ function Get-DRDiskDriveLetters {
 
 function Invoke-DRDriveHealth {
     param([string]$TaskId, [string]$TestRoot)
-    if ($TestRoot) {
-        New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the drive health check was not run.'
-        return
-    }
+    # This check only reads, so it runs for real even in test mode.
 
     if (-not (Get-Command -Name 'Get-PhysicalDisk' -ErrorAction SilentlyContinue)) {
         New-DREvent -TaskId $TaskId -State Warning -Message 'This version of Windows does not provide the drive health information this check reads. Nothing was changed.'
@@ -853,6 +850,7 @@ function Invoke-DRDriveHealth {
         $health = Get-DRDiskProperty $disk 'HealthStatus'
         $sizeBytes = Get-DRDiskProperty $disk 'Size'
 
+        $concernsBefore = $concerns
         $lines = New-Object System.Collections.Generic.List[string]
         if ($sizeBytes) { $lines.Add(('Size: {0:N0} GB' -f ($sizeBytes / 1GB))) }
         if ($media) { $lines.Add(('Type: {0}' -f $media)) }
@@ -863,14 +861,31 @@ function Invoke-DRDriveHealth {
         try { $counter = $disk | Get-StorageReliabilityCounter -ErrorAction Stop } catch { $counter = $null }
 
         if ($null -eq $counter) {
-            $lines.Add('Temperature, wear and error counts are not available for this drive (some USB and RAID drives do not report them).')
+            if (Test-DRAdministrator) {
+                $lines.Add('Temperature, life left and error counts are not available for this drive (some USB and RAID drives do not report them).')
+            } else {
+                $lines.Add('Windows only shares temperature, life left, age and power-on counts with an administrator. Open the Cleaner as administrator to see them.')
+            }
         }
         $wear = Get-DRDiskProperty $counter 'Wear'
         $temperature = Get-DRDiskProperty $counter 'Temperature'
         $hours = Get-DRDiskProperty $counter 'PowerOnHours'
         $readErrors = Get-DRDiskProperty $counter 'ReadErrorsUncorrected'
 
-        if ($null -ne $hours) { $lines.Add(('Powered on for about {0:N0} days in total.' -f ($hours / 24))) }
+        if ($null -ne $hours) {
+            # Windows does not record when a drive was made. How long it has really been
+            # running is the closest honest measure of its age.
+            $totalDays = [int][math]::Round($hours / 24)
+            $years = [int][math]::Floor($totalDays / 365)
+            $months = [int][math]::Floor(($totalDays % 365) / 30)
+            $age = if ($years -gt 0) { '{0} year(s) {1} month(s)' -f $years, $months } elseif ($totalDays -ge 30) { '{0} month(s)' -f [int][math]::Floor($totalDays / 30) } else { '{0} day(s)' -f $totalDays }
+            $lines.Add(('Age in use: about {0} of running time ({1:N0} hours).' -f $age, $hours))
+        }
+        $cycles = Get-DRDiskProperty $counter 'StartStopCycleCount'
+        if ($null -ne $cycles -and $cycles -gt 0) { $lines.Add(('Switched on and off {0:N0} times.' -f $cycles)) }
+        elseif ($null -ne $counter) { $lines.Add('Switched on and off: this drive does not report how many times.') }
+        $loads = Get-DRDiskProperty $counter 'LoadUnloadCycleCount'
+        if ($null -ne $loads -and $loads -gt 0) { $lines.Add(('Read head parked {0:N0} times.' -f $loads)) }
         if ($null -ne $temperature -and $temperature -gt 0) { $lines.Add(('Temperature: {0} C' -f $temperature)) }
         # Wear is a write-life figure. It means something on a solid-state drive and
         # nothing on a spinning one, which does not wear out by being written to.
@@ -880,7 +895,20 @@ function Invoke-DRDriveHealth {
         if ($null -ne $wear -and $isSolidState) {
             $left = 100 - $wear
             if ($left -lt 0) { $left = 0 }
-            $lines.Add(('Estimated life remaining: {0}%' -f $left))
+            $lines.Add(('Life left: about {0}%' -f $left))
+            # A rough guess from how fast it has worn so far, assuming it is used the same way.
+            if ($wear -ge 2 -and $null -ne $hours -and $hours -gt 0) {
+                $hoursLeft = $hours * ($left / [double]$wear)
+                $yearsLeft = $hoursLeft / 8760
+                $guess = if ($yearsLeft -ge 10) { 'more than 10 years' } elseif ($yearsLeft -ge 1) { 'roughly {0:N0} more year(s)' -f $yearsLeft } else { 'roughly {0:N0} more month(s)' -f [math]::Max(1, ($yearsLeft * 12)) }
+                $lines.Add(('At the same rate of use: {0}. This is only a rough guess.' -f $guess))
+            } else {
+                $lines.Add('At the same rate of use: very little wear so far, so many years left. Too early to give a closer figure.')
+            }
+        } elseif ($isSolidState -and $null -ne $counter) {
+            $lines.Add('Life left: this drive does not report it.')
+        } elseif ($media -eq 'HDD') {
+            $lines.Add('Life left: not measured for spinning hard drives. Health status and error counts below are what matter.')
         }
 
         $verdict = ''
@@ -913,14 +941,16 @@ function Invoke-DRDriveHealth {
         }
 
         $lines.Add($verdict)
-        $state = if ($health -and $health -ne 'Healthy') { 'Warning' } else { 'Information' }
-        New-DREvent -TaskId $TaskId -State $state -Message ("{0}`r`n  {1}" -f $name, ($lines -join "`r`n  "))
+        $hasProblem = ($concerns -gt $concernsBefore)
+        $headline = if ($hasProblem) { 'PROBLEM FOUND' } elseif ($health -eq 'Healthy') { 'NO PROBLEMS FOUND' } else { 'NO PROBLEMS REPORTED' }
+        $state = if ($hasProblem -or ($health -and $health -ne 'Healthy')) { 'Warning' } else { 'Information' }
+        New-DREvent -TaskId $TaskId -State $state -Message ("{0}: {1}`r`n  {2}" -f $name, $headline, ($lines -join "`r`n  "))
     }
 
     if ($concerns -gt 0) {
-        New-DREvent -TaskId $TaskId -State Warning -Message 'One or more drives need attention. Nothing was changed on this PC. Copy anything you cannot lose to another drive before doing anything else.'
+        New-DREvent -TaskId $TaskId -State Warning -Message ("Problem found: one or more drives need attention`r`n  Nothing was changed on this PC. Copy anything you cannot lose to another drive before doing anything else.")
     } else {
-        New-DREvent -TaskId $TaskId -State Information -Message ('All {0} drive(s) reported normal health. Nothing was changed on this PC.' -f $disks.Count)
+        New-DREvent -TaskId $TaskId -State Information -Message ("All {0} drive(s) are in great health`r`n  No problems found. Nothing was changed on this PC." -f $disks.Count)
     }
 }
 
@@ -961,10 +991,10 @@ function Invoke-DRMemoryBoost {
 
 function Invoke-DRRamCheck {
     param([string]$TaskId, [string]$TestRoot)
-    if ($TestRoot) {
-        New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the memory check was not run.'
-        return
-    }
+    # This check only reads, so it runs for real even in test mode.
+
+    $lines = New-Object System.Collections.Generic.List[string]
+    $problem = $false
 
     $typeNames = @{ 20 = 'DDR'; 21 = 'DDR2'; 24 = 'DDR3'; 26 = 'DDR4'; 34 = 'DDR5'; 35 = 'LPDDR5' }
     $modules = @()
@@ -977,10 +1007,10 @@ function Invoke-DRRamCheck {
             $kind = if ($typeNames.ContainsKey([int]$module.SMBIOSMemoryType)) { $typeNames[[int]$module.SMBIOSMemoryType] } else { 'Memory' }
             $speed = if ($module.ConfiguredClockSpeed) { [int]$module.ConfiguredClockSpeed } else { [int]$module.Speed }
             $maker = ([string]$module.Manufacturer).Trim()
-            New-DREvent -TaskId $TaskId -State Information -Message ('Stick {0}: {1} GB {2} at {3} MHz{4}' -f $index, $sizeGb, $kind, $speed, $(if ($maker) { ' (' + $maker + ')' } else { '' }))
+            $lines.Add(('Stick {0}: {1} GB {2} at {3} MHz{4}' -f $index, $sizeGb, $kind, $speed, $(if ($maker) { ' (' + $maker + ')' } else { '' })))
         }
     } else {
-        New-DREvent -TaskId $TaskId -State Warning -Message 'Windows did not list the memory sticks. Some PCs hide this. Nothing was changed.'
+        $lines.Add('Windows did not list the memory sticks. Some PCs hide this.')
     }
 
     try {
@@ -988,9 +1018,9 @@ function Invoke-DRRamCheck {
         $total = [double]$os.TotalVisibleMemorySize * 1KB
         $free = [double]$os.FreePhysicalMemory * 1KB
         $usedPercent = [int](100 * ($total - $free) / [Math]::Max([double]1, $total))
-        New-DREvent -TaskId $TaskId -State Information -Message ('In use now: {0} of {1} ({2}%).' -f (Format-DRSize ($total - $free)), (Format-DRSize $total), $usedPercent)
+        $lines.Add(('In use now: {0} of {1} ({2}%).' -f (Format-DRSize ($total - $free)), (Format-DRSize $total), $usedPercent))
         if ($usedPercent -ge 90) {
-            New-DREvent -TaskId $TaskId -State Warning -Message 'Memory is almost full. Close programs you are not using, or use "Free up memory (Boost)".'
+            $lines.Add('Memory is almost full. Close programs you are not using, or use "Free up memory (Boost)".')
         }
     } catch { }
 
@@ -1003,22 +1033,27 @@ function Invoke-DRRamCheck {
         $memoryErrors = @($events | Where-Object { $_.Message -match 'memory' }).Count
     } catch { }
     if ($memoryErrors -gt 0) {
-        New-DREvent -TaskId $TaskId -State Warning -Message ('Windows recorded {0} hardware error(s) mentioning memory in the last 30 days. That can mean faulty or badly seated RAM. Run the "Memory test" row to check it properly.' -f $memoryErrors)
+        $problem = $true
+        $lines.Add(('Windows recorded {0} hardware error(s) mentioning memory in the last 30 days. That can mean faulty or badly seated RAM. Run the "Memory test" in Fix Windows to check it properly.' -f $memoryErrors))
     } else {
-        New-DREvent -TaskId $TaskId -State Information -Message 'Windows has recorded no memory hardware errors in the last 30 days.'
+        $lines.Add('Windows has recorded no memory hardware errors in the last 30 days.')
     }
 
     try {
         $last = @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; ProviderName = 'Microsoft-Windows-MemoryDiagnostics-Results' } -MaxEvents 1 -ErrorAction Stop)
         if ($last.Count) {
             $when = $last[0].TimeCreated.ToString('d MMM yyyy')
-            if ($last[0].Id -eq 1101) { New-DREvent -TaskId $TaskId -State Information -Message ('The last Windows memory test ({0}) found no errors.' -f $when) }
-            else { New-DREvent -TaskId $TaskId -State Warning -Message ('The last Windows memory test ({0}) reported a problem. Replace or reseat the RAM, and back up anything important.' -f $when) }
+            if ($last[0].Id -eq 1101) { $lines.Add(('The last Windows memory test ({0}) found no errors.' -f $when)) }
+            else { $problem = $true; $lines.Add(('The last Windows memory test ({0}) reported a problem. Replace or reseat the RAM, and back up anything important.' -f $when)) }
         }
     } catch {
-        New-DREvent -TaskId $TaskId -State Information -Message 'The Windows memory test has not been run on this PC yet. The "Memory test" row runs it.'
+        $lines.Add('The Windows memory test has not been run on this PC yet (it is in Fix Windows). Only that test can prove RAM is fault-free.')
     }
-    New-DREvent -TaskId $TaskId -State Information -Message 'This check looks at what Windows has recorded. Only the memory test can prove RAM is fault-free. Nothing was changed on this PC.'
+    $lines.Add('Nothing was changed on this PC.')
+
+    $headline = if ($problem) { 'Memory (RAM): PROBLEM FOUND' } else { 'Memory (RAM): NO PROBLEMS FOUND' }
+    $state = if ($problem) { 'Warning' } else { 'Information' }
+    New-DREvent -TaskId $TaskId -State $state -Message ("{0}`r`n  {1}" -f $headline, ($lines -join "`r`n  "))
 }
 
 function Invoke-DRRamTest {

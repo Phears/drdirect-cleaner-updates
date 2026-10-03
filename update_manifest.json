@@ -1,7 +1,7 @@
 {
-  "version": "1.4.48",
-  "notes": "A simpler Cleaner: plain-English menu and a one-click Make my PC cleaner screen. New checks for drive health (hard drives, SSDs and NVMe) and memory (RAM). New clean-ups for app caches, the Microsoft Store, Defender history and app logs, and an optional Hibernate switch. The Cleaner now asks for administrator rights by itself.",
-  "published": "2026-10-03T15:49:17.4014703-04:00",
+  "version": "1.4.49",
+  "notes": "Check my drives and Check my RAM now run in one click and show a clear result: a green tick when all is well and a yellow warning when something needs attention, with the drive's age, life left and how often it was switched on. The result stays on the menu for 3 months. The Cleaner now starts as administrator, the window can be resized by its edges, and the menu is easier to read.",
+  "published": "2026-10-03T16:45:49.0274705-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "9A5F037DCBFDEE260E7ACC8EA07D1B5964501DE05D51FEE65CE938045DB980B5",
-      "size": 270371
+      "sha256": "92DC2B2E95A70C6C50A70F82A60A5AB1C740463B06EBB54EB23E7C1491B337F6",
+      "size": 280791
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "8A442E64E15CBED5BE86EE6F957D24B5170F0B77499AB6F2C1899DA73F41DA29",
-      "size": 217090
+      "sha256": "F01D0DC361790EED77786517849C1C65AD21466336A773C4D8CD7D679B15CCDB",
+      "size": 219555
     },
     {
       "name": "DRDirect Updater.ps1",
