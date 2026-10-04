@@ -1759,9 +1759,10 @@ function Clear-DRConflictingTask {
     }
 }
 
-# The Memory test needs a restart and takes an hour or more, so it is always run on its own:
-# ticking it clears every other tick, and ticking anything else clears it.
-$script:DRRunsAloneTaskId = 'health.ram-test'
+# These tasks are always run on their own: the Memory test needs a restart and takes an hour or
+# more, CHKDSK works the drive hard, and Windows Update repair resets services that other repairs
+# depend on. Ticking one clears every other tick, and ticking anything else clears them.
+$script:DRRunsAloneTaskIds = @('health.ram-test','health.chkdsk','repair.windows-update')
 function Set-DRVisibleTick {
     param([string]$TaskId, [bool]$Value)
     foreach ($row in @($ui.TaskList.Children)) {
@@ -1772,13 +1773,14 @@ function Set-DRVisibleTick {
 }
 function Clear-DRForRunsAlone {
     param([string]$TaskId)
-    if ($TaskId -eq $script:DRRunsAloneTaskId) {
+    if ($script:DRRunsAloneTaskIds -contains $TaskId) {
         foreach ($key in @($selection.Keys | Where-Object { $_ -ne $TaskId })) {
             if ($selection[$key]) { $selection[$key] = $false; Set-DRVisibleTick -TaskId $key -Value $false }
         }
-    } elseif ($selection[$script:DRRunsAloneTaskId]) {
-        $selection[$script:DRRunsAloneTaskId] = $false
-        Set-DRVisibleTick -TaskId $script:DRRunsAloneTaskId -Value $false
+    } else {
+        foreach ($alone in $script:DRRunsAloneTaskIds) {
+            if ($selection[$alone]) { $selection[$alone] = $false; Set-DRVisibleTick -TaskId $alone -Value $false }
+        }
     }
 }
 
@@ -1789,9 +1791,11 @@ function Remove-DRConflictingSelections {
         $other = $script:DRConflictingTasks[$undo]
         if ($selection[$undo] -and $selection[$other]) { $selection[$undo] = $false }
     }
-    # The Memory test runs alone: if anything else is selected with it, the test is dropped.
-    if ($selection[$script:DRRunsAloneTaskId] -and @($selection.Keys | Where-Object { $_ -ne $script:DRRunsAloneTaskId -and $_ -ne 'safety.restore-point' -and $selection[$_] }).Count) {
-        $selection[$script:DRRunsAloneTaskId] = $false
+    # The Memory test and CHKDSK are dropped if anything else is selected with them. Windows Update
+    # repair is left out of this check on purpose: the Advanced full sweep still includes it.
+    $picked = @($selection.Keys | Where-Object { $selection[$_] -and $_ -ne 'safety.restore-point' })
+    if ($picked.Count -gt 1) {
+        foreach ($alone in @('health.ram-test','health.chkdsk')) { if ($selection[$alone]) { $selection[$alone] = $false } }
     }
 }
 

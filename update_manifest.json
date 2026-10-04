@@ -1,7 +1,7 @@
 {
-  "version": "1.4.60",
-  "notes": "The Windows Memory test now always runs on its own: ticking it clears every other tick, and ticking anything else clears it, because it needs a restart and can take an hour or more.",
-  "published": "2026-10-03T23:11:46.6255200-04:00",
+  "version": "1.4.61",
+  "notes": "CHKDSK and Windows Update repair now run on their own, like the Memory test: ticking one clears every other tick, and ticking anything else clears them.",
+  "published": "2026-10-03T23:15:39.1620017-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "33B65320136B8D5B890836168F45994DC797B9EDCC33B3E6DE20835F07E83095",
-      "size": 297191
+      "sha256": "B2DB36A0F885C7894C8589ABD853449EC8CE760D90AD3AFB9EFBF1C4FF07E57A",
+      "size": 297487
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
