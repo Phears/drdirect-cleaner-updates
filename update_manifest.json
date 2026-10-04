@@ -1,7 +1,7 @@
 {
-  "version": "1.4.58",
-  "notes": "Slow tasks (DISM, System File Checker, CHKDSK, Memory test, Defender full scan) now show a red framed card that says how long they can take. Remove Defender exclusions explains when to use it. Hibernate has its own page, and tasks that undo each other can no longer be ticked together. Check my security and Speed and space start ticked.",
-  "published": "2026-10-03T22:18:59.7771497-04:00",
+  "version": "1.4.59",
+  "notes": "The badge on the slow-task cards (Memory test, DISM, System File Checker, CHKDSK, Defender full scan) now wraps instead of being cut off. Tasks that undo each other, such as the two Hibernate tasks or the two typing tasks, are checked again before a plan runs.",
+  "published": "2026-10-03T23:06:50.9670923-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "672BC8674C14FA15066DCD2CD3F8905F16D2160D50568235239464D752DB426A",
-      "size": 295143
+      "sha256": "CB3677DA08AE50CC6781A3A1E6615382A1CE6F630B146102669AA91A87135B8B",
+      "size": 295695
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

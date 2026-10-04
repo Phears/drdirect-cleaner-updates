@@ -1759,6 +1759,15 @@ function Clear-DRConflictingTask {
     }
 }
 
+# Last safety net before a plan is shown or run: if both tasks of an undoing pair somehow
+# ended up selected, keep the one that changes something and drop the one that undoes it.
+function Remove-DRConflictingSelections {
+    foreach ($undo in @('cleanup.hibernate-on','security.typing-privacy-restore')) {
+        $other = $script:DRConflictingTasks[$undo]
+        if ($selection[$undo] -and $selection[$other]) { $selection[$undo] = $false }
+    }
+}
+
 function New-TaskRow {
     param($Task)
     $border = New-Object Windows.Controls.Border
@@ -1859,8 +1868,8 @@ function New-TaskRow {
 
     $copy = New-Object Windows.Controls.StackPanel
     [Windows.Controls.Grid]::SetColumn($copy,1)
-    # A long AI title lets its badge drop to the next line instead of cutting it off.
-    $titlePanel = if ($Task.Category -eq 'AI') { New-Object Windows.Controls.WrapPanel } else { New-Object Windows.Controls.StackPanel -Property @{ Orientation='Horizontal' } }
+    # A long AI or slow-task title lets its badge drop to the next line instead of cutting it off.
+    $titlePanel = if ($Task.Category -eq 'AI' -or $isLongTest) { New-Object Windows.Controls.WrapPanel } else { New-Object Windows.Controls.StackPanel -Property @{ Orientation='Horizontal' } }
     $name = New-Object Windows.Controls.TextBlock -Property @{ Text=$Task.Name; FontWeight='SemiBold'; FontSize=15; VerticalAlignment='Center' }
     # AI Remover rows show every product name (Edge, Chrome, Brave, Firefox, Gmail, Claude...) in big bold letters.
     if ($Task.Category -eq 'AI') {
@@ -2143,6 +2152,7 @@ function Update-SelectionSummary {
 }
 
 function Show-Confirmation {
+    Remove-DRConflictingSelections
     $selection['safety.restore-point'] = $false
     $selected = @($catalog | Where-Object { $selection[$_.Id] })
     $ui.ConfirmList.Children.Clear()
@@ -2430,6 +2440,7 @@ function Start-RunPlan {
         if ($ui.RestartDelayPanel.Visibility -eq 'Visible' -and $choice) { $script:restartDelaySeconds = [int]$choice.Tag }
     } catch { }
     # A Windows restore point goes first whenever the plan really changes something.
+    Remove-DRConflictingSelections
     $selection['safety.restore-point'] = $false
     $changing = @($catalog | Where-Object { $selection[$_.Id] -and $_.Category -in @('Cleanup','Repair','Hibernate','AI') -and $_.Risk -ne 'Guided' -and $_.Id -notin @('ai.check','repair.restore-point') })
     if ($changing.Count -and (@($catalog | Where-Object Id -eq 'safety.restore-point').Count) -and -not $selection['repair.restore-point'] -and (Test-DRAdministrator)) { $selection['safety.restore-point'] = $true }
