@@ -1,7 +1,7 @@
 {
-  "version": "1.4.56",
-  "notes": "While a clean-up is running you can now choose when Windows restarts afterwards, or choose No, I will restart myself so it never restarts by itself.",
-  "published": "2026-10-03T19:04:41.8207393-04:00",
+  "version": "1.4.57",
+  "notes": "Fixes the Graphics shader cache clean-up, which could show a red warning on PCs with only one cache folder. Every task in a full run now finishes cleanly.",
+  "published": "2026-10-03T20:15:10.2112345-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "F01D0DC361790EED77786517849C1C65AD21466336A773C4D8CD7D679B15CCDB",
-      "size": 219555
+      "sha256": "75AAE42394BDF08C9EBC2383556200DF11B60138669BBA3D66F975D151DEF42C",
+      "size": 219642
     },
     {
       "name": "DRDirect Updater.ps1",

@@ -420,7 +420,7 @@ function Clear-DRFolderContents {
         [string]$TestRoot
     )
 
-    $effectivePath = if ($TestRoot) { $TestRoot } else { $FolderPath }
+    $effectivePath = @(if ($TestRoot) { $TestRoot } else { $FolderPath })
     if (-not (Test-Path -LiteralPath $effectivePath -PathType Container)) { return 0 }
     $removed = 0
     foreach ($item in @(Get-ChildItem -LiteralPath $effectivePath -Force -ErrorAction SilentlyContinue)) {
@@ -474,27 +474,27 @@ function Get-DRAnalysis {
         try {
             switch ($id) {
                 'cleanup.windows-temp' {
-                    $paths = if ($TestRoot) { @($TestRoot) } else { @($env:TEMP, (Join-Path $env:WINDIR 'Temp')) }
+                    $paths = @(if ($TestRoot) { @($TestRoot) } else { @($env:TEMP, (Join-Path $env:WINDIR 'Temp')) })
                     foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
                     $detail = 'Windows and application temporary folders'
                 }
                 'cleanup.browser-cache' {
-                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRBrowserCachePatterns)) }
+                    $matches = @(if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRBrowserCachePatterns)) })
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
                     $detail = 'Cache only; passwords, cookies, and sessions preserved'
                 }
                 'cleanup.cloud-icloud' {
-                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'iCloud')) }
+                    $matches = @(if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'iCloud')) })
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
                     $detail = 'Cache and logs only; synced files are not touched'
                 }
                 'cleanup.cloud-appcaches' {
-                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'App caches')) }
+                    $matches = @(if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'App caches')) })
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
                     $detail = 'Temporary cache only; logins and chats are kept'
                 }
                 'cleanup.cloud-store' {
-                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'Microsoft Store')) }
+                    $matches = @(if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'Microsoft Store')) })
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
                     $detail = 'Store cache only; apps and purchases are kept'
                 }
@@ -505,32 +505,32 @@ function Get-DRAnalysis {
                     else { $detail = 'Hibernate is already off on this PC' }
                 }
                 'cleanup.cloud-google' {
-                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'Google Drive')) }
+                    $matches = @(if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'Google Drive')) })
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
                     $detail = 'Cache and logs only; synced files are not touched'
                 }
                 'cleanup.cloud-onedrive' {
-                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'OneDrive')) }
+                    $matches = @(if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'OneDrive')) })
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
                     $detail = 'Cache and logs only; synced files are not touched'
                 }
                 'cleanup.cloud-dropbox' {
-                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'Dropbox')) }
+                    $matches = @(if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'Dropbox')) })
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
                     $detail = 'Cache and logs only; synced files are not touched'
                 }
                 'cleanup.cloud-mega' {
-                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'MEGA')) }
+                    $matches = @(if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns 'MEGA')) })
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
                     $detail = 'Cache and logs only; synced files are not touched'
                 }
                 'cleanup.cookies' {
-                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCookiePatterns)) }
+                    $matches = @(if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCookiePatterns)) })
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
                     $detail = 'May sign you out of websites and webmail'
                 }
                 'cleanup.prefetch' {
-                    $path = if ($TestRoot) { $TestRoot } else { Join-Path $env:WINDIR 'Prefetch' }
+                    $path = @(if ($TestRoot) { $TestRoot } else { Join-Path $env:WINDIR 'Prefetch' })
                     $bytes = Get-DRPathSize $path; $items = @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count
                     $detail = 'Advanced; Windows rebuilds this cache'
                 }
@@ -538,44 +538,44 @@ function Get-DRAnalysis {
                     $detail = 'Size is calculated by Windows during cleanup'
                 }
                 'cleanup.wu-download-cache' {
-                    $path = if ($TestRoot) { $TestRoot } else { Join-Path $env:WINDIR 'SoftwareDistribution\Download' }
+                    $path = @(if ($TestRoot) { $TestRoot } else { Join-Path $env:WINDIR 'SoftwareDistribution\Download' })
                     $bytes = Get-DRPathSize $path; $items = @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count
                     $detail = 'Already-installed update installers'
                 }
                 'cleanup.old-update-backups' {
-                    $windowsDir = if ($TestRoot) { $TestRoot } else { $env:WINDIR }
+                    $windowsDir = @(if ($TestRoot) { $TestRoot } else { $env:WINDIR })
                     foreach ($folder in @(Get-DROldUpdateBackupFolders -WindowsDir $windowsDir)) { $bytes += Get-DRPathSize $folder.Path; $items++ }
                     $detail = 'Left behind by an earlier Windows Update fix'
                 }
                 'cleanup.thumbnail-cache' {
-                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot -ErrorAction SilentlyContinue) } else { @(Get-DRPatternMatches @((Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Explorer\thumbcache_*.db'))) }
+                    $matches = @(if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot -ErrorAction SilentlyContinue) } else { @(Get-DRPatternMatches @((Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Explorer\thumbcache_*.db'))) })
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
                     $detail = 'Rebuilt automatically as you browse files'
                 }
                 'cleanup.shader-cache' {
-                    $paths = if ($TestRoot) { @($TestRoot) } else { @(Get-DRShaderCachePaths) }
+                    $paths = @(if ($TestRoot) { @($TestRoot) } else { @(Get-DRShaderCachePaths) })
                     foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
                     $detail = 'Games rebuild these by themselves'
                 }
                 'cleanup.icon-cache' {
-                    $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot -ErrorAction SilentlyContinue) } else { @(Get-DRPatternMatches @((Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Explorer\iconcache_*.db'))) }
+                    $matches = @(if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot -ErrorAction SilentlyContinue) } else { @(Get-DRPatternMatches @((Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Explorer\iconcache_*.db'))) })
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
                     $detail = 'Advanced; Explorer restarts to rebuild it'
                 }
                 'cleanup.wer-queue' {
-                    $paths = if ($TestRoot) { @($TestRoot) } else { @((Join-Path $env:ProgramData 'Microsoft\Windows\WER\ReportQueue'), (Join-Path $env:ProgramData 'Microsoft\Windows\WER\ReportArchive')) }
+                    $paths = @(if ($TestRoot) { @($TestRoot) } else { @((Join-Path $env:ProgramData 'Microsoft\Windows\WER\ReportQueue'), (Join-Path $env:ProgramData 'Microsoft\Windows\WER\ReportArchive')) })
                     foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
                     $detail = 'Queued and archived crash reports'
                 }
                 'cleanup.jumplists' {
-                    $paths = if ($TestRoot) { @($TestRoot) } else { @((Join-Path $env:APPDATA 'Microsoft\Windows\Recent\AutomaticDestinations'), (Join-Path $env:APPDATA 'Microsoft\Windows\Recent\CustomDestinations')) }
+                    $paths = @(if ($TestRoot) { @($TestRoot) } else { @((Join-Path $env:APPDATA 'Microsoft\Windows\Recent\AutomaticDestinations'), (Join-Path $env:APPDATA 'Microsoft\Windows\Recent\CustomDestinations')) })
                     foreach ($path in $paths) {
                         foreach ($item in @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue | Where-Object Name -ne $script:DRQuickAccessJumpList)) { $bytes += Get-DRPathSize $item.FullName; $items++ }
                     }
                     $detail = 'Taskbar jump lists and Recent Items'
                 }
                 'cleanup.memory-dumps' {
-                    $paths = if ($TestRoot) { @($TestRoot) } else { @((Join-Path $env:WINDIR 'Memory.dmp'), (Join-Path $env:WINDIR 'Minidump')) }
+                    $paths = @(if ($TestRoot) { @($TestRoot) } else { @((Join-Path $env:WINDIR 'Memory.dmp'), (Join-Path $env:WINDIR 'Minidump')) })
                     foreach ($path in $paths) {
                         $bytes += Get-DRPathSize $path
                         if (Test-Path -LiteralPath $path -PathType Container) { $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
@@ -1117,7 +1117,7 @@ function Invoke-DRStartupReport {
 # PC Manager "Manage large files": shows the biggest files in the user's folders. Read-only.
 function Invoke-DRLargeFiles {
     param([string]$TaskId, [string]$TestRoot)
-    $roots = if ($TestRoot) { @($TestRoot) } else { @($env:USERPROFILE) }
+    $roots = @(if ($TestRoot) { @($TestRoot) } else { @($env:USERPROFILE) })
     $skipPattern = '\\(AppData|\.git|node_modules)(\\|$)'
     $found = New-Object System.Collections.Generic.List[object]
     foreach ($root in $roots) {
@@ -2698,13 +2698,13 @@ function Invoke-DRTask {
     try {
         switch ($TaskId) {
             'cleanup.windows-temp' {
-                $paths = if ($TestRoot) { @($TestRoot) } else { @($env:TEMP, (Join-Path $env:WINDIR 'Temp')) }
+                $paths = @(if ($TestRoot) { @($TestRoot) } else { @($env:TEMP, (Join-Path $env:WINDIR 'Temp')) })
                 $count = 0
                 foreach ($path in $paths) { $result = Clear-DRFolderContents -FolderPath $path -TaskId $TaskId -TestRoot $(if ($TestRoot) { $TestRoot } else { $null }); if ($result -is [int]) { $count += $result } }
                 New-DREvent -TaskId $TaskId -State Information -Message "$count temporary item(s) removed."
             }
             'cleanup.browser-cache' {
-                $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRBrowserCachePatterns)) }
+                $matches = @(if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRBrowserCachePatterns)) })
                 $index = 0
                 foreach ($match in $matches) {
                     $index++
@@ -2715,7 +2715,7 @@ function Invoke-DRTask {
             { $_ -like 'cleanup.cloud-*' } {
                 # One clause for every cloud service; the catalog names which one.
                 $service = $task.CloudService
-                $matches = if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns $service)) }
+                $matches = @(if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCloudCachePatterns $service)) })
                 if (@($matches).Count -eq 0) {
                     New-DREvent -TaskId $TaskId -State Information -Message ('{0} is not set up on this PC, so there was nothing to clear.' -f $service)
                 } else {
@@ -2724,11 +2724,11 @@ function Invoke-DRTask {
                 }
             }
             'cleanup.cookies' {
-                $matches = if ($TestRoot) { @(Get-ChildItem -LiteralPath $TestRoot -Force -ErrorAction SilentlyContinue) } else { @(Get-DRPatternMatches (Get-DRCookiePatterns)) }
+                $matches = @(if ($TestRoot) { @(Get-ChildItem -LiteralPath $TestRoot -Force -ErrorAction SilentlyContinue) } else { @(Get-DRPatternMatches (Get-DRCookiePatterns)) })
                 $index = 0
                 foreach ($match in $matches) {
                     $index++
-                    $allowed = if ($TestRoot) { $TestRoot } else { Get-DRAllowedRootForPath $match.FullName }
+                    $allowed = @(if ($TestRoot) { $TestRoot } else { Get-DRAllowedRootForPath $match.FullName })
                     if (-not $allowed) { throw "No approved browser root for $($match.FullName)" }
                     Remove-DRSafeItem -LiteralPath $match.FullName -AllowedRoot $allowed | Out-Null
                     New-DREvent -TaskId $TaskId -State Progress -Message ("Removed website data {0} of {1}." -f $index, @($matches).Count) -Percent ([int](100 * $index / [Math]::Max(1,@($matches).Count)))
@@ -2801,7 +2801,7 @@ function Invoke-DRTask {
             'cleanup.old-update-backups' {
                 # A test root stands in for the Windows folder, so the same exact
                 # names are looked for under it instead.
-                $windowsDir = if ($TestRoot) { $TestRoot } else { $env:WINDIR }
+                $windowsDir = @(if ($TestRoot) { $TestRoot } else { $env:WINDIR })
                 $folders = @(Get-DROldUpdateBackupFolders -WindowsDir $windowsDir)
                 if ($folders.Count -eq 0) {
                     New-DREvent -TaskId $TaskId -State Information -Message 'There were no old Windows Update backup folders on this PC.'
@@ -2827,7 +2827,7 @@ function Invoke-DRTask {
             'cleanup.shader-cache' {
                 # Each cache folder is its own approved root, so only what is inside
                 # it can go. Files a running game holds open are skipped quietly.
-                $folders = if ($TestRoot) { @($TestRoot) } else { @(Get-DRShaderCachePaths) }
+                $folders = @(if ($TestRoot) { @($TestRoot) } else { @(Get-DRShaderCachePaths) })
                 if ($folders.Count -eq 0) {
                     New-DREvent -TaskId $TaskId -State Information -Message 'No graphics shader caches were found on this PC.'
                 } else {
@@ -2880,7 +2880,7 @@ function Invoke-DRTask {
                 }
             }
             'cleanup.jumplists' {
-                $folders = if ($TestRoot) { @($TestRoot) } else { @((Join-Path $env:APPDATA 'Microsoft\Windows\Recent\AutomaticDestinations'), (Join-Path $env:APPDATA 'Microsoft\Windows\Recent\CustomDestinations')) }
+                $folders = @(if ($TestRoot) { @($TestRoot) } else { @((Join-Path $env:APPDATA 'Microsoft\Windows\Recent\AutomaticDestinations'), (Join-Path $env:APPDATA 'Microsoft\Windows\Recent\CustomDestinations')) })
                 foreach ($folder in $folders) {
                     if (-not (Test-Path -LiteralPath $folder -PathType Container)) { continue }
                     foreach ($item in @(Get-ChildItem -LiteralPath $folder -Force -ErrorAction SilentlyContinue)) {
