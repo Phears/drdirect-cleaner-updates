@@ -1759,12 +1759,39 @@ function Clear-DRConflictingTask {
     }
 }
 
+# The Memory test needs a restart and takes an hour or more, so it is always run on its own:
+# ticking it clears every other tick, and ticking anything else clears it.
+$script:DRRunsAloneTaskId = 'health.ram-test'
+function Set-DRVisibleTick {
+    param([string]$TaskId, [bool]$Value)
+    foreach ($row in @($ui.TaskList.Children)) {
+        $box = $null
+        try { $box = $row.Child.Children | Where-Object { $_ -is [Windows.Controls.CheckBox] -and $_.Tag -eq $TaskId } | Select-Object -First 1 } catch { }
+        if ($box -and $box.IsChecked -ne $Value) { $box.IsChecked = $Value }
+    }
+}
+function Clear-DRForRunsAlone {
+    param([string]$TaskId)
+    if ($TaskId -eq $script:DRRunsAloneTaskId) {
+        foreach ($key in @($selection.Keys | Where-Object { $_ -ne $TaskId })) {
+            if ($selection[$key]) { $selection[$key] = $false; Set-DRVisibleTick -TaskId $key -Value $false }
+        }
+    } elseif ($selection[$script:DRRunsAloneTaskId]) {
+        $selection[$script:DRRunsAloneTaskId] = $false
+        Set-DRVisibleTick -TaskId $script:DRRunsAloneTaskId -Value $false
+    }
+}
+
 # Last safety net before a plan is shown or run: if both tasks of an undoing pair somehow
 # ended up selected, keep the one that changes something and drop the one that undoes it.
 function Remove-DRConflictingSelections {
     foreach ($undo in @('cleanup.hibernate-on','security.typing-privacy-restore')) {
         $other = $script:DRConflictingTasks[$undo]
         if ($selection[$undo] -and $selection[$other]) { $selection[$undo] = $false }
+    }
+    # The Memory test runs alone: if anything else is selected with it, the test is dropped.
+    if ($selection[$script:DRRunsAloneTaskId] -and @($selection.Keys | Where-Object { $_ -ne $script:DRRunsAloneTaskId -and $_ -ne 'safety.restore-point' -and $selection[$_] }).Count) {
+        $selection[$script:DRRunsAloneTaskId] = $false
     }
 }
 
@@ -1856,6 +1883,7 @@ function New-TaskRow {
         param($sender,$args)
         $selection[$sender.Tag] = $true
         Clear-DRConflictingTask -TaskId ([string]$sender.Tag)
+        Clear-DRForRunsAlone -TaskId ([string]$sender.Tag)
         Sync-CleanupPresetFromSelection
         Update-SelectionSummary
     })
