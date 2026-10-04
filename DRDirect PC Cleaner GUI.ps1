@@ -759,6 +759,7 @@ $ErrorActionPreference = 'Stop'
                     <TextBlock Text="UPDATE" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
                     <Button x:Name="NavAppUpdates" Style="{StaticResource WingetNavButton}" Content="⭳   Update my apps" Margin="10,4,10,4" ToolTip="Update every app with winget, in a colour PowerShell window"/>
                     <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Foreground="#22D3EE" FontWeight="SemiBold" Content="◷   Cleaning history" ToolTip="See what the Cleaner did, open the reports, and undo changes to settings"/>
+                    <Button x:Name="NavHibernate" Style="{StaticResource NavButton}" Foreground="#22D3EE" FontWeight="SemiBold" Content="☾   Hibernate" ToolTip="Turn Hibernate off to free several GB, or back on"/>
                     <Button x:Name="NavProgress" Style="{StaticResource NavButton}" Content="◐   Maintenance progress" Visibility="Collapsed"/>
                 </StackPanel>
                 </ScrollViewer>
@@ -1062,7 +1063,7 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','UpdateBanner','UpdateBannerText','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -1211,18 +1212,18 @@ function Start-DRFadeIn {
 function Set-Page {
     param([string]$Name)
     $ui.PageDashboard.Visibility = if ($Name -eq 'Dashboard') { 'Visible' } else { 'Collapsed' }
-    $ui.PageTasks.Visibility = if ($Name -in @('Cleanup','Repair','Security','Health','Memory','Speed','AI')) { 'Visible' } else { 'Collapsed' }
+    $ui.PageTasks.Visibility = if ($Name -in @('Cleanup','Repair','Security','Health','Memory','Speed','Hibernate','AI')) { 'Visible' } else { 'Collapsed' }
     $ui.PageProgress.Visibility = if ($Name -eq 'Progress') { 'Visible' } else { 'Collapsed' }
     $ui.PageHistory.Visibility = if ($Name -eq 'History') { 'Visible' } else { 'Collapsed' }
     $ui.PageDuplicates.Visibility = if ($Name -eq 'Duplicates') { 'Visible' } else { 'Collapsed' }
     $ui.PageHardware.Visibility = if ($Name -eq 'Hardware') { 'Visible' } else { 'Collapsed' }
     $ui.PageAppUpdates.Visibility = if ($Name -eq 'AppUpdates') { 'Visible' } else { 'Collapsed' }
-    $ui.PageTitle.Text = switch ($Name) { 'Cleanup' {'Clean my PC'} 'Repair' {'Fix Windows problems'} 'Security' {'Check my security'} 'Health' {'Check my drives'} 'Memory' {'Check my memory'} 'Speed' {'Speed and space'} 'Hardware' {'About my PC'} 'History' {'Cleaning history'} 'Duplicates' {'Find duplicate files'} 'AI' {'Switch off AI'} 'AppUpdates' {'Update my apps'} 'Progress' {'Maintenance progress'} default {$Name} }
+    $ui.PageTitle.Text = switch ($Name) { 'Cleanup' {'Clean my PC'} 'Repair' {'Fix Windows problems'} 'Security' {'Check my security'} 'Health' {'Check my drives'} 'Memory' {'Check my memory'} 'Speed' {'Speed and space'} 'Hibernate' {'Hibernate'} 'Hardware' {'About my PC'} 'History' {'Cleaning history'} 'Duplicates' {'Find duplicate files'} 'AI' {'Switch off AI'} 'AppUpdates' {'Update my apps'} 'Progress' {'Maintenance progress'} default {$Name} }
     $script:currentCategory = $Name
     $ui.CleanupPresetPanel.Visibility = if ($Name -eq 'Cleanup') { 'Visible' } else { 'Collapsed' }
-    $navMap = @{ Dashboard='NavDashboard'; Cleanup='NavCleanup'; Repair='NavRepair'; Security='NavSecurity'; Health='NavHealth'; Memory='NavMemory'; Speed='NavSpeed'; History='NavHistory'; Progress='NavProgress'; Duplicates='NavDuplicates'; Hardware='NavHardware'; AppUpdates='NavAppUpdates'; AI='NavAI' }
+    $navMap = @{ Dashboard='NavDashboard'; Cleanup='NavCleanup'; Repair='NavRepair'; Security='NavSecurity'; Health='NavHealth'; Memory='NavMemory'; Speed='NavSpeed'; Hibernate='NavHibernate'; History='NavHistory'; Progress='NavProgress'; Duplicates='NavDuplicates'; Hardware='NavHardware'; AppUpdates='NavAppUpdates'; AI='NavAI' }
     foreach ($key in $navMap.Keys) { $ui[$navMap[$key]].Tag = if ($key -eq $Name) { 'Active' } else { $null } }
-    if ($Name -in @('Cleanup','Repair','Security','Health','Memory','Speed','AI')) { Show-TaskCategory $Name }
+    if ($Name -in @('Cleanup','Repair','Security','Health','Memory','Speed','Hibernate','AI')) { Show-TaskCategory $Name }
     if ($Name -eq 'History') { Show-History }
     if ($Name -eq 'Dashboard') { Show-DashboardHistory }
     if ($Name -eq 'Hardware') { Show-Hardware }
@@ -1325,7 +1326,7 @@ function Test-TaskInOrderedPreset {
         # has to have those re-entered afterwards, and a remote session drops
         # while the address renews. It stays on the Repair page to tick by hand.
         return (($advancedIds -contains $Task.Id) -or
-                ($Task.Category -eq 'Repair' -and $Task.Id -notin @('repair.network-reset','health.chkdsk','health.ram-test')) -or
+                ($Task.Category -eq 'Repair' -and $Task.Id -notin @('repair.network-reset','health.chkdsk','health.ram-test','cleanup.hibernate-off','cleanup.hibernate-on')) -or
                 $Task.Id -eq 'security.quick-scan')
     }
 
@@ -1738,6 +1739,26 @@ function New-DRAIUninstallAllCard {
     return $border
 }
 
+# Tasks that undo each other. Ticking one unticks the other, so a plan can never
+# switch a setting off and straight back on.
+$script:DRConflictingTasks = @{
+    'cleanup.hibernate-off'           = 'cleanup.hibernate-on'
+    'cleanup.hibernate-on'            = 'cleanup.hibernate-off'
+    'security.typing-privacy'         = 'security.typing-privacy-restore'
+    'security.typing-privacy-restore' = 'security.typing-privacy'
+}
+function Clear-DRConflictingTask {
+    param([string]$TaskId)
+    $other = $script:DRConflictingTasks[$TaskId]
+    if (-not $other -or -not $selection[$other]) { return }
+    $selection[$other] = $false
+    foreach ($row in @($ui.TaskList.Children)) {
+        $box = $null
+        try { $box = $row.Child.Children | Where-Object { $_ -is [Windows.Controls.CheckBox] -and $_.Tag -eq $other } | Select-Object -First 1 } catch { }
+        if ($box) { $box.IsChecked = $false }
+    }
+}
+
 function New-TaskRow {
     param($Task)
     $border = New-Object Windows.Controls.Border
@@ -1747,11 +1768,28 @@ function New-TaskRow {
     # Only the cookie/sign-out task gets the loud treatment; every other row stays plain.
     $risk = [string]$Task.Risk
     $isLoud = $risk -eq 'SignOut'
+    # The slow tasks get the same framed look, but their warning is about time, not sign-ins.
+    $longTasks = @{
+        'health.ram-test'         = @{ Badge = 'CAN TAKE 1 HOUR OR MORE'; Caution = 'Checking your RAM could take 1 hour or more, depending on your system. Windows has to restart to run it, so save your work first. Only tick it if you are ready to wait. The Cleaner never restarts the PC by itself.' }
+        'security.full-scan'      = @{ Badge = 'CAN TAKE 1 HOUR OR MORE'; Caution = 'If you have not done a full scan for a while, please do one. Depending on your system, a full scan can take 1 hour or more. You can keep using the PC while it runs, but it may feel slower. Only tick it if you are ready to wait.' }
+        'repair.dism-health'      = @{ Badge = 'CAN TAKE AN HOUR'; Caution = 'This repair can take up to an hour or more, depending on your system. It can look stuck for a while, so please let it finish. You can keep using the PC, but it may feel slower. Only tick it if you are ready to wait.' }
+        'repair.component-cleanup' = @{ Badge = 'CAN TAKE 30 MIN OR MORE'; Caution = 'This clean-up can take 30 minutes or more, depending on your system. It can look stuck for a while, so please let it finish. Only tick it if you are ready to wait.' }
+        'repair.sfc'              = @{ Badge = 'CAN TAKE 30 MIN OR MORE'; Caution = 'This scan can take 30 minutes or more, depending on your system. It can sit at the same percentage for a while, so please let it finish. Only tick it if you are ready to wait.' }
+        'security.remove-exclusions' = @{ Badge = 'ONLY IF YOU SUSPECT A VIRUS'; Icon = '⚠'; Caution = 'Use this only if you think your PC had a virus, if Defender missed something it should have caught, or if the PC is second-hand. It clears the list of places Defender skips, so everything is scanned again. A backup is saved first. If you added exclusions on purpose, like a game or work folder, you will need to add them back. If none of that applies, leave it unticked.' }
+        'health.chkdsk'           = @{ Badge = 'CAN TAKE 30 MIN OR MORE'; Caution = 'A deep drive test can take 30 minutes or more, depending on the size and speed of your drive. Windows keeps running, but the PC may feel slower. Only tick it if you are ready to wait.' }
+    }
+    $longInfo = $longTasks[[string]$Task.Id]
+    $isLongTest = [bool]$longInfo
 
     if ($isLoud) {
         # A full red ring on all four sides, not just the left accent bar, so the
         # one task that can sign the user out cannot be skimmed past.
         $accent = @{ Badge='#FDE2E2'; BadgeInk='#A32020'; Label='⚠  SIGNS YOU OUT' }
+        $border.Background = '#FFFAF0'
+        $border.BorderBrush = '#C63C3C'
+        $border.BorderThickness = '3'
+    } elseif ($isLongTest) {
+        $accent = @{ Badge='#FDE2E2'; BadgeInk='#A32020'; Label=($(if ($longInfo.ContainsKey('Icon')) { $longInfo['Icon'] } else { '⏱' }) + '  ' + $longInfo['Badge']) }
         $border.Background = '#FFFAF0'
         $border.BorderBrush = '#C63C3C'
         $border.BorderThickness = '3'
@@ -1808,6 +1846,7 @@ function New-TaskRow {
     $check.Add_Checked({
         param($sender,$args)
         $selection[$sender.Tag] = $true
+        Clear-DRConflictingTask -TaskId ([string]$sender.Tag)
         Sync-CleanupPresetFromSelection
         Update-SelectionSummary
     })
@@ -1838,10 +1877,10 @@ function New-TaskRow {
             & $addRun $title.Substring($at + $brand.Length) $false
         } else { & $addRun $title $true }
     }
-    $badgePadding = if ($isLoud) { '9,4' } else { '8,3' }
+    $badgePadding = if ($isLoud -or $isLongTest) { '9,4' } else { '8,3' }
     $badge = New-Object Windows.Controls.Border -Property @{ Background=$accent.Badge; CornerRadius=10; Padding=$badgePadding; Margin='10,0,0,0' }
     $badgeText = New-Object Windows.Controls.TextBlock -Property @{ Text=$accent.Label; Foreground=$accent.BadgeInk; FontSize=11 }
-    if ($isLoud) { $badgeText.FontSize = 10.5; $badgeText.FontWeight = 'Bold' }
+    if ($isLoud -or $isLongTest) { $badgeText.FontSize = 10.5; $badgeText.FontWeight = 'Bold' }
     $badge.Child = $badgeText
 
     if ($isLoud) {
@@ -1930,6 +1969,11 @@ function New-TaskRow {
         } catch { }
     }
 
+    if ($isLongTest) {
+        $longCaution = $longInfo['Caution']
+        [void]$copy.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$longCaution; Foreground='#96500A'; FontSize=12; FontWeight='SemiBold'; TextWrapping='Wrap'; Margin='0,7,12,0'; MaxWidth=650 }))
+    }
+
     $meta = New-Object Windows.Controls.StackPanel -Property @{ HorizontalAlignment='Right'; Margin='12,0,0,0' }
     [Windows.Controls.Grid]::SetColumn($meta,2)
     $value = if ($analysis.ContainsKey($Task.Id) -and $Task.SupportsAnalysis) { Format-Bytes $analysis[$Task.Id].Bytes } else { $Task.Duration }
@@ -1955,6 +1999,17 @@ function New-TaskRow {
     return $border
 }
 
+# Tasks only the owner may see or run. The owner's PC has the licence secret file beside the
+# app; it is never shipped to customers, so on their PCs these tasks do not exist.
+$script:DROwnerOnlyTaskIds = @('cleanup.event-applogs')
+function Test-DROwnerMachine {
+    foreach ($root in @([AppDomain]::CurrentDomain.BaseDirectory, $PSScriptRoot)) {
+        if ([string]::IsNullOrWhiteSpace($root)) { continue }
+        if (Test-Path -LiteralPath (Join-Path $root 'licence_secret_cleaner.txt') -PathType Leaf) { return $true }
+    }
+    return $false
+}
+
 function Get-VisibleTasksForCategory {
     param([string]$Category)
 
@@ -1968,6 +2023,7 @@ function Get-VisibleTasksForCategory {
     # nowhere else, Custom included.
     $hidden = @()
     if ($script:cleanupLevel -ne 'Advanced') { $hidden = @('cleanup.cookies') }
+    if (-not (Test-DROwnerMachine)) { $hidden += $script:DROwnerOnlyTaskIds }
     if ($script:cleanupLevel -in @('Safe', 'Medium')) {
         $hidden += @($catalog | Where-Object { $_.Category -eq 'Cleanup' -and -not (Test-TaskInOrderedPreset -Task $_ -Preset $script:cleanupLevel) } | ForEach-Object Id)
     }
@@ -2036,6 +2092,7 @@ function Show-TaskCategory {
         'Security' { 'Run Defender operations independently. Existing exclusions are never removed automatically.' }
         'Health' { 'Drive health checks are read-only and do not schedule repairs or restarts.' }
         'Speed' { 'These checks only look at the PC and show what is using space or slowing it down. Nothing is changed or deleted.' }
+        'Hibernate' { 'Hibernate saves your session to a file on C: so Windows can start fast. Turn it off to free several GB, or back on again. Pick one: they undo each other.' }
         'Memory' { 'The memory check only looks. The Windows memory test needs a restart that Windows asks about, and this app never restarts the PC by itself.' }
         'AI' { 'Pick "Turn off" or "Turn back on" for each item. A browser has to be signed in before its AI is turned off. Passwords, bookmarks, files and sign-ins are never touched.' }
     }
@@ -2076,7 +2133,7 @@ function Update-SelectionSummary {
     # The badge sits beside one page's list, so it counts that page. A run still
     # covers every page, and the badge says so when something is ticked elsewhere.
     $here = @($selected | Where-Object { $_.Category -eq $script:currentCategory }).Count
-    if ($script:currentCategory -in @('Cleanup','Repair','Security','Health','Memory','Speed','AI')) {
+    if ($script:currentCategory -in @('Cleanup','Repair','Security','Health','Memory','Speed','Hibernate','AI')) {
         $ui.SelectionSummary.Text = if ($total -gt $here) { "$here selected here, $total in total" } else { "$here selected" }
     } else {
         $ui.SelectionSummary.Text = "$total selected"
@@ -2374,7 +2431,7 @@ function Start-RunPlan {
     } catch { }
     # A Windows restore point goes first whenever the plan really changes something.
     $selection['safety.restore-point'] = $false
-    $changing = @($catalog | Where-Object { $selection[$_.Id] -and $_.Category -in @('Cleanup','Repair','AI') -and $_.Risk -ne 'Guided' -and $_.Id -notin @('ai.check','repair.restore-point') })
+    $changing = @($catalog | Where-Object { $selection[$_.Id] -and $_.Category -in @('Cleanup','Repair','Hibernate','AI') -and $_.Risk -ne 'Guided' -and $_.Id -notin @('ai.check','repair.restore-point') })
     if ($changing.Count -and (@($catalog | Where-Object Id -eq 'safety.restore-point').Count) -and -not $selection['repair.restore-point'] -and (Test-DRAdministrator)) { $selection['safety.restore-point'] = $true }
     $selected = @($catalog | Where-Object { $selection[$_.Id] })
     $runQueue.Clear(); foreach ($task in $selected) { $runQueue.Enqueue($task.Id) }
@@ -3138,7 +3195,19 @@ $pollTimer.Add_Tick({
 })
 $pollTimer.Start()
 
+# What starts ticked. The starting cleanup level resets every box, so this runs after it.
+function Set-DRDefaultTicks {
+    # Check my security starts with every task ticked except the full scan (an hour or more) and
+    # "Restore typing settings" (it only undoes "Stop sending typing data") and "Remove Defender
+    # exclusions", which deletes settings and is left for the person to choose.
+    foreach ($task in @($catalog | Where-Object { $_.Category -eq 'Security' -and $_.Id -notin @('security.full-scan','security.typing-privacy-restore','security.remove-exclusions') })) { $selection[$task.Id] = $true }
+    # Speed and space only looks at the PC (and releases idle memory), so it starts fully ticked.
+    foreach ($task in @($catalog | Where-Object { $_.Category -eq 'Speed' })) { $selection[$task.Id] = $true }
+    Update-SelectionSummary
+}
+
 foreach ($task in $catalog) { $selection[$task.Id] = $false }
+Set-DRDefaultTicks
 Set-CleanupPresetVisual -Preset 'Custom'
 
 $ui.TitleDragArea.Add_MouseLeftButtonDown({
@@ -3228,6 +3297,7 @@ $ui.RunRestartCombo.Add_SelectionChanged({
 $ui.NavHealth.Add_Click({ Invoke-DRAIRunNow -TaskIds @('health.drive-check') })
 $ui.NavMemory.Add_Click({ Invoke-DRAIRunNow -TaskIds @('health.ram-check') })
 $ui.NavSpeed.Add_Click({ Set-Page 'Speed' })
+$ui.NavHibernate.Add_Click({ Set-Page 'Hibernate' })
 $ui.NavHardware.Add_Click({ Set-Page 'Hardware' })
 $ui.CheckDriversButton.Add_Click({ Start-DRDriverCheck })
 
@@ -4295,6 +4365,7 @@ if ($NoShow) {
         $ui.VersionText.Text = if ($newest -ge [version]'0.0.1') { "Version $newest" } else { 'Version 1.0' }
     } catch { }
     Apply-CleanupPreset -Preset 'Safe'
+    Set-DRDefaultTicks
     # Ask once a day, quietly, so a waiting update is visible on the button
     # rather than only to someone who thinks to go looking for it.
     try { Start-DRQuietUpdateCheck } catch { }

@@ -1,7 +1,7 @@
 {
-  "version": "1.4.57",
-  "notes": "Fixes the Graphics shader cache clean-up, which could show a red warning on PCs with only one cache folder. Every task in a full run now finishes cleanly.",
-  "published": "2026-10-03T20:15:10.2112345-04:00",
+  "version": "1.4.58",
+  "notes": "Slow tasks (DISM, System File Checker, CHKDSK, Memory test, Defender full scan) now show a red framed card that says how long they can take. Remove Defender exclusions explains when to use it. Hibernate has its own page, and tasks that undo each other can no longer be ticked together. Check my security and Speed and space start ticked.",
+  "published": "2026-10-03T22:18:59.7771497-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "20ECC44589EFA88F8989360FFA6830307599BF3599CE66B31FE8D3B96C35F92A",
-      "size": 289051
+      "sha256": "672BC8674C14FA15066DCD2CD3F8905F16D2160D50568235239464D752DB426A",
+      "size": 295143
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "75AAE42394BDF08C9EBC2383556200DF11B60138669BBA3D66F975D151DEF42C",
-      "size": 219642
+      "sha256": "67F72353C4E071DA22D3E165CA7D3B8398A0DFD0F2538459BD0BD3F42C81488F",
+      "size": 219672
     },
     {
       "name": "DRDirect Updater.ps1",
