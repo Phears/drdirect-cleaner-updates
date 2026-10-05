@@ -1,7 +1,7 @@
 {
-  "version": "1.4.65",
-  "notes": "The Cleaner now finds the DRDirect Uninstaller Program in its own app folder, where new builds unpack it automatically the first time they open.",
-  "published": "2026-10-05T10:23:01.6718092-04:00",
+  "version": "1.4.66",
+  "notes": "Uninstaller keys: Uninstaller, All 3 keys, lifetime option",
+  "published": "2026-10-05T11:32:47.5773733-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "FB4634C36485B604262B0536FAA05FADD22BB4B594A1A64323C4C5C0AB178325",
-      "size": 314480
+      "sha256": "E7B73652C72B0D34DD590A0C901FDE4E0D070E457CE9482425B1044123099F81",
+      "size": 314764
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -25,8 +25,8 @@
     },
     {
       "name": "DRDirect Activation.ps1",
-      "sha256": "A360D5B59604E8F5F93FB407077A7CE9B8AFFF337A7E82082FCEBE64386E6F4A",
-      "size": 19349
+      "sha256": "024DB08DD669550335220AC38D7A07A87965E3EAAFEBFA73174732B7C0DE83AC",
+      "size": 23727
     },
     {
       "name": "DRDirectCleaner.ico",

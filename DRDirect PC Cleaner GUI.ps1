@@ -3706,6 +3706,11 @@ function Open-DRUninstaller {
             [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information) | Out-Null
         return
     }
+    # The Uninstaller has its own key. The launcher says whether this PC already has one.
+    if ($env:DRDIRECT_UNINSTALLER_OK -eq '0') {
+        if ((Show-DRActivation 'locked' 'DRDirect Uninstaller') -ne 'activated') { return }
+        $env:DRDIRECT_UNINSTALLER_OK = '1'
+    }
     $uninstaller = Resolve-DRUninstallerExe
     if (-not $uninstaller) {
         [Windows.MessageBox]::Show(

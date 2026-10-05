@@ -12,7 +12,7 @@
 param(
     # Not required: the window no longer shows the ID, so callers pass nothing.
     [string]$PcId = '',
-    [ValidateSet('expired', 'otherpc')] [string]$Reason = 'expired',
+    [ValidateSet('expired', 'otherpc', 'locked')] [string]$Reason = 'expired',
     [string]$Detail = '',
     # Which program is asking, so the window says the right name.
     [string]$Product = 'PC Cleaner'
@@ -23,13 +23,18 @@ Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase
 
 # One file per product, in one folder. A code for the Cleaner must not activate
 # the Duplicate Finder, and the other way round.
-$script:DRStateLeaf = if ($Product -match 'Duplicate') { 'licence_finder.dat' } else { 'licence.dat' }
+$script:DRStateLeaf = if ($Product -match 'Duplicate') { 'licence_finder.dat' }
+                      elseif ($Product -match 'Uninstaller') { 'licence_uninstaller.dat' }
+                      else { 'licence.dat' }
 $script:DRStatePath = Join-Path $env:LOCALAPPDATA (Join-Path 'DRDirect PC Cleaner' $script:DRStateLeaf)
 
 $heading = if ($Reason -eq 'otherpc') { 'This copy is not activated for this PC' }
+           elseif ($Reason -eq 'locked') { "The $Product needs a key" }
            else                       { 'This copy has reached the end of its licence' }
 $blurb = if ($Reason -eq 'otherpc') {
     "Contact DRDirect to be sent an activation code for this machine."
+} elseif ($Reason -eq 'locked') {
+    "Contact DRDirect for a key to unlock the $Product on this machine."
 } else {
     "Contact DRDirect to continue using the $Product on this machine."
 }
@@ -140,6 +145,17 @@ $script:Entered = ''
 $script:Result = ''
 
 function Get-DRSecretBytes {
+    # The Uninstaller has its own secret. The launcher hands it over in the
+    # environment, so it works wherever this script was started from.
+    if ($Product -match 'Uninstaller') {
+        $hex = $env:DRDIRECT_UNINSTALLER_SECRET
+        if ([string]::IsNullOrWhiteSpace($hex) -or ($hex.Length % 2) -ne 0) { return $null }
+        try {
+            $bytes = New-Object byte[] ($hex.Length / 2)
+            for ($i = 0; $i -lt $bytes.Length; $i++) { $bytes[$i] = [Convert]::ToByte($hex.Substring($i * 2, 2), 16) }
+            return $bytes
+        } catch { return $null }
+    }
     # licence.json sits beside this script inside the bundle.
     # The two programs carry differently named licence files, so try each.
     $file = $null
@@ -180,12 +196,54 @@ function Get-DRThisPcIds {
     return $ids
 }
 
+# Where each product keeps its accepted key. A key for several products is
+# written to all of them, so it only has to be typed once.
+$script:DRStateLeaves = @('licence.dat', 'licence_finder.dat', 'licence_uninstaller.dat')
+
+function Resolve-DRKey {
+    <#
+    .SYNOPSIS
+        Checks a typed key for this product. Returns $null, or what it unlocks.
+    .DESCRIPTION
+        A key is 16 letters/numbers for one product, or 48 for all three at once
+        (Cleaner, Duplicate Finder, Uninstaller - in that order). Each product
+        only ever checks its own part, with its own secret.
+    #>
+    param([string]$Text, [string]$Product, [byte[]]$Secret, [string[]]$PcIds, [datetime]$Today = (Get-Date).Date)
+
+    $hex = ($Text.ToUpperInvariant() -replace '[^0-9A-F]', '')
+    if ($hex.Length -ne 16 -and $hex.Length -ne 48) { return $null }
+    $parts = @()
+    for ($i = 0; $i -lt $hex.Length; $i += 16) {
+        $raw = $hex.Substring($i, 16)
+        $parts += (($raw -split '(.{4})' | Where-Object { $_ }) -join '-')
+    }
+    $index = if ($Product -match 'Duplicate') { 1 } elseif ($Product -match 'Uninstaller') { 2 } else { 0 }
+    if ($parts.Count -eq 1) { $index = 0 }
+    $own = $parts[$index]
+
+    $dates = New-Object System.Collections.Generic.List[string]
+    foreach ($days in 7, 14, 91, 183, 365, 730) {
+        foreach ($offset in -14..7) { $dates.Add($Today.AddDays($offset + $days).ToString('yyyy-MM-dd')) }
+    }
+    $dates.Add('2999-12-31')   # lifetime
+
+    foreach ($pcId in $PcIds) {
+        foreach ($until in $dates) {
+            if ($own -eq (Get-DRSignature $Secret ("{0}|{1}" -f $pcId, $until))) {
+                return @{ Until = $until; Code = $own; Parts = $parts; Bundle = ($parts.Count -eq 3) }
+            }
+        }
+    }
+    return $null
+}
+
 function Save-DRActivationFields {
     # One licence, one activation. This is the shared state file the Cleaner and
     # the Duplicate Finder both read, so a code entered in either one unlocks
     # both on this PC.
-    param([hashtable]$Fields)
-    $path = $script:DRStatePath
+    param([hashtable]$Fields, [string]$Path = '')
+    $path = if ($Path) { $Path } else { $script:DRStatePath }
     $state = @{}
     if (Test-Path -LiteralPath $path -PathType Leaf) {
         try { (Get-Content -LiteralPath $path -Raw | ConvertFrom-Json).PSObject.Properties |
@@ -261,6 +319,31 @@ $ui.BtnOk.Add_Click({
 
     $secret = Get-DRSecretBytes
     if (-not $secret) { $ui.LblHint.Text = 'This copy cannot be activated here. Contact DRDirect.'; return }
+
+    # Dated or lifetime key, for one product or all three.
+    $key = Resolve-DRKey -Text $entered -Product $Product -Secret $secret -PcIds @(Get-DRThisPcIds)
+    if ($key) {
+        Save-DRActivationFields @{ until = $key.Until; code = $key.Code }
+        if ($key.Bundle) {
+            # The same key also unlocks the other two products. Each re-checks its
+            # own part with its own secret the next time it starts, so a wrong
+            # part is simply ignored.
+            for ($i = 0; $i -lt 3; $i++) {
+                $other = Join-Path (Split-Path -Parent $script:DRStatePath) $script:DRStateLeaves[$i]
+                if ($other -ne $script:DRStatePath) {
+                    Save-DRActivationFields @{ until = $key.Until; code = $key.Parts[$i] } $other
+                }
+            }
+        }
+        $script:Result = 'activated'
+        $label = if ($key.Until -eq '2999-12-31') { 'for life' } else { "until $($key.Until)" }
+        Show-DRActivated "Activated $label."
+        return
+    }
+    if ($Product -match 'Uninstaller') {
+        $ui.LblHint.Text = 'That key is not correct for this PC. Check it and try again.'
+        return
+    }
 
     foreach ($pcId in Get-DRThisPcIds) {
         if ($entered -eq (Get-DRSignature $secret ("{0}|activate" -f $pcId))) {
