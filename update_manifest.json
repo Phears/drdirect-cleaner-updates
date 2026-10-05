@@ -1,7 +1,7 @@
 {
-  "version": "1.4.61",
-  "notes": "CHKDSK and Windows Update repair now run on their own, like the Memory test: ticking one clears every other tick, and ticking anything else clears them.",
-  "published": "2026-10-03T23:15:39.1620017-04:00",
+  "version": "1.4.62",
+  "notes": "New Remove programs button in the Clean menu and on the dashboard. It opens the DRDirect Uninstaller, which sits in the DRDirect Uninstaller folder beside the Cleaner.",
+  "published": "2026-10-04T22:20:13.6940604-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B2DB36A0F885C7894C8589ABD853449EC8CE760D90AD3AFB9EFBF1C4FF07E57A",
-      "size": 297487
+      "sha256": "096D501ED242867CF8DE3AF3BA95ADD7D7ECC3EC413E7EE26EF4CB8A9B6DE5D3",
+      "size": 304773
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
