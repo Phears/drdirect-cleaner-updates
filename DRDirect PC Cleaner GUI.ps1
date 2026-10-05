@@ -247,6 +247,34 @@ $ErrorActionPreference = 'Stop'
             <Setter Property="Foreground" Value="White"/><Setter Property="Background" Value="#33FFFFFF"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="GhostBorder" Background="{TemplateBinding Background}" BorderBrush="#66FFFFFF" BorderThickness="1" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="GhostBorder" Property="Background" Value="#4DFFFFFF"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="GhostBorder" Property="Background" Value="#66FFFFFF"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
+        <Style x:Key="HeroGreenButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Foreground" Value="White"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="FontSize" Value="14"/><Setter Property="Padding" Value="22,11"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+                <Grid x:Name="GreenRoot" RenderTransformOrigin="0.5,0.5">
+                    <Grid.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                    <Border x:Name="GreenBorder" CornerRadius="24" BorderBrush="#E6FFFFFF" BorderThickness="1.5" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#2BE3BE" Offset="0"/><GradientStop Color="#00A88F" Offset="1"/></LinearGradientBrush></Border.Background>
+                        <Grid>
+                            <Border CornerRadius="20" VerticalAlignment="Top" Height="12" Margin="10,-4,10,0" Background="#40FFFFFF" IsHitTestVisible="False"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Trigger.EnterActions><BeginStoryboard><Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="GreenRoot" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.1" Duration="0:0:0.45"><DoubleAnimation.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="2" Springiness="4"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="GreenRoot" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.1" Duration="0:0:0.45"><DoubleAnimation.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="2" Springiness="4"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard></BeginStoryboard></Trigger.EnterActions>
+                        <Trigger.ExitActions><BeginStoryboard><Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="GreenRoot" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.2"/>
+                            <DoubleAnimation Storyboard.TargetName="GreenRoot" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.2"/>
+                        </Storyboard></BeginStoryboard></Trigger.ExitActions>
+                    </Trigger>
+                    <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger>
+                </ControlTemplate.Triggers></ControlTemplate></Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="NavButton" TargetType="Button">
             <Setter Property="Foreground" Value="#BDCAE0"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="Padding" Value="18,12"/><Setter Property="Margin" Value="10,2"/><Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontSize" Value="14"/>
@@ -355,6 +383,31 @@ $ErrorActionPreference = 'Stop'
                 </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
         <!-- The winget update button gets its own very bright electric blue, in the same style as AI Remover's violet. -->
+        <Style x:Key="GreenNavButton" TargetType="Button" BasedOn="{StaticResource NavButton}">
+            <Setter Property="Foreground" Value="#FFFFFF"/><Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+                <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
+                    <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
+                    <Border x:Name="NavBorder" CornerRadius="18" BorderBrush="#CCFFFFFF" BorderThickness="1.2" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#2BE3BE" Offset="0"/><GradientStop Color="#00A88F" Offset="1"/></LinearGradientBrush></Border.Background>
+                        <Grid>
+                            <Border CornerRadius="12" VerticalAlignment="Top" Height="9" Margin="8,-6,8,0" Background="#38FFFFFF" IsHitTestVisible="False"/>
+                            <ContentPresenter/>
+                        </Grid>
+                    </Border>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Trigger.EnterActions><BeginStoryboard><Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="NavRoot" Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" To="6" Duration="0:0:0.18"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard></BeginStoryboard></Trigger.EnterActions>
+                        <Trigger.ExitActions><BeginStoryboard><Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="NavRoot" Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)" To="0" Duration="0:0:0.24"><DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard></BeginStoryboard></Trigger.ExitActions>
+                    </Trigger>
+                </ControlTemplate.Triggers></ControlTemplate></Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="WingetNavButton" TargetType="Button" BasedOn="{StaticResource NavButton}">
             <Setter Property="Foreground" Value="#FFFFFF"/><Setter Property="Background" Value="#0061FF"/><Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
@@ -747,7 +800,7 @@ $ErrorActionPreference = 'Stop'
                     <TextBlock Text="CLEAN" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
                     <Button x:Name="NavCleanup" Style="{StaticResource NavButton}" Content="✦   Clean my PC"/>
                     <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Find duplicate files"/>
-                    <Button x:Name="NavUninstaller" Style="{StaticResource NavButton}" Content="⌫   Remove programs" ToolTip="Open the DRDirect Uninstaller to remove programs you no longer want"/>
+                    <Button x:Name="NavUninstaller" Style="{StaticResource GreenNavButton}" Margin="10,4,10,4" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⌫" Foreground="White" Margin="0,0,12,0" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="DRDirect Uninstaller Program" Foreground="White" TextWrapping="Wrap" VerticalAlignment="Center"/></Grid></Button>
                     <Button x:Name="NavSpeed" Style="{StaticResource NavButton}" Content="◈   Speed and space"/>
                     <TextBlock Text="FIX" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
                     <Button x:Name="NavRepair" Style="{StaticResource NavButton}" Content="⚒   Fix Windows"/>
@@ -775,7 +828,7 @@ $ErrorActionPreference = 'Stop'
             <Grid Grid.Row="1">
                 <ScrollViewer x:Name="PageDashboard" VerticalScrollBarVisibility="Auto"><StackPanel>
 <Border x:Name="UpdateBanner" Visibility="Collapsed" Background="#12C25B" CornerRadius="12" Padding="20,14" Margin="0,0,0,16"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal" VerticalAlignment="Center"><TextBlock Text="&#10004;" Foreground="White" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,12,0"/><TextBlock x:Name="UpdateBannerText" Text="There is a new update" Foreground="White" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"/></StackPanel><Button x:Name="UpdateBannerButton" Grid.Column="1" Content="See what is new and update" Style="{StaticResource HeroButton}" Foreground="#0B7A3B" Margin="16,0,0,0"/></Grid></Border>
-<Border Style="{StaticResource Card}" Padding="34" Margin="0,0,0,18" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8"><StackPanel><TextBlock Text="START HERE" Foreground="#A8C4FF" FontSize="11" FontWeight="Bold"/><TextBlock Text="Make my PC cleaner" Foreground="White" FontSize="32" FontWeight="ExtraBold" Margin="0,8,0,8"/><TextBlock Text="One click. We only do the safe things, and we ask you before anything starts." Foreground="#C9D9FF" FontSize="16" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left"/><WrapPanel Orientation="Horizontal" Margin="0,24,0,0"><Button x:Name="SafeCleanButton" Content="Make my PC cleaner" Style="{StaticResource HeroButton}" Margin="0,0,0,10"/><Button x:Name="SafePreviewButton" Content="Show me first" Style="{StaticResource HeroGhostButton}" Margin="10,0,0,10"/><Button x:Name="HeroUpdateButton" Content="Check for updates" Style="{StaticResource HeroGhostButton}" Margin="10,0,0,10" FontSize="13" ToolTip="Look for a newer version of the Cleaner"/><Button x:Name="HeroUninstallButton" Content="Remove programs" Style="{StaticResource HeroGhostButton}" Margin="10,0,0,10" FontSize="13" ToolTip="Open the DRDirect Uninstaller to remove programs you no longer want"/></WrapPanel><TextBlock Text="✓  Settings changes can be undone.   ✓  Your files and passwords are never touched." Foreground="#DDE8FF" FontSize="13" Margin="0,20,0,0" TextWrapping="Wrap"/></StackPanel></Border>
+<Border Style="{StaticResource Card}" Padding="34" Margin="0,0,0,18" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8"><StackPanel><TextBlock Text="START HERE" Foreground="#A8C4FF" FontSize="11" FontWeight="Bold"/><TextBlock Text="Make my PC cleaner" Foreground="White" FontSize="32" FontWeight="ExtraBold" Margin="0,8,0,8"/><TextBlock Text="One click. We only do the safe things, and we ask you before anything starts." Foreground="#C9D9FF" FontSize="16" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left"/><WrapPanel Orientation="Horizontal" Margin="0,24,0,0"><Button x:Name="SafeCleanButton" Content="Make my PC cleaner" Style="{StaticResource HeroButton}" Margin="0,0,10,10"/><Button x:Name="SafePreviewButton" Content="Show me first" Style="{StaticResource HeroGhostButton}" Margin="0,0,10,10"/><Button x:Name="HeroUpdateButton" Content="Check for updates" Style="{StaticResource HeroGhostButton}" Margin="0,0,10,10" FontSize="13" ToolTip="Look for a newer version of the Cleaner"/><Button x:Name="HeroUninstallButton" Style="{StaticResource HeroGreenButton}" Margin="0,0,10,10" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><StackPanel Orientation="Horizontal"><TextBlock Text="⌫" FontSize="18" Foreground="White" Margin="0,0,10,0" VerticalAlignment="Center"/><TextBlock Text="DRDirect Uninstaller Program" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button></WrapPanel><TextBlock Text="✓  Settings changes can be undone.   ✓  Your files and passwords are never touched." Foreground="#DDE8FF" FontSize="13" Margin="0,20,0,0" TextWrapping="Wrap"/></StackPanel></Border>
 <UniformGrid Columns="3" Margin="0,0,0,22">
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Violet}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource VioletSoft}"><TextBlock Text="◷" Foreground="{StaticResource Violet}" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="LAST CLEAN" Foreground="{StaticResource Violet}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock Text="Not yet" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="Shows here after your first clean" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Teal}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource TealSoft}"><TextBlock Text="▰" Foreground="{StaticResource Teal}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="FREE SPACE" Foreground="{StaticResource Teal}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="FreeSpaceText" Text="Checking…" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="On your main drive" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
@@ -3595,24 +3648,74 @@ function Resolve-DRUninstallerExe {
     return $null
 }
 
+function Show-DRRunningUninstaller {
+    # Going back and forth must never start over. If this uninstaller is already open
+    # (even minimised), bring that same window forward instead of opening a second one
+    # that would have to scan every program again.
+    param([string]$UninstallerPath)
+    try {
+        $ours = @(Get-CimInstance -ClassName Win32_Process -Filter "Name='BCUninstaller.exe'" -ErrorAction Stop |
+            Where-Object { $_.ExecutablePath -and ($_.ExecutablePath -ieq $UninstallerPath) })
+    } catch { return $false }
+    foreach ($candidate in $ours) {
+        $process = Get-Process -Id $candidate.ProcessId -ErrorAction SilentlyContinue
+        if (-not $process -or $process.MainWindowHandle -eq 0) { continue }
+        if (-not ('DRFrontWindow' -as [type])) {
+            Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class DRFrontWindow {
+    [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr window, int command);
+    [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr window);
+    [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr window);
+}
+'@
+        }
+        $handle = $process.MainWindowHandle
+        if ([DRFrontWindow]::IsIconic($handle)) { [void][DRFrontWindow]::ShowWindow($handle, 9) }
+        [void][DRFrontWindow]::SetForegroundWindow($handle)
+        return $true
+    }
+    return $false
+}
+
+function Get-DRCleanerLauncherPath {
+    # The program file that started this Cleaner, so the uninstaller's "Back to the
+    # Cleaner" button can start it again if it was closed in the meantime.
+    try {
+        $walkId = $PID
+        for ($level = 0; $level -lt 6 -and $walkId; $level++) {
+            $info = Get-CimInstance -ClassName Win32_Process -Filter "ProcessId=$walkId" -ErrorAction Stop
+            if (-not $info) { break }
+            if ($info.ExecutablePath -and ([IO.Path]::GetFileName($info.ExecutablePath) -like 'DRDirect PC Cleaner*.exe')) { return $info.ExecutablePath }
+            $walkId = [int]$info.ParentProcessId
+            if ($walkId -le 4) { break }
+        }
+    } catch { }
+    return $null
+}
+
 function Open-DRUninstaller {
     if ($TestMode) {
-        [Windows.MessageBox]::Show('Test mode: the DRDirect Uninstaller would open here.', 'DRDirect PC Cleaner',
+        [Windows.MessageBox]::Show('Test mode: the DRDirect Uninstaller Program would open here.', 'DRDirect PC Cleaner',
             [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information) | Out-Null
         return
     }
     $uninstaller = Resolve-DRUninstallerExe
     if (-not $uninstaller) {
         [Windows.MessageBox]::Show(
-            "The DRDirect Uninstaller was not found beside the Cleaner." + [Environment]::NewLine + [Environment]::NewLine +
+            "The DRDirect Uninstaller Program was not found beside the Cleaner." + [Environment]::NewLine + [Environment]::NewLine +
             "Keep the 'DRDirect Uninstaller' folder in the same folder as the Cleaner, then try again.",
             'DRDirect PC Cleaner', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information) | Out-Null
         return
     }
+    if (Show-DRRunningUninstaller -UninstallerPath $uninstaller) { return }
     try {
+        $launcher = Get-DRCleanerLauncherPath
+        if ($launcher) { $env:DRDIRECT_CLEANER_EXE = $launcher }
         Start-Process -FilePath $uninstaller -WorkingDirectory (Split-Path -Parent $uninstaller)
     } catch {
-        [Windows.MessageBox]::Show("Could not open the DRDirect Uninstaller: $($_.Exception.Message)", 'DRDirect PC Cleaner',
+        [Windows.MessageBox]::Show("Could not open the DRDirect Uninstaller Program: $($_.Exception.Message)", 'DRDirect PC Cleaner',
             [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Error) | Out-Null
     }
 }
