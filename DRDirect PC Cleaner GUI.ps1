@@ -3640,6 +3640,11 @@ function Resolve-DRUninstallerExe {
             if ($walkId -le 4) { break }
         }
     } catch { }
+    # The Cleaner unpacks its own copy here the first time it starts, so this is the usual place.
+    if (-not [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
+        $unpacked = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Uninstaller\BCUninstaller.exe'
+        if (Test-Path -LiteralPath $unpacked -PathType Leaf) { return $unpacked }
+    }
     foreach ($root in @($roots | Select-Object -Unique)) {
         if ([string]::IsNullOrWhiteSpace($root)) { continue }
         $candidate = Join-Path -Path $root -ChildPath 'DRDirect Uninstaller\BCUninstaller.exe'

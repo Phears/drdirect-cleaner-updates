@@ -1,7 +1,7 @@
 {
-  "version": "1.4.64",
-  "notes": "Remove programs is now the green DRDirect Uninstaller Program button in the Clean menu and on the dashboard. Opening it again brings the open window forward instead of starting a new one, and its Back to the Cleaner button switches back without restarting anything.",
-  "published": "2026-10-05T09:47:22.0802483-04:00",
+  "version": "1.4.65",
+  "notes": "The Cleaner now finds the DRDirect Uninstaller Program in its own app folder, where new builds unpack it automatically the first time they open.",
+  "published": "2026-10-05T10:23:01.6718092-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "2FAB93BD6490CDB28C6E81951C722C2DABAF4AAA03C3A89AD98457173161F91D",
-      "size": 314125
+      "sha256": "FB4634C36485B604262B0536FAA05FADD22BB4B594A1A64323C4C5C0AB178325",
+      "size": 314480
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
