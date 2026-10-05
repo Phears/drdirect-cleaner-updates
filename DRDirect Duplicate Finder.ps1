@@ -1433,6 +1433,20 @@ $xaml = @'
 
 $reader = New-Object System.Xml.XmlNodeReader ([xml]$xaml)
 $win = [Windows.Markup.XamlReader]::Load($reader)
+# Small screens (a 15 inch laptop): shrink everything to fit instead of opening
+# a window bigger than the screen. Big screens are left exactly as they were.
+try {
+    $drArea = [Windows.SystemParameters]::WorkArea
+    $drFit = [Math]::Max(0.6, [Math]::Min(1.0, [Math]::Min($drArea.Height / 900.0, $drArea.Width / 1300.0)))
+    if ($drFit -lt 0.99) {
+        $win.Content.LayoutTransform = New-Object Windows.Media.ScaleTransform($drFit, $drFit)
+        $win.MinWidth = [Math]::Floor($win.MinWidth * $drFit)
+        $win.MinHeight = [Math]::Floor($win.MinHeight * $drFit)
+        $win.Width = [Math]::Min($win.Width, $drArea.Width * 0.92)
+        $win.Height = [Math]::Min($win.Height, $drArea.Height * 0.92)
+    }
+} catch { }
+
 
 # As the compiled exe the taskbar icon comes from the exe; as the updated script
 # (hosted by powershell.exe) nothing sets one, so Windows shows the PowerShell

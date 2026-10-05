@@ -1063,6 +1063,20 @@ $ErrorActionPreference = 'Stop'
 
 $reader = New-Object System.Xml.XmlNodeReader $xaml
 $window = [Windows.Markup.XamlReader]::Load($reader)
+# Small screens (a 15 inch laptop): shrink everything to fit instead of opening
+# a window bigger than the screen. Big screens are left exactly as they were.
+try {
+    $drArea = [Windows.SystemParameters]::WorkArea
+    $drFit = [Math]::Max(0.6, [Math]::Min(1.0, [Math]::Min($drArea.Height / 900.0, $drArea.Width / 1300.0)))
+    if ($drFit -lt 0.99) {
+        $window.Content.LayoutTransform = New-Object Windows.Media.ScaleTransform($drFit, $drFit)
+        $window.MinWidth = [Math]::Floor($window.MinWidth * $drFit)
+        $window.MinHeight = [Math]::Floor($window.MinHeight * $drFit)
+        $window.Width = [Math]::Min($window.Width, $drArea.Width * 0.92)
+        $window.Height = [Math]::Min($window.Height, $drArea.Height * 0.92)
+    }
+} catch { }
+
 
 # When this interface runs as the compiled exe, the taskbar icon comes from the
 # exe. When it runs as the updated script (hosted by powershell.exe), nothing
