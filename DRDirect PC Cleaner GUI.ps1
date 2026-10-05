@@ -3869,7 +3869,8 @@ if ($ui.SafeLevelAdvancedButton) { $ui.SafeLevelAdvancedButton.Add_Click({ Show-
 foreach ($name in 'UndoAllButton','UndoAllDashButton') { if ($ui[$name]) { $ui[$name].Add_Click({ Invoke-DRUndoAll }) } }
 Show-SafePlan
 
-$ui.NavDuplicates.Add_Click({ Set-Page 'Duplicates' })
+# Opens the Duplicate Finder window straight away, with no page in between.
+$ui.NavDuplicates.Add_Click({ $ui.OpenDuplicatesButton.RaiseEvent((New-Object Windows.RoutedEventArgs([Windows.Controls.Primitives.ButtonBase]::ClickEvent))) })
 $ui.NavAI.Add_Click({ Set-Page 'AI' })
 $ui.NavProgress.Add_Click({ Set-Page 'Progress' })
 $ui.DashboardHistoryButton.Add_Click({ Set-Page 'History' })
@@ -4558,6 +4559,8 @@ try { $drive=Get-PSDrive -Name C -ErrorAction Stop; $ui.FreeSpaceText.Text=Forma
 $window.Add_Closed({ Stop-DRRestartCountdown; $pollTimer.Stop(); if ($script:activePowerShell) { try { $script:activePowerShell.Stop() } catch {}; Stop-EngineCall } })
 
 if ($NoShow) {
+    # Some tasks are ticked by default; start the one-item test from nothing ticked.
+    foreach ($key in @($selection.Keys)) { $selection[$key] = $false }
     Set-Page 'Cleanup'
     $firstTaskRow = $ui.TaskList.Children | Select-Object -First 1
     if (-not $firstTaskRow) { throw 'GUI smoke test could not render cleanup tasks.' }

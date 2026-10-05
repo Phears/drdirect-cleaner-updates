@@ -1,7 +1,7 @@
 {
-  "version": "1.4.67",
-  "notes": "Cleaner and Duplicate Finder shrink to fit small screens",
-  "published": "2026-10-05T12:24:09.1813091-04:00",
+  "version": "1.4.68",
+  "notes": "Find duplicate files in the left menu now opens the Duplicate Finder straight away.",
+  "published": "2026-10-05T16:48:37.0893010-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "683A584793B0CA1A1E5A2BFC283403584529B83FFCCB97DCF11230409A4A85DE",
-      "size": 315533
+      "sha256": "C2C4F2DB4A4CF76ABE64517BA071A99B91D0D650C188128DC5DE304A51622FA1",
+      "size": 315874
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
