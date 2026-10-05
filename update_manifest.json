@@ -1,7 +1,7 @@
 {
-  "version": "1.4.62",
-  "notes": "New Remove programs button in the Clean menu and on the dashboard. It opens the DRDirect Uninstaller, which sits in the DRDirect Uninstaller folder beside the Cleaner.",
-  "published": "2026-10-04T22:20:13.6940604-04:00",
+  "version": "1.4.63",
+  "notes": "Fixes the Remove programs button so it finds the DRDirect Uninstaller folder beside the Cleaner after an update.",
+  "published": "2026-10-04T22:25:09.0405279-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "096D501ED242867CF8DE3AF3BA95ADD7D7ECC3EC413E7EE26EF4CB8A9B6DE5D3",
-      "size": 304773
+      "sha256": "283D205D8416002E93ED953611D659F0D0AB0B817F8820635235B60CD1DC179F",
+      "size": 305571
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

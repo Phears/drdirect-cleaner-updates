@@ -3572,6 +3572,21 @@ function Resolve-DRUninstallerExe {
             $roots.Add([AppDomain]::CurrentDomain.BaseDirectory)
         }
     } catch { }
+    # An updated interface runs as a script from the Scripts folder under AppData, so
+    # "beside this script" is not where the user keeps the Cleaner. The program that
+    # started it is, so walk up through the programs that launched this one.
+    try {
+        $walkId = $PID
+        for ($level = 0; $level -lt 6 -and $walkId; $level++) {
+            $info = Get-CimInstance -ClassName Win32_Process -Filter "ProcessId=$walkId" -ErrorAction Stop
+            if (-not $info) { break }
+            if ($level -gt 0 -and -not [string]::IsNullOrWhiteSpace($info.ExecutablePath)) {
+                $roots.Add((Split-Path -Parent $info.ExecutablePath))
+            }
+            $walkId = [int]$info.ParentProcessId
+            if ($walkId -le 4) { break }
+        }
+    } catch { }
     foreach ($root in @($roots | Select-Object -Unique)) {
         if ([string]::IsNullOrWhiteSpace($root)) { continue }
         $candidate = Join-Path -Path $root -ChildPath 'DRDirect Uninstaller\BCUninstaller.exe'
