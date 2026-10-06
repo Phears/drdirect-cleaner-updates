@@ -1883,7 +1883,7 @@ function New-TaskRow {
         'repair.dism-health'      = @{ Badge = 'CAN TAKE AN HOUR'; Caution = 'This repair can take up to an hour or more, depending on your system. It can look stuck for a while, so please let it finish. You can keep using the PC, but it may feel slower. Only tick it if you are ready to wait.' }
         'repair.component-cleanup' = @{ Badge = 'CAN TAKE 30 MIN OR MORE'; Caution = 'This clean-up can take 30 minutes or more, depending on your system. It can look stuck for a while, so please let it finish. Only tick it if you are ready to wait.' }
         'repair.sfc'              = @{ Badge = 'CAN TAKE 30 MIN OR MORE'; Caution = 'This scan can take 30 minutes or more, depending on your system. It can sit at the same percentage for a while, so please let it finish. Only tick it if you are ready to wait.' }
-        'security.remove-exclusions' = @{ Badge = 'ONLY IF YOU SUSPECT A VIRUS'; Icon = '⚠'; Caution = 'Use this only if you think your PC had a virus, if Defender missed something it should have caught, or if the PC is second-hand. It clears the list of places Defender skips, so everything is scanned again. A backup is saved first. If you added exclusions on purpose, like a game or work folder, you will need to add them back. If none of that applies, leave it unticked.' }
+        'security.remove-exclusions' = @{ Badge = 'ONLY LOOKS'; Icon = '✔'; Caution = 'Shows which folders, programs and file types Defender skips, and marks any that look risky. Nothing is ever removed - exclusions you added on purpose, like a work or tools folder, always stay.' }
         'health.chkdsk'           = @{ Badge = 'CAN TAKE 30 MIN OR MORE'; Caution = 'A deep drive test can take 30 minutes or more, depending on the size and speed of your drive. Windows keeps running, but the PC may feel slower. Only tick it if you are ready to wait.' }
     }
     $longInfo = $longTasks[[string]$Task.Id]
@@ -2278,7 +2278,6 @@ function Show-Confirmation {
     $warnings = New-Object System.Collections.Generic.List[string]
     if ($selected.Risk -contains 'SignOut') { $warnings.Add('Cookie cleanup can end active website and webmail sessions.') }
     if ($selected.Id -contains 'cleanup.recycle-bin') { $warnings.Add('Recycle Bin contents will be permanently removed.') }
-    if ($selected.Id -contains 'security.remove-exclusions') { $warnings.Add('All configured Defender exclusions will be exported to a backup and then removed.') }
     if ($selected.Id -contains 'security.checkup-fix') { $warnings.Add('Any of the Windows firewall, Microsoft Defender real-time protection and Windows Update that is off will be switched back on.') }
     if (@($selected | Where-Object { $_.Id -in @('ai.edge','ai.chrome','ai.brave','ai.firefox','ai.block-sites') }).Count) { $warnings.Add('The browsers you picked will show "Managed by your organization" - that is what keeps their AI off. "Turn back on" removes it.') }
     if (@($selected | Where-Object { $_.Category -eq 'AI' -and $_.Risk -eq 'Guided' }).Count) { $warnings.Add('Some items open Gmail, Word, Edge, Settings, the Microsoft Store or a download page at the right place. The last click there is yours - the steps show when it runs.') }

@@ -77,7 +77,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='security.defender-update'; Category='Security'; Name='Update Defender intelligence'; Description='Downloads the latest available Microsoft Defender security intelligence.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.quick-scan'; Category='Security'; Name='Defender quick scan'; Description='Scans common threat locations without changing exclusions.'; Risk='Safe'; Duration='5-20 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
         [pscustomobject]@{ Id='security.full-scan'; Category='Security'; Name='Defender full scan'; Description='Scans all accessible files. This may take several hours.'; Risk='Long'; Duration='1+ hours'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
-        [pscustomobject]@{ Id='security.remove-exclusions'; Category='Security'; Name='Remove Defender exclusions'; Description='Exports and removes all configured Defender exclusions. Never runs automatically.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='security.remove-exclusions'; Category='Security'; Name='Check Defender exclusions'; Description='Lists the folders, programs and file types Microsoft Defender skips, and points out any that look risky. Nothing is removed - exclusions you added on purpose always stay.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.network-files'; Category='Security'; Name='Enable network-file scanning'; Description='Enables Microsoft Defender scanning of files accessed over the network.'; Risk='Advanced'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.typing-privacy'; Category='Security'; Name='Stop sending typing data to Microsoft'; Description='Turns off "Improve inking and typing" and typing personalization, so Windows stops collecting what you type and write to tune its suggestions. Your current settings are saved first, and "Restore typing settings" puts them back.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.typing-privacy-restore'; Category='Security'; Name='Restore typing settings'; Description='Puts the typing settings back exactly as they were before "Stop sending typing data to Microsoft" changed them. Does nothing if that option was never run.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -3078,33 +3078,39 @@ function Invoke-DRTask {
                 else { Restore-DRTypingPrivacy -TaskId $TaskId }
             }
             'security.remove-exclusions' {
-                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Defender exclusions were not changed.' }
-                else {
-                    if (-not $SelectedExclusion -or @($SelectedExclusion).Count -eq 0) {
-                        $preference = Get-MpPreference -ErrorAction Stop
-                        $SelectedExclusion = @()
-                        $SelectedExclusion += @($preference.ExclusionPath | ForEach-Object { 'Path:' + $_ })
-                        $SelectedExclusion += @($preference.ExclusionProcess | ForEach-Object { 'Process:' + $_ })
-                        $SelectedExclusion += @($preference.ExclusionExtension | ForEach-Object { 'Extension:' + $_ })
-                    }
-                    if (@($SelectedExclusion).Count -eq 0) {
-                        New-DREvent -TaskId $TaskId -State Information -Message 'No Defender exclusions are configured.'
-                        break
-                    }
-                    New-Item -Path $script:DRReportRoot -ItemType Directory -Force | Out-Null
-                    $backup = Join-Path $script:DRReportRoot ('Defender_Exclusions_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '.clixml')
-                    Get-MpPreference | Select-Object ExclusionPath,ExclusionProcess,ExclusionExtension | Export-Clixml -LiteralPath $backup
-                    foreach ($entry in $SelectedExclusion) {
-                        $parts = $entry -split ':', 2
-                        if (@($parts).Count -ne 2) { continue }
-                        switch ($parts[0]) {
-                            'Path' { Remove-MpPreference -ExclusionPath $parts[1] -ErrorAction Stop }
-                            'Process' { Remove-MpPreference -ExclusionProcess $parts[1] -ErrorAction Stop }
-                            'Extension' { Remove-MpPreference -ExclusionExtension $parts[1] -ErrorAction Stop }
-                        }
-                    }
-                    New-DREvent -TaskId $TaskId -State Information -Message ("Original exclusions exported to {0}." -f $backup)
+                # Read-only on purpose: exclusions are often added deliberately (a work folder, a tool
+                # Defender flags by mistake), so the Cleaner never removes any. It lists them and marks
+                # the kinds malware likes to add, so the person can decide in Windows Security.
+                if (-not (Get-Command Get-MpPreference -ErrorAction SilentlyContinue)) {
+                    New-DREvent -TaskId $TaskId -State Information -Message 'Microsoft Defender is not available on this PC, so there are no Defender exclusions to check.'
+                    break
                 }
+                $preference = Get-MpPreference -ErrorAction Stop
+                $all = @()
+                $all += @($preference.ExclusionPath | Where-Object { $_ } | ForEach-Object { [pscustomobject]@{ Kind = 'Folder or file'; Value = [string]$_ } })
+                $all += @($preference.ExclusionProcess | Where-Object { $_ } | ForEach-Object { [pscustomobject]@{ Kind = 'Program'; Value = [string]$_ } })
+                $all += @($preference.ExclusionExtension | Where-Object { $_ } | ForEach-Object { [pscustomobject]@{ Kind = 'File type'; Value = [string]$_ } })
+                if ($all.Count -eq 0) {
+                    New-DREvent -TaskId $TaskId -State Information -Message "Defender exclusions: NO PROBLEMS FOUND`r`n  There are no exclusions. Defender scans everything."
+                    break
+                }
+                $risky = @()
+                $broadFolders = @($env:SystemDrive, ($env:SystemDrive + '\'), $env:WINDIR, (Join-Path $env:WINDIR 'System32'), $env:TEMP, $env:TMP, (Join-Path $env:WINDIR 'Temp'),
+                    $env:USERPROFILE, $env:APPDATA, $env:LOCALAPPDATA, $env:ProgramData, $env:ProgramFiles, ${env:ProgramFiles(x86)},
+                    (Join-Path $env:USERPROFILE 'Downloads'), (Join-Path $env:USERPROFILE 'Desktop')) | Where-Object { $_ } | ForEach-Object { $_.TrimEnd('\').ToLowerInvariant() }
+                foreach ($item in $all) {
+                    $value = $item.Value.Trim().TrimEnd('\').ToLowerInvariant()
+                    $why = $null
+                    if ($item.Kind -eq 'Folder or file' -and ($value -match '^[a-z]:$' -or $broadFolders -contains $value)) { $why = 'a whole drive or a system folder' }
+                    elseif ($item.Kind -eq 'File type' -and $value.TrimStart('.') -in @('exe', 'dll', 'ps1', 'bat', 'cmd', 'vbs', 'js', 'scr', 'msi', 'zip')) { $why = 'a file type programs and scripts use' }
+                    elseif ($item.Kind -eq 'Program' -and ([IO.Path]::GetFileName($value)) -in @('powershell.exe', 'pwsh.exe', 'cmd.exe', 'wscript.exe', 'cscript.exe', 'rundll32.exe', 'regsvr32.exe', 'mshta.exe', 'explorer.exe', 'svchost.exe')) { $why = 'a Windows program that malware often hides behind' }
+                    if ($why) { $risky += ('{0}: {1}  - {2}' -f $item.Kind, $item.Value, $why) }
+                }
+                $lines = @($all | ForEach-Object { '{0}: {1}' -f $_.Kind, $_.Value })
+                if ($risky.Count) {
+                    New-DREvent -TaskId $TaskId -State Warning -Message ("Defender exclusions: CHECK THESE`r`n  These could let a virus hide. If you did not add them, remove them in Windows Security > Virus & threat protection > Manage settings > Exclusions:`r`n  " + ($risky -join "`r`n  ") + "`r`n  Nothing was removed.")
+                }
+                New-DREvent -TaskId $TaskId -State Information -Message ("Defender exclusions on this PC ({0}):`r`n  {1}`r`n  The Cleaner never removes exclusions. Yours stay exactly as they are." -f $all.Count, ($lines -join "`r`n  "))
             }
             'ai.windows' {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Windows AI settings were not changed.' }
