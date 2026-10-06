@@ -1,7 +1,7 @@
 {
-  "version": "1.4.68",
-  "notes": "Find duplicate files in the left menu now opens the Duplicate Finder straight away.",
-  "published": "2026-10-05T16:48:37.0893010-04:00",
+  "version": "1.4.69",
+  "notes": "The Windows Health card now has its own Check my PC button, so you can start the check right where it tells you to.",
+  "published": "2026-10-05T20:39:56.6436558-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "C2C4F2DB4A4CF76ABE64517BA071A99B91D0D650C188128DC5DE304A51622FA1",
-      "size": 315874
+      "sha256": "A899FD10052727A48D576C14445657E19192252E85CBEFEE506FB514C8C75BF1",
+      "size": 311487
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
