@@ -832,7 +832,7 @@ $ErrorActionPreference = 'Stop'
 <UniformGrid Columns="3" Margin="0,0,0,22">
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Violet}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource VioletSoft}"><TextBlock Text="◷" Foreground="{StaticResource Violet}" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="LAST CLEAN" Foreground="{StaticResource Violet}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock Text="Not yet" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="Shows here after your first clean" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Teal}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource TealSoft}"><TextBlock Text="▰" Foreground="{StaticResource Teal}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="FREE SPACE" Foreground="{StaticResource Teal}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="FreeSpaceText" Text="Checking…" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="On your main drive" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
-                            <Border x:Name="HealthCard" Style="{StaticResource Card}" BorderBrush="{StaticResource Amber}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border x:Name="HealthIconBox" Style="{StaticResource StatIcon}" Background="{StaticResource AmberSoft}"><TextBlock x:Name="HealthIcon" Text="⬡" Foreground="{StaticResource Amber}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock x:Name="HealthLabel" Text="WINDOWS HEALTH" Foreground="{StaticResource Amber}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="WindowsStatusText" Text="Not checked" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock x:Name="WindowsStatusHint" Text="Press the button to find out. Nothing is changed." Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap"/><Button x:Name="HealthCheckButton" Content="Check my PC" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Margin="0,12,0,0"/></StackPanel></Border>
+                            <Border x:Name="HealthCard" Style="{StaticResource Card}" BorderBrush="{StaticResource Amber}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border x:Name="HealthIconBox" Style="{StaticResource StatIcon}" Background="{StaticResource AmberSoft}"><TextBlock x:Name="HealthIcon" Text="⬡" Foreground="{StaticResource Amber}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock x:Name="HealthLabel" Text="WINDOWS HEALTH" Foreground="{StaticResource Amber}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="WindowsStatusText" Text="Checking..." FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock x:Name="WindowsStatusHint" Text="Takes a few seconds. Nothing is changed." Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap"/><Button x:Name="HealthCheckButton" Content="↻  Check again" Cursor="Hand" HorizontalAlignment="Left" Margin="0,10,0,0" Visibility="Collapsed" ToolTip="Look again, for example after fixing something. Nothing is changed."><Button.Template><ControlTemplate TargetType="Button"><TextBlock x:Name="LinkText" Text="{TemplateBinding Content}" Foreground="#2563EB" FontSize="13" FontWeight="SemiBold" Background="Transparent"/><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="LinkText" Property="TextDecorations" Value="Underline"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template></Button></StackPanel></Border>
                         </UniformGrid>
 <TextBlock Text="Other things you can do" FontSize="18" FontWeight="ExtraBold" Margin="0,0,0,10"/>
 <UniformGrid Columns="3" Margin="0,0,0,14"><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Check my PC" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="See how much space you can free. Nothing is changed." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="ScanButton" Content="Check my PC" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"/></StackPanel></Border><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Past results" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Look at what the Cleaner did before." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="LastReportButton" Content="See past results" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"/></StackPanel></Border><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Update this program" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Look for a newer version of the Cleaner." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="CheckUpdatesButton" Content="Update this program" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"/></StackPanel></Border></UniformGrid>
@@ -2505,7 +2505,7 @@ function Set-DRWindowsHealthCard {
         $ui.WindowsStatusHint.Text = $shown
         $ui.HealthCard.ToolTip = ($problems | ForEach-Object { [string][char]0x2022 + ' ' + $_ }) -join "`n"
     }
-    $ui.HealthCheckButton.Content = 'Check again'
+    $ui.HealthCheckButton.Visibility = 'Visible'
     $script:healthShown = $true
 }
 
@@ -3910,7 +3910,7 @@ $ui.NavAI.Add_Click({ Set-Page 'AI' })
 $ui.NavProgress.Add_Click({ Set-Page 'Progress' })
 $ui.DashboardHistoryButton.Add_Click({ Set-Page 'History' })
 $ui.ScanButton.Add_Click({ Start-Analysis })
-$ui.HealthCheckButton.Add_Click({ Start-Analysis })
+$ui.HealthCheckButton.Add_Click({ Start-DRHealthCheck })
 $ui.OverlayContinueButton.Add_Click({ $ui.BusyOverlay.Visibility='Collapsed'; $ui.OverlayContinueButton.Visibility='Collapsed'; Set-Page 'Cleanup' })
 $ui.LastReportButton.Add_Click({ Set-Page 'History' })
 $ui.ReviewButton.Add_Click({ Show-Confirmation })
@@ -4340,6 +4340,49 @@ $ui.OpenDuplicatesButton.Add_Click({
     }
 })
 
+$script:DRHealthPs = $null; $script:DRHealthTimer = $null
+function Start-DRHealthCheck {
+    # The Windows Health card checks itself: a few seconds of reading in the
+    # background when the window opens, so nobody has to press anything to see it.
+    if ($script:DRHealthPs) { return }   # already checking
+    $ui.HealthCheckButton.Visibility = 'Collapsed'
+    $ui.WindowsStatusText.Text = 'Checking...'
+    $ui.WindowsStatusHint.Text = 'Takes a few seconds. Nothing is changed.'
+    try {
+        # Script scope: the timer's handler runs in its own scope (see Start-DRQuietUpdateCheck).
+        $script:DRHealthRunspace = [RunspaceFactory]::CreateRunspace()
+        $script:DRHealthRunspace.ApartmentState = 'MTA'
+        $script:DRHealthRunspace.ThreadOptions = 'ReuseThread'
+        $script:DRHealthRunspace.Open()
+        $script:DRHealthPs = [PowerShell]::Create()
+        $script:DRHealthPs.Runspace = $script:DRHealthRunspace
+        $null = $script:DRHealthPs.AddScript([System.IO.File]::ReadAllText($script:DREnginePath) + "`r`nGet-DRWindowsHealth")
+        $script:DRHealthAsync = $script:DRHealthPs.BeginInvoke()
+
+        if (-not $script:DRHealthTimer) {
+            $script:DRHealthTimer = New-Object Windows.Threading.DispatcherTimer
+            $script:DRHealthTimer.Interval = [TimeSpan]::FromMilliseconds(400)
+            $script:DRHealthTimer.Add_Tick({
+                if (-not $script:DRHealthAsync.IsCompleted) { return }
+                $script:DRHealthTimer.Stop()
+                try {
+                    $result = @($script:DRHealthPs.EndInvoke($script:DRHealthAsync) | Where-Object { $_.PSObject.Properties['HealthCheck'] }) | Select-Object -Last 1
+                    if ($result) { Set-DRWindowsHealthCard $result }
+                    else { $ui.WindowsStatusText.Text = 'Not checked'; $ui.WindowsStatusHint.Text = 'Windows did not answer. Try again in a moment.'; $ui.HealthCheckButton.Visibility = 'Visible' }
+                } catch {
+                    $ui.WindowsStatusText.Text = 'Not checked'; $ui.WindowsStatusHint.Text = 'Windows did not answer. Try again in a moment.'; $ui.HealthCheckButton.Visibility = 'Visible'
+                }
+                try { $script:DRHealthPs.Dispose(); $script:DRHealthRunspace.Close(); $script:DRHealthRunspace.Dispose() } catch { }
+                $script:DRHealthPs = $null
+            })
+        }
+        $script:DRHealthTimer.Start()
+    } catch {
+        $script:DRHealthPs = $null
+        $ui.WindowsStatusText.Text = 'Not checked'; $ui.WindowsStatusHint.Text = 'Windows did not answer. Try again in a moment.'; $ui.HealthCheckButton.Visibility = 'Visible'
+    }
+}
+
 function Start-DRQuietUpdateCheck {
     <#
         .SYNOPSIS
@@ -4641,5 +4684,6 @@ if ($NoShow) {
     # Ask once a day, quietly, so a waiting update is visible on the button
     # rather than only to someone who thinks to go looking for it.
     try { Start-DRQuietUpdateCheck } catch { }
+    try { Start-DRHealthCheck } catch { }
     [void]$window.ShowDialog()
 }

@@ -1,7 +1,7 @@
 {
-  "version": "1.4.70",
-  "notes": "The Windows Health card now gives a real answer after Check my PC: green when all is well, or red naming what needs attention, such as the firewall being off or the drive getting full.",
-  "published": "2026-10-05T20:44:26.0243083-04:00",
+  "version": "1.4.71",
+  "notes": "Windows Health now checks itself a few seconds after the Cleaner opens, so you see the answer straight away without pressing anything.",
+  "published": "2026-10-05T20:50:01.0661509-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "82D7D0787B9815AE5A310FD8BB8A480D8B33BCF9D8D9B55931198BC76F824F55",
-      "size": 313621
+      "sha256": "93B0D0B79B8CABA678C4DEE302A93832A9A11460694A6C5CF7AAC6F8178677CC",
+      "size": 316816
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
