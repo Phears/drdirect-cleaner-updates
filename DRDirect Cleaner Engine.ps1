@@ -825,6 +825,55 @@ function Get-DRDiskDriveLetters {
     return (($letters | Sort-Object | ForEach-Object { $_ + ':' }) -join ', ')
 }
 
+function Get-DRWindowsHealth {
+    <#
+        .SYNOPSIS
+            Read-only summary for the dashboard's Windows Health card: protection,
+            drives, free space and a waiting restart. Nothing is changed.
+        .DESCRIPTION
+            Each part is checked on its own, so one that Windows cannot answer is
+            skipped rather than failing the whole card.
+    #>
+    $problems = New-Object System.Collections.Generic.List[string]
+
+    try {
+        foreach ($row in @(Get-DRSecurityStatus | Where-Object { -not $_.Ok })) {
+            switch ($row.Area) {
+                'Firewall' { $problems.Add('The firewall is off') }
+                'Virus'    { $problems.Add('Virus protection is off') }
+                'Update'   { $problems.Add('Windows Update needs a look') }
+                default    { $problems.Add($row.Label + ' needs a look') }
+            }
+        }
+    } catch { }
+
+    try {
+        if (Get-Command -Name 'Get-PhysicalDisk' -ErrorAction SilentlyContinue) {
+            $bad = @(Get-PhysicalDisk -ErrorAction SilentlyContinue | Where-Object {
+                $health = [string](Get-DRDiskProperty $_ 'HealthStatus')
+                $health -and $health -notin @('Healthy', '0', 'Unknown', '5')
+            })
+            if ($bad.Count -eq 1) { $problems.Add('A drive reports a problem') }
+            elseif ($bad.Count -gt 1) { $problems.Add(('{0} drives report a problem' -f $bad.Count)) }
+        }
+    } catch { }
+
+    try {
+        $drive = Get-CimInstance -ClassName Win32_LogicalDisk -Filter ("DeviceID='{0}'" -f $env:SystemDrive) -ErrorAction Stop
+        if ($drive.Size -gt 0 -and (100 * [double]$drive.FreeSpace / [double]$drive.Size) -lt 10) {
+            $problems.Add(('{0} is almost full' -f $env:SystemDrive))
+        }
+    } catch { }
+
+    if ((Test-Path -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update\RebootRequired') -or
+        (Test-Path -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Component Based Servicing\RebootPending')) {
+        $problems.Add('A restart is waiting to finish updates')
+    }
+
+    # TaskId and State are empty so the analysis loop, which reads both, passes this by.
+    [pscustomobject]@{ TaskId = $null; State = $null; HealthCheck = $true; Problems = @($problems) }
+}
+
 function Invoke-DRDriveHealth {
     param([string]$TaskId, [string]$TestRoot)
     # This check only reads, so it runs for real even in test mode.

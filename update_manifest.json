@@ -1,7 +1,7 @@
 {
-  "version": "1.4.69",
-  "notes": "The Windows Health card now has its own Check my PC button, so you can start the check right where it tells you to.",
-  "published": "2026-10-05T20:39:56.6436558-04:00",
+  "version": "1.4.70",
+  "notes": "The Windows Health card now gives a real answer after Check my PC: green when all is well, or red naming what needs attention, such as the firewall being off or the drive getting full.",
+  "published": "2026-10-05T20:44:26.0243083-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "A899FD10052727A48D576C14445657E19192252E85CBEFEE506FB514C8C75BF1",
-      "size": 311487
+      "sha256": "82D7D0787B9815AE5A310FD8BB8A480D8B33BCF9D8D9B55931198BC76F824F55",
+      "size": 313621
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "67F72353C4E071DA22D3E165CA7D3B8398A0DFD0F2538459BD0BD3F42C81488F",
-      "size": 219672
+      "sha256": "F77EAC7917B101DDD17A8E843EFE1E93D1886A61C8B833A6EA7E32E102559308",
+      "size": 222031
     },
     {
       "name": "DRDirect Updater.ps1",

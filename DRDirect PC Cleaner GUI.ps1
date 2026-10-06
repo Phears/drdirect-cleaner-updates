@@ -832,7 +832,7 @@ $ErrorActionPreference = 'Stop'
 <UniformGrid Columns="3" Margin="0,0,0,22">
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Violet}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource VioletSoft}"><TextBlock Text="◷" Foreground="{StaticResource Violet}" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="LAST CLEAN" Foreground="{StaticResource Violet}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock Text="Not yet" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="Shows here after your first clean" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Teal}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource TealSoft}"><TextBlock Text="▰" Foreground="{StaticResource Teal}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="FREE SPACE" Foreground="{StaticResource Teal}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="FreeSpaceText" Text="Checking…" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="On your main drive" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
-                            <Border Style="{StaticResource Card}" BorderBrush="{StaticResource Amber}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource AmberSoft}"><TextBlock Text="⬡" Foreground="{StaticResource Amber}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="WINDOWS HEALTH" Foreground="{StaticResource Amber}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="WindowsStatusText" Text="Not checked" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="Press the button to find out. Nothing is changed." Style="{StaticResource MutedText}" FontSize="12"/><Button x:Name="HealthCheckButton" Content="Check my PC" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Margin="0,12,0,0"/></StackPanel></Border>
+                            <Border x:Name="HealthCard" Style="{StaticResource Card}" BorderBrush="{StaticResource Amber}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border x:Name="HealthIconBox" Style="{StaticResource StatIcon}" Background="{StaticResource AmberSoft}"><TextBlock x:Name="HealthIcon" Text="⬡" Foreground="{StaticResource Amber}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock x:Name="HealthLabel" Text="WINDOWS HEALTH" Foreground="{StaticResource Amber}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="WindowsStatusText" Text="Not checked" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock x:Name="WindowsStatusHint" Text="Press the button to find out. Nothing is changed." Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap"/><Button x:Name="HealthCheckButton" Content="Check my PC" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Margin="0,12,0,0"/></StackPanel></Border>
                         </UniformGrid>
 <TextBlock Text="Other things you can do" FontSize="18" FontWeight="ExtraBold" Margin="0,0,0,10"/>
 <UniformGrid Columns="3" Margin="0,0,0,14"><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Check my PC" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="See how much space you can free. Nothing is changed." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="ScanButton" Content="Check my PC" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"/></StackPanel></Border><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Past results" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Look at what the Cleaner did before." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="LastReportButton" Content="See past results" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"/></StackPanel></Border><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Update this program" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Look for a newer version of the Cleaner." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="CheckUpdatesButton" Content="Update this program" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"/></StackPanel></Border></UniformGrid>
@@ -1131,7 +1131,7 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','HealthCheckButton','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -2479,15 +2479,46 @@ function Set-AnalysisProgress {
     if ($Message) { $ui.OverlayMessage.Text = $Message }
 }
 
+function Set-DRWindowsHealthCard {
+    # Paints the dashboard's Windows Health card from Get-DRWindowsHealth: green when
+    # nothing needs a look, red with the first problems named when something does.
+    param($Result)
+    $problems = @($Result.Problems | Where-Object { $_ })
+    $good = $problems.Count -eq 0
+    $accent = if ($good) { 'Success' } else { 'Danger' }
+    $soft = if ($good) { 'SuccessSoft' } else { 'DangerSoft' }
+    $ui.HealthCard.BorderBrush = $window.FindResource($accent)
+    $ui.HealthIconBox.Background = $window.FindResource($soft)
+    $ui.HealthIcon.Foreground = $window.FindResource($accent)
+    $ui.HealthLabel.Foreground = $window.FindResource($accent)
+    $ui.WindowsStatusText.Foreground = $window.FindResource($accent)
+    if ($good) {
+        $ui.HealthIcon.Text = [string][char]0x2714
+        $ui.WindowsStatusText.Text = 'Healthy'
+        $ui.WindowsStatusHint.Text = 'Protection is on, drives are fine and there is room to spare.'
+        $ui.HealthCard.ToolTip = $null
+    } else {
+        $ui.HealthIcon.Text = '!'
+        $ui.WindowsStatusText.Text = if ($problems.Count -eq 1) { '1 thing needs attention' } else { "$($problems.Count) things need attention" }
+        $shown = (@($problems | Select-Object -First 2) -join '. ') + '.'
+        if ($problems.Count -gt 2) { $shown += ' Point here to see them all.' }
+        $ui.WindowsStatusHint.Text = $shown
+        $ui.HealthCard.ToolTip = ($problems | ForEach-Object { [string][char]0x2022 + ' ' + $_ }) -join "`n"
+    }
+    $ui.HealthCheckButton.Content = 'Check again'
+    $script:healthShown = $true
+}
+
 function Start-Analysis {
     Set-Variable -Name analysisTotal -Value @($catalog | Where-Object SupportsAnalysis).Count -Scope Script
     Set-Variable -Name analysisDone -Value 0 -Scope Script
+    $script:healthShown = $false
     $ui.OverlayContinueButton.Visibility = 'Collapsed'
     $ui.BusyOverlay.Visibility = 'Visible'; $ui.OverlayTitle.Text = 'Analyzing this PC'; $ui.OverlayMessage.Text = 'Checking temporary files, browser data, and maintenance settings. Nothing is being changed.'
     Set-AnalysisProgress
     $engineSource = [System.IO.File]::ReadAllText($script:DREnginePath)
     $safeRoot = if ($TestRoot) { $TestRoot.Replace("'","''") } else { '' }
-    $scriptText = $engineSource + "`r`nGet-DRAnalysis -TestRoot '$safeRoot'"
+    $scriptText = $engineSource + "`r`nGet-DRAnalysis -TestRoot '$safeRoot'`r`nGet-DRWindowsHealth"
     Start-EngineCall -ScriptText $scriptText -IsAnalysis $true
 }
 
@@ -3268,6 +3299,8 @@ $pollTimer.Add_Tick({
                 $label = @($catalog | Where-Object Id -eq $item.TaskId | Select-Object -First 1).Name
                 if (-not $label) { $label = $item.TaskId }
                 Set-AnalysisProgress "Checked $label"
+            } elseif ($item.PSObject.Properties['HealthCheck']) {
+                Set-DRWindowsHealthCard $item
             }
         } elseif ($item.State) {
             $runEvents.Add($item); Set-ProgressRowState $item.TaskId $item.State $item.Message; $ui.ProgressMessage.Text=$item.Message
@@ -3284,7 +3317,9 @@ $pollTimer.Add_Tick({
                 $label = @($catalog | Where-Object Id -eq $item.TaskId | Select-Object -First 1).Name
                 if (-not $label) { $label = $item.TaskId }
                 Set-AnalysisProgress "Checked $label"
-            }
+                } elseif ($item.PSObject.Properties['HealthCheck']) {
+                    Set-DRWindowsHealthCard $item
+                }
             } elseif ($item.State) {
                 $runEvents.Add($item); Set-ProgressRowState $item.TaskId $item.State $item.Message; $ui.ProgressMessage.Text=$item.Message
             }
@@ -3295,7 +3330,7 @@ $pollTimer.Add_Tick({
             $ui.OverlayTitle.Text='Analysis complete'
             $ui.OverlayMessage.Text='All checks finished. Nothing was changed. Click View results to choose what to clean.'
             $ui.OverlayContinueButton.Visibility='Visible'
-            $ui.WindowsStatusText.Text='Analysis complete'
+            if (-not $script:healthShown) { $ui.WindowsStatusText.Text='Analysis complete' }
         } else {
             $completed = @($runEvents | Where-Object { $_.TaskId -eq $activeTaskId -and $_.State -in @('Completed','Failed') } | Select-Object -Last 1)
             if (-not $completed) { $failure=New-DREvent -TaskId $activeTaskId -State Failed -Message 'The maintenance task ended without a final status.'; $runEvents.Add($failure); Set-ProgressRowState $activeTaskId 'Failed' $failure.Message }
