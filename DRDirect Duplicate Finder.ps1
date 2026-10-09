@@ -2859,6 +2859,15 @@ try {
                            else { 'Version 1.0' }
 } catch { }
 
+# List the Duplicate Finder in Windows' installed programs, with the same version
+# as the label above. The shared code is in the updater.
+if (-not $TestMode -and (Get-Command Register-DRInstalledProduct -ErrorAction SilentlyContinue)) {
+    try {
+        $listedVersion = ($ui.VersionText.Text -replace '^Version\s+', '').Trim()
+        Register-DRInstalledProduct -Product 'Duplicate Finder' -Version $listedVersion
+    } catch { }
+}
+
 try { Initialize-DRCloudBoxes } catch { }
 
 $null = $win.ShowDialog()

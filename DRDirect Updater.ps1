@@ -712,3 +712,371 @@ function Test-DRDuplicatesAllowed {
     # No licence file at all - a build that never expires, one of your own.
     return $true
 }
+
+# ---------------------------------------------------------------------------
+# Windows' installed-programs list
+# ---------------------------------------------------------------------------
+# Lists a DRDirect program in Settings > Apps and in the DRDirect Uninstaller, so
+# it is always there while it is installed and can be removed cleanly. Shared by
+# the Cleaner and the Duplicate Finder, which both load this file. Each program
+# calls Register-DRInstalledProduct on start; nothing here runs on load.
+
+# DRDirect PC Cleaner Setup.exe lists both programs under this id. Never change it.
+$script:DRSetupUninstallId = '{6E1C2F4A-7D3B-4F5E-9A21-D7C0E5B4A8F3}_is1'
+
+function Get-DRProductListing {
+    <# What each program lists, and what removing it may and may not delete. #>
+    param([Parameter(Mandatory)] [ValidateSet('Cleaner', 'Duplicate Finder')] [string]$Product)
+    if ($Product -eq 'Cleaner') {
+        return [ordered]@{
+            DisplayName    = 'DRDirect PC Cleaner'
+            KeyName        = 'DRDirectPCCleaner'
+            Folder         = 'DRDirect PC Cleaner'
+            ExeLike        = 'DRDirect*.exe'
+            ExeNotLike     = '*Duplicate*'
+            RunningNames   = @('DRDirect PC Cleaner.exe')
+            RunningCommand = @('{folder}\Scripts')
+            # Removed by default. A folder is emptied except for anything in Keep.
+            Remove         = @('Scripts', 'Logs', 'Uninstaller', 'check_status.json', 'lastupdatecheck.txt',
+                               'uninstaller_window_size.txt')
+            Keep           = @('Uninstaller\UndoBackups', 'Uninstaller\InstallLogs')
+            ExtraOnTick    = @()
+            RemovesText    = 'Its settings, logs and the DRDirect Uninstaller in {folder}'
+            KeepsText      = "Your own files, browsers and logins are not touched. Your reports, licence and the Uninstaller's safe copies are kept unless you tick the box below."
+            TickText       = 'Also delete my reports, licence and safe copies'
+        }
+    }
+    return [ordered]@{
+        DisplayName    = 'DRDirect Duplicate Finder'
+        KeyName        = 'DRDirectDuplicateFinder'
+        Folder         = 'DRDirect Duplicate Finder'
+        ExeLike        = 'DRDirect*Duplicate*.exe'
+        ExeNotLike     = '*Inner*'
+        RunningNames   = @('DRDirect Duplicate Finder Inner.exe')
+        RunningCommand = @('DRDirect Duplicate Finder.ps1')
+        Remove         = @('*')
+        Keep           = @()
+        # Its licence lives in the Cleaner's folder: only that one file, and only when ticked.
+        ExtraOnTick    = @('..\DRDirect PC Cleaner\licence_finder.dat')
+        RemovesText    = 'Its logs in {folder}'
+        KeepsText      = 'Your own files and any duplicates you kept are not touched, and neither is the DRDirect PC Cleaner. Your Duplicate Finder licence is kept unless you tick the box below.'
+        TickText       = 'Also delete my Duplicate Finder licence'
+    }
+}
+
+function Find-DRLauncherExe {
+    <#
+    .SYNOPSIS
+        The exe the person actually opened: the launcher above this process.
+    .DESCRIPTION
+        The compiled app runs from a temporary _MEI folder that disappears, so the
+        process tree is walked up to the first DRDirect exe outside it. $null when
+        run from the project folder or a script, which has nothing to list.
+    #>
+    param([string]$Like, [string]$NotLike)
+    try {
+        $byId = @{}
+        foreach ($p in @(Get-CimInstance -ClassName Win32_Process -Property ProcessId, ParentProcessId, ExecutablePath -ErrorAction Stop)) {
+            $byId[[int]$p.ProcessId] = $p
+        }
+        $processId = $PID
+        for ($depth = 0; $depth -lt 6 -and $byId.ContainsKey($processId); $depth++) {
+            $processId = [int]$byId[$processId].ParentProcessId
+            if (-not $byId.ContainsKey($processId)) { break }
+            $candidate = [string]$byId[$processId].ExecutablePath
+            if ([string]::IsNullOrWhiteSpace($candidate)) { continue }
+            if ($candidate -match '\\_MEI\d+\\') { continue }
+            $leaf = Split-Path -Leaf $candidate
+            if ($leaf -like $Like -and -not ($NotLike -and $leaf -like $NotLike) -and
+                    (Test-Path -LiteralPath $candidate -PathType Leaf)) {
+                return [IO.Path]::GetFullPath($candidate)
+            }
+        }
+    } catch { }
+    return $null
+}
+
+function Test-DRInstalledBySetup {
+    <# True when this exe is the copy DRDirect PC Cleaner Setup.exe installed, which Setup already lists. #>
+    param([Parameter(Mandatory)] [string]$ExePath)
+    foreach ($key in @(
+            "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$script:DRSetupUninstallId",
+            "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\$script:DRSetupUninstallId",
+            "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\$script:DRSetupUninstallId")) {
+        if (-not (Test-Path -LiteralPath $key)) { continue }
+        $location = $null
+        try { $location = [string](Get-ItemProperty -LiteralPath $key -Name 'InstallLocation' -ErrorAction Stop).InstallLocation } catch { }
+        # Setup is there but does not say where: assume it covers this copy rather than list it twice
+        if ([string]::IsNullOrWhiteSpace($location)) { return $true }
+        try {
+            $setupFolder = [IO.Path]::GetFullPath($location).TrimEnd('\') + '\'
+            if ($ExePath.StartsWith($setupFolder, [StringComparison]::OrdinalIgnoreCase)) { return $true }
+        } catch { return $true }
+    }
+    return $false
+}
+
+function Register-DRInstalledProduct {
+    <#
+    .SYNOPSIS
+        Adds or refreshes this program's entry in Windows' installed-programs list.
+    .DESCRIPTION
+        Writes to the person's own HKCU and LOCALAPPDATA. In the Cleaner the engine
+        has already pointed both at the signed-in person, so with Administrator
+        Protection the entry still lands in their list, not the hidden admin
+        account's. Never throws: a failure here must not stop the program opening.
+    #>
+    param(
+        [Parameter(Mandatory)] [ValidateSet('Cleaner', 'Duplicate Finder')] [string]$Product,
+        [string]$Version
+    )
+    try {
+        if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) { return }
+        $listing = Get-DRProductListing -Product $Product
+        $folder = Join-Path $env:LOCALAPPDATA $listing.Folder
+        $key = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\' + $listing.KeyName
+        $removerName = 'Remove ' + $listing.DisplayName
+        $remover = Join-Path $folder ($removerName + '.ps1')
+        $removerCmd = Join-Path $folder ($removerName + '.cmd')
+
+        $exePath = Find-DRLauncherExe -Like $listing.ExeLike -NotLike $listing.ExeNotLike
+        if (-not $exePath) { return }
+
+        if (Test-DRInstalledBySetup -ExePath $exePath) {
+            # Setup's own entry covers it; drop ours rather than show it twice
+            if (Test-Path -LiteralPath $key) { Remove-Item -LiteralPath $key -Recurse -Force -ErrorAction SilentlyContinue }
+            foreach ($path in @($remover, $removerCmd)) {
+                if (Test-Path -LiteralPath $path -PathType Leaf) { Remove-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue }
+            }
+            return
+        }
+
+        if (-not (Test-Path -LiteralPath $folder -PathType Container)) {
+            New-Item -Path $folder -ItemType Directory -Force | Out-Null
+        }
+        # The listing goes into the remover as JSON inside a single-quoted string
+        $config = ([pscustomobject]$listing | ConvertTo-Json -Compress -Depth 4).Replace("'", "''")
+        $removerScript = $script:DRRemoverTemplate.Replace('__DRDIRECT_LISTING__', $config)
+        if (-not (Test-Path -LiteralPath $remover -PathType Leaf) -or [IO.File]::ReadAllText($remover) -ne $removerScript) {
+            [IO.File]::WriteAllText($remover, $removerScript, (New-Object System.Text.UTF8Encoding($true)))
+        }
+        # Runs the remover with its window hidden. A plain .cmd keeps the list honest:
+        # it carries no signature, so the entry is not shown as signed by Microsoft.
+        # One line, so the .cmd never re-reads itself after it has been deleted.
+        $removerCmdText = '@powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File "%~dp0' +
+            $removerName + '.ps1" & exit /b' + "`r`n"
+        if (-not (Test-Path -LiteralPath $removerCmd -PathType Leaf) -or [IO.File]::ReadAllText($removerCmd) -ne $removerCmdText) {
+            [IO.File]::WriteAllText($removerCmd, $removerCmdText, [System.Text.Encoding]::ASCII)
+        }
+
+        if (-not $Version) {
+            try {
+                $installed = Get-DRInstalledVersion
+                if ($installed -gt [version]'0.0.0') { $Version = "$installed" }
+            } catch { }
+        }
+
+        if (-not (Test-Path -LiteralPath $key)) { New-Item -Path $key -Force | Out-Null }
+        $values = [ordered]@{
+            DisplayName     = $listing.DisplayName
+            Publisher       = 'DRDirect Pro Tech'
+            DisplayIcon     = "`"$exePath`",0"
+            InstallLocation = $folder
+            UninstallString = "`"$removerCmd`""
+            DRDirectProgram = $exePath
+        }
+        if ($Version) { $values['DisplayVersion'] = $Version }
+        foreach ($name in @($values.Keys)) {
+            $current = $null
+            try { $current = (Get-ItemProperty -LiteralPath $key -Name $name -ErrorAction Stop).$name } catch { }
+            if ($current -ne $values[$name]) {
+                Set-ItemProperty -LiteralPath $key -Name $name -Value $values[$name] -Type String
+            }
+        }
+        foreach ($name in @('NoModify', 'NoRepair')) {
+            Set-ItemProperty -LiteralPath $key -Name $name -Value 1 -Type DWord
+        }
+    } catch { }
+}
+
+function Set-DRInstalledProductVersion {
+    <# Keeps the listed version in step with the one the program shows. Only updates an existing entry. #>
+    param([Parameter(Mandatory)] [ValidateSet('Cleaner', 'Duplicate Finder')] [string]$Product, [string]$Version)
+    try {
+        if (-not $Version) { return }
+        $key = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\' + (Get-DRProductListing -Product $Product).KeyName
+        if (Test-Path -LiteralPath $key) {
+            Set-ItemProperty -LiteralPath $key -Name 'DisplayVersion' -Value $Version -Type String
+        }
+    } catch { }
+}
+
+# The remover written beside each listed program and started by Windows Settings >
+# Apps or the DRDirect Uninstaller. Register-DRInstalledProduct fills in the listing.
+$script:DRRemoverTemplate = @'
+# Removes a DRDirect program from this PC. Nothing is deleted until the person confirms.
+# -Unattended skips the questions; it exists only for testing in a temporary folder.
+param([switch]$Unattended, [switch]$DeleteEverything)
+$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+$listing = '__DRDIRECT_LISTING__' | ConvertFrom-Json
+$title = 'Remove ' + $listing.DisplayName
+$keyPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\' + $listing.KeyName
+
+function Show-Message([string]$text, [string]$icon = 'Information', [string]$buttons = 'OK') {
+    if ($Unattended) { Write-Output "[$icon] $text"; return 'OK' }
+    return [Windows.Forms.MessageBox]::Show($text, $title, $buttons, $icon)
+}
+
+# Only ever the folder this remover sits in, and only when it is the program's own folder
+$folder = $null
+try { $folder = [IO.Path]::GetFullPath($PSScriptRoot).TrimEnd('\') } catch { }
+if (-not $folder -or (Split-Path -Leaf $folder) -ne $listing.Folder -or
+        -not [IO.Path]::GetDirectoryName($folder) -or
+        -not (Test-Path -LiteralPath (Join-Path $folder ($title + '.ps1')) -PathType Leaf)) {
+    Show-Message 'The DRDirect folder is not where it should be, so nothing was removed.' 'Error' | Out-Null; exit 1
+}
+
+# The exe recorded when the program last started. Only that one file is removed,
+# never the folder it sits in.
+$exePath = $null
+try { $exePath = [string](Get-ItemProperty -LiteralPath $keyPath -Name 'DRDirectProgram' -ErrorAction Stop).DRDirectProgram } catch { }
+if ($exePath) {
+    $exeOk = $false
+    try {
+        $exePath = [IO.Path]::GetFullPath($exePath)
+        $leaf = Split-Path -Leaf $exePath
+        $exeOk = (Test-Path -LiteralPath $exePath -PathType Leaf) -and ($leaf -like $listing.ExeLike) -and
+                 -not ($listing.ExeNotLike -and $leaf -like $listing.ExeNotLike)
+    } catch { }
+    if (-not $exeOk) { $exePath = $null }
+}
+
+# Confirm first, and say exactly what goes and what stays
+$form = New-Object Windows.Forms.Form
+$form.Text = $title; $form.FormBorderStyle = 'FixedDialog'; $form.MaximizeBox = $false; $form.MinimizeBox = $false
+$form.StartPosition = 'CenterScreen'; $form.Font = New-Object Drawing.Font('Segoe UI', 10); $form.AutoSize = $true
+$form.AutoSizeMode = 'GrowAndShrink'; $form.Padding = New-Object Windows.Forms.Padding(16); $form.TopMost = $true
+$layout = New-Object Windows.Forms.FlowLayoutPanel
+$layout.FlowDirection = 'TopDown'; $layout.AutoSize = $true; $layout.WrapContents = $false
+$label = New-Object Windows.Forms.Label
+$label.AutoSize = $true; $label.MaximumSize = New-Object Drawing.Size(520, 0)
+$what = "Remove $($listing.DisplayName) from this PC?`r`n`r`nThis removes:`r`n"
+if ($exePath) { $what += "  - The program: $exePath`r`n" }
+$what += '  - ' + $listing.RemovesText.Replace('{folder}', $folder) + "`r`n`r`n" + $listing.KeepsText
+$label.Text = $what
+$check = New-Object Windows.Forms.CheckBox
+$check.AutoSize = $true; $check.Text = $listing.TickText; $check.Margin = New-Object Windows.Forms.Padding(0, 12, 0, 12)
+$buttons = New-Object Windows.Forms.FlowLayoutPanel
+$buttons.AutoSize = $true; $buttons.FlowDirection = 'LeftToRight'
+$ok = New-Object Windows.Forms.Button; $ok.Text = 'Remove'; $ok.AutoSize = $true; $ok.DialogResult = 'OK'
+$cancel = New-Object Windows.Forms.Button; $cancel.Text = 'Cancel'; $cancel.AutoSize = $true; $cancel.DialogResult = 'Cancel'
+$buttons.Controls.AddRange(@($ok, $cancel))
+$layout.Controls.AddRange(@($label, $check, $buttons))
+$form.Controls.Add($layout); $form.AcceptButton = $cancel; $form.CancelButton = $cancel
+if ($Unattended) {
+    $deleteEverything = [bool]$DeleteEverything
+} else {
+    if ($form.ShowDialog() -ne 'OK') { exit 1602 }
+    $deleteEverything = $check.Checked
+}
+
+# The program must be closed, or its files cannot be removed
+$commandMarks = @($listing.RunningCommand | ForEach-Object { $_.Replace('{folder}', $folder) })
+while ($true) {
+    $running = @(Get-CimInstance -ClassName Win32_Process -ErrorAction SilentlyContinue | Where-Object {
+        $process = $_
+        $process.ProcessId -ne $PID -and (
+            ($process.ExecutablePath -and $exePath -and [string]::Equals($process.ExecutablePath, $exePath, [StringComparison]::OrdinalIgnoreCase)) -or
+            ($process.ExecutablePath -and $process.ExecutablePath.StartsWith($folder + '\', [StringComparison]::OrdinalIgnoreCase)) -or
+            (@($listing.RunningNames) -contains $process.Name) -or
+            ($process.CommandLine -and @($commandMarks | Where-Object { $process.CommandLine.IndexOf($_, [StringComparison]::OrdinalIgnoreCase) -ge 0 }).Count -gt 0))
+    })
+    if ($running.Count -eq 0) { break }
+    if ($Unattended) { Write-Output "$($listing.DisplayName) is still running; nothing was removed."; exit 1 }
+    $answer = Show-Message "Please close $($listing.DisplayName) and the DRDirect Uninstaller, then click Retry." 'Warning' 'RetryCancel'
+    if ($answer -ne 'Retry') { exit 1602 }
+}
+
+$problems = New-Object Collections.Generic.List[string]
+function Test-DRInside([string]$path) {
+    $path -eq $folder -or $path.StartsWith($folder + '\', [StringComparison]::OrdinalIgnoreCase)
+}
+function Remove-DRItem([string]$path) {
+    if (-not (Test-Path -LiteralPath $path)) { return }
+    $full = [IO.Path]::GetFullPath($path)
+    if (-not (Test-DRInside $full)) { return }   # never anything outside the program's folder
+    try { Remove-Item -LiteralPath $full -Recurse -Force -ErrorAction Stop }
+    catch { $problems.Add($full) }
+}
+$keep = @($listing.Keep | ForEach-Object { [IO.Path]::GetFullPath((Join-Path $folder $_)) })
+function Remove-DRKeeping([string]$path) {
+    # Removes a file or folder, but leaves anything in Keep (and the folders that lead to it)
+    $full = [IO.Path]::GetFullPath($path)
+    if ($keep -contains $full) { return }
+    $holdsKept = @($keep | Where-Object { $_.StartsWith($full + '\', [StringComparison]::OrdinalIgnoreCase) }).Count -gt 0
+    if ($holdsKept -and (Test-Path -LiteralPath $full -PathType Container)) {
+        foreach ($child in Get-ChildItem -LiteralPath $full -Force) { Remove-DRKeeping $child.FullName }
+    } else {
+        Remove-DRItem $full
+    }
+}
+
+if ($deleteEverything) {
+    Remove-DRItem $folder
+    foreach ($extra in @($listing.ExtraOnTick)) {
+        # Only a licence file in a sibling DRDirect folder, nothing wider
+        try {
+            $full = [IO.Path]::GetFullPath((Join-Path $folder $extra))
+            if ([IO.Path]::GetDirectoryName([IO.Path]::GetDirectoryName($full)) -eq [IO.Path]::GetDirectoryName($folder) -and
+                    (Split-Path -Leaf $full) -like 'licence*.dat' -and (Test-Path -LiteralPath $full -PathType Leaf)) {
+                Remove-Item -LiteralPath $full -Force -ErrorAction Stop
+            }
+        } catch { $problems.Add($extra) }
+    }
+} else {
+    foreach ($item in @($listing.Remove)) {
+        if ($item -eq '*') {
+            foreach ($child in Get-ChildItem -LiteralPath $folder -Force) { Remove-DRKeeping $child.FullName }
+        } else {
+            Remove-DRKeeping (Join-Path $folder $item)
+        }
+    }
+    Remove-DRItem (Join-Path $folder ($title + '.cmd'))
+    Remove-DRItem $PSCommandPath
+    # Nothing kept in it: the folder itself goes too
+    if ((Test-Path -LiteralPath $folder) -and @(Get-ChildItem -LiteralPath $folder -Force).Count -eq 0) { Remove-DRItem $folder }
+}
+
+# Shortcuts that point at the removed program would only lead nowhere
+if ($exePath) {
+    try {
+        $shell = New-Object -ComObject WScript.Shell
+        $places = @([Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('StartMenu'),
+                    [Environment]::GetFolderPath('CommonDesktopDirectory'), [Environment]::GetFolderPath('CommonStartMenu')) |
+                  Where-Object { $_ -and (Test-Path -LiteralPath $_) }
+        foreach ($place in $places) {
+            foreach ($link in Get-ChildItem -LiteralPath $place -Filter '*.lnk' -Recurse -Depth 2 -ErrorAction SilentlyContinue) {
+                try {
+                    if ([string]::Equals($shell.CreateShortcut($link.FullName).TargetPath, $exePath, [StringComparison]::OrdinalIgnoreCase)) {
+                        Remove-Item -LiteralPath $link.FullName -Force -ErrorAction Stop
+                    }
+                } catch { }
+            }
+        }
+    } catch { }
+
+    try { Remove-Item -LiteralPath $exePath -Force -ErrorAction Stop }
+    catch { $problems.Add($exePath) }
+}
+
+try { Remove-Item -LiteralPath $keyPath -Recurse -Force -ErrorAction Stop } catch { }
+
+if ($problems.Count -gt 0) {
+    Show-Message ("$($listing.DisplayName) was removed, but these could not be deleted. You can delete them yourself:`r`n`r`n" + ($problems -join "`r`n")) 'Warning' | Out-Null
+} else {
+    Show-Message "$($listing.DisplayName) has been removed from this PC." | Out-Null
+}
+exit 0
+'@

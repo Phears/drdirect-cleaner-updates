@@ -1,17 +1,17 @@
 {
-  "version": "1.4.77",
-  "notes": "After you remove a program, the Uninstaller now closes the \"Get an app to open this link\" box and goodbye web pages it leaves behind. A browser you already had open is never closed.\nThe Uninstaller's 24-hour safe copy is back, so you can undo a removal for a day if you change your mind.\nDRDirect PC Cleaner now shows in Windows' list of installed programs, so you can remove it from Settings > Apps like any other program.",
-  "published": "2026-10-09T17:23:25.2238429-04:00",
+  "version": "1.4.78",
+  "notes": "The Duplicate Finder now shows in Windows' list of installed programs, so you can remove it from Settings > Apps like any other program.",
+  "published": "2026-10-09T17:29:52.1551143-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "ACE687E8F54D1B817E95DBC7EEC5F87C481FE39F2C221A25B2BA770DC8D19F47",
-      "size": 145798
+      "sha256": "CB975B90E7C1DB892C2C8B8E14B1E83AEE9E2BC8154E10BC6C08CEC3BD3145FC",
+      "size": 146244
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "742ADC5EFA48E63FAE907416F4618EC1116F7E42587A256A93A30FF07E38D3D7",
-      "size": 339267
+      "sha256": "FC0A781F102556B22CA7304ED37E9B4F1916A60D580C099F49AA2EB7AA1BCAC7",
+      "size": 325493
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -20,8 +20,8 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "BAEF0E6065D79A9D9B2B71050FC0C8E0EBD4A6412F9B4EEDA4E32E5C48071111",
-      "size": 32987
+      "sha256": "5AD27CCF8056E387037B99B73242DEA97CF91F2F041AB40F37373802E07CA0F2",
+      "size": 52899
     },
     {
       "name": "DRDirect Activation.ps1",
