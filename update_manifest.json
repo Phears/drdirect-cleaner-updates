@@ -1,7 +1,7 @@
 {
-  "version": "1.4.75",
-  "notes": "When the Uninstaller is being updated, you now see a \"please wait\" message instead of a screen that looks frozen.",
-  "published": "2026-10-09T15:58:56.2023742-04:00",
+  "version": "1.4.76",
+  "notes": "The Uninstaller has a new button to turn Wand's pop-up notifications off or back on.",
+  "published": "2026-10-09T16:13:22.3475767-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "BA9794FE8E723C3129E0D0AD5E71B1C350974107E7EF5615B8A9AF1C002C7560",
-      "size": 10395216
+      "sha256": "F406F5BBB6453662F4994D4F7E772D677258F9D0A02BA57B623905803B870412",
+      "size": 10397491
     }
   ]
 }
