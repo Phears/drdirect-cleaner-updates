@@ -1,7 +1,7 @@
 {
-  "version": "1.4.79",
-  "notes": "The coloured dots beside each task during a clean-up are bigger and brighter, so you can see at a glance what is done, still running, or needs attention.",
-  "published": "2026-10-09T19:21:23.7504126-04:00",
+  "version": "1.4.80",
+  "notes": "During a clean-up, each task now has a big bright dot: green while it is being worked on, blue when it is done.",
+  "published": "2026-10-09T19:27:54.7038648-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "DB9435C4F68A4FFFC09DD3EAEF7DB49496D6EDA21E0CB4B7C57A11FF320504DE",
-      "size": 325904
+      "sha256": "8FB1F5DBCB41D13E3911C99FD44C742DD39961146DE9AF3D4C11F81E6C09B0D8",
+      "size": 326632
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
