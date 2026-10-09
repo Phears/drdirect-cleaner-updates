@@ -88,6 +88,256 @@ if (-not $drStartedByDRDirect) {
     exit 2
 }
 
+# List DRDirect in Windows' installed programs (Settings > Apps, and the DRDirect
+# Uninstaller), so it is always there while it is installed and can be removed
+# cleanly. Refreshed on every start. The engine has already pointed HKCU and
+# LOCALAPPDATA at the signed-in person, so with Administrator Protection the
+# entry still lands in their own list, not the hidden admin account's.
+function Register-DRInstalledProgram {
+    if ([string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) { return }
+    $appData = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner'
+    $ownKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\DRDirectPCCleaner'
+
+    # Installed with DRDirect PC Cleaner Setup.exe? Setup already lists it (and its
+    # AppId must never change), so drop our own entry rather than show it twice.
+    $setupId = '{6E1C2F4A-7D3B-4F5E-9A21-D7C0E5B4A8F3}_is1'
+    $setupKeys = @(
+        "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$setupId",
+        "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\$setupId",
+        "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\$setupId")
+    if (@($setupKeys | Where-Object { Test-Path -LiteralPath $_ }).Count -gt 0) {
+        try {
+            if (Test-Path -LiteralPath $ownKey) { Remove-Item -LiteralPath $ownKey -Recurse -Force -ErrorAction Stop }
+            foreach ($leftover in 'Remove DRDirect PC Cleaner.ps1', 'Remove DRDirect PC Cleaner.cmd') {
+                $path = Join-Path $appData $leftover
+                if (Test-Path -LiteralPath $path -PathType Leaf) { Remove-Item -LiteralPath $path -Force -ErrorAction Stop }
+            }
+        } catch { }
+        return
+    }
+
+    # The exe the person actually opened is the launcher above this process. The
+    # compiled app itself runs from a temporary _MEI folder that disappears.
+    $exePath = $null
+    try {
+        $byId = @{}
+        foreach ($p in @(Get-CimInstance -ClassName Win32_Process -Property ProcessId, ParentProcessId, ExecutablePath -ErrorAction Stop)) {
+            $byId[[int]$p.ProcessId] = $p
+        }
+        $processId = $PID
+        for ($depth = 0; $depth -lt 6 -and $byId.ContainsKey($processId); $depth++) {
+            $processId = [int]$byId[$processId].ParentProcessId
+            if (-not $byId.ContainsKey($processId)) { break }
+            $candidate = [string]$byId[$processId].ExecutablePath
+            if ([string]::IsNullOrWhiteSpace($candidate)) { continue }
+            $leaf = Split-Path -Leaf $candidate
+            if ($candidate -match '\\_MEI\d+\\') { continue }
+            if ($leaf -like 'DRDirect*.exe' -and $leaf -notlike '*Duplicate*' -and
+                    (Test-Path -LiteralPath $candidate -PathType Leaf)) {
+                $exePath = [IO.Path]::GetFullPath($candidate)
+                break
+            }
+        }
+    } catch { }
+    if (-not $exePath) { return }   # run from the project folder or a script: nothing installed to list
+
+    $remover = Join-Path $appData 'Remove DRDirect PC Cleaner.ps1'
+    $removerCmd = Join-Path $appData 'Remove DRDirect PC Cleaner.cmd'
+    $removerScript = @'
+# Removes DRDirect PC Cleaner from this PC. Started by Windows Settings > Apps or
+# the DRDirect Uninstaller. Nothing is deleted until the person confirms.
+# -Unattended skips the questions; it exists only for testing in a temporary folder.
+param([switch]$Unattended, [switch]$DeleteEverything)
+$ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+$title = 'Remove DRDirect PC Cleaner'
+$keyPath = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\DRDirectPCCleaner'
+
+function Show-Message([string]$text, [string]$icon = 'Information', [string]$buttons = 'OK') {
+    if ($Unattended) { Write-Output "[$icon] $text"; return 'OK' }
+    return [Windows.Forms.MessageBox]::Show($text, $title, $buttons, $icon)
+}
+
+# Only ever the folder this remover sits in, and only when it is the DRDirect one
+$appData = $null
+try { $appData = [IO.Path]::GetFullPath($PSScriptRoot).TrimEnd('\') } catch { }
+if (-not $appData -or (Split-Path -Leaf $appData) -ne 'DRDirect PC Cleaner' -or
+        -not [IO.Path]::GetDirectoryName($appData) -or
+        -not (Test-Path -LiteralPath (Join-Path $appData 'Remove DRDirect PC Cleaner.ps1') -PathType Leaf)) {
+    Show-Message 'The DRDirect folder is not where it should be, so nothing was removed.' 'Error' | Out-Null; exit 1
+}
+
+# The exe recorded when DRDirect last started. Only that one file is removed,
+# never the folder it sits in.
+$exePath = $null
+try { $exePath = [string](Get-ItemProperty -LiteralPath $keyPath -Name 'DRDirectProgram' -ErrorAction Stop).DRDirectProgram } catch { }
+if ($exePath) {
+    $exeOk = $false
+    try {
+        $exePath = [IO.Path]::GetFullPath($exePath)
+        $exeOk = (Test-Path -LiteralPath $exePath -PathType Leaf) -and
+                 ((Split-Path -Leaf $exePath) -like 'DRDirect*.exe') -and
+                 ((Split-Path -Leaf $exePath) -notlike '*Duplicate*')
+    } catch { }
+    if (-not $exeOk) { $exePath = $null }
+}
+
+# Confirm first, and say exactly what goes and what stays
+$form = New-Object Windows.Forms.Form
+$form.Text = $title; $form.FormBorderStyle = 'FixedDialog'; $form.MaximizeBox = $false; $form.MinimizeBox = $false
+$form.StartPosition = 'CenterScreen'; $form.Font = New-Object Drawing.Font('Segoe UI', 10); $form.AutoSize = $true
+$form.AutoSizeMode = 'GrowAndShrink'; $form.Padding = New-Object Windows.Forms.Padding(16); $form.TopMost = $true
+$layout = New-Object Windows.Forms.FlowLayoutPanel
+$layout.FlowDirection = 'TopDown'; $layout.AutoSize = $true; $layout.WrapContents = $false
+$label = New-Object Windows.Forms.Label
+$label.AutoSize = $true; $label.MaximumSize = New-Object Drawing.Size(520, 0)
+$what = "Remove DRDirect PC Cleaner from this PC?`r`n`r`nThis removes:`r`n"
+if ($exePath) { $what += "  - The program: $exePath`r`n" }
+$what += "  - Its settings, logs and the DRDirect Uninstaller in $appData`r`n`r`n" +
+         "Your own files, browsers and logins are not touched. Your reports, licence and the Uninstaller's safe copies are kept unless you tick the box below."
+$label.Text = $what
+$check = New-Object Windows.Forms.CheckBox
+$check.AutoSize = $true; $check.Text = 'Also delete my reports, licence and safe copies'; $check.Margin = New-Object Windows.Forms.Padding(0, 12, 0, 12)
+$buttons = New-Object Windows.Forms.FlowLayoutPanel
+$buttons.AutoSize = $true; $buttons.FlowDirection = 'LeftToRight'
+$ok = New-Object Windows.Forms.Button; $ok.Text = 'Remove'; $ok.AutoSize = $true; $ok.DialogResult = 'OK'
+$cancel = New-Object Windows.Forms.Button; $cancel.Text = 'Cancel'; $cancel.AutoSize = $true; $cancel.DialogResult = 'Cancel'
+$buttons.Controls.AddRange(@($ok, $cancel))
+$layout.Controls.AddRange(@($label, $check, $buttons))
+$form.Controls.Add($layout); $form.AcceptButton = $cancel; $form.CancelButton = $cancel
+if ($Unattended) {
+    $deleteEverything = [bool]$DeleteEverything
+} else {
+    if ($form.ShowDialog() -ne 'OK') { exit 1602 }
+    $deleteEverything = $check.Checked
+}
+
+# DRDirect and its Uninstaller must be closed, or their files cannot be removed
+while ($true) {
+    $running = @(Get-CimInstance -ClassName Win32_Process -ErrorAction SilentlyContinue | Where-Object {
+        $_.ProcessId -ne $PID -and (
+            ($_.ExecutablePath -and $exePath -and [string]::Equals($_.ExecutablePath, $exePath, [StringComparison]::OrdinalIgnoreCase)) -or
+            ($_.ExecutablePath -and $_.ExecutablePath.StartsWith($appData + '\', [StringComparison]::OrdinalIgnoreCase)) -or
+            ($_.Name -eq 'DRDirect PC Cleaner.exe') -or
+            ($_.CommandLine -and $_.CommandLine.IndexOf($appData + '\Scripts', [StringComparison]::OrdinalIgnoreCase) -ge 0))
+    })
+    if ($running.Count -eq 0) { break }
+    if ($Unattended) { Write-Output 'DRDirect is still running; nothing was removed.'; exit 1 }
+    $answer = Show-Message "Please close DRDirect PC Cleaner and the DRDirect Uninstaller, then click Retry." 'Warning' 'RetryCancel'
+    if ($answer -ne 'Retry') { exit 1602 }
+}
+
+$problems = New-Object Collections.Generic.List[string]
+function Remove-DRItem([string]$path) {
+    if (-not (Test-Path -LiteralPath $path)) { return }
+    $full = [IO.Path]::GetFullPath($path)
+    # Never anything outside the DRDirect folder
+    if (-not $full.StartsWith($appData + '\', [StringComparison]::OrdinalIgnoreCase) -and $full -ne $appData) { return }
+    try { Remove-Item -LiteralPath $full -Recurse -Force -ErrorAction Stop }
+    catch { $problems.Add($full) }
+}
+
+if ($deleteEverything) {
+    Remove-DRItem $appData
+} else {
+    Remove-DRItem (Join-Path $appData 'Scripts')
+    Remove-DRItem (Join-Path $appData 'Logs')
+    foreach ($file in 'check_status.json', 'lastupdatecheck.txt', 'uninstaller_window_size.txt', 'Remove DRDirect PC Cleaner.cmd') {
+        Remove-DRItem (Join-Path $appData $file)
+    }
+    # The Uninstaller goes, except its safe copies and the install logs it needs to undo tracked installs
+    $uninstaller = Join-Path $appData 'Uninstaller'
+    if (Test-Path -LiteralPath $uninstaller -PathType Container) {
+        foreach ($item in Get-ChildItem -LiteralPath $uninstaller -Force) {
+            if ($item.PSIsContainer -and @('UndoBackups', 'InstallLogs') -contains $item.Name) { continue }
+            Remove-DRItem $item.FullName
+        }
+    }
+    Remove-DRItem $PSCommandPath
+}
+
+# Shortcuts that point at the removed program would only lead nowhere
+if ($exePath) {
+    try {
+        $shell = New-Object -ComObject WScript.Shell
+        $places = @([Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('StartMenu'),
+                    [Environment]::GetFolderPath('CommonDesktopDirectory'), [Environment]::GetFolderPath('CommonStartMenu')) |
+                  Where-Object { $_ -and (Test-Path -LiteralPath $_) }
+        foreach ($place in $places) {
+            foreach ($link in Get-ChildItem -LiteralPath $place -Filter '*.lnk' -Recurse -Depth 2 -ErrorAction SilentlyContinue) {
+                try {
+                    if ([string]::Equals($shell.CreateShortcut($link.FullName).TargetPath, $exePath, [StringComparison]::OrdinalIgnoreCase)) {
+                        Remove-Item -LiteralPath $link.FullName -Force -ErrorAction Stop
+                    }
+                } catch { }
+            }
+        }
+    } catch { }
+
+    try { Remove-Item -LiteralPath $exePath -Force -ErrorAction Stop }
+    catch { $problems.Add($exePath) }
+}
+
+try { Remove-Item -LiteralPath $keyPath -Recurse -Force -ErrorAction Stop } catch { }
+
+if ($problems.Count -gt 0) {
+    Show-Message ("DRDirect PC Cleaner was removed, but these could not be deleted. You can delete them yourself:`r`n`r`n" + ($problems -join "`r`n")) 'Warning' | Out-Null
+} else {
+    Show-Message 'DRDirect PC Cleaner has been removed from this PC.' | Out-Null
+}
+exit 0
+'@
+    # Runs the remover with its window hidden. A plain .cmd keeps the list honest:
+    # it carries no signature, so the entry is not shown as signed by Microsoft.
+    # Everything is on one line so the .cmd never re-reads itself after it is gone.
+    $removerCmdText = '@powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File "%~dp0Remove DRDirect PC Cleaner.ps1" & exit /b' + "`r`n"
+
+    try {
+        if (-not (Test-Path -LiteralPath $appData -PathType Container)) {
+            New-Item -Path $appData -ItemType Directory -Force | Out-Null
+        }
+        $utf8Bom = New-Object System.Text.UTF8Encoding($true)
+        if (-not (Test-Path -LiteralPath $remover -PathType Leaf) -or [IO.File]::ReadAllText($remover) -ne $removerScript) {
+            [IO.File]::WriteAllText($remover, $removerScript, $utf8Bom)
+        }
+        if (-not (Test-Path -LiteralPath $removerCmd -PathType Leaf) -or [IO.File]::ReadAllText($removerCmd) -ne $removerCmdText) {
+            [IO.File]::WriteAllText($removerCmd, $removerCmdText, [System.Text.Encoding]::ASCII)
+        }
+
+        $version = $null
+        try {
+            $installed = Join-Path $appData 'Scripts\installed.json'
+            if (Test-Path -LiteralPath $installed -PathType Leaf) {
+                $version = [string](Get-Content -LiteralPath $installed -Raw | ConvertFrom-Json).version
+            }
+        } catch { }
+
+        $key = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\DRDirectPCCleaner'
+        if (-not (Test-Path -LiteralPath $key)) { New-Item -Path $key -Force | Out-Null }
+        $values = [ordered]@{
+            DisplayName     = 'DRDirect PC Cleaner'
+            Publisher       = 'DRDirect Pro Tech'
+            DisplayIcon     = "`"$exePath`",0"
+            InstallLocation = $appData
+            UninstallString = "`"$removerCmd`""
+            DRDirectProgram = $exePath
+        }
+        if ($version) { $values['DisplayVersion'] = $version }
+        foreach ($name in $values.Keys) {
+            $current = $null
+            try { $current = (Get-ItemProperty -LiteralPath $key -Name $name -ErrorAction Stop).$name } catch { }
+            if ($current -ne $values[$name]) {
+                Set-ItemProperty -LiteralPath $key -Name $name -Value $values[$name] -Type String
+            }
+        }
+        foreach ($name in 'NoModify', 'NoRepair') {
+            Set-ItemProperty -LiteralPath $key -Name $name -Value 1 -Type DWord
+        }
+    } catch { }   # never stop the Cleaner from opening over this
+}
+if (-not $TestMode -and -not $NoShow) { Register-DRInstalledProgram }
+
 # Opened without administrator rights (for example from a script launcher)? Ask
 # Windows for them once, so every check and clean-up can do its job - without
 # them, drive health, memory and many cleaners cannot read or change anything.
@@ -4755,6 +5005,11 @@ if ($NoShow) {
         if ($script:DRBuildVersion) { [void][version]::TryParse("$script:DRBuildVersion", [ref]$built) }
         $newest = if ($recorded -gt $built) { $recorded } else { $built }
         $ui.VersionText.Text = if ($newest -ge [version]'0.0.1') { "Version $newest" } else { 'Version 1.0' }
+        # Windows' installed-programs list shows the same version as the app
+        $drUninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\DRDirectPCCleaner'
+        if ($newest -ge [version]'0.0.1' -and (Test-Path -LiteralPath $drUninstallKey)) {
+            Set-ItemProperty -LiteralPath $drUninstallKey -Name 'DisplayVersion' -Value "$newest" -Type String
+        }
     } catch { }
     Apply-CleanupPreset -Preset 'Safe'
     Set-DRDefaultTicks

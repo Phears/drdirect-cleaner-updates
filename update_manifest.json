@@ -1,7 +1,7 @@
 {
-  "version": "1.4.76",
-  "notes": "The Uninstaller has a new button to turn Wand's pop-up notifications off or back on.",
-  "published": "2026-10-09T16:13:22.3475767-04:00",
+  "version": "1.4.77",
+  "notes": "After you remove a program, the Uninstaller now closes the \"Get an app to open this link\" box and goodbye web pages it leaves behind. A browser you already had open is never closed.\nThe Uninstaller's 24-hour safe copy is back, so you can undo a removal for a day if you change your mind.\nDRDirect PC Cleaner now shows in Windows' list of installed programs, so you can remove it from Settings > Apps like any other program.",
+  "published": "2026-10-09T17:23:25.2238429-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "1DB2F0CE08EDECF189D25A3C5769F43D15BE2149DB24B929BA893426D2046588",
-      "size": 320355
+      "sha256": "742ADC5EFA48E63FAE907416F4618EC1116F7E42587A256A93A30FF07E38D3D7",
+      "size": 339267
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "F406F5BBB6453662F4994D4F7E772D677258F9D0A02BA57B623905803B870412",
-      "size": 10397491
+      "sha256": "24D51A1E4C1E7CA3DBF25CF9DC5E4A3DC2C365A0756FAF61698CAB9DC8C5CB19",
+      "size": 10410141
     }
   ]
 }
