@@ -3763,6 +3763,12 @@ function Open-DRUninstaller {
         if ((Show-DRActivation 'locked' 'DRDirect Uninstaller') -ne 'activated') { return }
         $env:DRDIRECT_UNINSTALLER_OK = '1'
     }
+    # An accepted update may carry a newer Uninstaller. Put it in place before it opens.
+    if (Get-Command Update-DRUninstallerFromFeed -ErrorAction SilentlyContinue) {
+        $previousCursor = $window.Cursor
+        $window.Cursor = [System.Windows.Input.Cursors]::Wait
+        try { Update-DRUninstallerFromFeed } finally { $window.Cursor = $previousCursor }
+    }
     $uninstaller = Resolve-DRUninstallerExe
     if (-not $uninstaller) {
         [Windows.MessageBox]::Show(

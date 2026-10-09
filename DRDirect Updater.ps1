@@ -32,7 +32,10 @@ $script:DRUpdatableFiles = @(
     'DRDirect PC Cleaner GUI.ps1',
     'DRDirect Cleaner Engine.ps1',
     'DRDirect Updater.ps1',
-    'DRDirect Activation.ps1'
+    'DRDirect Activation.ps1',
+    # The Uninstaller is a separate program, so it travels as one package. It is
+    # only stored here; Update-DRUninstallerFromFeed puts it in place.
+    'DRDirect Uninstaller.zip'
 )
 
 # The public half of the update signing key. The private half never leaves the
@@ -336,6 +339,14 @@ function Install-DRUpdate {
                 continue
             }
 
+            # The Uninstaller package is large and rarely changes, so a copy that
+            # already matches is kept instead of being downloaded again.
+            $final = Join-Path $root $file.name
+            if ((Test-Path -LiteralPath $final -PathType Leaf) -and
+                (Get-DRFileHashWithRetry -Path $final).Hash -eq $file.sha256.ToUpperInvariant()) {
+                continue
+            }
+
             $temp = Join-Path $root ("{0}.downloading" -f $file.name)
             # A leftover from an abandoned run can still be marked read-only or
             # be held open, and Invoke-WebRequest would then fail on a file the
@@ -353,10 +364,12 @@ function Install-DRUpdate {
                 throw "'$($file.name)' did not match its published checksum and was discarded."
             }
 
-            $staged += [pscustomobject]@{ Temp = $temp; Final = (Join-Path $root $file.name) }
+            $staged += [pscustomobject]@{ Temp = $temp; Final = $final }
         }
 
-        if ($staged.Count -eq 0) { throw 'The update contained no files this version can use.' }
+        if (-not @($Manifest.files | Where-Object { $script:DRUpdatableFiles -contains $_.name })) {
+            throw 'The update contained no files this version can use.'
+        }
 
         # Everything verified - swap the files in as the last step.
         foreach ($item in $staged) {
@@ -388,6 +401,97 @@ function Install-DRUpdate {
         }
     }
 }
+function Update-DRUninstallerFromFeed {
+    <#
+    .SYNOPSIS
+        Puts the Uninstaller from the latest accepted update in place.
+    .DESCRIPTION
+        The launcher unpacks the Uninstaller from the copy built into the exe,
+        which an update cannot change. So the feed carries it as a package, and
+        this replaces the unpacked copy before it opens.
+
+        It only trusts the signed manifest of an update the person accepted, and
+        only replaces an Uninstaller that is already installed and not running.
+        The launcher's own stamp (package.sha256) is left alone, so the launcher
+        does not unpack its built-in copy over this one on the next start.
+        Anything that goes wrong leaves the current Uninstaller as it is.
+    #>
+    $package = 'DRDirect Uninstaller.zip'
+    try {
+        $target = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Uninstaller'
+        if (-not (Test-Path -LiteralPath (Join-Path $target 'BCUninstaller.exe') -PathType Leaf)) { return }
+
+        $root = Get-DRUpdateRoot
+        $manifestPath = Join-Path $root 'update_manifest.json'
+        $signaturePath = Join-Path $root 'update_manifest.sig'
+        if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf) -or
+            -not (Test-Path -LiteralPath $signaturePath -PathType Leaf)) { return }
+        $manifestBytes = [System.IO.File]::ReadAllBytes($manifestPath)
+        if (-not (Test-DRManifestSignature -ManifestBytes $manifestBytes -SignatureBase64 ([System.IO.File]::ReadAllText($signaturePath)))) { return }
+
+        # The cached manifest is refreshed by every check, so only a version the
+        # person accepted counts, not one that was merely offered.
+        $manifest = ConvertFrom-Json -InputObject ([System.Text.Encoding]::UTF8.GetString($manifestBytes).TrimStart([char]0xFEFF).Trim())
+        if ([version]$manifest.version -gt (Get-DRInstalledVersion)) { return }
+        $entry = @($manifest.files | Where-Object { $_.name -eq $package }) | Select-Object -First 1
+        if (-not $entry) { return }
+        $expected = ([string]$entry.sha256).ToUpperInvariant()
+
+        $stamp = Join-Path $target 'feed_package.sha256'
+        if ((Test-Path -LiteralPath $stamp -PathType Leaf) -and
+            ([System.IO.File]::ReadAllText($stamp).Trim() -eq $expected)) { return }
+
+        # Files in use cannot be replaced. It is tried again the next time it is opened.
+        $running = @(Get-Process -Name 'BCUninstaller' -ErrorAction SilentlyContinue | Where-Object {
+            try { $_.Path -and $_.Path.StartsWith($target, [StringComparison]::OrdinalIgnoreCase) } catch { $false }
+        })
+        if ($running.Count) { return }
+
+        # An update applied by an older updater skipped the package, so fetch it now.
+        $zip = Join-Path $root $package
+        if (-not (Test-Path -LiteralPath $zip -PathType Leaf) -or (Get-DRFileHashWithRetry -Path $zip).Hash -ne $expected) {
+            try {
+                [Net.ServicePointManager]::SecurityProtocol =
+                    [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+            } catch { }
+            $temp = "$zip.downloading"
+            Clear-DRStaleTemp -Path $temp
+            Invoke-WebRequest -Uri "$script:DRUpdateFeed/$([uri]::EscapeDataString($package))$script:DRUpdateRef" `
+                -Headers $script:DRUpdateHeaders -OutFile $temp -UseBasicParsing -TimeoutSec 120
+            if ((Get-DRFileHashWithRetry -Path $temp).Hash -ne $expected) {
+                Remove-Item -LiteralPath $temp -Force -ErrorAction SilentlyContinue
+                return
+            }
+            Move-Item -LiteralPath $temp -Destination $zip -Force
+        }
+
+        # Same rules as the launcher: never write outside the folder, and never
+        # replace what the person's own use created (settings, records, undo copies).
+        $keepFiles = @('bcuninstaller.settings', 'certcache.xml', 'infocache.xml', 'bcuninstaller.log')
+        $keepFolders = @('undobackups', 'installlogs')
+        Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
+        $archive = [System.IO.Compression.ZipFile]::OpenRead($zip)
+        try {
+            foreach ($member in $archive.Entries) {
+                $parts = @($member.FullName.Replace('\', '/').Split('/') | Where-Object { $_ })
+                if ($member.FullName.EndsWith('/') -or $parts.Count -eq 0 -or $parts -contains '..') { continue }
+                $destination = Join-Path $target ($parts -join '\')
+                $isUserData = ($keepFolders -contains $parts[0].ToLowerInvariant()) -or
+                    ($parts.Count -eq 1 -and $keepFiles -contains $parts[0].ToLowerInvariant())
+                if ($isUserData -and (Test-Path -LiteralPath $destination)) { continue }
+                $folder = Split-Path -Parent $destination
+                if (-not (Test-Path -LiteralPath $folder)) { New-Item -Path $folder -ItemType Directory -Force | Out-Null }
+                [System.IO.Compression.ZipFileExtensions]::ExtractToFile($member, $destination, $true)
+            }
+        } finally {
+            $archive.Dispose()
+        }
+        [System.IO.File]::WriteAllText($stamp, $expected, (New-Object System.Text.UTF8Encoding($false)))
+    } catch {
+        # Not fatal: the Uninstaller that is already there still opens.
+    }
+}
+
 # --- Trial mode -------------------------------------------------------------
 # A single-use code opens the app in trial mode: one cleanup run, and one
 # duplicate category. Both are recorded in the same licence.dat the launcher
