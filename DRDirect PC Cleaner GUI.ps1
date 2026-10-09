@@ -3752,6 +3752,63 @@ function Get-DRCleanerLauncherPath {
     return $null
 }
 
+$script:DRUninstallerUpdateTried = $false
+
+function Start-DRUninstallerUpdate {
+    # Returns $true when the update was started; Open-DRUninstaller is called again when it ends.
+    try {
+        # The updater is built into the exe, not a file a new runspace could load,
+        # so hand over its functions and settings as they are.
+        $names = 'ConvertFrom-DRPkcs1PublicKey', 'Test-DRManifestSignature', 'Get-DRUpdateRoot', 'Get-DRInstalledVersion',
+            'Clear-DRStaleTemp', 'Get-DRFileHashWithRetry', 'Update-DRUninstallerFromFeed'
+        $code = ($names | ForEach-Object { "function $_ {`r`n$((Get-Command $_ -CommandType Function).Definition)`r`n}" }) -join "`r`n"
+
+        $script:DRUnUpdateRunspace = [RunspaceFactory]::CreateRunspace()
+        $script:DRUnUpdateRunspace.Open()
+        foreach ($name in 'DRUpdateFeed', 'DRUpdateRef', 'DRUpdateHeaders', 'DRUpdatePublicKey') {
+            $script:DRUnUpdateRunspace.SessionStateProxy.SetVariable($name, (Get-Variable -Name $name -Scope Script -ValueOnly))
+        }
+        $script:DRUnUpdatePs = [PowerShell]::Create()
+        $script:DRUnUpdatePs.Runspace = $script:DRUnUpdateRunspace
+        $null = $script:DRUnUpdatePs.AddScript("Set-StrictMode -Version 2.0`r`n$code`r`nUpdate-DRUninstallerFromFeed")
+        $script:DRUnUpdateAsync = $script:DRUnUpdatePs.BeginInvoke()
+    } catch {
+        return $false
+    }
+
+    $ui.OverlayContinueButton.Visibility = 'Collapsed'
+    $ui.OverlayPercent.Visibility = 'Collapsed'
+    $ui.OverlayProgress.IsIndeterminate = $true
+    $ui.OverlayTitle.Text = 'Updating the Uninstaller'
+    $ui.OverlayMessage.Text = 'Getting the new version of the DRDirect Uninstaller Program. ' +
+        'This only happens once after an update and can take up to a minute. Please wait...'
+    $ui.BusyOverlay.Visibility = 'Visible'
+
+    # Script scope: the timer's handler runs in its own scope, and StrictMode stops on anything it cannot see.
+    $script:DRUnUpdateTimer = New-Object Windows.Threading.DispatcherTimer
+    $script:DRUnUpdateTimer.Interval = [TimeSpan]::FromMilliseconds(300)
+    $script:DRUnUpdateTimer.Add_Tick({
+        if (-not $script:DRUnUpdateAsync.IsCompleted) { return }
+        $script:DRUnUpdateTimer.Stop()
+        try {
+            $null = $script:DRUnUpdatePs.EndInvoke($script:DRUnUpdateAsync)
+        } catch { }
+        try {
+            $script:DRUnUpdatePs.Dispose()
+            $script:DRUnUpdateRunspace.Close()
+            $script:DRUnUpdateRunspace.Dispose()
+        } catch { }
+        $ui.BusyOverlay.Visibility = 'Collapsed'
+        $ui.OverlayProgress.IsIndeterminate = $false
+        $ui.OverlayPercent.Visibility = 'Visible'
+        # Whether it worked or not, open the Uninstaller that is now there.
+        $script:DRUninstallerUpdateTried = $true
+        Open-DRUninstaller
+    })
+    $script:DRUnUpdateTimer.Start()
+    return $true
+}
+
 function Open-DRUninstaller {
     if ($TestMode) {
         [Windows.MessageBox]::Show('Test mode: the DRDirect Uninstaller Program would open here.', 'DRDirect PC Cleaner',
@@ -3764,11 +3821,14 @@ function Open-DRUninstaller {
         $env:DRDIRECT_UNINSTALLER_OK = '1'
     }
     # An accepted update may carry a newer Uninstaller. Put it in place before it opens.
-    if (Get-Command Update-DRUninstallerFromFeed -ErrorAction SilentlyContinue) {
-        $previousCursor = $window.Cursor
-        $window.Cursor = [System.Windows.Input.Cursors]::Wait
-        try { Update-DRUninstallerFromFeed } finally { $window.Cursor = $previousCursor }
+    # It can take a minute, so it runs in the background behind a "please wait" overlay,
+    # and opening carries on once it is done. It is tried once per click.
+    if (-not $script:DRUninstallerUpdateTried -and
+        (Get-Command Update-DRUninstallerFromFeed -ErrorAction SilentlyContinue) -and
+        (Update-DRUninstallerFromFeed -CheckOnly)) {
+        if (Start-DRUninstallerUpdate) { return }
     }
+    $script:DRUninstallerUpdateTried = $false
     $uninstaller = Resolve-DRUninstallerExe
     if (-not $uninstaller) {
         [Windows.MessageBox]::Show(

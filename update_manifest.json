@@ -1,7 +1,7 @@
 {
-  "version": "1.4.74",
-  "notes": "When you install a program with tracking, the OK button now stays greyed out until the installation is really finished, so nothing gets missed.\nThe Uninstaller now updates itself along with the Cleaner.",
-  "published": "2026-10-09T15:53:44.7814381-04:00",
+  "version": "1.4.75",
+  "notes": "When the Uninstaller is being updated, you now see a \"please wait\" message instead of a screen that looks frozen.",
+  "published": "2026-10-09T15:58:56.2023742-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "977EFAADCA325013D935EBA1C274317CA683EF8CAE9276E2D4B6D7B926A72C6F",
-      "size": 317300
+      "sha256": "1DB2F0CE08EDECF189D25A3C5769F43D15BE2149DB24B929BA893426D2046588",
+      "size": 320355
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -20,8 +20,8 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "870E098424BC30C2FA44BE4DDDA8BE3E5C33CE8E5137FC5F17915A8CE2FE34A9",
-      "size": 32779
+      "sha256": "BAEF0E6065D79A9D9B2B71050FC0C8E0EBD4A6412F9B4EEDA4E32E5C48071111",
+      "size": 32987
     },
     {
       "name": "DRDirect Activation.ps1",

@@ -415,7 +415,11 @@ function Update-DRUninstallerFromFeed {
         The launcher's own stamp (package.sha256) is left alone, so the launcher
         does not unpack its built-in copy over this one on the next start.
         Anything that goes wrong leaves the current Uninstaller as it is.
+
+        -CheckOnly changes nothing and returns $true when there is work to do,
+        so the Cleaner can say so before it starts.
     #>
+    param([switch]$CheckOnly)
     $package = 'DRDirect Uninstaller.zip'
     try {
         $target = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Uninstaller'
@@ -446,6 +450,7 @@ function Update-DRUninstallerFromFeed {
             try { $_.Path -and $_.Path.StartsWith($target, [StringComparison]::OrdinalIgnoreCase) } catch { $false }
         })
         if ($running.Count) { return }
+        if ($CheckOnly) { return $true }
 
         # An update applied by an older updater skipped the package, so fetch it now.
         $zip = Join-Path $root $package
