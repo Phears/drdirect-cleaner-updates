@@ -2308,7 +2308,9 @@ function New-ProgressRow {
     $grid = New-Object Windows.Controls.Grid
     $grid.ColumnDefinitions.Add((New-Object Windows.Controls.ColumnDefinition -Property @{ Width='Auto' }))
     $grid.ColumnDefinitions.Add((New-Object Windows.Controls.ColumnDefinition -Property @{ Width='*' }))
-    $dot = New-Object Windows.Shapes.Ellipse -Property @{ Width=10; Height=10; Fill='#98A2B3'; Margin='0,0,14,0'; VerticalAlignment='Center'; Name='StateDot' }
+    # Big and bright with a soft glow, so each task's state reads at a glance
+    $dot = New-Object Windows.Shapes.Ellipse -Property @{ Width=16; Height=16; Fill='#98A2B3'; Margin='0,0,14,0'; VerticalAlignment='Center'; Name='StateDot' }
+    $dot.Effect = New-Object Windows.Media.Effects.DropShadowEffect -Property @{ ShadowDepth=0; BlurRadius=10; Opacity=0.55; Color=[Windows.Media.ColorConverter]::ConvertFromString('#98A2B3') }
     $panel = New-Object Windows.Controls.StackPanel; [Windows.Controls.Grid]::SetColumn($panel,1)
     $panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$Task.Name; FontWeight='SemiBold' })) | Out-Null
     $state = New-Object Windows.Controls.TextBlock -Property @{ Text='Waiting'; Foreground='#667085'; FontSize=12; Margin='0,3,0,0'; Name='StateText' }
@@ -2438,7 +2440,9 @@ function Set-ProgressRowState {
     if (-not $row) { return }
     $dot = $row.Child.Children[0]; $text = $row.Child.Children[1].Children[1]
     $found = $row.Child.Children[1].Children[2]
-    $dot.Fill = switch ($State) { 'Started' {'#2563EB'} 'Progress' {'#2563EB'} 'Completed' {'#16835B'} 'Failed' {'#C63C3C'} 'Warning' {'#A86412'} default {'#98A2B3'} }
+    $dotColour = switch ($State) { 'Started' {'#3B82F6'} 'Progress' {'#3B82F6'} 'Completed' {'#22C55E'} 'Failed' {'#EF4444'} 'Warning' {'#F59E0B'} default {'#98A2B3'} }
+    $dot.Fill = $dotColour
+    if ($dot.Effect) { $dot.Effect.Color = [Windows.Media.ColorConverter]::ConvertFromString($dotColour) }
     # A check that only looks keeps what it found on screen instead of losing it
     # behind the final "completed" line.
     $taskInfo = @($catalog | Where-Object Id -eq $TaskId | Select-Object -First 1)
