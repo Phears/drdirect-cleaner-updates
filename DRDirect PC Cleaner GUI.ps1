@@ -5,6 +5,49 @@ param(
     [switch]$NoShow
 )
 
+function Resolve-DREnginePath {
+    $runtimeRoots = New-Object System.Collections.Generic.List[string]
+
+    if (-not [string]::IsNullOrWhiteSpace($PSScriptRoot)) {
+        $runtimeRoots.Add($PSScriptRoot)
+    }
+    try {
+        $executablePath = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
+        if (-not [string]::IsNullOrWhiteSpace($executablePath)) {
+            $runtimeRoots.Add((Split-Path -Parent $executablePath))
+        }
+    } catch { }
+    try {
+        if (-not [string]::IsNullOrWhiteSpace([AppDomain]::CurrentDomain.BaseDirectory)) {
+            $runtimeRoots.Add([AppDomain]::CurrentDomain.BaseDirectory)
+        }
+    } catch { }
+    try {
+        $invocationPath = $MyInvocation.PSCommandPath
+        if (-not [string]::IsNullOrWhiteSpace($invocationPath)) {
+            $runtimeRoots.Add((Split-Path -Parent $invocationPath))
+        }
+    } catch { }
+
+    foreach ($root in @($runtimeRoots | Select-Object -Unique)) {
+        if ([string]::IsNullOrWhiteSpace($root)) { continue }
+        $candidate = Join-Path -Path $root -ChildPath 'DRDirect Cleaner Engine.ps1'
+        if (Test-Path -LiteralPath $candidate -PathType Leaf) {
+            return [System.IO.Path]::GetFullPath($candidate)
+        }
+    }
+    throw 'The embedded maintenance engine could not be located beside the application.'
+}
+
+$script:DREnginePath = Resolve-DREnginePath
+# <ENGINE-IMPORT>
+. $script:DREnginePath
+# </ENGINE-IMPORT>
+
+# The engine above has already pointed this process at the signed-in person's
+# folders (Windows 11 Administrator Protection runs an elevated copy as a hidden
+# admin account), so the update-folder check below looks in the right place.
+
 # This script is published in the public update feed, so a downloaded copy would
 # otherwise open as the full Cleaner with no licence check at all. Only start
 # when DRDirect opened it: the compiled exe, the launcher (which hands over the
@@ -63,45 +106,6 @@ if (-not $NoShow -and $PSCommandPath) {
         } catch { }
     }
 }
-
-function Resolve-DREnginePath {
-    $runtimeRoots = New-Object System.Collections.Generic.List[string]
-
-    if (-not [string]::IsNullOrWhiteSpace($PSScriptRoot)) {
-        $runtimeRoots.Add($PSScriptRoot)
-    }
-    try {
-        $executablePath = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
-        if (-not [string]::IsNullOrWhiteSpace($executablePath)) {
-            $runtimeRoots.Add((Split-Path -Parent $executablePath))
-        }
-    } catch { }
-    try {
-        if (-not [string]::IsNullOrWhiteSpace([AppDomain]::CurrentDomain.BaseDirectory)) {
-            $runtimeRoots.Add([AppDomain]::CurrentDomain.BaseDirectory)
-        }
-    } catch { }
-    try {
-        $invocationPath = $MyInvocation.PSCommandPath
-        if (-not [string]::IsNullOrWhiteSpace($invocationPath)) {
-            $runtimeRoots.Add((Split-Path -Parent $invocationPath))
-        }
-    } catch { }
-
-    foreach ($root in @($runtimeRoots | Select-Object -Unique)) {
-        if ([string]::IsNullOrWhiteSpace($root)) { continue }
-        $candidate = Join-Path -Path $root -ChildPath 'DRDirect Cleaner Engine.ps1'
-        if (Test-Path -LiteralPath $candidate -PathType Leaf) {
-            return [System.IO.Path]::GetFullPath($candidate)
-        }
-    }
-    throw 'The embedded maintenance engine could not be located beside the application.'
-}
-
-$script:DREnginePath = Resolve-DREnginePath
-# <ENGINE-IMPORT>
-. $script:DREnginePath
-# </ENGINE-IMPORT>
 
 # The updater is spliced in at build time, exactly like the engine above, so
 # the compiled exe carries it without needing a loose file beside it.
@@ -2707,7 +2711,7 @@ function Write-DRSafeRunReport {
         [datetime]$StartedAt
     )
 
-    $localAppData = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)
+    $localAppData = $env:LOCALAPPDATA
     if ([string]::IsNullOrWhiteSpace($localAppData)) {
         throw 'Windows did not provide a Local AppData folder.'
     }
@@ -2945,7 +2949,7 @@ function Show-DashboardHistory {
 
     $files = @()
     try {
-        $localAppData = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)
+        $localAppData = $env:LOCALAPPDATA
         if (-not [string]::IsNullOrWhiteSpace($localAppData)) {
             $reportRoot = Join-Path -Path $localAppData -ChildPath 'DRDirect PC Cleaner\Reports'
             if (Test-Path -LiteralPath $reportRoot -PathType Container) {
@@ -3111,7 +3115,7 @@ function Start-DRDriverCheck {
 function Show-History {
     $ui.HistoryList.Children.Clear()
 
-    $localAppData = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)
+    $localAppData = $env:LOCALAPPDATA
     if ([string]::IsNullOrWhiteSpace($localAppData)) {
         return
     }
@@ -4272,7 +4276,15 @@ $ui.OpenDuplicatesButton.Add_Click({
     $finderExe = Resolve-DRDuplicateFinderExe
     if ($finderExe) {
         try {
-            Start-Process -FilePath $finderExe | Out-Null
+            if (Get-DRSignedInUserSidOverride) {
+                # This copy runs as a hidden admin account (Administrator
+                # Protection). Hand the Finder to Explorer so it opens as the
+                # person, with their own folders and licence. Unquoted on purpose:
+                # Explorer takes the whole argument tail as one path.
+                Start-Process -FilePath 'explorer.exe' -ArgumentList $finderExe | Out-Null
+            } else {
+                Start-Process -FilePath $finderExe | Out-Null
+            }
             $ui.DuplicateStatus.Text = 'Duplicate Finder opened in its own window.'
         } catch {
             $ui.DuplicateStatus.Text = "Could not start the Duplicate Finder: $($_.Exception.Message)"
@@ -4513,7 +4525,7 @@ $ui.CheckUpdatesButton.Add_Click({
 
 $ui.OpenReportsButton.Add_Click({ $path=Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Reports'; New-Item -Path $path -ItemType Directory -Force|Out-Null; Start-Process -FilePath explorer.exe -ArgumentList @($path) })
 $ui.ClearHistoryButton.Add_Click({
-    $localAppData = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)
+    $localAppData = $env:LOCALAPPDATA
     if ([string]::IsNullOrWhiteSpace($localAppData)) { return }
 
     $reportRoot = Join-Path -Path $localAppData -ChildPath 'DRDirect PC Cleaner\Reports'

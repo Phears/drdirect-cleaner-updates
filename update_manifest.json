@@ -1,7 +1,7 @@
 {
-  "version": "1.4.72",
-  "notes": "The Cleaner no longer removes anything you added to Microsoft Defender's exclusions. It now only lists them and warns about any that look risky, so your own exclusions always stay.",
-  "published": "2026-10-06T11:58:22.3616792-04:00",
+  "version": "1.4.73",
+  "notes": "The Cleaner now cleans your own files correctly on Windows 11 PCs with Administrator Protection turned on.",
+  "published": "2026-10-09T12:26:31.5771538-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "8E5DC07ECC03DC225D80B95D08E11F8A80734F7D499A62097CCE8437FE00F1EE",
-      "size": 316457
+      "sha256": "17755ED07B984C282ABC6BE7B57AAED5F7B9DB32E8047E10BC81B9CE201E1AA1",
+      "size": 316930
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "50E1EBDD4BAACBC4CCF80E7628B116F40EA68D201FFB13BA16BA3F4E211624E2",
-      "size": 223653
+      "sha256": "90F5616DD4E6B7A16782A5DB5BD4E4C955295ECC30B6AB66A11761BD16E1CA4C",
+      "size": 232225
     },
     {
       "name": "DRDirect Updater.ps1",

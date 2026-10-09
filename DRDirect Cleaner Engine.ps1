@@ -5,6 +5,111 @@
 Set-StrictMode -Version 2.0
 
 $script:DRAppName = 'DRDirect PC Cleaner'
+
+# Windows 11 Administrator Protection runs anything given administrator rights as
+# a separate, hidden admin account with its own user folder and registry. The
+# same happens when someone types another admin's password at the prompt. The
+# person's caches, licence, logs and settings are in their own profile, so this
+# process is pointed at the account that owns the desktop before anything runs.
+function Get-DRSignedInUserSid {
+    # The account running Explorer in this Windows session, or $null.
+    $sessionId = [Diagnostics.Process]::GetCurrentProcess().SessionId
+    $shells = @(Get-CimInstance -ClassName Win32_Process -Filter ("Name='explorer.exe' AND SessionId={0}" -f $sessionId) -ErrorAction Stop)
+    foreach ($shell in $shells) {
+        $owner = Invoke-CimMethod -InputObject $shell -MethodName GetOwnerSid -ErrorAction SilentlyContinue
+        if ($owner -and $owner.ReturnValue -eq 0 -and $owner.Sid) { return [string]$owner.Sid }
+    }
+    return $null
+}
+
+function Get-DRUserFolders {
+    # A signed-in account's own folders, read from its profile and loaded registry
+    # hive. $null when any of it cannot be confirmed, so nothing is ever guessed.
+    param([Parameter(Mandatory=$true)][string]$Sid)
+    if ($Sid -notmatch '^S-1-5-21-[\d-]+$') { return $null }
+    $profileKey = 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\' + $Sid
+    $profilePath = [string](Get-ItemProperty -LiteralPath $profileKey -Name ProfileImagePath -ErrorAction Stop).ProfileImagePath
+    $profilePath = [Environment]::ExpandEnvironmentVariables($profilePath).TrimEnd('\')
+    if (-not $profilePath -or -not (Test-Path -LiteralPath $profilePath -PathType Container)) { return $null }
+
+    # Raw values: this process's own %USERPROFILE% must not be expanded into them.
+    $readRaw = {
+        param([string]$SubKey, [string]$Name)
+        $key = [Microsoft.Win32.Registry]::Users.OpenSubKey($Sid + '\' + $SubKey)
+        if (-not $key) { return $null }
+        try { return [string]$key.GetValue($Name, $null, [Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames) }
+        finally { $key.Close() }
+    }
+    $resolve = {
+        param([string]$Raw, [string]$Fallback)
+        $path = $Fallback
+        if ($Raw) {
+            $expanded = [regex]::Replace($Raw, '%USERPROFILE%', $profilePath.Replace('$', '$$'), 'IgnoreCase')
+            if ($expanded -notmatch '%' -and [IO.Path]::IsPathRooted($expanded)) { $path = $expanded.TrimEnd('\') }
+        }
+        if (Test-Path -LiteralPath $path -PathType Container) { return $path }
+        if (Test-Path -LiteralPath $Fallback -PathType Container) { return $Fallback }
+        return $null
+    }
+
+    $shellFolders = 'Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders'
+    $localAppData = & $resolve (& $readRaw $shellFolders 'Local AppData') (Join-Path $profilePath 'AppData\Local')
+    $appData = & $resolve (& $readRaw $shellFolders 'AppData') (Join-Path $profilePath 'AppData\Roaming')
+    if (-not $localAppData -or -not $appData) { return $null }
+    $temp = & $resolve (& $readRaw 'Environment' 'TEMP') (Join-Path $localAppData 'Temp')
+    if (-not $temp) { $temp = $localAppData }
+
+    $userName = Split-Path -Leaf $profilePath
+    try { $userName = ((New-Object Security.Principal.SecurityIdentifier($Sid)).Translate([Security.Principal.NTAccount]).Value -split '\\')[-1] } catch { }
+
+    [pscustomobject]@{ Sid = $Sid; Profile = $profilePath; LocalAppData = $localAppData; AppData = $appData; Temp = $temp; UserName = $userName }
+}
+
+function Use-DRSignedInUser {
+    # Worked out once per process and kept in DRDIRECT_USER_SID ('-' = this
+    # process already is that person). The folders go into the process
+    # environment, which every task runspace shares; each runspace then only
+    # re-points its own HKCU: drive at the person's registry hive.
+    $sid = $env:DRDIRECT_USER_SID
+    if (-not $sid) {
+        $sid = '-'
+        try {
+            $current = [Security.Principal.WindowsIdentity]::GetCurrent().User.Value
+            $shellSid = Get-DRSignedInUserSid
+            if ($shellSid -and $shellSid -ne $current) {
+                $folders = Get-DRUserFolders -Sid $shellSid
+                if ($folders) {
+                    $env:USERPROFILE = $folders.Profile
+                    $env:LOCALAPPDATA = $folders.LocalAppData
+                    $env:APPDATA = $folders.AppData
+                    $env:TEMP = $folders.Temp
+                    $env:TMP = $folders.Temp
+                    $env:USERNAME = $folders.UserName
+                    $sid = $shellSid
+                }
+            }
+        } catch { $sid = '-' }
+        $env:DRDIRECT_USER_SID = $sid
+    }
+    if ($sid -eq '-') { return }
+    $root = 'HKEY_USERS\' + $sid
+    $drive = Get-PSDrive -Name HKCU -PSProvider Registry -ErrorAction SilentlyContinue
+    if ($drive -and $drive.Root -eq $root) { return }
+    try {
+        if ($drive) { Remove-PSDrive -Name HKCU -PSProvider Registry -Scope Global -Force -ErrorAction Stop }
+        $null = New-PSDrive -Name HKCU -PSProvider Registry -Root $root -Scope Global -ErrorAction Stop
+    } catch { }
+}
+
+function Get-DRSignedInUserSidOverride {
+    # The person's SID when this process runs as a different account, else $null.
+    $sid = $env:DRDIRECT_USER_SID
+    if ($sid -and $sid -ne '-') { return $sid }
+    return $null
+}
+
+Use-DRSignedInUser
+
 $script:DRLogRoot = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Logs'
 $script:DRReportRoot = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Reports'
 # File Explorer's pinned Quick Access folders live in this jump list file.
@@ -1750,14 +1855,21 @@ function Open-DRRegistryKey {
     param([Parameter(Mandatory=$true)][string]$Key, [switch]$Writable, [switch]$Create)
     $parts = $Key -split ':\\', 2
     if (@($parts).Count -ne 2 -or -not $parts[1]) { throw "Not a registry key path: $Key" }
+    $subKey = $parts[1]
     $hive = switch ($parts[0]) {
         'HKLM'  { [Microsoft.Win32.RegistryHive]::LocalMachine }
         'HKCU'  { [Microsoft.Win32.RegistryHive]::CurrentUser }
         default { throw "Unsupported registry hive: $($parts[0])" }
     }
+    # Running as a different admin account: HKCU means the signed-in person's hive.
+    $userSid = Get-DRSignedInUserSidOverride
+    if ($parts[0] -eq 'HKCU' -and $userSid) {
+        $hive = [Microsoft.Win32.RegistryHive]::Users
+        $subKey = $userSid + '\' + $subKey
+    }
     $base = [Microsoft.Win32.RegistryKey]::OpenBaseKey($hive, [Microsoft.Win32.RegistryView]::Registry64)
-    if ($Create) { return $base.CreateSubKey($parts[1]) }
-    return $base.OpenSubKey($parts[1], [bool]$Writable)
+    if ($Create) { return $base.CreateSubKey($subKey) }
+    return $base.OpenSubKey($subKey, [bool]$Writable)
 }
 
 function Test-DRRegistryKey {
@@ -2067,6 +2179,41 @@ function Open-DRForUser {
     # would not be the customer's normal browser session.
     param([string]$Target)
     Start-Process -FilePath (Join-Path $env:WINDIR 'explorer.exe') -ArgumentList ('"{0}"' -f $Target)
+}
+
+function Test-DRShellRunning {
+    $sessionId = [Diagnostics.Process]::GetCurrentProcess().SessionId
+    return [bool](@(Get-Process -Name explorer -ErrorAction SilentlyContinue | Where-Object { $_.SessionId -eq $sessionId }).Count)
+}
+
+function Start-DRShellForSignedInUser {
+    # Brings the desktop back as the signed-in person after Explorer was stopped.
+    # Windows usually restarts it by itself; if not, a one-off scheduled task
+    # starts it in the person's own session. $true once Explorer is running.
+    for ($i = 0; $i -lt 8; $i++) {
+        if (Test-DRShellRunning) { return $true }
+        Start-Sleep -Milliseconds 500
+    }
+    $userSid = Get-DRSignedInUserSidOverride
+    if (-not $userSid) { return $false }
+    $taskName = 'DRDirect - restart Explorer'
+    try {
+        $account = (New-Object Security.Principal.SecurityIdentifier($userSid)).Translate([Security.Principal.NTAccount]).Value
+        # Through cmd /c start, so the task itself ends at once and removing it
+        # afterwards cannot take the new desktop down with it.
+        $action = New-ScheduledTaskAction -Execute (Join-Path $env:WINDIR 'System32\cmd.exe') -Argument ('/c start "" "{0}"' -f (Join-Path $env:WINDIR 'explorer.exe'))
+        $principal = New-ScheduledTaskPrincipal -UserId $account -LogonType Interactive -RunLevel Limited
+        $null = Register-ScheduledTask -TaskName $taskName -Action $action -Principal $principal -Force -ErrorAction Stop
+        Start-ScheduledTask -TaskName $taskName -ErrorAction Stop
+        for ($i = 0; $i -lt 10; $i++) {
+            Start-Sleep -Milliseconds 500
+            if (Test-DRShellRunning) { return $true }
+        }
+    } catch {
+    } finally {
+        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+    }
+    return (Test-DRShellRunning)
 }
 
 function Invoke-DRAIGuidedTask {
@@ -2421,12 +2568,19 @@ function Get-DRInstalledProgramEntries {
     }
 }
 
+function Get-DRUserAppxPackages {
+    # The signed-in person's Store apps, even when this runs as another admin account.
+    $userSid = Get-DRSignedInUserSidOverride
+    if ($userSid) { return @(Get-AppxPackage -User $userSid -ErrorAction Stop) }
+    return @(Get-AppxPackage -ErrorAction Stop)
+}
+
 function Get-DRAIAppxPackages {
     param([string]$App, [switch]$AllUsers)
     $packages = @()
     try {
         if ($AllUsers) { $packages = @(Get-AppxPackage -AllUsers -ErrorAction Stop) }
-        else { $packages = @(Get-AppxPackage -ErrorAction Stop) }
+        else { $packages = @(Get-DRUserAppxPackages) }
     } catch { $packages = @() }
     @($packages | Where-Object { Test-DRAIAppMatch -App $App -Name $_.Name -Publisher $_.Publisher })
 }
@@ -2627,7 +2781,7 @@ function Get-DRAIStatus {
     $build = 0
     try { $build = [int](Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name CurrentBuildNumber -ErrorAction Stop).CurrentBuildNumber } catch { }
     $packages = @()
-    try { $packages = @(Get-AppxPackage -ErrorAction Stop) } catch { }
+    try { $packages = @(Get-DRUserAppxPackages) } catch { }
     $programs = @(Get-DRInstalledProgramEntries)
     $modelBytes = [int64]0
     foreach ($model in @(Get-DRAIModelFolders)) { $modelBytes += $model.Bytes }
@@ -2899,18 +3053,26 @@ function Invoke-DRTask {
                         try { Remove-DRSafeItem -LiteralPath $match.FullName -AllowedRoot $folder | Out-Null }
                         catch { New-DREvent -TaskId $TaskId -State Warning -Message ("Skipped {0}: {1}" -f $match.Name, $_.Exception.Message) }
                     }
-                    Start-Process explorer.exe
-                    # explorer.exe with no arguments restarts the shell AND opens a
-                    # new Explorer window - closing that stray window here, not the
-                    # shell itself, is what keeps this from popping a folder open
-                    # mid-scan.
-                    Start-Sleep -Milliseconds 1200
-                    try {
-                        $shellApp = New-Object -ComObject Shell.Application
-                        foreach ($openWindow in @($shellApp.Windows())) {
-                            try { if ($openWindow.FullName -match 'explorer\.exe$' -and $windowsBefore -notcontains $openWindow.HWND) { $openWindow.Quit() } } catch { }
+                    if (Get-DRSignedInUserSidOverride) {
+                        # Started from here, Explorer would become the desktop of the
+                        # hidden admin account. Start it as the signed-in person.
+                        if (-not (Start-DRShellForSignedInUser)) {
+                            New-DREvent -TaskId $TaskId -State Warning -Message 'The taskbar did not come back by itself. Press Ctrl+Shift+Esc, choose Run new task, type explorer and press Enter.'
                         }
-                    } catch { }
+                    } else {
+                        Start-Process explorer.exe
+                        # explorer.exe with no arguments restarts the shell AND opens a
+                        # new Explorer window - closing that stray window here, not the
+                        # shell itself, is what keeps this from popping a folder open
+                        # mid-scan.
+                        Start-Sleep -Milliseconds 1200
+                        try {
+                            $shellApp = New-Object -ComObject Shell.Application
+                            foreach ($openWindow in @($shellApp.Windows())) {
+                                try { if ($openWindow.FullName -match 'explorer\.exe$' -and $windowsBefore -notcontains $openWindow.HWND) { $openWindow.Quit() } } catch { }
+                            }
+                        } catch { }
+                    }
                 }
             }
             'cleanup.wer-queue' {
