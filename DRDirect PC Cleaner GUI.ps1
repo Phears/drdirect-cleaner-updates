@@ -774,7 +774,7 @@ $ErrorActionPreference = 'Stop'
                         <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
                             <TextBlock Text="DRDirect" Foreground="White" FontWeight="Bold" FontSize="24"/>
                             <TextBlock Text="PC Cleaner" Foreground="#B9C9DD" FontSize="16" FontWeight="SemiBold"/>
-                            <TextBlock x:Name="VersionText" Foreground="#7F94AE" FontSize="11" Margin="0,2,0,0"/>
+                            <TextBlock x:Name="VersionText" Foreground="#FFE14D" FontSize="14" FontWeight="SemiBold" Margin="0,4,0,0"/>
                         </StackPanel>
                     </StackPanel>
                 </StackPanel>

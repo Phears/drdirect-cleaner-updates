@@ -1,7 +1,7 @@
 {
-  "version": "1.4.80",
-  "notes": "During a clean-up, each task now has a big bright dot: green while it is being worked on, blue when it is done.",
-  "published": "2026-10-09T19:27:54.7038648-04:00",
+  "version": "1.4.81",
+  "notes": "The version number under the DRDirect logo is now bigger and bright yellow, so you can always see which version you have.",
+  "published": "2026-10-09T19:45:40.9200914-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "8FB1F5DBCB41D13E3911C99FD44C742DD39961146DE9AF3D4C11F81E6C09B0D8",
-      "size": 326632
+      "sha256": "2B3F303B4195541626B1F6BA953431928C9B98DCED27CD6B46549A5EF12A6823",
+      "size": 326654
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
