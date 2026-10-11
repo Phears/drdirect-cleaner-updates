@@ -3581,6 +3581,7 @@ Write-Host ''
 
 if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
     Write-Host (RGB 255 60 90 '💥 winget not found. Install "App Installer" from the Microsoft Store.')
+    Read-Host 'Press Enter to close' | Out-Null
     exit 1
 }
 
@@ -3617,6 +3618,7 @@ foreach ($s in @($pkgs | Where-Object { $skipIds -contains $_.Id })) {
 $pkgs = @($pkgs | Where-Object { $skipIds -notcontains $_.Id })
 if ($pkgs.Count -eq 0) {
     Write-Host (RGB 150 150 255 '😎 Everything is already up to date!')
+    Read-Host 'Press Enter to close' | Out-Null
     exit 0
 }
 
@@ -3679,8 +3681,8 @@ Read-Host 'Press Enter to close' | Out-Null
     try {
         $file = Join-Path $env:TEMP 'DRDirect-Winget-Upgrade.ps1'
         [IO.File]::WriteAllText($file, $flashy, (New-Object Text.UTF8Encoding $true))
-        # 'start' forces a real new console window, like the cmd route that always showed one; -NoExit keeps it open if the script stops early.
-        Start-Process -FilePath 'cmd.exe' -ArgumentList ('/c start "DRDirect winget upgrade" powershell.exe -NoProfile -NoExit -ExecutionPolicy Bypass -File "' + $file + '"') -WindowStyle Hidden | Out-Null
+        # 'start' forces a real new console window, like the cmd route that always showed one; the script itself waits for Enter before it closes, on every path.
+        Start-Process -FilePath 'cmd.exe' -ArgumentList ('/c start "DRDirect winget upgrade" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + $file + '"') -WindowStyle Hidden | Out-Null
         $ui.AppUpdatesStatus.Text = 'Updating apps in a colour PowerShell window. Close it when it says it has finished.'
     } catch {
         $ui.AppUpdatesStatus.Text = "Could not start the update window: $($_.Exception.Message)"

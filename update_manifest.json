@@ -1,7 +1,7 @@
 {
-  "version": "1.4.86",
-  "notes": "Updating your apps now explains apps that update themselves, and a run with nothing wrong shows in green.",
-  "published": "2026-10-11T16:39:41.8576181-04:00",
+  "version": "1.4.87",
+  "notes": "Cleaning now really removes temporary files and caches again - it had been skipping them. Pressing Enter now closes the app-update window.",
+  "published": "2026-10-11T16:50:11.4307906-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "AC399D58E825FA39B168B2E55EA62E371F4D24E99663495B1F5D6568FCA1514F",
-      "size": 325625
+      "sha256": "CC40D8A1EB61F9A912678351B9ABF82CFB26AB87B9F8574AE58BA24358B2E17A",
+      "size": 325731
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "90F5616DD4E6B7A16782A5DB5BD4E4C955295ECC30B6AB66A11761BD16E1CA4C",
-      "size": 232225
+      "sha256": "6651DB570DFF50A8B0DB3EF65780CA9909A77EC40EBDB7F6B05E5C0597F53DA8",
+      "size": 232365
     },
     {
       "name": "DRDirect Updater.ps1",

@@ -525,7 +525,9 @@ function Clear-DRFolderContents {
         [string]$TestRoot
     )
 
-    $effectivePath = @(if ($TestRoot) { $TestRoot } else { $FolderPath })
+    # One path, never a list: a list cannot bind to Remove-DRSafeItem's [string]
+    # AllowedRoot, so every item was skipped and nothing was ever removed.
+    $effectivePath = if ($TestRoot) { $TestRoot } else { $FolderPath }
     if (-not (Test-Path -LiteralPath $effectivePath -PathType Container)) { return 0 }
     $removed = 0
     foreach ($item in @(Get-ChildItem -LiteralPath $effectivePath -Force -ErrorAction SilentlyContinue)) {
@@ -635,7 +637,7 @@ function Get-DRAnalysis {
                     $detail = 'May sign you out of websites and webmail'
                 }
                 'cleanup.prefetch' {
-                    $path = @(if ($TestRoot) { $TestRoot } else { Join-Path $env:WINDIR 'Prefetch' })
+                    $path = if ($TestRoot) { $TestRoot } else { Join-Path $env:WINDIR 'Prefetch' }
                     $bytes = Get-DRPathSize $path; $items = @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count
                     $detail = 'Advanced; Windows rebuilds this cache'
                 }
@@ -643,12 +645,12 @@ function Get-DRAnalysis {
                     $detail = 'Size is calculated by Windows during cleanup'
                 }
                 'cleanup.wu-download-cache' {
-                    $path = @(if ($TestRoot) { $TestRoot } else { Join-Path $env:WINDIR 'SoftwareDistribution\Download' })
+                    $path = if ($TestRoot) { $TestRoot } else { Join-Path $env:WINDIR 'SoftwareDistribution\Download' }
                     $bytes = Get-DRPathSize $path; $items = @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count
                     $detail = 'Already-installed update installers'
                 }
                 'cleanup.old-update-backups' {
-                    $windowsDir = @(if ($TestRoot) { $TestRoot } else { $env:WINDIR })
+                    $windowsDir = if ($TestRoot) { $TestRoot } else { $env:WINDIR }
                     foreach ($folder in @(Get-DROldUpdateBackupFolders -WindowsDir $windowsDir)) { $bytes += Get-DRPathSize $folder.Path; $items++ }
                     $detail = 'Left behind by an earlier Windows Update fix'
                 }
@@ -2931,7 +2933,7 @@ function Invoke-DRTask {
                 $index = 0
                 foreach ($match in $matches) {
                     $index++
-                    $allowed = @(if ($TestRoot) { $TestRoot } else { Get-DRAllowedRootForPath $match.FullName })
+                    $allowed = if ($TestRoot) { $TestRoot } else { Get-DRAllowedRootForPath $match.FullName }
                     if (-not $allowed) { throw "No approved browser root for $($match.FullName)" }
                     Remove-DRSafeItem -LiteralPath $match.FullName -AllowedRoot $allowed | Out-Null
                     New-DREvent -TaskId $TaskId -State Progress -Message ("Removed website data {0} of {1}." -f $index, @($matches).Count) -Percent ([int](100 * $index / [Math]::Max(1,@($matches).Count)))
@@ -3004,7 +3006,7 @@ function Invoke-DRTask {
             'cleanup.old-update-backups' {
                 # A test root stands in for the Windows folder, so the same exact
                 # names are looked for under it instead.
-                $windowsDir = @(if ($TestRoot) { $TestRoot } else { $env:WINDIR })
+                $windowsDir = if ($TestRoot) { $TestRoot } else { $env:WINDIR }
                 $folders = @(Get-DROldUpdateBackupFolders -WindowsDir $windowsDir)
                 if ($folders.Count -eq 0) {
                     New-DREvent -TaskId $TaskId -State Information -Message 'There were no old Windows Update backup folders on this PC.'
