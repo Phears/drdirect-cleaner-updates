@@ -3646,6 +3646,11 @@ foreach ($p in $pkgs) {
         # Installed with a different installer type than winget updates with (e.g. an old Store copy).
         # Nothing is broken and the app is untouched, so it is not reported as a problem.
     }
+    elseif ($proc.ExitCode -eq -1978335189) {
+        # The newer version does not fit this PC (architecture or requirements). The
+        # installed copy is untouched and fine, so this is not a problem either.
+        Write-Host (RGB 150 150 255 "⏭️  $($p.Name) - newer version does not apply to this PC, kept current one")
+    }
     elseif ($proc.ExitCode -eq 0) {
         Write-Host (RGB 80 255 120 "✅ $($p.Name) upgraded")
         $ok += $p.Name

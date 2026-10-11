@@ -1,7 +1,7 @@
 {
-  "version": "1.4.84",
-  "notes": "The version number under the DRDirect logo now shows the version you really have, instead of 1.0.",
-  "published": "2026-10-11T16:29:40.0740624-04:00",
+  "version": "1.4.85",
+  "notes": "Updating your apps no longer reports a problem when a newer version simply doesn't fit your PC.",
+  "published": "2026-10-11T16:35:54.5443070-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B2720621B37DBCB38671CFAF7C5B8A54A518E65ADC787FF84E118D974703318E",
-      "size": 325051
+      "sha256": "14196E3DAF9323D6D1F3CD09F0B3A06BCCA087FF8DD5A06B9D2493CC832917C5",
+      "size": 325387
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
