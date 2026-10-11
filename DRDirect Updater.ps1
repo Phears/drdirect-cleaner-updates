@@ -125,16 +125,33 @@ function Get-DRUpdateRoot {
 }
 
 function Get-DRInstalledVersion {
-    <# Absent marker means nothing has been updated yet; the bundled copies win. #>
+    <#
+        What this copy is actually running: the later of the version built into
+        the exe and the marker left by the last downloaded update.
+
+        The marker alone was wrong for a freshly built copy. A build made at
+        1.4.81 with an old 1.4.14 marker beside it reported 1.4.14, so the app
+        offered an update it already had and kept offering it.
+    #>
+    $fromMarker = [version]'0.0.0'
     $marker = Join-Path (Get-DRUpdateRoot) 'installed.json'
-    if (-not (Test-Path -LiteralPath $marker -PathType Leaf)) { return [version]'0.0.0' }
-    try {
-        $data = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
-        return [version]$data.version
-    } catch {
-        # A corrupt marker should not wedge updates forever - treat it as none.
-        return [version]'0.0.0'
+    if (Test-Path -LiteralPath $marker -PathType Leaf) {
+        try {
+            $data = Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json
+            $fromMarker = [version]$data.version
+        } catch {
+            # A corrupt marker should not wedge updates forever - treat it as none.
+            $fromMarker = [version]'0.0.0'
+        }
     }
+
+    $fromBuild = [version]'0.0.0'
+    if ($script:DRBuildVersion) {
+        try { $fromBuild = [version]$script:DRBuildVersion } catch { }
+    }
+
+    if ($fromBuild -gt $fromMarker) { return $fromBuild }
+    return $fromMarker
 }
 
 function Get-DRUpdateManifest {
@@ -354,7 +371,29 @@ function Install-DRUpdate {
             Clear-DRStaleTemp -Path $temp
 
             $url = "$script:DRUpdateFeed/$([uri]::EscapeDataString($file.name))$script:DRUpdateRef"
-            Invoke-WebRequest -Uri $url -Headers $script:DRUpdateHeaders -OutFile $temp -UseBasicParsing -TimeoutSec 60
+
+            # A single dropped connection used to fail the whole update with
+            # "unexpected EOF or 0 bytes from the transport stream". The
+            # Uninstaller package is the better part of ten megabytes, so on a
+            # slow or busy line one attempt is not enough. Set TLS 1.2 here too,
+            # in case this runs before anything else has touched the feed.
+            try {
+                [Net.ServicePointManager]::SecurityProtocol =
+                    [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+            } catch { }
+
+            $attempt = 0
+            while ($true) {
+                $attempt++
+                try {
+                    Invoke-WebRequest -Uri $url -Headers $script:DRUpdateHeaders -OutFile $temp -UseBasicParsing -TimeoutSec 120
+                    break
+                } catch {
+                    if ($attempt -ge 3) { throw }
+                    Clear-DRStaleTemp -Path $temp
+                    Start-Sleep -Seconds ($attempt * 2)
+                }
+            }
 
             # Defender scans a freshly written script before it lets anything
             # else open it, so the first read can be denied on a perfectly good
@@ -461,8 +500,21 @@ function Update-DRUninstallerFromFeed {
             } catch { }
             $temp = "$zip.downloading"
             Clear-DRStaleTemp -Path $temp
-            Invoke-WebRequest -Uri "$script:DRUpdateFeed/$([uri]::EscapeDataString($package))$script:DRUpdateRef" `
-                -Headers $script:DRUpdateHeaders -OutFile $temp -UseBasicParsing -TimeoutSec 120
+            # Same retry as the file loop above: this is the largest download
+            # of the lot, and one dropped connection should not end the update.
+            $attempt = 0
+            while ($true) {
+                $attempt++
+                try {
+                    Invoke-WebRequest -Uri "$script:DRUpdateFeed/$([uri]::EscapeDataString($package))$script:DRUpdateRef" `
+                        -Headers $script:DRUpdateHeaders -OutFile $temp -UseBasicParsing -TimeoutSec 120
+                    break
+                } catch {
+                    if ($attempt -ge 3) { throw }
+                    Remove-Item -LiteralPath $temp -Force -ErrorAction SilentlyContinue
+                    Start-Sleep -Seconds ($attempt * 2)
+                }
+            }
             if ((Get-DRFileHashWithRetry -Path $temp).Hash -ne $expected) {
                 Remove-Item -LiteralPath $temp -Force -ErrorAction SilentlyContinue
                 return

@@ -320,6 +320,8 @@ namespace DRD {
 
 # ---------------------------------------------------------------- helpers
 
+$script:DRProgramFolderCache = @{}
+
 function Test-ProtectedPath {
     # Same rule as the scanner, enforced again at the point of deletion so a
     # Windows-owned file can never be removed even if it reaches the list.
@@ -355,10 +357,59 @@ function Test-ProtectedPath {
     $appFolders = @(
         'AppData', 'node_modules', '.git', '.svn', '.hg',
         '__pycache__', 'site-packages', 'steamapps', 'Windows.old',
-        '$WinREAgent', 'WpSystem', 'Package Cache', 'WindowsApps'
+        '$WinREAgent', 'WpSystem', 'Package Cache', 'WindowsApps',
+        'My Games', 'Saved Games', 'WindowsPowerShell', 'PowerShell'
     )
     foreach ($seg in $appFolders) {
         if ($full -like "*\$seg\*") { return $true }
+    }
+    # A folder or file named with a leading dot (.claude, .vscode, .npmrc) is
+    # where a program keeps its own settings, never the person's loose files.
+    if ($full -match '\\\.[^\\.][^\\]*\\') { return $true }
+
+    # Programs need their own files at their own paths. A matching .dll or .exe
+    # elsewhere does not make this copy spare - removing it breaks the program.
+    $programExts = @('.exe', '.dll', '.sys', '.ocx', '.drv', '.cpl', '.scr', '.com', '.efi',
+        '.msi', '.msp', '.msix', '.appx', '.mui', '.winmd', '.node', '.pyd', '.jar',
+        '.bat', '.cmd', '.ps1', '.psm1', '.psd1', '.vbs', '.ini', '.cfg', '.config')
+    $leaf = [System.IO.Path]::GetExtension($Path.TrimEnd(''))
+    if ($leaf -and $programExts -contains $leaf.ToLowerInvariant()) { return $true }
+
+    # A folder holding a program (.exe) beside its libraries (.dll) is an app,
+    # installed or portable, wherever it lives. A folder with a .git folder at
+    # its top is a code project, where every source file is needed at its own
+    # path. Either way the same goes for every folder beneath it - nothing
+    # inside belongs to the person's loose files.
+    $dir = if ([System.IO.Directory]::Exists($Path)) { $Path.TrimEnd('') } else { [System.IO.Path]::GetDirectoryName($Path.TrimEnd('')) }
+    while (-not [string]::IsNullOrWhiteSpace($dir)) {
+        if (-not $script:DRProgramFolderCache.ContainsKey($dir)) {
+            $isApp = $false
+            # The person's own folders hold whatever they put there - a setup .exe
+            # in Downloads, NTUSER.DAT in the profile. They are never an app folder.
+            $personal = @($env:USERPROFILE, $env:PUBLIC, (Join-Path $env:USERPROFILE 'Downloads'),
+                [Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('MyDocuments'),
+                [Environment]::GetFolderPath('MyPictures'), [Environment]::GetFolderPath('MyMusic'),
+                [Environment]::GetFolderPath('MyVideos'), $env:OneDrive) |
+                Where-Object { $_ } | ForEach-Object { $_.TrimEnd('') }
+            if ($dir.Length -gt 3 -and $personal -notcontains $dir) { try {
+                $isApp = [System.IO.Directory]::Exists([System.IO.Path]::Combine($dir, '.git')) -or
+                         [System.IO.File]::Exists([System.IO.Path]::Combine($dir, '.git'))
+                if (-not $isApp -and [System.IO.Directory]::EnumerateFiles($dir, '*.exe').GetEnumerator().MoveNext()) {
+                    # A program beside its libraries or its own settings and data is a
+                    # portable app. An .exe on its own (a setup in Downloads) is not.
+                    foreach ($mark in '*.dll', '*.ini', '*.cfg', '*.config', '*.dat', '*.json', '*.xml') {
+                        foreach ($hit in [System.IO.Directory]::EnumerateFiles($dir, $mark)) {
+                            # desktop.ini is only the folder's icon and view settings
+                            if ([System.IO.Path]::GetFileName($hit) -ne 'desktop.ini') { $isApp = $true; break }
+                        }
+                        if ($isApp) { break }
+                    }
+                }
+            } catch { } }
+            $script:DRProgramFolderCache[$dir] = $isApp
+        }
+        if ($script:DRProgramFolderCache[$dir]) { return $true }
+        $dir = [System.IO.Path]::GetDirectoryName($dir)
     }
 
     return $false
@@ -506,6 +557,8 @@ $ScanScript = {
         }
     }
 
+    $programFolderCache = @{}
+
     function Test-ProtectedPath {
         # Windows-owned locations. Files here are not the user's to remove, and the
         # component store (WinSxS) in particular backs Windows servicing - deleting
@@ -543,10 +596,59 @@ $ScanScript = {
         $appFolders = @(
             'AppData', 'node_modules', '.git', '.svn', '.hg',
             '__pycache__', 'site-packages', 'steamapps', 'Windows.old',
-            '$WinREAgent', 'WpSystem', 'Package Cache', 'WindowsApps'
+            '$WinREAgent', 'WpSystem', 'Package Cache', 'WindowsApps',
+            'My Games', 'Saved Games', 'WindowsPowerShell', 'PowerShell'
         )
         foreach ($seg in $appFolders) {
             if ($full -like "*\$seg\*") { return $true }
+        }
+        # A folder or file named with a leading dot (.claude, .vscode, .npmrc) is
+        # where a program keeps its own settings, never the person's loose files.
+        if ($full -match '\\\.[^\\.][^\\]*\\') { return $true }
+
+        # Programs need their own files at their own paths. A matching .dll or .exe
+        # elsewhere does not make this copy spare - removing it breaks the program.
+        $programExts = @('.exe', '.dll', '.sys', '.ocx', '.drv', '.cpl', '.scr', '.com', '.efi',
+            '.msi', '.msp', '.msix', '.appx', '.mui', '.winmd', '.node', '.pyd', '.jar',
+            '.bat', '.cmd', '.ps1', '.psm1', '.psd1', '.vbs', '.ini', '.cfg', '.config')
+        $leaf = [System.IO.Path]::GetExtension($Path.TrimEnd(''))
+        if ($leaf -and $programExts -contains $leaf.ToLowerInvariant()) { return $true }
+
+        # A folder holding a program (.exe) beside its libraries (.dll) is an app,
+        # installed or portable, wherever it lives. A folder with a .git folder at
+        # its top is a code project, where every source file is needed at its own
+        # path. Either way the same goes for every folder beneath it - nothing
+        # inside belongs to the person's loose files.
+        $dir = if ([System.IO.Directory]::Exists($Path)) { $Path.TrimEnd('') } else { [System.IO.Path]::GetDirectoryName($Path.TrimEnd('')) }
+        while (-not [string]::IsNullOrWhiteSpace($dir)) {
+            if (-not $programFolderCache.ContainsKey($dir)) {
+                $isApp = $false
+                # The person's own folders hold whatever they put there - a setup .exe
+                # in Downloads, NTUSER.DAT in the profile. They are never an app folder.
+                $personal = @($env:USERPROFILE, $env:PUBLIC, (Join-Path $env:USERPROFILE 'Downloads'),
+                    [Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('MyDocuments'),
+                    [Environment]::GetFolderPath('MyPictures'), [Environment]::GetFolderPath('MyMusic'),
+                    [Environment]::GetFolderPath('MyVideos'), $env:OneDrive) |
+                    Where-Object { $_ } | ForEach-Object { $_.TrimEnd('') }
+                if ($dir.Length -gt 3 -and $personal -notcontains $dir) { try {
+                    $isApp = [System.IO.Directory]::Exists([System.IO.Path]::Combine($dir, '.git')) -or
+                             [System.IO.File]::Exists([System.IO.Path]::Combine($dir, '.git'))
+                    if (-not $isApp -and [System.IO.Directory]::EnumerateFiles($dir, '*.exe').GetEnumerator().MoveNext()) {
+                        # A program beside its libraries or its own settings and data is a
+                        # portable app. An .exe on its own (a setup in Downloads) is not.
+                        foreach ($mark in '*.dll', '*.ini', '*.cfg', '*.config', '*.dat', '*.json', '*.xml') {
+                            foreach ($hit in [System.IO.Directory]::EnumerateFiles($dir, $mark)) {
+                                # desktop.ini is only the folder's icon and view settings
+                                if ([System.IO.Path]::GetFileName($hit) -ne 'desktop.ini') { $isApp = $true; break }
+                            }
+                            if ($isApp) { break }
+                        }
+                    }
+                } catch { } }
+                $programFolderCache[$dir] = $isApp
+            }
+            if ($programFolderCache[$dir]) { return $true }
+            $dir = [System.IO.Path]::GetDirectoryName($dir)
         }
 
         return $false
@@ -1043,6 +1145,11 @@ $xaml = @'
           <CheckBox x:Name="ChkCloudMega"     Content="MEGA"      VerticalAlignment="Center" Margin="0,0,14,0" Foreground="#344054"/>
           <TextBlock x:Name="LblCloudHint" VerticalAlignment="Center" Foreground="#96500A" FontSize="12" TextWrapping="Wrap" MaxWidth="420"/>
         </StackPanel>
+        <StackPanel Orientation="Horizontal" Margin="0,12,0,0">
+          <TextBlock Text="Also scan drives" VerticalAlignment="Center" FontWeight="SemiBold"
+                     Foreground="#344054" Margin="0,0,12,0"/>
+          <WrapPanel x:Name="DrivePanel" VerticalAlignment="Center"/>
+        </StackPanel>
         <StackPanel Orientation="Horizontal" Margin="0,14,0,0">
           <TextBlock Text="Look for" VerticalAlignment="Center" FontWeight="SemiBold"
                      Foreground="#344054" Margin="0,0,12,0"/>
@@ -1487,7 +1594,7 @@ try {
 $ui = @{}
 foreach ($n in 'TxtFolder', 'BtnBrowse', 'BtnScan', 'BtnCancel', 'BtnUpdate', 'BtnActivate', 'SummaryScale', 'ChkSub', 'CmbMin', 'GroupList',
     'VersionText', 'EmptyState', 'EmptyTitle', 'EmptyHint', 'StatStrip', 'StatSets', 'StatFiles', 'StatSpace', 'ScanDone', 'ScanDoneScale', 'ScanDoneTick', 'ScanDoneSub', 'ScanBusy', 'SweepSpin', 'ScanBusyHint', 'LblSummary', 'Bar', 'BtnNone', 'BtnDelete', 'Scroller',
-    'TrialBadge', 'TrialBadgeText', 'AckBox', 'ChkAck', 'ChkCloudICloud', 'ChkCloudGoogle', 'ChkCloudOneDrive', 'ChkCloudDropbox', 'ChkCloudMega', 'LblCloudHint', 'ChipAll', 'ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc',
+    'TrialBadge', 'TrialBadgeText', 'AckBox', 'ChkAck', 'ChkCloudICloud', 'ChkCloudGoogle', 'ChkCloudOneDrive', 'ChkCloudDropbox', 'ChkCloudMega', 'LblCloudHint', 'DrivePanel', 'ChipAll', 'ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc',
     'ChipArc', 'LblChips', 'CloudNote', 'CloudNoteText', 'SavedPanel', 'SavedBig', 'SavedSub', 'SavedSession', 'SavedShift', 'TickPop') {
     $ui[$n] = $win.FindName($n)
 }
@@ -2168,7 +2275,6 @@ function Initialize-DRCloudBoxes {
             $script:DRCloudRoots[$name] = $roots
             $box.IsEnabled = $true
             $box.Tag = $name
-            $box.Add_Checked({ param($sender, $e) Set-DRCloudFolderTarget ([string]$sender.Tag) })
             $box.ToolTip = "Off by default. Online-only files are not kept on this PC, so ticking this downloads every one from $name to compare it." +
                            [Environment]::NewLine + ($roots -join [Environment]::NewLine)
         } else {
@@ -2221,6 +2327,72 @@ function Set-DRCloudFolderTarget {
     if ((Test-Path -LiteralPath $myDrive) -and ($target -match '^[A-Za-z]:\?$')) { $target = $myDrive }
 
     $ui.TxtFolder.Text = $target
+}
+
+function Initialize-DRDriveBoxes {
+    <#
+        .SYNOPSIS
+            One tick box per drive on this PC, so other drives can be scanned too.
+        .DESCRIPTION
+            Off by default. A ticked drive is scanned alongside the folder and any
+            ticked cloud services; the same protected-location rules apply to it.
+    #>
+    $script:DRDriveBoxes = New-Object System.Collections.Generic.List[object]
+    if (-not $ui.DrivePanel) { return }
+    $ui.DrivePanel.Children.Clear()
+    foreach ($d in [System.IO.DriveInfo]::GetDrives()) {
+        try {
+            if (-not $d.IsReady) { continue }
+            if ($d.DriveType -notin 'Fixed', 'Removable', 'Network') { continue }
+            $letter = $d.Name.TrimEnd('\')
+            $label = if ($d.VolumeLabel) { "$letter $($d.VolumeLabel)" } else { $letter }
+            $box = New-Object System.Windows.Controls.CheckBox
+            $box.Content = $label
+            $box.Tag = $d.RootDirectory.FullName
+            $box.VerticalAlignment = 'Center'
+            $box.Margin = '0,0,14,0'
+            $box.Foreground = New-Object System.Windows.Media.SolidColorBrush ([System.Windows.Media.ColorConverter]::ConvertFromString('#344054'))
+            $box.ToolTip = "Scan all of $letter as well. $(Format-Size $d.TotalFreeSpace) free of $(Format-Size $d.TotalSize)."
+            $ui.DrivePanel.Children.Add($box) | Out-Null
+            $script:DRDriveBoxes.Add($box)
+        } catch { }
+    }
+}
+
+function Get-DRScanRoots {
+    <#
+        Everything the person asked to be scanned: the folder box, each ticked
+        cloud service and each ticked drive. A folder already inside another
+        one on the list is dropped so no file is counted twice.
+    #>
+    param([string]$Folder)
+    $all = New-Object System.Collections.Generic.List[string]
+    if (-not [string]::IsNullOrWhiteSpace($Folder)) { $all.Add($Folder) }
+    foreach ($r in @(Get-TickedCloudRoots)) {
+        # Google Drive mounts a whole drive; the person's own files live in My Drive.
+        $myDrive = Join-Path $r 'My Drive'
+        if (($r -match '^[A-Za-z]:\?$') -and (Test-Path -LiteralPath $myDrive)) { $r = $myDrive }
+        $all.Add($r)
+    }
+    foreach ($box in $script:DRDriveBoxes) {
+        if ($box.IsChecked -eq $true) { $all.Add([string]$box.Tag) }
+    }
+
+    $full = @($all | Where-Object { Test-Path -LiteralPath $_ } |
+        ForEach-Object { [System.IO.Path]::GetFullPath($_).TrimEnd('\') + '\' } |
+        Sort-Object Length)
+    $keep = New-Object System.Collections.Generic.List[string]
+    foreach ($p in $full) {
+        $inside = $false
+        if ($ui.ChkSub.IsChecked) {
+            foreach ($k in $keep) { if ($p.StartsWith($k, [StringComparison]::OrdinalIgnoreCase)) { $inside = $true; break } }
+        } else {
+            foreach ($k in $keep) { if ($p -ieq $k) { $inside = $true; break } }
+        }
+        if (-not $inside) { $keep.Add($p) }
+    }
+    # Drive roots stay as "D:\"; every other folder goes back without the slash.
+    return @($keep | ForEach-Object { if ($_ -match '^[A-Za-z]:\\$') { $_ } else { $_.TrimEnd('\') } })
 }
 
 function Get-TickedCloudRoots {
@@ -2695,9 +2867,15 @@ $ui.BtnScan.Add_Click({
         }
 
         $root = $ui.TxtFolder.Text.Trim()
-        if (-not (Test-Path -LiteralPath $root)) {
+        if ($root -and -not (Test-Path -LiteralPath $root)) {
             [System.Windows.MessageBox]::Show("That folder does not exist:`n$root", 'Duplicate Finder',
                 'OK', 'Warning') | Out-Null
+            return
+        }
+        $scanRoots = @(Get-DRScanRoots -Folder $root)
+        if ($scanRoots.Count -eq 0) {
+            [System.Windows.MessageBox]::Show('Choose a folder, or tick a cloud service or a drive to scan.', 'Duplicate Finder',
+                'OK', 'Information') | Out-Null
             return
         }
 
@@ -2722,7 +2900,7 @@ $ui.BtnScan.Add_Click({
         $script:ps = [powershell]::Create()
         $script:ps.Runspace = $script:runspace
         $null = $script:ps.AddScript($ScanScript).
-            AddArgument(@($root)).
+            AddArgument($scanRoots).
             AddArgument([long](Get-MinBytes)).
             AddArgument([bool]$ui.ChkSub.IsChecked).
             AddArgument((Get-TickedCloudRoots)).
@@ -2776,7 +2954,7 @@ $ui.BtnDelete.Add_Click({
         $ok = 0; $failed = 0; $blocked = 0
         foreach ($t in $targets) {
             if (Test-ProtectedPath $t.FullPath) {
-                $t.RowNote = 'Skipped - Windows system file, not safe to remove'
+                $t.RowNote = 'Skipped - Windows or program file, not safe to remove'
                 $t.IsSelected = $false
                 $blocked++
                 continue
@@ -2804,7 +2982,7 @@ $ui.BtnDelete.Add_Click({
         if ($ok -gt 0) { Show-Saved -Bytes $freed -Count $ok }
 
         $tail = if ($failed -gt 0) { "  -  $failed could not be removed (in use or protected)" } else { '' }
-        if ($blocked -gt 0) { $tail += "  -  $blocked skipped as Windows system files" }
+        if ($blocked -gt 0) { $tail += "  -  $blocked skipped as Windows or program files" }
         $ui.LblSummary.Text = "Moved $ok duplicates to the Recycle Bin, freeing $(Format-Size $freed)$tail"
     })
 
@@ -2823,7 +3001,13 @@ if ($TestMode) {
     Write-Host "TestMode: + videos      -> $((Get-ChosenExts).Count) exts"
     $ui.ChipPic.IsChecked = $false
     $ui.ChipVid.IsChecked = $false
-    Write-Host "TestMode: none ticked   -> all=$($ui.ChipAll.IsChecked) [$((Get-ChosenExts).Count) exts]" 
+    Write-Host "TestMode: none ticked   -> all=$($ui.ChipAll.IsChecked) [$((Get-ChosenExts).Count) exts]"
+    Initialize-DRCloudBoxes
+    Initialize-DRDriveBoxes
+    Write-Host "TestMode: drive boxes   -> $(($script:DRDriveBoxes | ForEach-Object { $_.Content }) -join ', ')"
+    if ($script:DRDriveBoxes.Count -gt 0) { $script:DRDriveBoxes[0].IsChecked = $true }
+    Write-Host "TestMode: scan roots    -> $((Get-DRScanRoots -Folder $env:USERPROFILE) -join ' | ')"
+    if ($script:DRDriveBoxes.Count -gt 0) { $script:DRDriveBoxes[0].IsChecked = $false }
     Update-DRActivateLook
     if (-not $NoShow) {
         try {
@@ -2869,5 +3053,6 @@ if (-not $TestMode -and (Get-Command Register-DRInstalledProduct -ErrorAction Si
 }
 
 try { Initialize-DRCloudBoxes } catch { }
+try { Initialize-DRDriveBoxes } catch { }
 
 $null = $win.ShowDialog()

@@ -255,14 +255,14 @@ $ErrorActionPreference = 'Stop'
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="GhostBorder" Background="{TemplateBinding Background}" BorderBrush="#66FFFFFF" BorderThickness="1" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="GhostBorder" Property="Background" Value="#4DFFFFFF"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="GhostBorder" Property="Background" Value="#66FFFFFF"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
         <Style x:Key="HeroGreenButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
-            <Setter Property="Foreground" Value="White"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="FontSize" Value="14"/><Setter Property="Padding" Value="22,11"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="White"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="FontSize" Value="13"/><Setter Property="Padding" Value="16,7"/><Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
                 <Grid x:Name="GreenRoot" RenderTransformOrigin="0.5,0.5">
                     <Grid.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
-                    <Border x:Name="GreenBorder" CornerRadius="24" BorderBrush="#E6FFFFFF" BorderThickness="1.5" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                    <Border x:Name="GreenBorder" CornerRadius="16" BorderBrush="#E6FFFFFF" BorderThickness="1.5" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
                         <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#2BE3BE" Offset="0"/><GradientStop Color="#00A88F" Offset="1"/></LinearGradientBrush></Border.Background>
                         <Grid>
-                            <Border CornerRadius="20" VerticalAlignment="Top" Height="12" Margin="10,-4,10,0" Background="#40FFFFFF" IsHitTestVisible="False"/>
+                            <Border CornerRadius="14" VerticalAlignment="Top" Height="7" Margin="10,-3,10,0" Background="#40FFFFFF" IsHitTestVisible="False"/>
                             <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Grid>
                     </Border>
@@ -285,6 +285,11 @@ $ErrorActionPreference = 'Stop'
         <Style x:Key="NavButton" TargetType="Button">
             <Setter Property="Foreground" Value="#BDCAE0"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="Padding" Value="18,12"/><Setter Property="Margin" Value="10,2"/><Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontSize" Value="14"/>
+            <!-- Every nav label starts with a symbol Segoe UI does not contain, so
+                 the glyph is borrowed from a fallback font. Segoe UI Symbol is the only
+                 installed font carrying them, so name it rather than leave the fallback
+                 to chance - unnamed, an icon can quietly render as a blank gap. -->
+            <Setter Property="FontFamily" Value="Segoe UI, Segoe UI Symbol, Segoe UI Emoji, Arial Unicode MS"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
                     <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
@@ -395,10 +400,10 @@ $ErrorActionPreference = 'Stop'
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
                     <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
-                    <Border x:Name="NavBorder" CornerRadius="18" BorderBrush="#CCFFFFFF" BorderThickness="1.2" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                    <Border x:Name="NavBorder" CornerRadius="12" BorderBrush="#CCFFFFFF" BorderThickness="1.2" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
                         <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#2BE3BE" Offset="0"/><GradientStop Color="#00A88F" Offset="1"/></LinearGradientBrush></Border.Background>
                         <Grid>
-                            <Border CornerRadius="12" VerticalAlignment="Top" Height="9" Margin="8,-6,8,0" Background="#38FFFFFF" IsHitTestVisible="False"/>
+                            <Border CornerRadius="12" VerticalAlignment="Top" Height="6" Margin="8,-4,8,0" Background="#38FFFFFF" IsHitTestVisible="False"/>
                             <ContentPresenter/>
                         </Grid>
                     </Border>
@@ -807,7 +812,7 @@ $ErrorActionPreference = 'Stop'
                     <TextBlock Text="CLEAN" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
                     <Button x:Name="NavCleanup" Style="{StaticResource NavButton}" Content="✦   Clean my PC"/>
                     <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Find duplicate files"/>
-                    <Button x:Name="NavUninstaller" Style="{StaticResource GreenNavButton}" Margin="10,4,10,4" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⌫" Foreground="White" Margin="0,0,12,0" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="DRDirect Uninstaller Program" Foreground="White" TextWrapping="Wrap" VerticalAlignment="Center"/></Grid></Button>
+                    <Button x:Name="NavUninstaller" Style="{StaticResource GreenNavButton}" Margin="10,4,10,4" Padding="12,7" FontSize="12.5" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⌫" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="DRDirect Uninstaller Program" Foreground="White" TextWrapping="Wrap" VerticalAlignment="Center"/></Grid></Button>
                     <Button x:Name="NavSpeed" Style="{StaticResource NavButton}" Content="◈   Speed and space"/>
                     <TextBlock Text="FIX" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
                     <Button x:Name="NavRepair" Style="{StaticResource NavButton}" Content="⚒   Fix Windows"/>
@@ -835,7 +840,7 @@ $ErrorActionPreference = 'Stop'
             <Grid Grid.Row="1">
                 <ScrollViewer x:Name="PageDashboard" VerticalScrollBarVisibility="Auto"><StackPanel>
 <Border x:Name="UpdateBanner" Visibility="Collapsed" Background="#12C25B" CornerRadius="12" Padding="20,14" Margin="0,0,0,16"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal" VerticalAlignment="Center"><TextBlock Text="&#10004;" Foreground="White" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,12,0"/><TextBlock x:Name="UpdateBannerText" Text="There is a new update" Foreground="White" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"/></StackPanel><Button x:Name="UpdateBannerButton" Grid.Column="1" Content="See what is new and update" Style="{StaticResource HeroButton}" Foreground="#0B7A3B" Margin="16,0,0,0"/></Grid></Border>
-<Border Style="{StaticResource Card}" Padding="34" Margin="0,0,0,18" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8"><StackPanel><TextBlock Text="START HERE" Foreground="#A8C4FF" FontSize="11" FontWeight="Bold"/><TextBlock Text="Make my PC cleaner" Foreground="White" FontSize="32" FontWeight="ExtraBold" Margin="0,8,0,8"/><TextBlock Text="One click. We only do the safe things, and we ask you before anything starts." Foreground="#C9D9FF" FontSize="16" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left"/><WrapPanel Orientation="Horizontal" Margin="0,24,0,0"><Button x:Name="SafeCleanButton" Content="Make my PC cleaner" Style="{StaticResource HeroButton}" Margin="0,0,10,10"/><Button x:Name="SafePreviewButton" Content="Show me first" Style="{StaticResource HeroGhostButton}" Margin="0,0,10,10"/><Button x:Name="HeroUpdateButton" Content="Check for updates" Style="{StaticResource HeroGhostButton}" Margin="0,0,10,10" FontSize="13" ToolTip="Look for a newer version of the Cleaner"/><Button x:Name="HeroUninstallButton" Style="{StaticResource HeroGreenButton}" Margin="0,0,10,10" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><StackPanel Orientation="Horizontal"><TextBlock Text="⌫" FontSize="18" Foreground="White" Margin="0,0,10,0" VerticalAlignment="Center"/><TextBlock Text="DRDirect Uninstaller Program" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button></WrapPanel><TextBlock Text="✓  Settings changes can be undone.   ✓  Your files and passwords are never touched." Foreground="#DDE8FF" FontSize="13" Margin="0,20,0,0" TextWrapping="Wrap"/></StackPanel></Border>
+<Border Style="{StaticResource Card}" Padding="34" Margin="0,0,0,18" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8"><StackPanel><TextBlock Text="START HERE" Foreground="#A8C4FF" FontSize="11" FontWeight="Bold"/><TextBlock Text="Make my PC cleaner" Foreground="White" FontSize="32" FontWeight="ExtraBold" Margin="0,8,0,8"/><TextBlock Text="One click. We only do the safe things, and we ask you before anything starts." Foreground="#C9D9FF" FontSize="16" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left"/><WrapPanel Orientation="Horizontal" Margin="0,24,0,0"><Button x:Name="SafeCleanButton" Content="Make my PC cleaner" Style="{StaticResource HeroButton}" Margin="0,0,10,10"/><Button x:Name="SafePreviewButton" Content="Show me first" Style="{StaticResource HeroGhostButton}" Margin="0,0,10,10"/><Button x:Name="HeroUpdateButton" Content="Check for updates" Style="{StaticResource HeroGhostButton}" Margin="0,0,10,10" FontSize="13" ToolTip="Look for a newer version of the Cleaner"/><Button x:Name="HeroUninstallButton" Style="{StaticResource HeroGreenButton}" Margin="0,0,10,10" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><StackPanel Orientation="Horizontal"><TextBlock Text="⌫" FontSize="14" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock Text="DRDirect Uninstaller Program" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button></WrapPanel><TextBlock Text="✓  Settings changes can be undone.   ✓  Your files and passwords are never touched." Foreground="#DDE8FF" FontSize="13" Margin="0,20,0,0" TextWrapping="Wrap"/></StackPanel></Border>
 <UniformGrid Columns="3" Margin="0,0,0,22">
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Violet}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource VioletSoft}"><TextBlock Text="◷" Foreground="{StaticResource Violet}" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="LAST CLEAN" Foreground="{StaticResource Violet}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock Text="Not yet" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="Shows here after your first clean" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Teal}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource TealSoft}"><TextBlock Text="▰" Foreground="{StaticResource Teal}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="FREE SPACE" Foreground="{StaticResource Teal}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="FreeSpaceText" Text="Checking…" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="On your main drive" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
@@ -4283,6 +4288,24 @@ function Resolve-DRDuplicateFinderExe {
     } catch { }
     if (-not [string]::IsNullOrWhiteSpace($PSScriptRoot)) { $roots.Add($PSScriptRoot) }
 
+    # An installed copy does not run from where it was installed: the locked
+    # launcher unpacks the app into a temporary _MEI folder and runs it from
+    # there, so "beside the exe" is a scratch directory holding no Finder. Ask
+    # Windows where the program went, and fall back to the usual location.
+    foreach ($key in @(
+        'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DRDirect PC Cleaner_is1',
+        'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DRDirect PC Cleaner_is1')) {
+        try {
+            $installed = (Get-ItemProperty -Path $key -ErrorAction Stop).InstallLocation
+            if (-not [string]::IsNullOrWhiteSpace($installed)) { $roots.Add($installed.TrimEnd('\')) }
+        } catch { }
+    }
+    foreach ($base in @($env:ProgramFiles, ${env:ProgramFiles(x86)})) {
+        if (-not [string]::IsNullOrWhiteSpace($base)) {
+            $roots.Add((Join-Path $base 'DRDirect PC Cleaner'))
+        }
+    }
+
     $names = @(
         'DRDirect Duplicate Finder CURRENT.exe',
         'DRDirect Duplicate Finder Locked.exe',
@@ -4322,6 +4345,13 @@ function Resolve-DRDuplicateFinderPath {
         $candidate = Join-Path -Path $root -ChildPath 'DRDirect Duplicate Finder.ps1'
         if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
     }
+
+    # Installed copies have no loose script: Setup.exe lays down the compiled
+    # Duplicate Finder beside the Cleaner. Looking only for the .ps1 greyed the
+    # menu item out on every machine that installed the program properly.
+    $exe = Resolve-DRDuplicateFinderExe
+    if ($exe) { return $exe }
+
     return $null
 }
 
@@ -4379,14 +4409,26 @@ $ui.OpenDuplicatesButton.Add_Click({
 
     $finder = Resolve-DRDuplicateFinderPath
     if (-not $finder) {
-        $ui.DuplicateStatus.Text = "Could not find 'DRDirect Duplicate Finder.ps1' beside the application."
+        $ui.DuplicateStatus.Text = "Could not find the DRDirect Duplicate Finder beside the application."
         return
     }
     # The path contains spaces, so it must arrive at powershell.exe quoted.
     $psExe = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
     $trialFlag = ''
     try { if (Test-DRTrialMode) { $trialFlag = ' -TrialMode' } } catch { }
-    $psArgs = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}" -FromCleaner{1}' -f $finder, $trialFlag
+    # An installed copy resolves to the compiled Finder, which is launched
+    # directly; a developer copy resolves to the loose script, which needs
+    # PowerShell to run it. Everything below works the same either way.
+    if ($finder -like '*.exe') {
+        $launchPath = $finder
+        $psArgs = ('-FromCleaner{0}' -f $trialFlag).Trim()
+        $launchProcessName = [System.IO.Path]::GetFileNameWithoutExtension($finder)
+    }
+    else {
+        $launchPath = $psExe
+        $psArgs = '-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}" -FromCleaner{1}' -f $finder, $trialFlag
+        $launchProcessName = 'powershell'
+    }
 
     try {
         if (Test-DRAdministrator) {
@@ -4397,7 +4439,7 @@ $ui.OpenDuplicatesButton.Add_Click({
             $shortcut = Join-Path $env:TEMP 'DRDirect Duplicate Finder.lnk'
             $shell = New-Object -ComObject WScript.Shell
             $link = $shell.CreateShortcut($shortcut)
-            $link.TargetPath = $psExe
+            $link.TargetPath = $launchPath
             $link.Arguments = $psArgs
             $link.WorkingDirectory = Split-Path -Parent $finder
             $link.WindowStyle = 7
@@ -4414,7 +4456,7 @@ $ui.OpenDuplicatesButton.Add_Click({
             $appeared = $false
             for ($i = 0; $i -lt 12; $i++) {
                 Start-Sleep -Milliseconds 500
-                if (Get-Process -Name 'powershell' -ErrorAction SilentlyContinue |
+                if (Get-Process -Name $launchProcessName -ErrorAction SilentlyContinue |
                         Where-Object { $_.MainWindowTitle -like '*Duplicate Finder*' }) {
                     $appeared = $true
                     break
@@ -4424,11 +4466,11 @@ $ui.OpenDuplicatesButton.Add_Click({
             if ($appeared) {
                 $ui.DuplicateStatus.Text = 'Duplicate Finder opened in its own window, running as your normal user rather than as administrator.'
             } else {
-                Start-Process -FilePath $psExe -ArgumentList $psArgs -WindowStyle Hidden | Out-Null
+                Start-Process -FilePath $launchPath -ArgumentList $psArgs -WindowStyle Hidden | Out-Null
                 $ui.DuplicateStatus.Text = 'Duplicate Finder opened in its own window.'
             }
         } else {
-            Start-Process -FilePath $psExe -ArgumentList $psArgs -WindowStyle Hidden | Out-Null
+            Start-Process -FilePath $launchPath -ArgumentList $psArgs -WindowStyle Hidden | Out-Null
             $ui.DuplicateStatus.Text = 'Duplicate Finder opened in its own window.'
         }
     } catch {
@@ -4593,7 +4635,20 @@ $ui.CheckUpdatesButton.Add_Click({
 
         $ui.CheckUpdatesButton.Content = 'Updating...'
         $result = Install-DRUpdate -Manifest $check.Manifest
-        if ($result.Success) { $ui.UpdateBanner.Visibility = 'Collapsed' }
+        if ($result.Success) {
+            $ui.UpdateBanner.Visibility = 'Collapsed'
+            # The green "New update" badge is set once at startup and nothing
+            # cleared it, so it kept advertising an update already installed
+            # until the app was restarted. Put the button back now.
+            try {
+                $ui.HeroUpdateButton.Content = 'Check for updates'
+                $ui.HeroUpdateButton.FontWeight = 'Normal'
+                $ui.HeroUpdateButton.ClearValue([Windows.Controls.Control]::BackgroundProperty)
+                $ui.HeroUpdateButton.ClearValue([Windows.Controls.Control]::ForegroundProperty)
+                $ui.HeroUpdateButton.ClearValue([Windows.Controls.Control]::BorderBrushProperty)
+                $ui.CheckUpdatesButton.ToolTip = $null
+            } catch { }
+        }
         $icon = if ($result.Success) { [Windows.MessageBoxImage]::Information } else { [Windows.MessageBoxImage]::Warning }
         [Windows.MessageBox]::Show($result.Message, 'DRDirect PC Cleaner',
             [Windows.MessageBoxButton]::OK, $icon) | Out-Null

@@ -1,17 +1,17 @@
 {
-  "version": "1.4.81",
-  "notes": "The version number under the DRDirect logo is now bigger and bright yellow, so you can always see which version you have.",
-  "published": "2026-10-09T19:45:40.9200914-04:00",
+  "version": "1.4.82",
+  "notes": "Duplicate Finder: tick other drives, OneDrive or Google Drive to check them all in one scan.\nDuplicate Finder no longer offers program files, scripts or app settings for removal.\nThe Cleaner now finds the Duplicate Finder on every installed copy.\nYou will no longer be offered an update you already have.",
+  "published": "2026-10-11T16:12:55.1413837-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "CB975B90E7C1DB892C2C8B8E14B1E83AEE9E2BC8154E10BC6C08CEC3BD3145FC",
-      "size": 146244
+      "sha256": "D9B1EA6AC2CC8F7E51F3ECAF6ECD3546071791A1C2399B0D729ABD18A5419CBD",
+      "size": 154567
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "2B3F303B4195541626B1F6BA953431928C9B98DCED27CD6B46549A5EF12A6823",
-      "size": 326654
+      "sha256": "BD7BAC6123E82913342041C8759F9FF4A7336F6FABA25BB7E3D086B450A8065B",
+      "size": 324931
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -20,8 +20,8 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "5AD27CCF8056E387037B99B73242DEA97CF91F2F041AB40F37373802E07CA0F2",
-      "size": 52899
+      "sha256": "556D3173167098E8322224AEDB96489778BFF6C1C297FCD1388623F2302BA925",
+      "size": 55025
     },
     {
       "name": "DRDirect Activation.ps1",
