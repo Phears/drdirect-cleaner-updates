@@ -4292,9 +4292,10 @@ function Resolve-DRDuplicateFinderExe {
     # launcher unpacks the app into a temporary _MEI folder and runs it from
     # there, so "beside the exe" is a scratch directory holding no Finder. Ask
     # Windows where the program went, and fall back to the usual location.
+    # Inno Setup names the key after the installer's AppId, not the program name.
     foreach ($key in @(
-        'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DRDirect PC Cleaner_is1',
-        'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\DRDirect PC Cleaner_is1')) {
+        'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{6E1C2F4A-7D3B-4F5E-9A21-D7C0E5B4A8F3}_is1',
+        'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\{6E1C2F4A-7D3B-4F5E-9A21-D7C0E5B4A8F3}_is1')) {
         try {
             $installed = (Get-ItemProperty -Path $key -ErrorAction Stop).InstallLocation
             if (-not [string]::IsNullOrWhiteSpace($installed)) { $roots.Add($installed.TrimEnd('\')) }

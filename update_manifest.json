@@ -1,7 +1,7 @@
 {
-  "version": "1.4.82",
-  "notes": "Duplicate Finder: tick other drives, OneDrive or Google Drive to check them all in one scan.\nDuplicate Finder no longer offers program files, scripts or app settings for removal.\nThe Cleaner now finds the Duplicate Finder on every installed copy.\nYou will no longer be offered an update you already have.",
-  "published": "2026-10-11T16:12:55.1413837-04:00",
+  "version": "1.4.83",
+  "notes": "The Cleaner now finds the Duplicate Finder even when the program was installed in a different folder.",
+  "published": "2026-10-11T16:22:32.8223441-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "BD7BAC6123E82913342041C8759F9FF4A7336F6FABA25BB7E3D086B450A8065B",
-      "size": 324931
+      "sha256": "B2720621B37DBCB38671CFAF7C5B8A54A518E65ADC787FF84E118D974703318E",
+      "size": 325051
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
