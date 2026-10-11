@@ -3645,6 +3645,7 @@ foreach ($p in $pkgs) {
     elseif ($proc.ExitCode -eq -1978335090) {
         # Installed with a different installer type than winget updates with (e.g. an old Store copy).
         # Nothing is broken and the app is untouched, so it is not reported as a problem.
+        Write-Host (RGB 150 150 255 "⏭️  $($p.Name) - installed by its own installer, so it updates itself. Nothing to uninstall, kept current one")
     }
     elseif ($proc.ExitCode -eq -1978335189) {
         # The newer version does not fit this PC (architecture or requirements). The
@@ -3667,7 +3668,8 @@ Write-Host ''
 Write-Host (Rainbow ('=' * 90))
 Write-Host (RGB 80 255 120 "🎉 Done in ${secs}s") -NoNewline
 Write-Host (RGB 255 230 0 "   ✅ $($ok.Count) upgraded") -NoNewline
-Write-Host (RGB 255 60 90 "   💥 $($fail.Count) problems")
+if ($fail.Count -eq 0) { Write-Host (RGB 80 255 120 "   ✅ no problems") }
+else { Write-Host (RGB 255 60 90 "   💥 $($fail.Count) problems") }
 foreach ($f in $fail) { Write-Host (RGB 255 60 90 "   - $f") }
 Write-Host (Rainbow ('=' * 90))
 Write-Host ''

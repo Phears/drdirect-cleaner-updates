@@ -1,7 +1,7 @@
 {
-  "version": "1.4.85",
-  "notes": "Updating your apps no longer reports a problem when a newer version simply doesn't fit your PC.",
-  "published": "2026-10-11T16:35:54.5443070-04:00",
+  "version": "1.4.86",
+  "notes": "Updating your apps now explains apps that update themselves, and a run with nothing wrong shows in green.",
+  "published": "2026-10-11T16:39:41.8576181-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "14196E3DAF9323D6D1F3CD09F0B3A06BCCA087FF8DD5A06B9D2493CC832917C5",
-      "size": 325387
+      "sha256": "AC399D58E825FA39B168B2E55EA62E371F4D24E99663495B1F5D6568FCA1514F",
+      "size": 325625
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
