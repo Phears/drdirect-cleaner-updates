@@ -1,7 +1,7 @@
 {
-  "version": "1.4.83",
-  "notes": "The Cleaner now finds the Duplicate Finder even when the program was installed in a different folder.",
-  "published": "2026-10-11T16:22:32.8223441-04:00",
+  "version": "1.4.84",
+  "notes": "The version number under the DRDirect logo now shows the version you really have, instead of 1.0.",
+  "published": "2026-10-11T16:29:40.0740624-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -20,8 +20,8 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "556D3173167098E8322224AEDB96489778BFF6C1C297FCD1388623F2302BA925",
-      "size": 55025
+      "sha256": "5A9D4E268F5A95D9F33DD5028C93D159F72A6E3B4B970DFB5FD320612FCCF445",
+      "size": 55296
     },
     {
       "name": "DRDirect Activation.ps1",

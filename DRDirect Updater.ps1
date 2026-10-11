@@ -145,9 +145,13 @@ function Get-DRInstalledVersion {
         }
     }
 
+    # The app asks before it sets its build number. Under StrictMode, reading
+    # the unset variable threw, so an updated copy lost its marker version too
+    # and showed "Version 1.0".
     $fromBuild = [version]'0.0.0'
-    if ($script:DRBuildVersion) {
-        try { $fromBuild = [version]$script:DRBuildVersion } catch { }
+    $stamped = Get-Variable -Name 'DRBuildVersion' -Scope Script -ValueOnly -ErrorAction SilentlyContinue
+    if ($stamped) {
+        try { $fromBuild = [version]$stamped } catch { }
     }
 
     if ($fromBuild -gt $fromMarker) { return $fromBuild }
