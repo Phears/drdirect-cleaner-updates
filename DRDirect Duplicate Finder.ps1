@@ -328,6 +328,12 @@ function Test-ProtectedPath {
     param([string]$Path)
 
     if ([string]::IsNullOrWhiteSpace($Path)) { return $false }
+    # The account's own registry files sit loose in the root of the user folder,
+    # where no folder rule catches them. Windows holds them open, and several are
+    # byte-identical, so they surfaced as duplicates and failed with File In Use.
+    $name = [System.IO.Path]::GetFileName($Path)
+    if ($name -match '(?i)^(ntuser\.(dat|ini|pol)|usrclass\.dat|desktop\.ini)') { return $true }
+    if ($name -match '(?i)\.(regtrans-ms|blf)$') { return $true }
     $full = $Path.TrimEnd('\') + '\'
 
     $roots = @(
@@ -566,6 +572,12 @@ $ScanScript = {
         param([string]$Path)
 
         if ([string]::IsNullOrWhiteSpace($Path)) { return $false }
+        # The account's own registry files sit loose in the root of the user folder,
+        # where no folder rule catches them. Windows holds them open, and several are
+        # byte-identical, so they surfaced as duplicates and failed with File In Use.
+        $name = [System.IO.Path]::GetFileName($Path)
+        if ($name -match '(?i)^(ntuser\.(dat|ini|pol)|usrclass\.dat|desktop\.ini)') { return $true }
+        if ($name -match '(?i)\.(regtrans-ms|blf)$') { return $true }
         $full = $Path.TrimEnd('\') + '\'
 
         $roots = @(

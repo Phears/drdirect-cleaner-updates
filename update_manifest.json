@@ -1,12 +1,12 @@
 {
-  "version": "1.4.88",
-  "notes": "Five new things cleaned: your clipboard, the Run box history, File Explorer search history, the recent documents list, and a list Windows keeps of program names.\nEvery item in the list now has a number, coloured to match Safe, Medium or Advanced, so it is easy to say which one you mean.\nWindows Disk Cleanup no longer repeats work already done, so Medium and Advanced finish sooner.\nUpdating no longer makes the window freeze - it now shows that it is working.",
-  "published": "2026-10-12T17:27:22.2739714-04:00",
+  "version": "1.4.89",
+  "notes": "The Duplicate Finder no longer lists Windows' own account files or folder settings files. They are not yours to remove, and Windows would refuse to let them go anyway.",
+  "published": "2026-10-12T17:32:00.0548660-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "D9B1EA6AC2CC8F7E51F3ECAF6ECD3546071791A1C2399B0D729ABD18A5419CBD",
-      "size": 154567
+      "sha256": "3B4A12E7E15B998B1A0C09F0E444C44AA64FC18C77FAA10458B693F1F5800BFD",
+      "size": 155505
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
