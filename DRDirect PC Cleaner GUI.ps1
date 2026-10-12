@@ -1386,7 +1386,9 @@ function Test-TaskInOrderedPreset {
         'cleanup.search-history',
         'cleanup.recent-docs'
     )
-    $mediumIds = $safeIds + @('cleanup.disk-cleanup') + $cloudCacheIds + $traceIds
+    # Compacting browser databases skips any browser that is open, so a full
+    # cleanup can include it without risking a file the browser is using.
+    $mediumIds = $safeIds + @('cleanup.disk-cleanup', 'cleanup.browser-compact') + $cloudCacheIds + $traceIds
     # Apart from the Recycle Bin, Safe and Medium never pre-select anything that
     # loses something the person cannot get back. Advanced is the full sweep and
     # takes all of it - icon cache (closes Explorer windows), jump lists (loses

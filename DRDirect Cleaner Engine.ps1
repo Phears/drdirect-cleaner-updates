@@ -158,6 +158,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='cleanup.run-history'; Category='Cleanup'; Name='Run box history'; Description='Empties the drop-down list in the Windows Run box (Win+R). Your programs are untouched.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.search-history'; Category='Cleanup'; Name='File Explorer search history'; Description='Clears what you have typed into File Explorer''s search box. Your files are untouched.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.recent-docs'; Category='Cleanup'; Name='Recent documents list'; Description='Clears the list of documents you opened recently. The documents themselves are kept.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.browser-compact'; Category='Cleanup'; Name='Compact browser databases'; Description='Packs the files your browsers keep their history, icons and autofill in, so they take less space and search faster. Nothing is deleted. Passwords and cookies are never touched. Close your browsers first - any that are open are skipped.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.memory-dumps'; Category='Cleanup'; Name='Memory dump files'; Description='Removes saved crash dump files (Memory.dmp and Minidump). These are only useful for diagnosing a specific past crash.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.old-restore-points'; Category='Cleanup'; Name='Old restore points'; Description='Deletes older System Restore snapshots, keeping only the most recent one. Reduces how far back you can roll back Windows.'; Risk='Advanced'; Duration='< 5 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.event-logs'; Category='Cleanup'; Name='Windows Event Logs'; Description='Clears the Application and System event logs. Removes diagnostic history used for troubleshooting. The Security log is never touched.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
@@ -693,6 +694,14 @@ function Get-DRAnalysis {
                 'cleanup.search-history' {
                     $items = Get-DRRegistryValueCount 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\WordWheelQuery'
                     $detail = "$items past search(es)"
+                }
+                'cleanup.browser-compact' {
+                    $open = @()
+                    foreach ($b in @(Get-DRBrowserDatabases)) {
+                        if (Get-Process -Name $b.Process -ErrorAction SilentlyContinue) { $open += $b.Browser; continue }
+                        foreach ($f in $b.Files) { $bytes += (Get-Item -LiteralPath $f -Force).Length; $items++ }
+                    }
+                    $detail = if ($open.Count) { 'Close first: ' + ($open -join ', ') } else { 'History, icons and autofill only - nothing is deleted' }
                 }
                 'cleanup.recent-docs' {
                     $folder = if ($TestRoot) { $TestRoot } else { Join-Path $env:APPDATA 'Microsoft\Windows\Recent' }
@@ -2955,6 +2964,105 @@ function Clear-DRRegistryValues {
     }
 }
 
+function Get-DRBrowserDatabases {
+    <#
+        .SYNOPSIS
+            The browser databases worth compacting, grouped by browser.
+        .DESCRIPTION
+            History, icons, autofill, top sites and shortcuts only. Login Data,
+            Cookies and key stores are left out on purpose: compacting does not
+            change what is in a file, but passwords and signed-in sessions are
+            not something to open at all.
+    #>
+    $chromiumFiles = @('History', 'Favicons', 'Top Sites', 'Shortcuts', 'Network Action Predictor', 'Web Data')
+    $chromium = [ordered]@{
+        'Google Chrome'  = @{ Process = 'chrome';  Root = Join-Path $env:LOCALAPPDATA 'Google\Chrome\User Data' }
+        'Microsoft Edge' = @{ Process = 'msedge';  Root = Join-Path $env:LOCALAPPDATA 'Microsoft\Edge\User Data' }
+        'Brave'          = @{ Process = 'brave';   Root = Join-Path $env:LOCALAPPDATA 'BraveSoftware\Brave-Browser\User Data' }
+        'Vivaldi'        = @{ Process = 'vivaldi'; Root = Join-Path $env:LOCALAPPDATA 'Vivaldi\User Data' }
+        'Opera'          = @{ Process = 'opera';   Root = Join-Path $env:APPDATA 'Opera Software\Opera Stable' }
+    }
+    $result = New-Object System.Collections.Generic.List[object]
+    foreach ($browser in $chromium.Keys) {
+        $info = $chromium[$browser]
+        if (-not (Test-Path -LiteralPath $info.Root -PathType Container)) { continue }
+        # A profile folder is any folder holding a History file; Opera keeps it at the top.
+        $profiles = @(Get-ChildItem -LiteralPath $info.Root -Directory -Force -ErrorAction SilentlyContinue |
+                      Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'History') -PathType Leaf } |
+                      ForEach-Object FullName)
+        if (Test-Path -LiteralPath (Join-Path $info.Root 'History') -PathType Leaf) { $profiles += $info.Root }
+        $files = @()
+        foreach ($profile in $profiles) {
+            foreach ($name in $chromiumFiles) {
+                $f = Join-Path $profile $name
+                if (Test-Path -LiteralPath $f -PathType Leaf) { $files += $f }
+            }
+        }
+        if ($files.Count) { $result.Add([pscustomobject]@{ Browser = $browser; Process = $info.Process; Files = $files }) }
+    }
+
+    $ffRoot = Join-Path $env:APPDATA 'Mozilla\Firefox\Profiles'
+    if (Test-Path -LiteralPath $ffRoot -PathType Container) {
+        $files = @()
+        foreach ($profile in @(Get-ChildItem -LiteralPath $ffRoot -Directory -Force -ErrorAction SilentlyContinue)) {
+            foreach ($name in 'places.sqlite', 'favicons.sqlite', 'formhistory.sqlite') {
+                $f = Join-Path $profile.FullName $name
+                if (Test-Path -LiteralPath $f -PathType Leaf) { $files += $f }
+            }
+        }
+        if ($files.Count) { $result.Add([pscustomobject]@{ Browser = 'Firefox'; Process = 'firefox'; Files = $files }) }
+    }
+    return $result
+}
+
+function Test-DRSqliteFile {
+    <# True only for a real SQLite database: its first bytes say so. #>
+    param([string]$Path)
+    try {
+        $fs = [System.IO.File]::Open($Path, 'Open', 'Read', 'ReadWrite')
+        try {
+            $buf = New-Object byte[] 16
+            if ($fs.Read($buf, 0, 16) -lt 16) { return $false }
+            return ([System.Text.Encoding]::ASCII.GetString($buf, 0, 15) -eq 'SQLite format 3')
+        } finally { $fs.Dispose() }
+    } catch { return $false }
+}
+
+function Invoke-DRSqliteVacuum {
+    <#
+        Compacts one SQLite file with the SQLite built into Windows 10 and 11
+        (winsqlite3.dll), so no extra software is needed. VACUUM rewrites the
+        file in a transaction: if it is interrupted, the original is intact.
+        Returns $true when it ran.
+    #>
+    param([string]$Path)
+    if (-not ('DRDirect.WinSqlite' -as [type])) {
+        Add-Type -Namespace DRDirect -Name WinSqlite -MemberDefinition @'
+[DllImport("winsqlite3.dll", CharSet = CharSet.Unicode)]
+public static extern int sqlite3_open16(string filename, out IntPtr db);
+[DllImport("winsqlite3.dll")]
+public static extern int sqlite3_busy_timeout(IntPtr db, int ms);
+[DllImport("winsqlite3.dll")]
+public static extern int sqlite3_exec(IntPtr db, byte[] sql, IntPtr callback, IntPtr arg, out IntPtr errmsg);
+[DllImport("winsqlite3.dll")]
+public static extern int sqlite3_close(IntPtr db);
+'@
+    }
+    $db = [IntPtr]::Zero
+    if ([DRDirect.WinSqlite]::sqlite3_open16($Path, [ref]$db) -ne 0) {
+        if ($db -ne [IntPtr]::Zero) { [void][DRDirect.WinSqlite]::sqlite3_close($db) }
+        return $false
+    }
+    try {
+        [void][DRDirect.WinSqlite]::sqlite3_busy_timeout($db, 2000)
+        $sql = [System.Text.Encoding]::UTF8.GetBytes("VACUUM;`0")
+        $err = [IntPtr]::Zero
+        return ([DRDirect.WinSqlite]::sqlite3_exec($db, $sql, [IntPtr]::Zero, [IntPtr]::Zero, [ref]$err) -eq 0)
+    } finally {
+        [void][DRDirect.WinSqlite]::sqlite3_close($db)
+    }
+}
+
 function Invoke-DRTask {
     [CmdletBinding()]
     param(
@@ -3183,6 +3291,33 @@ function Invoke-DRTask {
             }
             'cleanup.search-history' {
                 Clear-DRRegistryValues -TaskId $TaskId -Key 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\WordWheelQuery' -TestRoot $TestRoot
+            }
+            'cleanup.browser-compact' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: no browser database was compacted.' }
+                else {
+                    $saved = 0L; $done = 0
+                    foreach ($b in @(Get-DRBrowserDatabases)) {
+                        # A browser that is running has these files open; compacting them
+                        # under it can fail or, rarely, damage them. Skip it and say so.
+                        if (Get-Process -Name $b.Process -ErrorAction SilentlyContinue) {
+                            New-DREvent -TaskId $TaskId -State Warning -Message ("Skipped {0}: close it and run this again." -f $b.Browser)
+                            continue
+                        }
+                        foreach ($f in $b.Files) {
+                            if (-not (Test-DRSqliteFile $f)) { continue }
+                            $before = (Get-Item -LiteralPath $f -Force).Length
+                            try {
+                                if (Invoke-DRSqliteVacuum $f) {
+                                    $done++
+                                    $saved += [Math]::Max(0, $before - (Get-Item -LiteralPath $f -Force).Length)
+                                }
+                            } catch {
+                                New-DREvent -TaskId $TaskId -State Warning -Message ("Skipped {0}: {1}" -f (Split-Path $f -Leaf), $_.Exception.Message)
+                            }
+                        }
+                    }
+                    New-DREvent -TaskId $TaskId -State Information -Message ("Compacted {0} database(s), {1:N1} MB smaller." -f $done, ($saved / 1MB))
+                }
             }
             'cleanup.recent-docs' {
                 # The shortcuts Explorer drops here, not the documents themselves.

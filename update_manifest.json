@@ -1,7 +1,7 @@
 {
-  "version": "1.4.90",
-  "notes": "The menu on the left is now grouped by what each item does, with a new Check section for your drives, your RAM and your PC information.",
-  "published": "2026-10-12T17:36:10.1411287-04:00",
+  "version": "1.4.91",
+  "notes": "New in Medium: Compact browser databases. Your browsers' history, icons and autofill files get smaller and search faster. Nothing is deleted, and passwords and cookies are never touched. Close your browsers first - any that are open are skipped.",
+  "published": "2026-10-12T17:42:31.7386725-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "80E57E7847E0A21F67B5630653C580C7F89097D2073BB9349455B67B2CCB9396",
-      "size": 337071
+      "sha256": "3B1AC73C85EDC2F00D949D59F932FE79BE8DA12122E66355EC659CB30A5D3C34",
+      "size": 337251
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "2D543C834AAA1E09294562D3EC9BD2731C75C966AAA3D0BE56215CA3471D8ED2",
-      "size": 239864
+      "sha256": "57E4500C9B41F1036A8E5BEE4606089EAEAD90781C7A4337FB2981DC27C5853D",
+      "size": 247737
     },
     {
       "name": "DRDirect Updater.ps1",
