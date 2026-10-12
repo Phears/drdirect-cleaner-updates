@@ -1,7 +1,7 @@
 {
-  "version": "1.4.87",
-  "notes": "Cleaning now really removes temporary files and caches again - it had been skipping them. Pressing Enter now closes the app-update window.",
-  "published": "2026-10-11T16:50:11.4307906-04:00",
+  "version": "1.4.88",
+  "notes": "Five new things cleaned: your clipboard, the Run box history, File Explorer search history, the recent documents list, and a list Windows keeps of program names.\nEvery item in the list now has a number, coloured to match Safe, Medium or Advanced, so it is easy to say which one you mean.\nWindows Disk Cleanup no longer repeats work already done, so Medium and Advanced finish sooner.\nUpdating no longer makes the window freeze - it now shows that it is working.",
+  "published": "2026-10-12T17:27:22.2739714-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "CC40D8A1EB61F9A912678351B9ABF82CFB26AB87B9F8574AE58BA24358B2E17A",
-      "size": 325731
+      "sha256": "7BED6E414518736743571C5C4208879C20A81113CC926BE7F473086FB0667F5E",
+      "size": 336952
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "6651DB570DFF50A8B0DB3EF65780CA9909A77EC40EBDB7F6B05E5C0597F53DA8",
-      "size": 232365
+      "sha256": "2D543C834AAA1E09294562D3EC9BD2731C75C966AAA3D0BE56215CA3471D8ED2",
+      "size": 239864
     },
     {
       "name": "DRDirect Updater.ps1",

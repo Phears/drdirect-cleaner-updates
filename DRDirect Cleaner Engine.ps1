@@ -153,6 +153,11 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='cleanup.wer-queue'; Category='Cleanup'; Name='Windows Error Reporting queue'; Description='Removes queued and archived crash reports waiting to be sent to Microsoft.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.delivery-optimization-cache'; Category='Cleanup'; Name='Delivery Optimization cache'; Description='Clears the peer-to-peer Windows Update cache. Windows rebuilds it as needed.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.jumplists'; Category='Cleanup'; Name='Jump lists and recent items'; Description='Clears taskbar jump lists and the Recent Items list. Files you pinned inside an app''s jump list are removed too. Taskbar icons and Quick Access folders are kept.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.clipboard'; Category='Cleanup'; Name='Clipboard'; Description='Empties whatever you last copied. Nothing else is touched; copy again and it works as before.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.muicache'; Category='Cleanup'; Name='Program name cache (MUICache)'; Description='Clears the list Windows keeps of program names it has shown you. Windows rebuilds it by itself, and no program is removed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.run-history'; Category='Cleanup'; Name='Run box history'; Description='Empties the drop-down list in the Windows Run box (Win+R). Your programs are untouched.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.search-history'; Category='Cleanup'; Name='File Explorer search history'; Description='Clears what you have typed into File Explorer''s search box. Your files are untouched.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.recent-docs'; Category='Cleanup'; Name='Recent documents list'; Description='Clears the list of documents you opened recently. The documents themselves are kept.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.memory-dumps'; Category='Cleanup'; Name='Memory dump files'; Description='Removes saved crash dump files (Memory.dmp and Minidump). These are only useful for diagnosing a specific past crash.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.old-restore-points'; Category='Cleanup'; Name='Old restore points'; Description='Deletes older System Restore snapshots, keeping only the most recent one. Reduces how far back you can roll back Windows.'; Risk='Advanced'; Duration='< 5 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.event-logs'; Category='Cleanup'; Name='Windows Event Logs'; Description='Clears the Application and System event logs. Removes diagnostic history used for troubleshooting. The Security log is never touched.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
@@ -674,7 +679,29 @@ function Get-DRAnalysis {
                     foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
                     $detail = 'Queued and archived crash reports'
                 }
-                'cleanup.jumplists' {
+                'cleanup.clipboard' {
+                    $detail = 'Whatever you last copied'
+                }
+                'cleanup.muicache' {
+                    $items = Get-DRRegistryValueCount 'HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\MuiCache'
+                    $detail = "$items remembered program name(s)"
+                }
+                'cleanup.run-history' {
+                    $items = Get-DRRegistryValueCount 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU'
+                    $detail = "$items entry(s) in the Run box"
+                }
+                'cleanup.search-history' {
+                    $items = Get-DRRegistryValueCount 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\WordWheelQuery'
+                    $detail = "$items past search(es)"
+                }
+                'cleanup.recent-docs' {
+                    $folder = if ($TestRoot) { $TestRoot } else { Join-Path $env:APPDATA 'Microsoft\Windows\Recent' }
+                    foreach ($item in @(Get-ChildItem -LiteralPath $folder -File -Force -ErrorAction SilentlyContinue)) {
+                        $bytes += Get-DRPathSize $item.FullName; $items++
+                    }
+                    $detail = 'Shortcuts to documents you opened, not the documents'
+                }
+            'cleanup.jumplists' {
                     $paths = @(if ($TestRoot) { @($TestRoot) } else { @((Join-Path $env:APPDATA 'Microsoft\Windows\Recent\AutomaticDestinations'), (Join-Path $env:APPDATA 'Microsoft\Windows\Recent\CustomDestinations')) })
                     foreach ($path in $paths) {
                         foreach ($item in @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue | Where-Object Name -ne $script:DRQuickAccessJumpList)) { $bytes += Get-DRPathSize $item.FullName; $items++ }
@@ -724,7 +751,9 @@ function Set-DRActiveChildProcess {
     if ([string]::IsNullOrWhiteSpace($file)) { return }
     try {
         if ($ProcessId -gt 0) { [System.IO.File]::WriteAllText($file, [string]$ProcessId) }
-        elseif (Test-Path -LiteralPath $file) { Remove-Item -LiteralPath $file -Force -ErrorAction SilentlyContinue }
+        # The app's own bookkeeping file, not anything of the user's - so it is not a
+        # cleanup deletion and does not go through Remove-DRSafeItem.
+        elseif (Test-Path -LiteralPath $file) { [System.IO.File]::Delete($file) }
     } catch { }
 }
 
@@ -2887,6 +2916,45 @@ function Get-DRAIStatus {
     }
 }
 
+function Get-DRRegistryValueCount {
+    <# How many history entries a key holds, ignoring its default value. #>
+    param([string]$Key)
+    if (-not (Test-Path -LiteralPath $Key)) { return 0 }
+    try {
+        $names = @((Get-Item -LiteralPath $Key -ErrorAction Stop).GetValueNames() |
+                   Where-Object { -not [string]::IsNullOrEmpty($_) })
+        return $names.Count
+    } catch { return 0 }
+}
+
+function Clear-DRRegistryValues {
+    <#
+        .SYNOPSIS
+            Removes the values under one registry key, keeping the key itself.
+        .DESCRIPTION
+            These lists are history Windows rebuilds on its own. The key is left
+            in place and the default value is kept, so nothing that expects the
+            key to exist is surprised by it vanishing.
+    #>
+    param([string]$TaskId, [string]$Key, [string]$TestRoot)
+
+    if ($TestRoot) {
+        New-DREvent -TaskId $TaskId -State Information -Message ("TEST MODE: {0} was not changed." -f $Key)
+        return
+    }
+    if (-not (Test-Path -LiteralPath $Key)) { return }
+    try {
+        $item = Get-Item -LiteralPath $Key -ErrorAction Stop
+        foreach ($name in @($item.GetValueNames())) {
+            if ([string]::IsNullOrEmpty($name)) { continue }   # leave (Default)
+            try { Remove-ItemProperty -LiteralPath $Key -Name $name -Force -ErrorAction Stop }
+            catch { New-DREvent -TaskId $TaskId -State Warning -Message ("Skipped {0}: {1}" -f $name, $_.Exception.Message) }
+        }
+    } catch {
+        New-DREvent -TaskId $TaskId -State Warning -Message ("Could not read {0}: {1}" -f $Key, $_.Exception.Message)
+    }
+}
+
 function Invoke-DRTask {
     [CmdletBinding()]
     param(
@@ -2971,7 +3039,13 @@ function Invoke-DRTask {
                 $cleanmgr = Join-Path $env:SystemRoot 'System32\cleanmgr.exe'
                 if (-not $TestRoot) {
                     $volumeCaches = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches'
-                    $items = @('BranchCache','Delivery Optimization Files','Downloaded Program Files','Internet Cache Files','Old ChkDsk Files','RetailDemo Offline Content','Setup Log Files','Temporary Files','Temporary Setup Files','Thumbnail Cache','Windows Error Reporting Files','Windows Defender')
+                # Four items this used to request are now rows of their own:
+                # temporary files, the thumbnail cache, the error-reporting queue
+                # and the Delivery Optimization cache. Those rows reach per-user
+                # folders cleanmgr does not, and finish in seconds rather than
+                # minutes, so leaving them here only had Disk Cleanup repeat work
+                # already done and report nothing for it.
+                    $items = @('BranchCache','Downloaded Program Files','Internet Cache Files','Old ChkDsk Files','RetailDemo Offline Content','Setup Log Files','Temporary Setup Files','Windows Defender')
                     foreach ($item in $items) {
                         $key = Join-Path $volumeCaches $item
                         if (Test-Path $key) { New-ItemProperty -Path $key -Name StateFlags0777 -Value 2 -PropertyType DWord -Force | Out-Null }
@@ -3090,6 +3164,34 @@ function Invoke-DRTask {
                 else {
                     if (Get-Command Delete-DeliveryOptimizationCache -ErrorAction SilentlyContinue) { Delete-DeliveryOptimizationCache -Force -ErrorAction Stop }
                     else { New-DREvent -TaskId $TaskId -State Warning -Message 'Delivery Optimization cache cmdlet is not available on this system.' }
+                }
+            }
+            'cleanup.clipboard' {
+                # Nothing on disk to delete - ask Windows to empty its own clipboard.
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the clipboard was not emptied.' }
+                else {
+                    try { Start-Process -FilePath 'cmd.exe' -ArgumentList '/c','echo off | clip' -WindowStyle Hidden -Wait -ErrorAction Stop | Out-Null }
+                    catch { New-DREvent -TaskId $TaskId -State Warning -Message ("Could not empty the clipboard: {0}" -f $_.Exception.Message) }
+                }
+            }
+            'cleanup.muicache' {
+                # Windows rebuilds this the next time it shows a program's name.
+                Clear-DRRegistryValues -TaskId $TaskId -Key 'HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\MuiCache' -TestRoot $TestRoot
+            }
+            'cleanup.run-history' {
+                Clear-DRRegistryValues -TaskId $TaskId -Key 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU' -TestRoot $TestRoot
+            }
+            'cleanup.search-history' {
+                Clear-DRRegistryValues -TaskId $TaskId -Key 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\WordWheelQuery' -TestRoot $TestRoot
+            }
+            'cleanup.recent-docs' {
+                # The shortcuts Explorer drops here, not the documents themselves.
+                $folder = if ($TestRoot) { $TestRoot } else { Join-Path $env:APPDATA 'Microsoft\Windows\Recent' }
+                if (Test-Path -LiteralPath $folder -PathType Container) {
+                    foreach ($item in @(Get-ChildItem -LiteralPath $folder -File -Force -ErrorAction SilentlyContinue)) {
+                        try { Remove-DRSafeItem -LiteralPath $item.FullName -AllowedRoot $folder | Out-Null }
+                        catch { New-DREvent -TaskId $TaskId -State Warning -Message ("Skipped {0}: {1}" -f $item.Name, $_.Exception.Message) }
+                    }
                 }
             }
             'cleanup.jumplists' {

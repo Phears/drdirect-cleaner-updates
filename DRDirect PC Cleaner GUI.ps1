@@ -1361,7 +1361,9 @@ function Test-TaskInOrderedPreset {
         'cleanup.thumbnail-cache',
         'cleanup.shader-cache',
         'cleanup.wer-queue',
-        'cleanup.delivery-optimization-cache'
+        'cleanup.delivery-optimization-cache',
+        # Windows rebuilds this list on its own and nothing is lost with it.
+        'cleanup.muicache'
     )
     # The cloud caches are safe and only ever appear for a service that is
     # installed, so a full cleanup should take them too.
@@ -1374,7 +1376,16 @@ function Test-TaskInOrderedPreset {
         'cleanup.cloud-appcaches',
         'cleanup.cloud-store'
     )
-    $mediumIds = $safeIds + @('cleanup.disk-cleanup') + $cloudCacheIds
+    # Windows traces: each loses a convenience list the person may notice is
+    # empty - what they last copied, the Run box drop-down, past searches -
+    # but no file of theirs, so a full cleanup takes them.
+    $traceIds = @(
+        'cleanup.clipboard',
+        'cleanup.run-history',
+        'cleanup.search-history',
+        'cleanup.recent-docs'
+    )
+    $mediumIds = $safeIds + @('cleanup.disk-cleanup') + $cloudCacheIds + $traceIds
     # Apart from the Recycle Bin, Safe and Medium never pre-select anything that
     # loses something the person cannot get back. Advanced is the full sweep and
     # takes all of it - icon cache (closes Explorer windows), jump lists (loses
@@ -1880,7 +1891,10 @@ function Remove-DRConflictingSelections {
 }
 
 function New-TaskRow {
-    param($Task)
+    # $Number is what the person reads out when they say which item they do
+    # not want. It counts the rows actually on screen, so it stays 1..n even
+    # though a level hides the tasks it will not run.
+    param($Task, [int]$Number = 0)
     $border = New-Object Windows.Controls.Border
     $border.Style = $window.Resources['Card']
     $border.Margin = '0,0,0,10'
@@ -1982,7 +1996,24 @@ function New-TaskRow {
     [Windows.Controls.Grid]::SetColumn($copy,1)
     # A long AI or slow-task title lets its badge drop to the next line instead of cutting it off.
     $titlePanel = if ($Task.Category -eq 'AI' -or $isLongTest) { New-Object Windows.Controls.WrapPanel } else { New-Object Windows.Controls.StackPanel -Property @{ Orientation='Horizontal' } }
-    $name = New-Object Windows.Controls.TextBlock -Property @{ Text=$Task.Name; FontWeight='SemiBold'; FontSize=15; VerticalAlignment='Center' }
+    # The number takes the colour of the level it belongs to, matching the
+    # SAFE / MEDIUM / ADVANCED buttons above the list, so a row read out over the
+    # phone carries which level it came from.
+    $numberInk = switch ($script:cleanupLevel) {
+        'Safe'     { '#00FF66' }
+        'Medium'   { '#0057D9' }
+        'Advanced' { '#FF1744' }
+        default    { '#667085' }
+    }
+    $name = New-Object Windows.Controls.TextBlock -Property @{ FontWeight='SemiBold'; FontSize=15; VerticalAlignment='Center' }
+    if ($Number -gt 0) {
+        [void]$name.Inlines.Add((New-Object Windows.Documents.Run -Property @{
+            Text = ('{0}.  ' -f $Number)
+            Foreground = (New-Object Windows.Media.BrushConverter).ConvertFromString($numberInk)
+            FontWeight = 'Bold'
+        }))
+    }
+    [void]$name.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text = [string]$Task.Name }))
     # AI Remover rows show every product name (Edge, Chrome, Brave, Firefox, Gmail, Claude...) in big bold letters.
     if ($Task.Category -eq 'AI') {
         $title = [string]$Task.Name
@@ -1991,6 +2022,15 @@ function New-TaskRow {
         elseif ($title -match '(ChatGPT|Claude|Copilot|Gmail|Edge|Chrome|Brave|Firefox|Adobe Acrobat|Windows)') { $brand = $Matches[1] }
         $name.Text = ''
         $addRun = { param([string]$Text, [bool]$Big) if ($Text) { [void]$name.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text = $Text; FontWeight = $(if ($Big) { 'ExtraBold' } else { 'SemiBold' }); FontSize = $(if ($Big) { 22 } else { 15 }) })) } }
+        # The AI rows rebuild their title as runs, so the number has to be
+        # added here too or it would be lost on this one category.
+        if ($Number -gt 0) {
+            [void]$name.Inlines.Add((New-Object Windows.Documents.Run -Property @{
+                Text = ('{0}.  ' -f $Number)
+                Foreground = (New-Object Windows.Media.BrushConverter).ConvertFromString($numberInk)
+                FontWeight = 'Bold'
+            }))
+        }
         if ($brand) {
             $at = $title.IndexOf($brand)
             & $addRun $title.Substring(0, $at) $false
@@ -2242,7 +2282,8 @@ function Show-TaskCategory {
         $ui.TaskList.Children.Add((New-DRAIUninstallAllCard)) | Out-Null
         $visible = @(@($visible | Where-Object { $_.Id -eq 'ai.restore' }) + @($visible | Where-Object { $_.Id -ne 'ai.restore' }))
     }
-    foreach ($task in $visible) { $ui.TaskList.Children.Add((New-TaskRow $task)) | Out-Null }
+    $rowNumber = 0
+    foreach ($task in $visible) { $rowNumber++; $ui.TaskList.Children.Add((New-TaskRow $task $rowNumber)) | Out-Null }
     $script:renderedCleanupFilter = $script:cleanupLevel
     Update-SelectionSummary
 }
@@ -4615,6 +4656,104 @@ $ui.UpdateBannerButton.Add_Click({
     $ui.CheckUpdatesButton.RaiseEvent((New-Object Windows.RoutedEventArgs([Windows.Controls.Primitives.ButtonBase]::ClickEvent)))
 })
 
+$script:DRUpdateRunning = $false
+
+function Complete-DRUpdateInstall {
+    # What used to happen straight after Install-DRUpdate returned, now run once
+    # the background install has finished.
+    param($Result)
+    if ($Result -and $Result.Success) {
+        $ui.UpdateBanner.Visibility = 'Collapsed'
+        # The green "New update" badge is set once at startup and nothing
+        # cleared it, so it kept advertising an update already installed
+        # until the app was restarted. Put the button back now.
+        try {
+            $ui.HeroUpdateButton.Content = 'Check for updates'
+            $ui.HeroUpdateButton.FontWeight = 'Normal'
+            $ui.HeroUpdateButton.ClearValue([Windows.Controls.Control]::BackgroundProperty)
+            $ui.HeroUpdateButton.ClearValue([Windows.Controls.Control]::ForegroundProperty)
+            $ui.HeroUpdateButton.ClearValue([Windows.Controls.Control]::BorderBrushProperty)
+            $ui.CheckUpdatesButton.ToolTip = $null
+        } catch { }
+    }
+    $message = if ($Result) { [string]$Result.Message } else { 'The update did not finish. Nothing was changed.' }
+    $icon = if ($Result -and $Result.Success) { [Windows.MessageBoxImage]::Information } else { [Windows.MessageBoxImage]::Warning }
+    [Windows.MessageBox]::Show($message, 'DRDirect PC Cleaner',
+        [Windows.MessageBoxButton]::OK, $icon) | Out-Null
+}
+
+function Start-DRUpdateInstall {
+    <#
+        Downloads and installs the update in a background runspace.
+
+        It used to run on the window's own thread. The download is the better
+        part of ten megabytes, so on a slow line the window stopped drawing,
+        Windows marked it "not responding", and the obvious response - Close
+        the program - abandoned the update half way. The window now stays
+        alive and says what it is doing. Returns $false if the background
+        could not be started, so the caller can fall back rather than skip
+        the update.
+    #>
+    param($Manifest)
+    try {
+        # The updater is compiled into the exe, not a file a new runspace could
+        # load, so hand over the functions the install needs and its settings.
+        $names = 'Get-DRUpdateRoot', 'Clear-DRStaleTemp', 'Get-DRFileHashWithRetry', 'Install-DRUpdate'
+        $code = ($names | ForEach-Object { "function $_ {`r`n$((Get-Command $_ -CommandType Function).Definition)`r`n}" }) -join "`r`n"
+
+        $script:DRInstallRunspace = [RunspaceFactory]::CreateRunspace()
+        $script:DRInstallRunspace.Open()
+        foreach ($name in 'DRUpdateFeed', 'DRUpdateRef', 'DRUpdateHeaders', 'DRUpdatableFiles') {
+            $script:DRInstallRunspace.SessionStateProxy.SetVariable($name, (Get-Variable -Name $name -Scope Script -ValueOnly))
+        }
+        $script:DRInstallRunspace.SessionStateProxy.SetVariable('DRInstallManifest', $Manifest)
+        $script:DRInstallPs = [PowerShell]::Create()
+        $script:DRInstallPs.Runspace = $script:DRInstallRunspace
+        $null = $script:DRInstallPs.AddScript("Set-StrictMode -Version 2.0`r`n$code`r`nInstall-DRUpdate -Manifest `$DRInstallManifest")
+        $script:DRInstallAsync = $script:DRInstallPs.BeginInvoke()
+    } catch {
+        return $false
+    }
+
+    $ui.OverlayContinueButton.Visibility = 'Collapsed'
+    $ui.OverlayPercent.Visibility = 'Collapsed'
+    $ui.OverlayProgress.IsIndeterminate = $true
+    $ui.OverlayTitle.Text = 'Installing the update'
+    $ui.OverlayMessage.Text = 'Downloading the new version. On a slow connection this can take a minute or two. ' +
+        'Please leave this window open - it is working.'
+    $ui.BusyOverlay.Visibility = 'Visible'
+
+    # Script scope: the timer's handler runs in its own scope, and StrictMode stops on anything it cannot see.
+    $script:DRInstallTimer = New-Object Windows.Threading.DispatcherTimer
+    $script:DRInstallTimer.Interval = [TimeSpan]::FromMilliseconds(300)
+    $script:DRInstallTimer.Add_Tick({
+        if (-not $script:DRInstallAsync.IsCompleted) { return }
+        $script:DRInstallTimer.Stop()
+        $result = $null
+        try {
+            $result = @($script:DRInstallPs.EndInvoke($script:DRInstallAsync)) | Select-Object -Last 1
+        } catch {
+            $result = [pscustomobject]@{ Success = $false; Message = "The update could not be installed: $($_.Exception.Message)" }
+        }
+        try {
+            $script:DRInstallPs.Dispose()
+            $script:DRInstallRunspace.Close()
+            $script:DRInstallRunspace.Dispose()
+        } catch { }
+        $ui.BusyOverlay.Visibility = 'Collapsed'
+        $ui.OverlayProgress.IsIndeterminate = $false
+        $ui.OverlayPercent.Visibility = 'Visible'
+
+        Complete-DRUpdateInstall $result
+
+        $script:DRUpdateRunning = $false
+        $ui.CheckUpdatesButton.IsEnabled = $true
+        $ui.CheckUpdatesButton.Content = 'Update this program'
+    })
+    $script:DRInstallTimer.Start()
+    return $true
+}
+
 $ui.CheckUpdatesButton.Add_Click({
     # A copy waiting to be activated gets the code box here too - some people
     # will reach for Update rather than the link in the corner.
@@ -4644,32 +4783,24 @@ $ui.CheckUpdatesButton.Add_Click({
         if ($answer -ne [Windows.MessageBoxResult]::Yes) { return }
 
         $ui.CheckUpdatesButton.Content = 'Updating...'
-        $result = Install-DRUpdate -Manifest $check.Manifest
-        if ($result.Success) {
-            $ui.UpdateBanner.Visibility = 'Collapsed'
-            # The green "New update" badge is set once at startup and nothing
-            # cleared it, so it kept advertising an update already installed
-            # until the app was restarted. Put the button back now.
-            try {
-                $ui.HeroUpdateButton.Content = 'Check for updates'
-                $ui.HeroUpdateButton.FontWeight = 'Normal'
-                $ui.HeroUpdateButton.ClearValue([Windows.Controls.Control]::BackgroundProperty)
-                $ui.HeroUpdateButton.ClearValue([Windows.Controls.Control]::ForegroundProperty)
-                $ui.HeroUpdateButton.ClearValue([Windows.Controls.Control]::BorderBrushProperty)
-                $ui.CheckUpdatesButton.ToolTip = $null
-            } catch { }
+        if (Start-DRUpdateInstall -Manifest $check.Manifest) {
+            # Finishes in the timer; the finally below must not re-enable the button yet.
+            $script:DRUpdateRunning = $true
+            return
         }
-        $icon = if ($result.Success) { [Windows.MessageBoxImage]::Information } else { [Windows.MessageBoxImage]::Warning }
-        [Windows.MessageBox]::Show($result.Message, 'DRDirect PC Cleaner',
-            [Windows.MessageBoxButton]::OK, $icon) | Out-Null
+        # The background could not be started - install the old way rather
+        # than not at all. The window may stall while it downloads.
+        Complete-DRUpdateInstall (Install-DRUpdate -Manifest $check.Manifest)
     }
     catch {
         [Windows.MessageBox]::Show("Could not check for updates: $($_.Exception.Message)",
             'DRDirect PC Cleaner', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Error) | Out-Null
     }
     finally {
-        $ui.CheckUpdatesButton.IsEnabled = $true
-        $ui.CheckUpdatesButton.Content = 'Update this program'
+        if (-not $script:DRUpdateRunning) {
+            $ui.CheckUpdatesButton.IsEnabled = $true
+            $ui.CheckUpdatesButton.Content = 'Update this program'
+        }
     }
 })
 
