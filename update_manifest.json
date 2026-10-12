@@ -1,7 +1,7 @@
 {
-  "version": "1.4.89",
-  "notes": "The Duplicate Finder no longer lists Windows' own account files or folder settings files. They are not yours to remove, and Windows would refuse to let them go anyway.",
-  "published": "2026-10-12T17:32:00.0548660-04:00",
+  "version": "1.4.90",
+  "notes": "The menu on the left is now grouped by what each item does, with a new Check section for your drives, your RAM and your PC information.",
+  "published": "2026-10-12T17:36:10.1411287-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "7BED6E414518736743571C5C4208879C20A81113CC926BE7F473086FB0667F5E",
-      "size": 336952
+      "sha256": "80E57E7847E0A21F67B5630653C580C7F89097D2073BB9349455B67B2CCB9396",
+      "size": 337071
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
