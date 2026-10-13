@@ -1,7 +1,7 @@
 {
-  "version": "1.4.95",
+  "version": "1.4.96",
   "notes": "Behind-the-scenes update. Nothing changes for you.",
-  "published": "2026-10-13T18:46:59.7582529-04:00",
+  "published": "2026-10-13T19:08:06.7255053-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B937A953E53F00620EAA18121F85BEE99FC525BF2AACE2495444F1D3BCBEA5BB",
-      "size": 333585
+      "sha256": "9CF237A4ABF7C96406F25F1144616921C7A7EC2E0BAA0AA49D6774B7652C2276",
+      "size": 334135
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -20,8 +20,8 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "76D69B3E635D01CA073F2CFAFBAC48275BC14A57631AAF53F591B7089B284CD0",
-      "size": 57683
+      "sha256": "8E41BB7EC8426AC5789025AD7A91F659FE6258080E4BCC49E09525AD549F2630",
+      "size": 58047
     },
     {
       "name": "DRDirect Activation.ps1",

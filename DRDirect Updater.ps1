@@ -224,14 +224,13 @@ function Get-DRThisPcBlockIds {
     return $ids
 }
 
-function Test-DRPcBlocked {
+function Get-DRBlockManifest {
     <#
     .SYNOPSIS
-        True when the signed manifest lists this PC as blocked.
+        Returns the signed manifest, live or the last signed copy kept on this PC.
     .DESCRIPTION
-        Reads the live manifest, or the last signed copy kept on this PC when the
-        feed cannot be reached. An unsigned or unreadable list blocks nobody, so a
-        dead network or a tampered file can never lock a customer out.
+        An unsigned or unreadable list blocks nobody, so a dead network or a
+        tampered file can never lock a customer out.
     #>
     $previous = $script:DRManifestTimeout
     $script:DRManifestTimeout = 5
@@ -251,14 +250,27 @@ function Test-DRPcBlocked {
             }
         } catch { }
     }
-    if (-not $manifest) { return $false }
-    if ($manifest.PSObject.Properties.Name -notcontains 'blocked') { return $false }
+    return $manifest
+}
 
-    $blocked = @($manifest.blocked | ForEach-Object { ([string]$_).Trim().ToLowerInvariant() } | Where-Object { $_ })
+function Test-DRListHasThisPc($manifest, [string]$Field) {
+    if (-not $manifest) { return $false }
+    if ($manifest.PSObject.Properties.Name -notcontains $Field) { return $false }
+    $list = @($manifest.$Field | ForEach-Object { ([string]$_).Trim().ToLowerInvariant() } | Where-Object { $_ })
     foreach ($id in Get-DRThisPcBlockIds) {
-        if ($blocked -contains $id) { return $true }
+        if ($list -contains $id) { return $true }
     }
     return $false
+}
+
+function Test-DRPcBlocked {
+    <# True when the signed manifest warns this PC (keeps working, shows a notice). #>
+    Test-DRListHasThisPc (Get-DRBlockManifest) 'blocked'
+}
+
+function Test-DRPcBlockedHard {
+    <# True when the signed manifest blocks this PC completely (cannot open the Cleaner). #>
+    Test-DRListHasThisPc (Get-DRBlockManifest) 'blockedHard'
 }
 
 function Get-DRUpdateSummary {
