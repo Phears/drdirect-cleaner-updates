@@ -156,6 +156,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='cleanup.clipboard'; Category='Cleanup'; Name='Clipboard'; Description='Empties whatever you last copied. Nothing else is touched; copy again and it works as before.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.muicache'; Category='Cleanup'; Name='Program name cache (MUICache)'; Description='Clears the list Windows keeps of program names it has shown you. Windows rebuilds it by itself, and no program is removed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.run-history'; Category='Cleanup'; Name='Run box history'; Description='Empties the drop-down list in the Windows Run box (Win+R). Your programs are untouched.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.notepad-fresh'; Category='Cleanup'; Name='Notepad opens empty'; Description='When you open Notepad, you get a clean, empty page. Old notes will not pop up anymore. Your saved files are not touched.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.search-history'; Category='Cleanup'; Name='File Explorer search history'; Description='Clears what you have typed into File Explorer''s search box. Your files are untouched.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.recent-docs'; Category='Cleanup'; Name='Recent documents list'; Description='Clears the list of documents you opened recently. The documents themselves are kept.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.browser-compact'; Category='Cleanup'; Name='Compact browser databases'; Description='Packs the files your browsers keep their history, icons and autofill in, so they take less space and search faster. Nothing is deleted. Passwords and cookies are never touched. Close your browsers first - any that are open are skipped.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -690,6 +691,14 @@ function Get-DRAnalysis {
                 'cleanup.run-history' {
                     $items = Get-DRRegistryValueCount 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU'
                     $detail = "$items entry(s) in the Run box"
+                }
+                'cleanup.notepad-fresh' {
+                    $state = Get-DRNotepadReopen
+                    $detail = switch ($state) {
+                        $true   { 'Notepad brings back old notes when it opens' }
+                        $false  { 'Notepad already opens empty' }
+                        default { 'Notepad is not set up on this PC' }
+                    }
                 }
                 'cleanup.search-history' {
                     $items = Get-DRRegistryValueCount 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\WordWheelQuery'
@@ -2964,6 +2973,89 @@ function Clear-DRRegistryValues {
     }
 }
 
+function Initialize-DRAppHive {
+    # Store apps keep their settings in a private registry file (settings.dat).
+    # RegLoadAppKey opens it for this process only and needs no admin rights.
+    if ('DRAppHive' -as [type]) { return }
+    Add-Type -TypeDefinition @'
+using System; using System.Runtime.InteropServices;
+public static class DRAppHive {
+    [DllImport("advapi32.dll", CharSet=CharSet.Unicode)]
+    public static extern int RegLoadAppKey(string file, out IntPtr hkey, int sam, int options, int reserved);
+    [DllImport("advapi32.dll", CharSet=CharSet.Unicode)]
+    public static extern int RegOpenKeyEx(IntPtr h, string sub, int opt, int sam, out IntPtr res);
+    [DllImport("advapi32.dll", CharSet=CharSet.Unicode)]
+    public static extern int RegQueryValueEx(IntPtr h, string name, IntPtr r, out int type, byte[] data, ref int len);
+    [DllImport("advapi32.dll", CharSet=CharSet.Unicode)]
+    public static extern int RegSetValueEx(IntPtr h, string name, int r, int type, byte[] data, int len);
+    [DllImport("advapi32.dll")] public static extern int RegCloseKey(IntPtr h);
+}
+'@
+}
+
+function Get-DRNotepadSettingsFile {
+    Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsNotepad_8wekyb3d8bbwe\Settings\settings.dat'
+}
+
+function Get-DRNotepadReopen {
+    <#
+        .SYNOPSIS
+            $true when Notepad reopens the last session, $false when it starts
+            empty, $null when that can't be read (not installed, or open).
+        .DESCRIPTION
+            "When Notepad starts" is the GhostFile value: 1 byte (1 = continue
+            previous session, 0 = start new) followed by an 8-byte timestamp.
+    #>
+    $file = Get-DRNotepadSettingsFile
+    if (-not (Test-Path -LiteralPath $file)) { return $null }
+    try { Initialize-DRAppHive } catch { return $null }
+    $hive = [IntPtr]::Zero; $key = [IntPtr]::Zero
+    try {
+        if ([DRAppHive]::RegLoadAppKey($file, [ref]$hive, 0x20019, 0, 0)) { return $null }
+        if ([DRAppHive]::RegOpenKeyEx($hive, 'LocalState', 0, 0x20019, [ref]$key)) { return $null }
+        $type = 0; $len = 64; $buf = New-Object byte[] 64
+        if ([DRAppHive]::RegQueryValueEx($key, 'GhostFile', [IntPtr]::Zero, [ref]$type, $buf, [ref]$len)) { return $true }   # never set: Notepad's default is to reopen
+        return ($buf[0] -ne 0)
+    } finally {
+        if ($key -ne [IntPtr]::Zero) { [void][DRAppHive]::RegCloseKey($key) }
+        if ($hive -ne [IntPtr]::Zero) { [void][DRAppHive]::RegCloseKey($hive) }
+    }
+}
+
+function Set-DRNotepadReopen {
+    <#
+        .SYNOPSIS
+            Sets "When Notepad starts". Changes only that one value; no tab,
+            note or file is deleted. Notepad must be closed.
+    #>
+    param([string]$TaskId, [bool]$Reopen)
+
+    $file = Get-DRNotepadSettingsFile
+    if (-not (Test-Path -LiteralPath $file)) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'Notepad is not set up on this PC. Nothing to change.'
+        return
+    }
+    Initialize-DRAppHive
+    $hive = [IntPtr]::Zero; $key = [IntPtr]::Zero
+    try {
+        $rc = [DRAppHive]::RegLoadAppKey($file, [ref]$hive, 0xF003F, 0, 0)
+        if ($rc) { New-DREvent -TaskId $TaskId -State Warning -Message ("Could not open Notepad's settings (code {0}). Close Notepad and try again." -f $rc); return }
+        $rc = [DRAppHive]::RegOpenKeyEx($hive, 'LocalState', 0, 0x20019 -bor 0x0002, [ref]$key)
+        if ($rc) { New-DREvent -TaskId $TaskId -State Warning -Message ("Could not open Notepad's settings (code {0})." -f $rc); return }
+        # Same layout Notepad writes: value byte, then the time it was set.
+        $data = New-Object byte[] 9
+        $data[0] = [byte]([int]$Reopen)
+        [Array]::Copy([BitConverter]::GetBytes([DateTime]::UtcNow.ToFileTimeUtc()), 0, $data, 1, 8)
+        $rc = [DRAppHive]::RegSetValueEx($key, 'GhostFile', 0, 0x5f5e10b, $data, $data.Length)
+        if ($rc) { New-DREvent -TaskId $TaskId -State Warning -Message ("Could not change Notepad's setting (code {0})." -f $rc); return }
+        $msg = if ($Reopen) { 'Notepad will bring back your last notes when it opens.' } else { 'Done. Notepad will now open with an empty page.' }
+        New-DREvent -TaskId $TaskId -State Information -Message $msg
+    } finally {
+        if ($key -ne [IntPtr]::Zero) { [void][DRAppHive]::RegCloseKey($key) }
+        if ($hive -ne [IntPtr]::Zero) { [void][DRAppHive]::RegCloseKey($hive) }
+    }
+}
+
 function Get-DRBrowserDatabases {
     <#
         .SYNOPSIS
@@ -3288,6 +3380,13 @@ function Invoke-DRTask {
             }
             'cleanup.run-history' {
                 Clear-DRRegistryValues -TaskId $TaskId -Key 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU' -TestRoot $TestRoot
+            }
+            'cleanup.notepad-fresh' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Notepad was not changed.' }
+                elseif (Get-Process -Name 'Notepad' -ErrorAction SilentlyContinue) {
+                    New-DREvent -TaskId $TaskId -State Warning -Message 'Skipped: Notepad is open. Close Notepad and run this again.'
+                }
+                else { Set-DRNotepadReopen -TaskId $TaskId -Reopen $false }
             }
             'cleanup.search-history' {
                 Clear-DRRegistryValues -TaskId $TaskId -Key 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\WordWheelQuery' -TestRoot $TestRoot

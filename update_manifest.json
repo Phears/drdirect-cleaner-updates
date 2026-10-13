@@ -1,7 +1,7 @@
 {
-  "version": "1.4.92",
-  "notes": "A small maintenance update. Nothing changes in how the program works.",
-  "published": "2026-10-13T11:46:27.0436684-04:00",
+  "version": "1.4.93",
+  "notes": "New: \"Notepad opens empty\" in the Clean list. Tick it, and Notepad will open with a clean, empty page instead of bringing back old notes. Your saved files are not touched.",
+  "published": "2026-10-13T14:47:54.5010915-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "57E4500C9B41F1036A8E5BEE4606089EAEAD90781C7A4337FB2981DC27C5853D",
-      "size": 247737
+      "sha256": "3A82C1E0C6D23C5CF67084818EBB174E934058A6118BE631D78629E868215B8D",
+      "size": 253540
     },
     {
       "name": "DRDirect Updater.ps1",
