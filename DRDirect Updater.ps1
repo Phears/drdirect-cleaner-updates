@@ -23,6 +23,7 @@
 # contents endpoint always returns what the branch holds right now.
 $script:DRUpdateFeed = 'https://api.github.com/repos/Phears/drdirect-cleaner-updates/contents'
 $script:DRUpdateRef = '?ref=main'
+$script:DRManifestTimeout = 15
 $script:DRUpdateHeaders = @{ Accept = 'application/vnd.github.raw'; 'User-Agent' = 'DRDirect-Updater'; 'Cache-Control' = 'no-cache' }
 
 # Scripts the feed is allowed to replace. Anything else in a manifest is
@@ -171,7 +172,7 @@ function Get-DRUpdateManifest {
         # No credentials: the feed is public precisely so nothing has to be
         # embedded in the exe, where any recipient could extract it.
         $response = Invoke-WebRequest -Uri "$script:DRUpdateFeed/update_manifest.json$script:DRUpdateRef" -Headers $script:DRUpdateHeaders `
-            -UseBasicParsing -TimeoutSec 15
+            -UseBasicParsing -TimeoutSec $script:DRManifestTimeout
 
         # Verify before parsing. The signature covers the exact bytes the feed
         # served, so it has to be taken from those bytes and not from anything
@@ -180,7 +181,7 @@ function Get-DRUpdateManifest {
                else { [System.Text.Encoding]::UTF8.GetBytes([string]$response.Content) }
 
         $sigResponse = Invoke-WebRequest -Uri "$script:DRUpdateFeed/update_manifest.sig$script:DRUpdateRef" -Headers $script:DRUpdateHeaders `
-            -UseBasicParsing -TimeoutSec 15
+            -UseBasicParsing -TimeoutSec $script:DRManifestTimeout
         $sigText = if ($sigResponse.Content -is [byte[]]) {
             [System.Text.Encoding]::UTF8.GetString([byte[]]$sigResponse.Content)
         } else { [string]$sigResponse.Content }
@@ -210,6 +211,55 @@ function Get-DRUpdateManifest {
     }
 }
 
+
+function Get-DRThisPcBlockIds {
+    <# The IDs a block entry can name: the PC ID DRDirect hands out (UUID-boardserial) or the UUID alone. #>
+    $ids = New-Object System.Collections.Generic.List[string]
+    try {
+        $uuid = [string](Get-CimInstance Win32_ComputerSystemProduct).UUID
+        $serial = [string](Get-CimInstance Win32_BaseBoard).SerialNumber
+        if ($uuid.Trim()) { $ids.Add($uuid.Trim().ToLowerInvariant()) }
+        if ($uuid.Trim() -and $serial.Trim()) { $ids.Add(("{0}-{1}" -f $uuid.Trim(), $serial.Trim()).ToLowerInvariant()) }
+    } catch { }
+    return $ids
+}
+
+function Test-DRPcBlocked {
+    <#
+    .SYNOPSIS
+        True when the signed manifest lists this PC as blocked.
+    .DESCRIPTION
+        Reads the live manifest, or the last signed copy kept on this PC when the
+        feed cannot be reached. An unsigned or unreadable list blocks nobody, so a
+        dead network or a tampered file can never lock a customer out.
+    #>
+    $previous = $script:DRManifestTimeout
+    $script:DRManifestTimeout = 5
+    try { $manifest = Get-DRUpdateManifest } finally { $script:DRManifestTimeout = $previous }
+
+    if (-not $manifest) {
+        try {
+            $root = Get-DRUpdateRoot
+            $jsonPath = Join-Path $root 'update_manifest.json'
+            $sigPath = Join-Path $root 'update_manifest.sig'
+            if ((Test-Path -LiteralPath $jsonPath -PathType Leaf) -and (Test-Path -LiteralPath $sigPath -PathType Leaf)) {
+                $raw = [System.IO.File]::ReadAllBytes($jsonPath)
+                $sig = [System.IO.File]::ReadAllText($sigPath)
+                if (Test-DRManifestSignature -ManifestBytes $raw -SignatureBase64 $sig) {
+                    $manifest = ConvertFrom-Json -InputObject ([System.Text.Encoding]::UTF8.GetString($raw).TrimStart([char]0xFEFF, [char]0x200B).Trim())
+                }
+            }
+        } catch { }
+    }
+    if (-not $manifest) { return $false }
+    if ($manifest.PSObject.Properties.Name -notcontains 'blocked') { return $false }
+
+    $blocked = @($manifest.blocked | ForEach-Object { ([string]$_).Trim().ToLowerInvariant() } | Where-Object { $_ })
+    foreach ($id in Get-DRThisPcBlockIds) {
+        if ($blocked -contains $id) { return $true }
+    }
+    return $false
+}
 
 function Get-DRUpdateSummary {
     <#

@@ -4982,6 +4982,25 @@ if ($NoShow) {
     Set-DRDefaultTicks
     # Ask once a day, quietly, so a waiting update is visible on the button
     # rather than only to someone who thinks to go looking for it.
+    # DRDirect can flag a PC. Checked against the signed feed; a dead network or
+    # an unsigned list never flags anyone. A flagged PC sees a notice every time
+    # the Cleaner starts, and keeps working, until it is taken off the list.
+    $blockedHere = $false
+    try { $blockedHere = Test-DRPcBlocked } catch { }
+    if ($blockedHere) {
+        # A short code that is the same every time on this PC, so DRDirect can tell
+        # which PC is calling.
+        $refCode = ''
+        try {
+            $pcId = @(Get-DRThisPcBlockIds)[-1]
+            $hash = [System.Security.Cryptography.SHA256]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($pcId))
+            $hex = ($hash | ForEach-Object { $_.ToString('X2') }) -join ''
+            $refCode = $hex.Substring(0, 4) + '-' + $hex.Substring(4, 4)
+        } catch { }
+        $refLine = if ($refCode) { [Environment]::NewLine + [Environment]::NewLine + 'Reference code: ' + $refCode } else { '' }
+        [Windows.MessageBox]::Show('This copy of DRDirect PC Cleaner needs attention. Please contact your software provider.' + $refLine,
+            'DRDirect PC Cleaner', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Warning) | Out-Null
+    }
     try { Start-DRQuietUpdateCheck } catch { }
     try { Start-DRHealthCheck } catch { }
     [void]$window.ShowDialog()

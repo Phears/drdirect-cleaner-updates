@@ -1,7 +1,7 @@
 {
-  "version": "1.4.94",
-  "notes": "Safe clean now also makes Notepad open with a clean, empty page, so old notes stop popping up. Your saved files are not touched.",
-  "published": "2026-10-13T14:49:59.1107275-04:00",
+  "version": "1.4.95",
+  "notes": "Behind-the-scenes update. Nothing changes for you.",
+  "published": "2026-10-13T18:46:59.7582529-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "EE05A2841C94671ED168F1A190D1370C4192E32895C7B93BA8E2CCD2A8502A09",
-      "size": 337357
+      "sha256": "B937A953E53F00620EAA18121F85BEE99FC525BF2AACE2495444F1D3BCBEA5BB",
+      "size": 333585
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -20,8 +20,8 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "5A9D4E268F5A95D9F33DD5028C93D159F72A6E3B4B970DFB5FD320612FCCF445",
-      "size": 55296
+      "sha256": "76D69B3E635D01CA073F2CFAFBAC48275BC14A57631AAF53F591B7089B284CD0",
+      "size": 57683
     },
     {
       "name": "DRDirect Activation.ps1",
@@ -44,5 +44,7 @@
       "size": 10410141
     }
   ],
-  "blocked": []
+  "blocked": [
+    "c09259f2-fd0d-4c91-18a0-60cf8462f29d-240842583800537"
+  ]
 }
