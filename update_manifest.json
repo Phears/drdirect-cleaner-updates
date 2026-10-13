@@ -1,7 +1,7 @@
 {
-  "version": "1.4.93",
-  "notes": "New: \"Notepad opens empty\" in the Clean list. Tick it, and Notepad will open with a clean, empty page instead of bringing back old notes. Your saved files are not touched.",
-  "published": "2026-10-13T14:47:54.5010915-04:00",
+  "version": "1.4.94",
+  "notes": "Safe clean now also makes Notepad open with a clean, empty page, so old notes stop popping up. Your saved files are not touched.",
+  "published": "2026-10-13T14:49:59.1107275-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "3B1AC73C85EDC2F00D949D59F932FE79BE8DA12122E66355EC659CB30A5D3C34",
-      "size": 337251
+      "sha256": "EE05A2841C94671ED168F1A190D1370C4192E32895C7B93BA8E2CCD2A8502A09",
+      "size": 337357
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "3A82C1E0C6D23C5CF67084818EBB174E934058A6118BE631D78629E868215B8D",
-      "size": 253540
+      "sha256": "4505BCF96364139AD25D61C808B7754EA5E7F99F52EAB9622F884E800CF3C9B3",
+      "size": 253537
     },
     {
       "name": "DRDirect Updater.ps1",

@@ -1364,7 +1364,9 @@ function Test-TaskInOrderedPreset {
         'cleanup.wer-queue',
         'cleanup.delivery-optimization-cache',
         # Windows rebuilds this list on its own and nothing is lost with it.
-        'cleanup.muicache'
+        'cleanup.muicache',
+        # Only changes a Notepad setting and skips if Notepad is open.
+        'cleanup.notepad-fresh'
     )
     # The cloud caches are safe and only ever appear for a service that is
     # installed, so a full cleanup should take them too.
