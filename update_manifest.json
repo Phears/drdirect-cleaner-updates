@@ -1,7 +1,7 @@
 {
-  "version": "1.4.91",
-  "notes": "New in Medium: Compact browser databases. Your browsers' history, icons and autofill files get smaller and search faster. Nothing is deleted, and passwords and cookies are never touched. Close your browsers first - any that are open are skipped.",
-  "published": "2026-10-12T17:42:31.7386725-04:00",
+  "version": "1.4.92",
+  "notes": "A small maintenance update. Nothing changes in how the program works.",
+  "published": "2026-10-13T11:46:27.0436684-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
