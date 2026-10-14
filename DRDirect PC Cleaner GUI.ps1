@@ -4669,10 +4669,36 @@ $ui.UpdateBannerButton.Add_Click({
 
 $script:DRUpdateRunning = $false
 
+function Get-DRLauncherPath {
+    # The locked exe starts this script, so it is this PowerShell's parent. Gives
+    # '' when the script was started any other way, such as from a console.
+    try {
+        $parentId = (Get-CimInstance Win32_Process -Filter "ProcessId=$PID" -ErrorAction Stop).ParentProcessId
+        $path = [string](Get-CimInstance Win32_Process -Filter "ProcessId=$parentId" -ErrorAction Stop).ExecutablePath
+        if ($path -and ([IO.Path]::GetFileName($path) -like 'DRDirect PC Cleaner*.exe') -and (Test-Path -LiteralPath $path -PathType Leaf)) { return $path }
+    } catch { }
+    return ''
+}
+
 function Complete-DRUpdateInstall {
     # What used to happen straight after Install-DRUpdate returned, now run once
     # the background install has finished.
     param($Result)
+    if ($Result -and $Result.Success) {
+        $launcher = Get-DRLauncherPath
+        if ($launcher) {
+            [Windows.MessageBox]::Show("Updated to $($Result.Version)." + [Environment]::NewLine + [Environment]::NewLine +
+                'DRDirect PC Cleaner will now close and open again by itself.', 'DRDirect PC Cleaner',
+                [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information) | Out-Null
+            try {
+                # Wait a moment so this copy has fully closed before the new one opens.
+                Start-Process -FilePath 'cmd.exe' -WindowStyle Hidden `
+                    -ArgumentList '/c', ('ping 127.0.0.1 -n 3 >nul & start "" "' + $launcher + '"')
+                $window.Close()
+                return
+            } catch { }   # could not restart it - fall through to the normal message
+        }
+    }
     if ($Result -and $Result.Success) {
         $ui.UpdateBanner.Visibility = 'Collapsed'
         # The green "New update" badge is set once at startup and nothing

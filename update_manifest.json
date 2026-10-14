@@ -1,7 +1,7 @@
 {
-  "version": "1.4.97",
-  "notes": "The \"Update my apps\" window now opens with a new D.R.Direct PC Upgrade banner.",
-  "published": "2026-10-14T12:58:55.2750974-04:00",
+  "version": "1.4.98",
+  "notes": "Behind-the-scenes update. Nothing changes for you.",
+  "published": "2026-10-14T13:10:28.4535048-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "945FB96D0D0B620E303181F0C171BB8BB906283D6FDE28A1823F878027003FF2",
-      "size": 334467
+      "sha256": "703B29116E95454F78FFBD1642AF922B8E8AE40A03E2DE0D12F4872E988CFAB0",
+      "size": 335950
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
