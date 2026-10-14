@@ -1,7 +1,7 @@
 {
-  "version": "1.4.103",
-  "notes": "\"Update my apps\" now also installs PowerShell 7 and Windows Terminal if your PC does not have them, and keeps them up to date.",
-  "published": "2026-10-14T13:51:25.3299357-04:00",
+  "version": "1.4.104",
+  "notes": "Cleaning the hidden Recycle Bin folders no longer stops with \"Access to the path is denied\".",
+  "published": "2026-10-14T15:47:12.7029565-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "4505BCF96364139AD25D61C808B7754EA5E7F99F52EAB9622F884E800CF3C9B3",
-      "size": 253537
+      "sha256": "117AA72DA54661BB81AAD2D3BBD97E1FBBF3AB25E1646BD672E60E967346349F",
+      "size": 254578
     },
     {
       "name": "DRDirect Updater.ps1",

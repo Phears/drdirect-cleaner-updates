@@ -3221,7 +3221,20 @@ function Invoke-DRTask {
                     foreach ($drive in $fixedDrives) {
                         $root = $drive.DeviceID + '\'
                         $recyclePath = Join-Path $root '$Recycle.Bin'
-                        if (Test-Path -LiteralPath $recyclePath) { Remove-DRSafeItem -LiteralPath $recyclePath -AllowedRoot $root | Out-Null }
+                        if (-not (Test-Path -LiteralPath $recyclePath)) { continue }
+                        # Empty each user's folder inside it rather than deleting $Recycle.Bin
+                        # itself: Windows keeps the top folder open and refuses ("Access to the
+                        # path is denied"), and it rebuilds whatever is missing on its own.
+                        $items = @(Get-ChildItem -LiteralPath $recyclePath -Force -ErrorAction SilentlyContinue)
+                        $failed = 0
+                        foreach ($item in $items) {
+                            try { Remove-DRSafeItem -LiteralPath $item.FullName -AllowedRoot $recyclePath | Out-Null }
+                            catch {
+                                $failed++
+                                New-DREvent -TaskId $TaskId -State Warning -Message ("Skipped {0}\{1}: {2}" -f $recyclePath, $item.Name, $_.Exception.Message)
+                            }
+                        }
+                        if ($failed -gt 0 -and $failed -eq $items.Count) { throw "Windows would not let go of $recyclePath. Close File Explorer windows and run it again as administrator." }
                     }
                 }
             }
