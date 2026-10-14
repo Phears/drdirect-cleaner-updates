@@ -1,7 +1,7 @@
 {
-  "version": "1.4.101",
-  "notes": "Behind-the-scenes update. Nothing changes for you.",
-  "published": "2026-10-14T13:38:36.4415327-04:00",
+  "version": "1.4.102",
+  "notes": "The line under the banner in the \"Update my apps\" window is now bolder and easier to read.",
+  "published": "2026-10-14T13:43:01.7918812-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "6A34183D5F4F6079513978E097D67BA8F3FBC208BAEE75F5ED2E0D24D99C7361",
-      "size": 336380
+      "sha256": "3254144EB18C4239E8FD8BE8654E717747734CF9C182FECAC4F460384D9E2D73",
+      "size": 336572
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

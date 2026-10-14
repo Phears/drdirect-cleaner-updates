@@ -3624,7 +3624,11 @@ $frames = if ($NoAnim) { 1 } else { 24 }
 for ($f = 0; $f -lt $frames; $f++) {
     if ($f -gt 0) { try { [Console]::SetCursorPosition(0, 0) } catch {} }
     Write-Host ''
-    foreach ($line in $banner) { Write-Host (Rainbow $line ($f * 3)) }
+    # The tagline (last line) is printed bold so it reads thicker than the letters above it.
+    foreach ($line in $banner) {
+        $bold = if ($line -like '*K E E P I N G*') { "$ESC[1m" } else { '' }
+        Write-Host ($bold + (Rainbow $line ($f * 3)))
+    }
     Write-Host ''
     if (-not $NoAnim) { Start-Sleep -Milliseconds 40 }
 }
