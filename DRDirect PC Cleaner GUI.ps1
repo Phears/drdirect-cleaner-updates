@@ -3606,11 +3606,17 @@ function Rainbow($text, $shift = 0) {
 }
 
 $banner = @(
-    '  __        _____ _   _  ____ _____ _____   _   _ ____   ____ ____      _    ____  _____ ',
-    '  \ \      / /_ _| \ | |/ ___| ____|_   _| | | | |  _ \ / ___|  _ \    / \  |  _ \| ____|',
-    '   \ \ /\ / / | ||  \| | |  _|  _|   | |   | | | | |_) | |  _| |_) |  / _ \ | | | |  _|  ',
-    '    \ V  V /  | || |\  | |_| | |___  | |   | |_| |  __/| |_| |  _ <  / ___ \| |_| | |___ ',
-    '     \_/\_/  |___|_| \_|\____|_____| |_|    \___/|_|    \____|_| \_\/_/   \_\____/|_____|'
+    '       ____      ____      ____   ___  ____   _____   ____  _____',
+    '      |  _ \    |  _ \    |  _ \ |_ _||  _ \ | ____| / ___||_   _|',
+    '      | | | |   | |_) |   | | | | | | | |_) ||  _|  | |      | |',
+    '      | |_| | _ |  _ <  _ | |_| | | | |  _ < | |___ | |___   | |',
+    '      |____/ (_)|_| \_\(_)|____/ |___||_| \_\|_____| \____|  |_|',
+    '   ____    ____     _   _  ____    ____  ____      _     ____   _____',
+    '  |  _ \  / ___|   | | | ||  _ \  / ___||  _ \    / \   |  _ \ | ____|',
+    '  | |_) || |       | | | || |_) || |  _ | |_) |  / _ \  | | | ||  _|',
+    '  |  __/ | |___    | |_| ||  __/ | |_| ||  _ <  / ___ \ | |_| || |___',
+    '  |_|     \____|    \___/ |_|     \____||_| \_\/_/   \_\|____/ |_____|',
+    '     ✦  K E E P I N G   Y O U R   A P P S   F R E S H  ✦'
 )
 
 try { Clear-Host } catch {}
@@ -3622,7 +3628,7 @@ for ($f = 0; $f -lt $frames; $f++) {
     Write-Host ''
     if (-not $NoAnim) { Start-Sleep -Milliseconds 40 }
 }
-Write-Host (Rainbow ('=' * 90))
+Write-Host (Rainbow ('═' * 74))
 Write-Host ''
 
 if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
@@ -3713,7 +3719,7 @@ foreach ($p in $pkgs) {
 # ---- 3. summary -------------------------------------------------------------
 $secs = [int]((Get-Date) - $start).TotalSeconds
 Write-Host ''
-Write-Host (Rainbow ('=' * 90))
+Write-Host (Rainbow ('═' * 74))
 Write-Host (RGB 80 255 120 "🎉 Done in ${secs}s") -NoNewline
 Write-Host (RGB 255 230 0 "   ✅ $($ok.Count) upgraded") -NoNewline
 if ($fail.Count -eq 0) { Write-Host (RGB 80 255 120 "   ✅ no problems") }
@@ -3728,7 +3734,7 @@ Read-Host 'Press Enter to close' | Out-Null
         $file = Join-Path $env:TEMP 'DRDirect-Winget-Upgrade.ps1'
         [IO.File]::WriteAllText($file, $flashy, (New-Object Text.UTF8Encoding $true))
         # 'start' forces a real new console window, like the cmd route that always showed one; the script itself waits for Enter before it closes, on every path.
-        Start-Process -FilePath 'cmd.exe' -ArgumentList ('/c start "DRDirect winget upgrade" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + $file + '"') -WindowStyle Hidden | Out-Null
+        Start-Process -FilePath 'cmd.exe' -ArgumentList ('/c start "DRDirect PC Upgrade" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + $file + '"') -WindowStyle Hidden | Out-Null
         $ui.AppUpdatesStatus.Text = 'Updating apps in a colour PowerShell window. Close it when it says it has finished.'
     } catch {
         $ui.AppUpdatesStatus.Text = "Could not start the update window: $($_.Exception.Message)"
