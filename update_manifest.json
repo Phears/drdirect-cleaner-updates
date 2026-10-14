@@ -1,7 +1,7 @@
 {
-  "version": "1.4.106",
-  "notes": "The Uninstaller has a new Forced uninstaller button. Type the name of a program that is gone, broken or will not uninstall, and it finds the leftovers so you can pick what to remove.",
-  "published": "2026-10-14T17:09:05.9046352-04:00",
+  "version": "1.4.107",
+  "notes": "The Uninstaller's Forced uninstaller can now also look for leftovers in the other Windows accounts on the PC.",
+  "published": "2026-10-14T17:14:28.8075327-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "3D6BD8BCF9CAAA0F640CE7ED7D226B1FB89F30D322D1A556CE780C288E31C471",
-      "size": 10412297
+      "sha256": "CB672B16A5F1093E0777C4BA5F04E52316400DDE2344C8269716124BC69C1FA3",
+      "size": 10413028
     }
   ],
   "blocked": [],
