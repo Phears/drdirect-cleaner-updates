@@ -1,7 +1,7 @@
 {
   "version": "1.4.108",
   "notes": "The Find duplicate files button in the Cleaner now shows in the Duplicate Finder's green.",
-  "published": "2026-10-14T17:32:01.2992597-04:00",
+  "published": "2026-10-14T17:32:39.8392452-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
