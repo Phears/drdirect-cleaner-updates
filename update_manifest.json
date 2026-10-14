@@ -1,7 +1,7 @@
 {
-  "version": "1.4.102",
-  "notes": "The line under the banner in the \"Update my apps\" window is now bolder and easier to read.",
-  "published": "2026-10-14T13:43:01.7918812-04:00",
+  "version": "1.4.103",
+  "notes": "\"Update my apps\" now also installs PowerShell 7 and Windows Terminal if your PC does not have them, and keeps them up to date.",
+  "published": "2026-10-14T13:51:25.3299357-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "3254144EB18C4239E8FD8BE8654E717747734CF9C182FECAC4F460384D9E2D73",
-      "size": 336572
+      "sha256": "B77FFBB681A6D6EE94C03F476EF7DE330FFFFE4F896A433020535AFC6B8A42C9",
+      "size": 339028
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

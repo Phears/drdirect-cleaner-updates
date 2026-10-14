@@ -3641,6 +3641,48 @@ if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
+# ---- 0. make sure PowerShell 7 and Windows Terminal are installed -----------
+# Both come from winget and keep themselves current through the upgrade below.
+# Only a clear "not installed" answer triggers an install; if winget cannot tell
+# (no network, source down), nothing is installed.
+$essentials = @(
+    # Present: winget does not always know about a copy that was installed another way,
+    # so look for the program itself before deciding it is missing.
+    @{ Name = 'PowerShell 7';      Id = 'Microsoft.PowerShell'
+       Present = { (Test-Path -LiteralPath (Join-Path $env:ProgramFiles 'PowerShell\7\pwsh.exe')) -or [bool](Get-Command pwsh.exe -ErrorAction SilentlyContinue) } },
+    @{ Name = 'Windows Terminal';  Id = 'Microsoft.WindowsTerminal'
+       Present = { [bool](Get-Command wt.exe -ErrorAction SilentlyContinue) -or [bool](Get-AppxPackage -AllUsers -Name 'Microsoft.WindowsTerminal*' -ErrorAction SilentlyContinue) } }
+)
+$wingetPath = (Get-Command winget).Source
+$ok = @(); $fail = @()
+foreach ($e in $essentials) {
+    if (& $e.Present) { continue }
+    $null = & $wingetPath list --id $e.Id --exact --accept-source-agreements 2>&1
+    if ($LASTEXITCODE -ne -1978335212) { continue }   # installed, or winget could not tell
+    Write-Host (RGB 0 255 200 "🧰 $($e.Name) is not installed - installing it...")
+    $a = @('install', '--id', $e.Id, '--exact', '--silent', '--accept-source-agreements', '--accept-package-agreements')
+    $proc = Start-Process $wingetPath -ArgumentList $a -NoNewWindow -PassThru
+    $null = $proc.Handle
+    if (-not $proc.WaitForExit($TimeoutMinutes * 60000)) {
+        try { Stop-Process -Id $proc.Id -Force } catch {}
+        Write-Host (RGB 255 60 90 "⏰ $($e.Name) timed out after ${TimeoutMinutes}m - skipped")
+        $fail += "$($e.Name) (timeout)"
+    }
+    elseif ($proc.ExitCode -eq 0) {
+        Write-Host (RGB 80 255 120 "✅ $($e.Name) installed")
+        $ok += "$($e.Name) (installed)"
+    }
+    elseif ($proc.ExitCode -in -1978335135, -1978335189) {
+        # Already there under another name, or this PC cannot run it. Nothing to report.
+        Write-Host (RGB 150 150 255 "⏭️  $($e.Name) - not needed on this PC")
+    }
+    else {
+        Write-Host (RGB 255 60 90 "💥 $($e.Name) could not be installed (exit code $($proc.ExitCode))")
+        $fail += "$($e.Name) (exit $($proc.ExitCode))"
+    }
+}
+Write-Host ''
+
 # ---- 1. find what needs upgrading -------------------------------------------
 Write-Host (RGB 0 255 200 '🔎 Checking for upgrades...')
 $listArgs = @('upgrade', '--accept-source-agreements')
@@ -3684,7 +3726,7 @@ Write-Host ''
 
 $wingetExe = (Get-Command winget).Source
 # ---- 2. upgrade each one with live winget progress --------------------------
-$ok = @(); $fail = @(); $start = Get-Date; $i = 0
+$start = Get-Date; $i = 0
 foreach ($p in $pkgs) {
     $i++
     Write-Host (Rainbow ('-' * 90))
@@ -3745,7 +3787,7 @@ Read-Host 'Press Enter to close' | Out-Null
     }
 }
 function Invoke-DRUpdateAllApps {
-    $answer = [Windows.MessageBox]::Show("This runs 'winget upgrade --all' and updates every app winget can update on this PC.`n`nSome apps may close or restart during their update. Save your work first.`n`nContinue?", 'DRDirect PC Cleaner',
+    $answer = [Windows.MessageBox]::Show("This runs 'winget upgrade --all' and updates every app winget can update on this PC.`n`nIt also installs PowerShell 7 and Windows Terminal if this PC does not have them.`n`nSome apps may close or restart during their update. Save your work first.`n`nContinue?", 'DRDirect PC Cleaner',
         [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question)
     if ($answer -ne [Windows.MessageBoxResult]::Yes) { return }
     if (Get-Command winget -ErrorAction SilentlyContinue) { Start-DRFlashyUpgrade; return }
