@@ -4691,6 +4691,11 @@ function Complete-DRUpdateInstall {
                 'DRDirect PC Cleaner will now close and open again by itself.', 'DRDirect PC Cleaner',
                 [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information) | Out-Null
             try {
+                # The exe is a PyInstaller onefile. A copy started from inside a running one
+                # inherits its markers and takes itself for a child of that copy, then fails
+                # its parent check ("failed to obtain executable path for parent process")
+                # once the parent has gone. This asks PyInstaller to treat it as a fresh start.
+                $env:PYINSTALLER_RESET_ENVIRONMENT = '1'
                 # Wait a moment so this copy has fully closed before the new one opens.
                 Start-Process -FilePath 'cmd.exe' -WindowStyle Hidden `
                     -ArgumentList '/c', ('ping 127.0.0.1 -n 3 >nul & start "" "' + $launcher + '"')
