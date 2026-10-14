@@ -1,7 +1,7 @@
 {
-  "version": "1.4.107",
-  "notes": "The Uninstaller's Forced uninstaller can now also look for leftovers in the other Windows accounts on the PC.",
-  "published": "2026-10-14T17:14:28.8075327-04:00",
+  "version": "1.4.108",
+  "notes": "The Find duplicate files button in the Cleaner now shows in the Duplicate Finder's green.",
+  "published": "2026-10-14T17:30:21.1019272-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B77FFBB681A6D6EE94C03F476EF7DE330FFFFE4F896A433020535AFC6B8A42C9",
-      "size": 339028
+      "sha256": "F9208F409CD1083E43E0AB04F4EE2162A1AF0E6FB9FEFDB7D26D3614013BC9ED",
+      "size": 339067
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
