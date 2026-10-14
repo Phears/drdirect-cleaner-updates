@@ -3238,7 +3238,13 @@ function Invoke-DRTask {
                                 if (-not ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
                                     try {
                                         & takeown.exe /F $item.FullName /A /R /D Y *> $null
-                                        & icacls.exe $item.FullName /grant '*S-1-5-32-544:(OI)(CI)F' /T /C /Q *> $null
+                                        # One grant per item: a single recursive grant did not reach
+                                        # the TrustedInstaller-owned files inside (tested on a real PC).
+                                        $inside = @($item) + @(Get-ChildItem -LiteralPath $item.FullName -Recurse -Force -ErrorAction SilentlyContinue)
+                                        foreach ($target in $inside) {
+                                            if ($target.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
+                                            & icacls.exe $target.FullName /grant '*S-1-5-32-544:F' *> $null
+                                        }
                                         Remove-DRSafeItem -LiteralPath $item.FullName -AllowedRoot $recyclePath | Out-Null
                                         $retried = $true
                                     } catch { $firstError = $_.Exception.Message }

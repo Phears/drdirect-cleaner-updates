@@ -1,7 +1,7 @@
 {
-  "version": "1.4.105",
-  "notes": "Cleaning the hidden Recycle Bin folders now works even when Windows has locked them, and tells you if the Cleaner needs to be run as administrator.",
-  "published": "2026-10-14T15:52:13.7621875-04:00",
+  "version": "1.4.106",
+  "notes": "The Uninstaller has a new Forced uninstaller button. Type the name of a program that is gone, broken or will not uninstall, and it finds the leftovers so you can pick what to remove.",
+  "published": "2026-10-14T17:09:05.9046352-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "943621A90CDAE9BCB9F9C7129BE5EABB4DCD1AD6A14FC2081652AF0F300AB6F2",
-      "size": 256165
+      "sha256": "253FE854E471519B769AEB1292AD2ED47B359E2AEFCD0AA487DE0CBA03619AB1",
+      "size": 256752
     },
     {
       "name": "DRDirect Updater.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "24D51A1E4C1E7CA3DBF25CF9DC5E4A3DC2C365A0756FAF61698CAB9DC8C5CB19",
-      "size": 10410141
+      "sha256": "3D6BD8BCF9CAAA0F640CE7ED7D226B1FB89F30D322D1A556CE780C288E31C471",
+      "size": 10412297
     }
   ],
   "blocked": [],
