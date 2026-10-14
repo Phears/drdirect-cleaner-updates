@@ -3230,11 +3230,30 @@ function Invoke-DRTask {
                         foreach ($item in $items) {
                             try { Remove-DRSafeItem -LiteralPath $item.FullName -AllowedRoot $recyclePath | Out-Null }
                             catch {
-                                $failed++
-                                New-DREvent -TaskId $TaskId -State Warning -Message ("Skipped {0}\{1}: {2}" -f $recyclePath, $item.Name, $_.Exception.Message)
+                                $firstError = $_.Exception.Message
+                                # Another user's folder here is locked to that user. Give
+                                # Administrators access to this one folder, then try once more.
+                                # Links are never followed, so this cannot reach anywhere else.
+                                $retried = $false
+                                if (-not ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+                                    try {
+                                        & takeown.exe /F $item.FullName /A /R /D Y *> $null
+                                        & icacls.exe $item.FullName /grant '*S-1-5-32-544:(OI)(CI)F' /T /C /Q *> $null
+                                        Remove-DRSafeItem -LiteralPath $item.FullName -AllowedRoot $recyclePath | Out-Null
+                                        $retried = $true
+                                    } catch { $firstError = $_.Exception.Message }
+                                }
+                                if (-not $retried) {
+                                    $failed++
+                                    New-DREvent -TaskId $TaskId -State Warning -Message ("Skipped {0}\{1}: {2}" -f $recyclePath, $item.Name, $firstError)
+                                }
                             }
                         }
-                        if ($failed -gt 0 -and $failed -eq $items.Count) { throw "Windows would not let go of $recyclePath. Close File Explorer windows and run it again as administrator." }
+                        if ($failed -gt 0 -and $failed -eq $items.Count) {
+                            $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+                            if (-not $isAdmin) { throw "Windows would not let go of $recyclePath because the Cleaner is not running as administrator. Close it and open it with Run as administrator." }
+                            throw "Windows would not let go of $recyclePath. Close File Explorer windows and run it again."
+                        }
                     }
                 }
             }

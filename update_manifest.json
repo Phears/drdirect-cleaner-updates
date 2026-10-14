@@ -1,7 +1,7 @@
 {
-  "version": "1.4.104",
-  "notes": "Cleaning the hidden Recycle Bin folders no longer stops with \"Access to the path is denied\".",
-  "published": "2026-10-14T15:47:12.7029565-04:00",
+  "version": "1.4.105",
+  "notes": "Cleaning the hidden Recycle Bin folders now works even when Windows has locked them, and tells you if the Cleaner needs to be run as administrator.",
+  "published": "2026-10-14T15:52:13.7621875-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "117AA72DA54661BB81AAD2D3BBD97E1FBBF3AB25E1646BD672E60E967346349F",
-      "size": 254578
+      "sha256": "943621A90CDAE9BCB9F9C7129BE5EABB4DCD1AD6A14FC2081652AF0F300AB6F2",
+      "size": 256165
     },
     {
       "name": "DRDirect Updater.ps1",
