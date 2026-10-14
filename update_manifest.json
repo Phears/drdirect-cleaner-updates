@@ -1,7 +1,7 @@
 {
   "version": "1.4.108",
   "notes": "The Find duplicate files button in the Cleaner now shows in the Duplicate Finder's green.",
-  "published": "2026-10-14T17:30:21.1019272-04:00",
+  "published": "2026-10-14T17:32:01.2992597-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F9208F409CD1083E43E0AB04F4EE2162A1AF0E6FB9FEFDB7D26D3614013BC9ED",
+      "sha256": "F53E6CDF26473433C59096C027C90F7D5919767F8C1D434B8B15199CEDC284B7",
       "size": 339067
     },
     {
