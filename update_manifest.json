@@ -1,7 +1,7 @@
 {
-  "version": "1.4.100",
+  "version": "1.4.101",
   "notes": "Behind-the-scenes update. Nothing changes for you.",
-  "published": "2026-10-14T13:23:48.6475671-04:00",
+  "published": "2026-10-14T13:38:36.4415327-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
