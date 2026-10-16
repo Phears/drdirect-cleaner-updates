@@ -1,7 +1,7 @@
 {
-  "version": "1.4.111",
-  "notes": "The app upgrade window has a new look and is now called D.R.DIRECT APP UPDATER. It no longer shows a red problem for Adobe Express Photos, and the recent fixes (Recycle Bin clearing, Forced uninstaller) are back.",
-  "published": "2026-10-16T11:31:52.2168352-04:00",
+  "version": "1.4.112",
+  "notes": "The side menu is easier to follow: related items are grouped together (Clean, Fix and protect, Check, Update) and the colours are consistent.",
+  "published": "2026-10-16T11:45:54.6126635-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "80C9D45E772CBAEF7CFFB435D901AC832B68898996EDD2DA2A69774A4C6D004E",
-      "size": 345122
+      "sha256": "6D0ED4C1E5290E3D3A7E013195AFD795C8BBA30D204FA72EA0DE83CD61404DD6",
+      "size": 344848
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
