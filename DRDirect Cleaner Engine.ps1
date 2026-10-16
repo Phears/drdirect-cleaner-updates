@@ -3221,7 +3221,45 @@ function Invoke-DRTask {
                     foreach ($drive in $fixedDrives) {
                         $root = $drive.DeviceID + '\'
                         $recyclePath = Join-Path $root '$Recycle.Bin'
-                        if (Test-Path -LiteralPath $recyclePath) { Remove-DRSafeItem -LiteralPath $recyclePath -AllowedRoot $root | Out-Null }
+                        if (-not (Test-Path -LiteralPath $recyclePath)) { continue }
+                        # Empty each user's folder inside it rather than deleting $Recycle.Bin
+                        # itself: Windows keeps the top folder open and refuses ("Access to the
+                        # path is denied"), and it rebuilds whatever is missing on its own.
+                        $items = @(Get-ChildItem -LiteralPath $recyclePath -Force -ErrorAction SilentlyContinue)
+                        $failed = 0
+                        foreach ($item in $items) {
+                            try { Remove-DRSafeItem -LiteralPath $item.FullName -AllowedRoot $recyclePath | Out-Null }
+                            catch {
+                                $firstError = $_.Exception.Message
+                                # Another user's folder here is locked to that user. Give
+                                # Administrators access to this one folder, then try once more.
+                                # Links are never followed, so this cannot reach anywhere else.
+                                $retried = $false
+                                if (-not ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+                                    try {
+                                        & takeown.exe /F $item.FullName /A /R /D Y *> $null
+                                        # One grant per item: a single recursive grant did not reach
+                                        # the TrustedInstaller-owned files inside (tested on a real PC).
+                                        $inside = @($item) + @(Get-ChildItem -LiteralPath $item.FullName -Recurse -Force -ErrorAction SilentlyContinue)
+                                        foreach ($target in $inside) {
+                                            if ($target.Attributes -band [IO.FileAttributes]::ReparsePoint) { continue }
+                                            & icacls.exe $target.FullName /grant '*S-1-5-32-544:F' *> $null
+                                        }
+                                        Remove-DRSafeItem -LiteralPath $item.FullName -AllowedRoot $recyclePath | Out-Null
+                                        $retried = $true
+                                    } catch { $firstError = $_.Exception.Message }
+                                }
+                                if (-not $retried) {
+                                    $failed++
+                                    New-DREvent -TaskId $TaskId -State Warning -Message ("Skipped {0}\{1}: {2}" -f $recyclePath, $item.Name, $firstError)
+                                }
+                            }
+                        }
+                        if ($failed -gt 0 -and $failed -eq $items.Count) {
+                            $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+                            if (-not $isAdmin) { throw "Windows would not let go of $recyclePath because the Cleaner is not running as administrator. Close it and open it with Run as administrator." }
+                            throw "Windows would not let go of $recyclePath. Close File Explorer windows and run it again."
+                        }
                     }
                 }
             }
