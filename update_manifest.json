@@ -1,7 +1,7 @@
 {
-  "version": "1.4.110",
-  "notes": "Restores the D.R.DIRECT PC Upgrade banner and recent fixes, and skips Adobe Express Photos in the upgrade.",
-  "published": "2026-10-16T11:27:51.1968465-04:00",
+  "version": "1.4.111",
+  "notes": "The app upgrade window has a new look and is now called D.R.DIRECT APP UPDATER. It no longer shows a red problem for Adobe Express Photos, and the recent fixes (Recycle Bin clearing, Forced uninstaller) are back.",
+  "published": "2026-10-16T11:31:52.2168352-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "32D6C57E12B56664A2354F62C25A00B3A011046379211BC2678327BCDA6A40A2",
-      "size": 344361
+      "sha256": "80C9D45E772CBAEF7CFFB435D901AC832B68898996EDD2DA2A69774A4C6D004E",
+      "size": 345122
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

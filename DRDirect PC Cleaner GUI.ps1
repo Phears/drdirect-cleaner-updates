@@ -3611,13 +3611,24 @@ $banner = @(
     '      | | | |   | |_) |   | | | | | | | |_) ||  _|  | |      | |',
     '      | |_| | _ |  _ <  _ | |_| | | | |  _ < | |___ | |___   | |',
     '      |____/ (_)|_| \_\(_)|____/ |___||_| \_\|_____| \____|  |_|',
-    '   ____    ____     _   _  ____    ____  ____      _     ____   _____',
-    '  |  _ \  / ___|   | | | ||  _ \  / ___||  _ \    / \   |  _ \ | ____|',
-    '  | |_) || |       | | | || |_) || |  _ | |_) |  / _ \  | | | ||  _|',
-    '  |  __/ | |___    | |_| ||  __/ | |_| ||  _ <  / ___ \ | |_| || |___',
-    '  |_|     \____|    \___/ |_|     \____||_| \_\/_/   \_\|____/ |_____|',
+    '    _     ____   ____      _   _  ____   ____      _     _____  _____  ____',
+    '   / \   |  _ \ |  _ \    | | | ||  _ \ |  _ \    / \   |_   _|| ____||  _ \',
+    '  / _ \  | |_) || |_) |   | | | || |_) || | | |  / _ \    | |  |  _|  | |_) |',
+    ' / ___ \ |  __/ |  __/    | |_| ||  __/ | |_| | / ___ \   | |  | |___ |  _ <',
+    '/_/   \_\|_|    |_|        \___/ |_|    |____/ /_/   \_\  |_|  |_____||_| \_\',
     '     ✦  K E E P I N G   Y O U R   A P P S   F R E S H  ✦'
 )
+
+# Centre each block of the banner (and the tagline) in the same width so the two words line up.
+function Center-Block([string[]]$lines, [int]$width) {
+    $indent = ($lines | ForEach-Object { $_.Length - $_.TrimStart().Length } | Measure-Object -Minimum).Minimum
+    $trimmed = @($lines | ForEach-Object { $_.Substring($indent).TrimEnd() })
+    $bw = ($trimmed | Measure-Object -Property Length -Maximum).Maximum
+    $pad = ' ' * [Math]::Max(0, [int][Math]::Floor(($width - $bw) / 2))
+    $trimmed | ForEach-Object { $pad + $_ }
+}
+$bannerWidth = 78
+$banner = @(Center-Block $banner[0..4] $bannerWidth) + @(Center-Block $banner[5..9] $bannerWidth) + @(Center-Block @($banner[10]) $bannerWidth)
 
 try { Clear-Host } catch {}
 $frames = if ($NoAnim) { 1 } else { 24 }
@@ -3632,7 +3643,7 @@ for ($f = 0; $f -lt $frames; $f++) {
     Write-Host ''
     if (-not $NoAnim) { Start-Sleep -Milliseconds 40 }
 }
-Write-Host (Rainbow ('═' * 74))
+Write-Host (Rainbow ('═' * $bannerWidth))
 Write-Host ''
 
 if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
@@ -3767,7 +3778,7 @@ foreach ($p in $pkgs) {
 # ---- 3. summary -------------------------------------------------------------
 $secs = [int]((Get-Date) - $start).TotalSeconds
 Write-Host ''
-Write-Host (Rainbow ('═' * 74))
+Write-Host (Rainbow ('═' * $bannerWidth))
 Write-Host (RGB 80 255 120 "🎉 Done in ${secs}s") -NoNewline
 Write-Host (RGB 255 230 0 "   ✅ $($ok.Count) upgraded") -NoNewline
 if ($fail.Count -eq 0) { Write-Host (RGB 80 255 120 "   ✅ no problems") }
@@ -3782,7 +3793,7 @@ Read-Host 'Press Enter to close' | Out-Null
         $file = Join-Path $env:TEMP 'DRDirect-Winget-Upgrade.ps1'
         [IO.File]::WriteAllText($file, $flashy, (New-Object Text.UTF8Encoding $true))
         # 'start' forces a real new console window, like the cmd route that always showed one; the script itself waits for Enter before it closes, on every path.
-        Start-Process -FilePath 'cmd.exe' -ArgumentList ('/c start "DRDirect PC Upgrade" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + $file + '"') -WindowStyle Hidden | Out-Null
+        Start-Process -FilePath 'cmd.exe' -ArgumentList ('/c start "DRDirect App Updater" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + $file + '"') -WindowStyle Hidden | Out-Null
         $ui.AppUpdatesStatus.Text = 'Updating apps in a colour PowerShell window. Close it when it says it has finished.'
     } catch {
         $ui.AppUpdatesStatus.Text = "Could not start the update window: $($_.Exception.Message)"
