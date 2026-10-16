@@ -2359,8 +2359,13 @@ function New-ProgressRow {
     $grid.ColumnDefinitions.Add((New-Object Windows.Controls.ColumnDefinition -Property @{ Width='Auto' }))
     $grid.ColumnDefinitions.Add((New-Object Windows.Controls.ColumnDefinition -Property @{ Width='*' }))
     # Big and bright with a soft glow, so each task's state reads at a glance
-    $dot = New-Object Windows.Shapes.Ellipse -Property @{ Width=26; Height=26; Fill='#98A2B3'; Stroke='White'; StrokeThickness=3; Margin='0,0,16,0'; VerticalAlignment='Center'; Name='StateDot' }
-    $dot.Effect = New-Object Windows.Media.Effects.DropShadowEffect -Property @{ ShadowDepth=0; BlurRadius=16; Opacity=0.9; Color=[Windows.Media.ColorConverter]::ConvertFromString('#98A2B3') }
+    # Two lights side by side; while a task works they blink in turn
+    $dot = New-Object Windows.Controls.StackPanel -Property @{ Orientation='Horizontal'; VerticalAlignment='Center'; Margin='0,0,16,0' }
+    foreach ($gap in '0,0,7,0', '0') {
+        $light = New-Object Windows.Shapes.Ellipse -Property @{ Width=22; Height=22; Fill='#98A2B3'; Stroke='White'; StrokeThickness=3; Margin=$gap; VerticalAlignment='Center' }
+        $light.Effect = New-Object Windows.Media.Effects.DropShadowEffect -Property @{ ShadowDepth=0; BlurRadius=16; Opacity=0.9; Color=[Windows.Media.ColorConverter]::ConvertFromString('#98A2B3') }
+        [void]$dot.Children.Add($light)
+    }
     $panel = New-Object Windows.Controls.StackPanel; [Windows.Controls.Grid]::SetColumn($panel,1)
     $panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$Task.Name; FontWeight='SemiBold' })) | Out-Null
     $state = New-Object Windows.Controls.TextBlock -Property @{ Text='Waiting'; Foreground='#667085'; FontSize=12; Margin='0,3,0,0'; Name='StateText' }
@@ -2488,22 +2493,36 @@ function Set-ProgressRowState {
     }
     $row = @($ui.ProgressList.Children | Where-Object Tag -eq $TaskId | Select-Object -First 1)
     if (-not $row) { return }
-    $dot = $row.Child.Children[0]; $text = $row.Child.Children[1].Children[1]
+    $pair = $row.Child.Children[0]; $text = $row.Child.Children[1].Children[1]
     $found = $row.Child.Children[1].Children[2]
-    # Bright green = working on it (and pulsing), bright blue = done
+    # Bright green = working on it (the two lights blink in turn), bright blue = done
     $dotColour = switch ($State) { 'Started' {'#00E676'} 'Progress' {'#00E676'} 'Completed' {'#1E90FF'} 'Failed' {'#FF3B30'} 'Warning' {'#FF9500'} default {'#98A2B3'} }
-    $dot.Fill = $dotColour
-    if ($dot.Effect) { $dot.Effect.Color = [Windows.Media.ColorConverter]::ConvertFromString($dotColour) }
-    if ($State -in @('Started', 'Progress')) {
-        if (-not $dot.Tag) {
-            $pulse = New-Object Windows.Media.Animation.DoubleAnimation -Property @{ From=1.0; To=0.35; Duration=[Windows.Duration]::new([TimeSpan]::FromMilliseconds(700)); AutoReverse=$true; RepeatBehavior=[Windows.Media.Animation.RepeatBehavior]::Forever }
-            $dot.BeginAnimation([Windows.UIElement]::OpacityProperty, $pulse)
-            $dot.Tag = 'pulsing'
+    $lightIndex = 0
+    foreach ($dot in $pair.Children) {
+        # A failed task shows one red light and one blue, blinking in turn
+        $lightColour = if ($State -eq 'Failed' -and $lightIndex -eq 1) { '#1E90FF' } else { $dotColour }
+        $dot.Fill = $lightColour
+        if ($dot.Effect) { $dot.Effect.Color = [Windows.Media.ColorConverter]::ConvertFromString($lightColour) }
+        $lightIndex++
+    }
+    # Green lights blink while working; a failed task blinks red and blue until it is looked at
+    if ($State -in @('Started', 'Progress', 'Failed')) {
+        if (-not $pair.Tag) {
+            $first = $true
+            foreach ($dot in $pair.Children) {
+                $from = if ($first) { 1.0 } else { 0.2 }; $to = if ($first) { 0.2 } else { 1.0 }
+                $pulse = New-Object Windows.Media.Animation.DoubleAnimation -Property @{ From=$from; To=$to; Duration=[Windows.Duration]::new([TimeSpan]::FromMilliseconds(600)); AutoReverse=$true; RepeatBehavior=[Windows.Media.Animation.RepeatBehavior]::Forever }
+                $dot.BeginAnimation([Windows.UIElement]::OpacityProperty, $pulse)
+                $first = $false
+            }
+            $pair.Tag = 'pulsing'
         }
-    } elseif ($dot.Tag) {
-        $dot.BeginAnimation([Windows.UIElement]::OpacityProperty, $null)
-        $dot.Opacity = 1.0
-        $dot.Tag = $null
+    } elseif ($pair.Tag) {
+        foreach ($dot in $pair.Children) {
+            $dot.BeginAnimation([Windows.UIElement]::OpacityProperty, $null)
+            $dot.Opacity = 1.0
+        }
+        $pair.Tag = $null
     }
     # A check that only looks keeps what it found on screen instead of losing it
     # behind the final "completed" line.
@@ -2516,7 +2535,10 @@ function Set-ProgressRowState {
     }
     $text.Text = $Message
     if ($TaskId -eq $script:activeTaskId) { Set-Variable -Name activeTaskMessage -Value $Message -Scope Script }
-    if ($State -eq 'Failed') { $text.Foreground = '#C63C3C' }
+    if ($State -eq 'Failed') {
+        $text.Foreground = '#C63C3C'
+        $text.Text = "$Message`nDon't worry - this is often very easy to fix. A restart often sorts it."
+    }
 }
 
 function Start-EngineCall {

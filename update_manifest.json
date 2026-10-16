@@ -1,7 +1,7 @@
 {
-  "version": "1.4.112",
-  "notes": "The side menu is easier to follow: related items are grouped together (Clean, Fix and protect, Check, Update) and the colours are consistent.",
-  "published": "2026-10-16T11:45:54.6126635-04:00",
+  "version": "1.4.113",
+  "notes": "While a task is running, two lights now blink in turn so you can see it is working. If a task fails, you get a red and blue blinking light and a reassuring message - a restart often fixes it.",
+  "published": "2026-10-16T12:39:04.7026401-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "6D0ED4C1E5290E3D3A7E013195AFD795C8BBA30D204FA72EA0DE83CD61404DD6",
-      "size": 344848
+      "sha256": "476B589BAC9E54F8605EC0ABD22A44FEB44E12C4E1ED3EF170B14C74C2E7CE8E",
+      "size": 345961
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
