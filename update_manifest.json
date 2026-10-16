@@ -1,7 +1,7 @@
 {
-  "version": "1.4.108",
-  "notes": "The Find duplicate files button in the Cleaner now shows in the Duplicate Finder's green.",
-  "published": "2026-10-14T17:32:39.8392452-04:00",
+  "version": "1.4.109",
+  "notes": "The PC upgrade window no longer shows a red problem for Adobe Express Photos. It is skipped, so your upgrade run finishes clean.",
+  "published": "2026-10-16T11:23:14.5611794-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F53E6CDF26473433C59096C027C90F7D5919767F8C1D434B8B15199CEDC284B7",
-      "size": 339067
+      "sha256": "E6C268764C0D26BFBD0FB9BBAC90174A4E13CCBBCFCE3C58B95F1C0A52190F19",
+      "size": 334330
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "253FE854E471519B769AEB1292AD2ED47B359E2AEFCD0AA487DE0CBA03619AB1",
-      "size": 256752
+      "sha256": "4505BCF96364139AD25D61C808B7754EA5E7F99F52EAB9622F884E800CF3C9B3",
+      "size": 253537
     },
     {
       "name": "DRDirect Updater.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "CB672B16A5F1093E0777C4BA5F04E52316400DDE2344C8269716124BC69C1FA3",
-      "size": 10413028
+      "sha256": "24D51A1E4C1E7CA3DBF25CF9DC5E4A3DC2C365A0756FAF61698CAB9DC8C5CB19",
+      "size": 10410141
     }
   ],
   "blocked": [],

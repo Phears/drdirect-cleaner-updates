@@ -811,7 +811,7 @@ $ErrorActionPreference = 'Stop'
                     <Button x:Name="NavDashboard" Style="{StaticResource NavButton}" Tag="Active" Content="⌂   Dashboard"/>
                     <TextBlock Text="CLEAN" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
                     <Button x:Name="NavCleanup" Style="{StaticResource NavButton}" Content="✦   Clean my PC"/>
-                    <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Foreground="#22C16F" FontWeight="Bold" Content="⧉   Find duplicate files"/>
+                    <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Find duplicate files"/>
                     <Button x:Name="NavUninstaller" Style="{StaticResource GreenNavButton}" Margin="10,4,10,4" Padding="12,7" FontSize="12.5" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⌫" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="DRDirect Uninstaller Program" Foreground="White" TextWrapping="Wrap" VerticalAlignment="Center"/></Grid></Button>
                     <Button x:Name="NavSpeed" Style="{StaticResource NavButton}" Content="◈   Speed and space"/>
                     <Button x:Name="NavHibernate" Style="{StaticResource NavButton}" Foreground="#22D3EE" FontWeight="SemiBold" Content="☾   Hibernate" ToolTip="Turn Hibernate off to free several GB, or back on"/>
@@ -3606,17 +3606,11 @@ function Rainbow($text, $shift = 0) {
 }
 
 $banner = @(
-    '       ____      ____      ____   ___  ____   _____   ____  _____',
-    '      |  _ \    |  _ \    |  _ \ |_ _||  _ \ | ____| / ___||_   _|',
-    '      | | | |   | |_) |   | | | | | | | |_) ||  _|  | |      | |',
-    '      | |_| | _ |  _ <  _ | |_| | | | |  _ < | |___ | |___   | |',
-    '      |____/ (_)|_| \_\(_)|____/ |___||_| \_\|_____| \____|  |_|',
-    '   ____    ____     _   _  ____    ____  ____      _     ____   _____',
-    '  |  _ \  / ___|   | | | ||  _ \  / ___||  _ \    / \   |  _ \ | ____|',
-    '  | |_) || |       | | | || |_) || |  _ | |_) |  / _ \  | | | ||  _|',
-    '  |  __/ | |___    | |_| ||  __/ | |_| ||  _ <  / ___ \ | |_| || |___',
-    '  |_|     \____|    \___/ |_|     \____||_| \_\/_/   \_\|____/ |_____|',
-    '     ✦  K E E P I N G   Y O U R   A P P S   F R E S H  ✦'
+    '  __        _____ _   _  ____ _____ _____   _   _ ____   ____ ____      _    ____  _____ ',
+    '  \ \      / /_ _| \ | |/ ___| ____|_   _| | | | |  _ \ / ___|  _ \    / \  |  _ \| ____|',
+    '   \ \ /\ / / | ||  \| | |  _|  _|   | |   | | | | |_) | |  _| |_) |  / _ \ | | | |  _|  ',
+    '    \ V  V /  | || |\  | |_| | |___  | |   | |_| |  __/| |_| |  _ <  / ___ \| |_| | |___ ',
+    '     \_/\_/  |___|_| \_|\____|_____| |_|    \___/|_|    \____|_| \_\/_/   \_\____/|_____|'
 )
 
 try { Clear-Host } catch {}
@@ -3624,15 +3618,11 @@ $frames = if ($NoAnim) { 1 } else { 24 }
 for ($f = 0; $f -lt $frames; $f++) {
     if ($f -gt 0) { try { [Console]::SetCursorPosition(0, 0) } catch {} }
     Write-Host ''
-    # The tagline (last line) is printed bold so it reads thicker than the letters above it.
-    foreach ($line in $banner) {
-        $bold = if ($line -like '*K E E P I N G*') { "$ESC[1m" } else { '' }
-        Write-Host ($bold + (Rainbow $line ($f * 3)))
-    }
+    foreach ($line in $banner) { Write-Host (Rainbow $line ($f * 3)) }
     Write-Host ''
     if (-not $NoAnim) { Start-Sleep -Milliseconds 40 }
 }
-Write-Host (Rainbow ('═' * 74))
+Write-Host (Rainbow ('=' * 90))
 Write-Host ''
 
 if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
@@ -3640,48 +3630,6 @@ if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
     Read-Host 'Press Enter to close' | Out-Null
     exit 1
 }
-
-# ---- 0. make sure PowerShell 7 and Windows Terminal are installed -----------
-# Both come from winget and keep themselves current through the upgrade below.
-# Only a clear "not installed" answer triggers an install; if winget cannot tell
-# (no network, source down), nothing is installed.
-$essentials = @(
-    # Present: winget does not always know about a copy that was installed another way,
-    # so look for the program itself before deciding it is missing.
-    @{ Name = 'PowerShell 7';      Id = 'Microsoft.PowerShell'
-       Present = { (Test-Path -LiteralPath (Join-Path $env:ProgramFiles 'PowerShell\7\pwsh.exe')) -or [bool](Get-Command pwsh.exe -ErrorAction SilentlyContinue) } },
-    @{ Name = 'Windows Terminal';  Id = 'Microsoft.WindowsTerminal'
-       Present = { [bool](Get-Command wt.exe -ErrorAction SilentlyContinue) -or [bool](Get-AppxPackage -AllUsers -Name 'Microsoft.WindowsTerminal*' -ErrorAction SilentlyContinue) } }
-)
-$wingetPath = (Get-Command winget).Source
-$ok = @(); $fail = @()
-foreach ($e in $essentials) {
-    if (& $e.Present) { continue }
-    $null = & $wingetPath list --id $e.Id --exact --accept-source-agreements 2>&1
-    if ($LASTEXITCODE -ne -1978335212) { continue }   # installed, or winget could not tell
-    Write-Host (RGB 0 255 200 "🧰 $($e.Name) is not installed - installing it...")
-    $a = @('install', '--id', $e.Id, '--exact', '--silent', '--accept-source-agreements', '--accept-package-agreements')
-    $proc = Start-Process $wingetPath -ArgumentList $a -NoNewWindow -PassThru
-    $null = $proc.Handle
-    if (-not $proc.WaitForExit($TimeoutMinutes * 60000)) {
-        try { Stop-Process -Id $proc.Id -Force } catch {}
-        Write-Host (RGB 255 60 90 "⏰ $($e.Name) timed out after ${TimeoutMinutes}m - skipped")
-        $fail += "$($e.Name) (timeout)"
-    }
-    elseif ($proc.ExitCode -eq 0) {
-        Write-Host (RGB 80 255 120 "✅ $($e.Name) installed")
-        $ok += "$($e.Name) (installed)"
-    }
-    elseif ($proc.ExitCode -in -1978335135, -1978335189) {
-        # Already there under another name, or this PC cannot run it. Nothing to report.
-        Write-Host (RGB 150 150 255 "⏭️  $($e.Name) - not needed on this PC")
-    }
-    else {
-        Write-Host (RGB 255 60 90 "💥 $($e.Name) could not be installed (exit code $($proc.ExitCode))")
-        $fail += "$($e.Name) (exit $($proc.ExitCode))"
-    }
-}
-Write-Host ''
 
 # ---- 1. find what needs upgrading -------------------------------------------
 Write-Host (RGB 0 255 200 '🔎 Checking for upgrades...')
@@ -3710,10 +3658,12 @@ foreach ($l in $raw) {
 
 # Apps left out on purpose (Warp updates itself and its download stalls).
 $skipIds = @('Warp.Warp')
-foreach ($s in @($pkgs | Where-Object { $skipIds -contains $_.Id })) {
+# Adobe Express Photos is not used here and its download keeps failing winget's checksum check.
+$skipName = 'Adobe Express*'
+foreach ($s in @($pkgs | Where-Object { ($skipIds -contains $_.Id) -or ($_.Name -like $skipName) })) {
     Write-Host (RGB 150 150 255 "⏭️  Skipping $($s.Name) [$($s.Id)]")
 }
-$pkgs = @($pkgs | Where-Object { $skipIds -notcontains $_.Id })
+$pkgs = @($pkgs | Where-Object { ($skipIds -notcontains $_.Id) -and ($_.Name -notlike $skipName) })
 if ($pkgs.Count -eq 0) {
     Write-Host (RGB 150 150 255 '😎 Everything is already up to date!')
     Read-Host 'Press Enter to close' | Out-Null
@@ -3726,7 +3676,7 @@ Write-Host ''
 
 $wingetExe = (Get-Command winget).Source
 # ---- 2. upgrade each one with live winget progress --------------------------
-$start = Get-Date; $i = 0
+$ok = @(); $fail = @(); $start = Get-Date; $i = 0
 foreach ($p in $pkgs) {
     $i++
     Write-Host (Rainbow ('-' * 90))
@@ -3765,7 +3715,7 @@ foreach ($p in $pkgs) {
 # ---- 3. summary -------------------------------------------------------------
 $secs = [int]((Get-Date) - $start).TotalSeconds
 Write-Host ''
-Write-Host (Rainbow ('═' * 74))
+Write-Host (Rainbow ('=' * 90))
 Write-Host (RGB 80 255 120 "🎉 Done in ${secs}s") -NoNewline
 Write-Host (RGB 255 230 0 "   ✅ $($ok.Count) upgraded") -NoNewline
 if ($fail.Count -eq 0) { Write-Host (RGB 80 255 120 "   ✅ no problems") }
@@ -3780,14 +3730,14 @@ Read-Host 'Press Enter to close' | Out-Null
         $file = Join-Path $env:TEMP 'DRDirect-Winget-Upgrade.ps1'
         [IO.File]::WriteAllText($file, $flashy, (New-Object Text.UTF8Encoding $true))
         # 'start' forces a real new console window, like the cmd route that always showed one; the script itself waits for Enter before it closes, on every path.
-        Start-Process -FilePath 'cmd.exe' -ArgumentList ('/c start "DRDirect PC Upgrade" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + $file + '"') -WindowStyle Hidden | Out-Null
+        Start-Process -FilePath 'cmd.exe' -ArgumentList ('/c start "DRDirect winget upgrade" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + $file + '"') -WindowStyle Hidden | Out-Null
         $ui.AppUpdatesStatus.Text = 'Updating apps in a colour PowerShell window. Close it when it says it has finished.'
     } catch {
         $ui.AppUpdatesStatus.Text = "Could not start the update window: $($_.Exception.Message)"
     }
 }
 function Invoke-DRUpdateAllApps {
-    $answer = [Windows.MessageBox]::Show("This runs 'winget upgrade --all' and updates every app winget can update on this PC.`n`nIt also installs PowerShell 7 and Windows Terminal if this PC does not have them.`n`nSome apps may close or restart during their update. Save your work first.`n`nContinue?", 'DRDirect PC Cleaner',
+    $answer = [Windows.MessageBox]::Show("This runs 'winget upgrade --all' and updates every app winget can update on this PC.`n`nSome apps may close or restart during their update. Save your work first.`n`nContinue?", 'DRDirect PC Cleaner',
         [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question)
     if ($answer -ne [Windows.MessageBoxResult]::Yes) { return }
     if (Get-Command winget -ErrorAction SilentlyContinue) { Start-DRFlashyUpgrade; return }
@@ -4715,41 +4665,10 @@ $ui.UpdateBannerButton.Add_Click({
 
 $script:DRUpdateRunning = $false
 
-function Get-DRLauncherPath {
-    # The locked exe starts this script, so it is this PowerShell's parent. Gives
-    # '' when the script was started any other way, such as from a console.
-    try {
-        $parentId = (Get-CimInstance Win32_Process -Filter "ProcessId=$PID" -ErrorAction Stop).ParentProcessId
-        $path = [string](Get-CimInstance Win32_Process -Filter "ProcessId=$parentId" -ErrorAction Stop).ExecutablePath
-        if ($path -and ([IO.Path]::GetFileName($path) -like 'DRDirect PC Cleaner*.exe') -and (Test-Path -LiteralPath $path -PathType Leaf)) { return $path }
-    } catch { }
-    return ''
-}
-
 function Complete-DRUpdateInstall {
     # What used to happen straight after Install-DRUpdate returned, now run once
     # the background install has finished.
     param($Result)
-    if ($Result -and $Result.Success) {
-        $launcher = Get-DRLauncherPath
-        if ($launcher) {
-            [Windows.MessageBox]::Show("Updated to $($Result.Version)." + [Environment]::NewLine + [Environment]::NewLine +
-                'DRDirect PC Cleaner will now close and open again by itself.', 'DRDirect PC Cleaner',
-                [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information) | Out-Null
-            try {
-                # The exe is a PyInstaller onefile. A copy started from inside a running one
-                # inherits its markers and takes itself for a child of that copy, then fails
-                # its parent check ("failed to obtain executable path for parent process")
-                # once the parent has gone. This asks PyInstaller to treat it as a fresh start.
-                $env:PYINSTALLER_RESET_ENVIRONMENT = '1'
-                # Wait a moment so this copy has fully closed before the new one opens.
-                Start-Process -FilePath 'cmd.exe' -WindowStyle Hidden `
-                    -ArgumentList '/c', ('ping 127.0.0.1 -n 3 >nul & start "" "' + $launcher + '"')
-                $window.Close()
-                return
-            } catch { }   # could not restart it - fall through to the normal message
-        }
-    }
     if ($Result -and $Result.Success) {
         $ui.UpdateBanner.Visibility = 'Collapsed'
         # The green "New update" badge is set once at startup and nothing
