@@ -193,6 +193,10 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='security.network-files'; Category='Security'; Name='Enable network-file scanning'; Description='Enables Microsoft Defender scanning of files accessed over the network.'; Risk='Advanced'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.typing-privacy'; Category='Security'; Name='Stop sending typing data to Microsoft'; Description='Turns off "Improve inking and typing" and typing personalization, so Windows stops collecting what you type and write to tune its suggestions. Your current settings are saved first, and "Restore typing settings" puts them back.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.typing-privacy-restore'; Category='Security'; Name='Restore typing settings'; Description='Puts the typing settings back exactly as they were before "Stop sending typing data to Microsoft" changed them. Does nothing if that option was never run.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='security.win11-extras'; Category='Security'; Name='Windows 11: turn off ads and suggestions'; Description='Switches off the ads, app suggestions and "get the most out of Windows" nags in the Start menu, Settings and lock screen, and stops Windows silently installing promoted apps. Your apps and files are not touched. Your current settings are saved first, and "Turn Windows 11 extras back on" puts them back.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='security.win11-extras-restore'; Category='Security'; Name='Turn Windows 11 extras back on'; Description='Puts the ads and suggestions settings back exactly as they were before "Windows 11: turn off ads and suggestions" changed them. Does nothing if that option was never run.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='security.telemetry-off'; Category='Security'; Name='Turn off Windows telemetry'; Description='Stops Windows sending usage and diagnostic data to Microsoft: switches off the tracking services (Connected User Experiences, Error Reporting, Program Compatibility Assistant), their scheduled tasks, and the data-collection policies. It also turns off telemetry in Edge, Chrome, Brave, Firefox, NVIDIA and Office, stops Windows Search sharing your searches with Microsoft, switches off location and tailored experiences, and switches off the Google, Edge and Adobe updaters, so those programs no longer update themselves until you turn this back on. Your files, apps and logins are not touched. Windows Error Reporting stops too, so crash reports are no longer sent. Your current settings are saved first, and "Turn telemetry back on" puts them back.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='security.telemetry-off-restore'; Category='Security'; Name='Turn telemetry back on'; Description='Puts the telemetry services, scheduled tasks and policies back exactly as they were before "Turn off Windows telemetry" changed them. Does nothing if that option was never run.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
 
         [pscustomobject]@{ Id='health.chkdsk'; Category='Repair'; Name='CHKDSK disk check (deep drive test)'; Description='Checks the C: file system for corruption while Windows keeps running. Reports what it finds, repairs what is safe to repair, and never schedules a restart.'; Risk='Safe'; Duration='5-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
         [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -735,7 +739,15 @@ function Get-DRAnalysis {
                     }
                     $detail = 'Only useful for diagnosing a specific past crash'
                 }
-                'security.remove-exclusions' {
+                'security.telemetry-off' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: telemetry settings were not changed.' }
+                else { Set-DRTelemetryOff -TaskId $TaskId }
+            }
+            'security.telemetry-off-restore' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: telemetry settings were not changed.' }
+                else { Restore-DRTelemetry -TaskId $TaskId }
+            }
+            'security.remove-exclusions' {
                     if (Get-Command Get-MpPreference -ErrorAction SilentlyContinue) {
                         $pref = Get-MpPreference
                         $items = @($pref.ExclusionPath).Count + @($pref.ExclusionProcess).Count + @($pref.ExclusionExtension).Count
@@ -1813,6 +1825,296 @@ function Restore-DRTypingPrivacy {
     }
     Remove-DRSafeItem -LiteralPath $BackupPath -AllowedRoot (Split-Path -Parent $BackupPath) | Out-Null
     New-DREvent -TaskId $TaskId -State Information -Message 'Typing settings are back to how they were before the Cleaner changed them.'
+}
+
+function Get-DRWin11ExtrasValues {
+    # The per-user switches behind the ads, app suggestions and promoted-app installs in
+    # Windows 11, with the value that turns each one off. All are HKCU, so no administrator
+    # access is needed. Copilot, Recall and Bing search have their own AI rows.
+    param([string]$Root = 'HKCU:\Software\Microsoft')
+    $cdm = Join-Path $Root 'Windows\CurrentVersion\ContentDeliveryManager'
+    $adv = Join-Path $Root 'Windows\CurrentVersion\Explorer\Advanced'
+    $values = foreach ($name in @(
+        'ContentDeliveryAllowed', 'FeatureManagementEnabled', 'OemPreInstalledAppsEnabled',
+        'PreInstalledAppsEnabled', 'PreInstalledAppsEverEnabled', 'RotatingLockScreenOverlayEnabled',
+        'SilentInstalledAppsEnabled', 'SoftLandingEnabled', 'SystemPaneSuggestionsEnabled',
+        'SubscribedContent-310093Enabled', 'SubscribedContent-338387Enabled', 'SubscribedContent-338388Enabled',
+        'SubscribedContent-338389Enabled', 'SubscribedContent-338393Enabled', 'SubscribedContent-353694Enabled',
+        'SubscribedContent-353696Enabled', 'SubscribedContent-353698Enabled', 'SubscribedContent-88000326Enabled'
+    )) { [pscustomobject]@{ Key = $cdm; Name = $name; Off = 0 } }
+    $values
+    [pscustomobject]@{ Key = $adv; Name = 'Start_IrisRecommendations';    Off = 0 }
+    [pscustomobject]@{ Key = $adv; Name = 'Start_AccountNotifications';   Off = 0 }
+    [pscustomobject]@{ Key = $adv; Name = 'ShowSyncProviderNotifications'; Off = 0 }
+    [pscustomobject]@{ Key = (Join-Path $Root 'Windows\CurrentVersion\AdvertisingInfo');          Name = 'Enabled';                   Off = 0 }
+    [pscustomobject]@{ Key = (Join-Path $Root 'Windows\CurrentVersion\UserProfileEngagement');    Name = 'ScoobeSystemSettingEnabled'; Off = 0 }
+}
+
+function Get-DRWin11ExtrasBackupPath {
+    Join-Path (Split-Path -Parent $script:DRReportRoot) 'Backups\Win11_Extras_Settings.json'
+}
+
+function Set-DRWin11Extras {
+    param(
+        [string]$TaskId,
+        [string]$Root = 'HKCU:\Software\Microsoft',
+        [string]$BackupPath = (Get-DRWin11ExtrasBackupPath)
+    )
+
+    $values = @(Get-DRWin11ExtrasValues -Root $Root)
+    # A backup that already exists holds the customer's original settings, so a second run never replaces it.
+    if (-not (Test-Path -LiteralPath $BackupPath -PathType Leaf)) {
+        $before = foreach ($value in $values) {
+            $current = $null
+            $property = Get-ItemProperty -LiteralPath $value.Key -Name $value.Name -ErrorAction SilentlyContinue
+            if ($property) { $current = $property.($value.Name) }
+            [pscustomobject]@{ Key = $value.Key; Name = $value.Name; Existed = ($null -ne $property); Value = $current }
+        }
+        New-Item -Path (Split-Path -Parent $BackupPath) -ItemType Directory -Force | Out-Null
+        [System.IO.File]::WriteAllText($BackupPath, (ConvertTo-Json -InputObject @($before) -Depth 3), (New-Object System.Text.UTF8Encoding($false)))
+    }
+
+    foreach ($value in $values) {
+        if (-not (Test-Path -LiteralPath $value.Key)) { New-Item -Path $value.Key -Force | Out-Null }
+        New-ItemProperty -LiteralPath $value.Key -Name $value.Name -Value $value.Off -PropertyType DWord -Force | Out-Null
+    }
+    New-DREvent -TaskId $TaskId -State Information -Message 'Windows 11 ads and suggestions are off. Sign out and back in to see the full effect. Your previous settings were saved; "Turn Windows 11 extras back on" puts them back.'
+}
+
+function Restore-DRWin11Extras {
+    param(
+        [string]$TaskId,
+        [string]$Root = 'HKCU:\Software\Microsoft',
+        [string]$BackupPath = (Get-DRWin11ExtrasBackupPath)
+    )
+
+    if (-not (Test-Path -LiteralPath $BackupPath -PathType Leaf)) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'There was nothing to restore: the Cleaner has not changed the Windows 11 ads and suggestions on this PC.'
+        return
+    }
+
+    $allowed = @(Get-DRWin11ExtrasValues -Root $Root)
+    $saved = @(Get-Content -LiteralPath $BackupPath -Raw | ConvertFrom-Json | ForEach-Object { $_ })
+    foreach ($entry in $saved) {
+        # Only the switches this Cleaner changes; an edited backup cannot point anywhere else.
+        if (-not @($allowed | Where-Object { $_.Key -eq $entry.Key -and $_.Name -eq $entry.Name }).Count) { continue }
+        if ($entry.Existed) {
+            if (-not (Test-Path -LiteralPath $entry.Key)) { New-Item -Path $entry.Key -Force | Out-Null }
+            New-ItemProperty -LiteralPath $entry.Key -Name $entry.Name -Value ([int]$entry.Value) -PropertyType DWord -Force | Out-Null
+        } else {
+            Remove-ItemProperty -LiteralPath $entry.Key -Name $entry.Name -ErrorAction SilentlyContinue
+        }
+    }
+    Remove-DRSafeItem -LiteralPath $BackupPath -AllowedRoot (Split-Path -Parent $BackupPath) | Out-Null
+    New-DREvent -TaskId $TaskId -State Information -Message 'Windows 11 ads and suggestions are back to how they were before the Cleaner changed them.'
+}
+
+function Get-DRTelemetrySpec {
+    # Everything "Turn off Windows telemetry" changes, and nothing else: the registry
+    # policies, the services and the scheduled tasks. Root only moves for tests.
+    param([string]$Root = 'HKLM:\SOFTWARE')
+    $policies = @(
+        'Policies\Microsoft\Windows\DataCollection|AllowTelemetry|0',
+        'Policies\Microsoft\Windows\DataCollection|DoNotShowFeedbackNotifications|1',
+        'Policies\Microsoft\Windows\DataCollection|DisableOneSettingsDownloads|1',
+        'Policies\Microsoft\Windows\DataCollection|LimitDiagnosticLogCollection|1',
+        'Policies\Microsoft\Windows\DataCollection|LimitDumpCollection|1',
+        'Policies\Microsoft\Windows\DataCollection|LimitEnhancedDiagnosticDataWindowsAnalytics|0',
+        'Policies\Microsoft\Windows\AppCompat|DisableInventory|1',
+        'Policies\Microsoft\Windows\AppCompat|DisableUAR|1',
+        'Policies\Microsoft\Windows\AppCompat|AITEnable|0',
+        'Policies\Microsoft\SQMClient\Windows|CEIPEnable|0',
+        'Policies\Microsoft\Windows\Windows Error Reporting|Disabled|1',
+        'Policies\Microsoft\Windows\AdvertisingInfo|DisabledByGroupPolicy|1',
+        'Policies\Microsoft\Windows\System|PublishUserActivities|0',
+        'Policies\Microsoft\Windows\System|EnableActivityFeed|0',
+        'Policies\Microsoft\Windows\System|UploadUserActivities|0',
+        'Policies\Microsoft\Windows\WindowsAI|DisableAIDataAnalysis|1',
+        'Policies\Mozilla\Firefox|DisableTelemetry|1',
+        'Policies\Google\Chrome|MetricsReportingEnabled|0',
+        'Policies\BraveSoftware\Brave|MetricsReportingEnabled|0',
+        'Policies\Microsoft\Edge|MetricsReportingEnabled|0',
+        'Policies\Microsoft\Edge|DiagnosticData|0',
+        'Policies\Microsoft\Edge|PersonalizationReportingEnabled|0',
+        'Policies\Google\Chrome|UrlKeyedAnonymizedDataCollectionEnabled|0',
+        'Policies\Google\Chrome|ChromeCleanupReportingEnabled|0',
+        'Policies\Microsoft\Windows\LocationAndSensors|DisableLocation|1',
+        'Policies\Microsoft\Windows\CloudContent|DisableTailoredExperiencesWithDiagnosticData|1',
+        'Policies\Microsoft\InputPersonalization|AllowInputPersonalization|0',
+        'NVIDIA Corporation\NvControlPanel2\Client|OptInOrOutPreference|0',
+        'Policies\Microsoft\Office\16.0\Common\ClientTelemetry|SendTelemetry|3',
+        'Policies\Microsoft\Office\16.0\Common|QMEnable|0',
+        'Policies\Microsoft\Office\16.0\Common|UpdateReliabilityData|0',
+        'Policies\Microsoft\Windows\Windows Search|AllowCortana|0',
+        'Policies\Microsoft\Windows\Windows Search|AllowCloudSearch|0',
+        'Policies\Microsoft\Windows\Windows Search|ConnectedSearchUseWeb|0',
+        'Policies\Microsoft\Windows\Windows Search|DisableWebSearch|1'
+    )
+    $registry = foreach ($line in $policies) {
+        $part = $line -split '\|'
+        [pscustomobject]@{ Key = (Join-Path $Root $part[0]); Name = $part[1]; Off = [int]$part[2] }
+    }
+    $tasks = @(
+        '\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser Exp',
+        '\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser',
+        '\Microsoft\Windows\Application Experience\ProgramDataUpdater',
+        '\Microsoft\Windows\Application Experience\MareBackup',
+        '\Microsoft\Windows\Application Experience\StartupAppTask',
+        '\Microsoft\Windows\Application Experience\PcaPatchDbTask',
+        '\Microsoft\Windows\Application Experience\SdbinstMergeDbTask',
+        '\Microsoft\Windows\Windows Error Reporting\QueueReporting',
+        '\Microsoft\Windows\Device Information\Device',
+        '\Microsoft\Windows\Device Information\Device User',
+        '\Microsoft\Windows\Customer Experience Improvement Program\Consolidator',
+        '\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip',
+        '\Microsoft\Windows\Feedback\Siuf\DmClient',
+        '\Microsoft\Windows\Feedback\Siuf\DmClientOnScenarioDownload',
+        '\Microsoft\Windows\Flighting\FeatureConfig\UsageDataFlushing',
+        '\Microsoft\Windows\Flighting\FeatureConfig\UsageDataReceiver',
+        '\Microsoft\Windows\Flighting\FeatureConfig\UsageDataReporting',
+        '\Microsoft\Windows\Flighting\FeatureConfig\GovernedFeatureUsageProcessing',
+        '\Microsoft\Windows\Sustainability\SustainabilityTelemetry',
+        '\Microsoft\Windows\PerformanceTrace\ShowFeedbackToast',
+        '\Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner',
+        '\Microsoft\Windows\Diagnosis\UnexpectedCodepath',
+        '\Microsoft\Windows\DiskFootprint\Diagnostics',
+        '\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem'
+    )
+    [pscustomobject]@{
+        Registry = @($registry)
+        Services = @('PcaSvc', 'DiagTrack', 'dmwappushservice', 'WerSvc', 'NvTelemetryContainer', 'gupdate', 'gupdatem', 'edgeupdate', 'edgeupdatem', 'AdobeARMservice', 'diagnosticshub.standardcollector.service')
+        Tasks    = $tasks
+        # NVIDIA names its telemetry tasks with a changing ID, so they are found by name.
+        TaskPatterns = @('NvTm*', 'GoogleUpdateTask*', 'MicrosoftEdgeUpdateTask*', 'Adobe Acrobat Update Task', 'AdobeGCInvoker*')
+    }
+}
+
+function Get-DRTelemetryBackupPath {
+    Join-Path (Split-Path -Parent $script:DRReportRoot) 'Backups\Telemetry_Settings.json'
+}
+
+function Get-DRTelemetryTask {
+    param([string]$Path)
+    Get-ScheduledTask -TaskPath ((Split-Path $Path -Parent) + '\') -TaskName (Split-Path $Path -Leaf) -ErrorAction SilentlyContinue
+}
+
+function Get-DRTelemetryTaskPaths {
+    param($Spec)
+    $paths = New-Object System.Collections.Generic.List[string]
+    foreach ($path in $Spec.Tasks) { $paths.Add($path) }
+    foreach ($pattern in $Spec.TaskPatterns) {
+        foreach ($task in @(Get-ScheduledTask -TaskName $pattern -ErrorAction SilentlyContinue)) {
+            if ($task.TaskPath -eq '\') { $paths.Add($task.TaskPath + $task.TaskName) }
+        }
+    }
+    @($paths | Select-Object -Unique)
+}
+
+function Test-DRTelemetryTaskPath {
+    # Only tasks this Cleaner switches off; an edited backup cannot point anywhere else.
+    param($Spec, [string]$Path)
+    if ($Path -in $Spec.Tasks) { return $true }
+    if ((Split-Path $Path -Parent) -ne '\') { return $false }
+    foreach ($pattern in $Spec.TaskPatterns) { if ((Split-Path $Path -Leaf) -like $pattern) { return $true } }
+    return $false
+}
+
+function Set-DRTelemetryOff {
+    param(
+        [string]$TaskId,
+        [string]$Root = 'HKLM:\SOFTWARE',
+        [string]$ServicesRoot = 'HKLM:\SYSTEM\CurrentControlSet\Services',
+        [string]$BackupPath = (Get-DRTelemetryBackupPath)
+    )
+
+    $spec = Get-DRTelemetrySpec -Root $Root
+    # A backup that already exists holds the customer's original settings, so a second run never replaces it.
+    if (-not (Test-Path -LiteralPath $BackupPath -PathType Leaf)) {
+        $registry = foreach ($value in $spec.Registry) {
+            $current = $null
+            $property = Get-ItemProperty -LiteralPath $value.Key -Name $value.Name -ErrorAction SilentlyContinue
+            if ($property) { $current = $property.($value.Name) }
+            [pscustomobject]@{ Key = $value.Key; Name = $value.Name; Existed = ($null -ne $property); Value = $current }
+        }
+        $services = foreach ($name in $spec.Services) {
+            $props = Get-ItemProperty -LiteralPath (Join-Path $ServicesRoot $name) -ErrorAction SilentlyContinue
+            $delayed = $null
+            if ($props -and $props.PSObject.Properties['DelayedAutostart']) { $delayed = $props.DelayedAutostart }
+            $start = $null
+            if ($props) { $start = $props.Start }
+            [pscustomobject]@{ Name = $name; Existed = [bool]$props; Start = $start; Delayed = $delayed }
+        }
+        $tasks = foreach ($path in (Get-DRTelemetryTaskPaths -Spec $spec)) {
+            $task = Get-DRTelemetryTask -Path $path
+            [pscustomobject]@{ Path = $path; Existed = [bool]$task; Enabled = [bool]($task -and $task.State -ne 'Disabled') }
+        }
+        $backup = [pscustomobject]@{ Registry = @($registry); Services = @($services); Tasks = @($tasks) }
+        New-Item -Path (Split-Path -Parent $BackupPath) -ItemType Directory -Force | Out-Null
+        [System.IO.File]::WriteAllText($BackupPath, (ConvertTo-Json -InputObject $backup -Depth 4), (New-Object System.Text.UTF8Encoding($false)))
+    }
+
+    $changedServices = 0; $changedTasks = 0
+    foreach ($name in $spec.Services) {
+        $key = Join-Path $ServicesRoot $name
+        if (-not (Test-Path -LiteralPath $key)) { continue }
+        try {
+            Stop-Service -Name $name -Force -ErrorAction SilentlyContinue
+            Set-ItemProperty -LiteralPath $key -Name Start -Value 4 -Type DWord -ErrorAction Stop
+            $changedServices++
+        } catch { New-DREvent -TaskId $TaskId -State Warning -Message ('The {0} service could not be switched off: {1}' -f $name, $_.Exception.Message) }
+    }
+    foreach ($path in (Get-DRTelemetryTaskPaths -Spec $spec)) {
+        $task = Get-DRTelemetryTask -Path $path
+        if (-not $task -or $task.State -eq 'Disabled') { continue }
+        try { $null = $task | Disable-ScheduledTask -ErrorAction Stop; $changedTasks++ } catch { }
+    }
+    foreach ($value in $spec.Registry) {
+        if (-not (Test-Path -LiteralPath $value.Key)) { New-Item -Path $value.Key -Force | Out-Null }
+        New-ItemProperty -LiteralPath $value.Key -Name $value.Name -Value $value.Off -PropertyType DWord -Force | Out-Null
+    }
+    New-DREvent -TaskId $TaskId -State Information -Message ('Windows telemetry is off: {0} service(s) and {1} scheduled task(s) switched off, and the data-collection policies set (Windows, Edge, Chrome, Brave, Firefox, NVIDIA, Office). Your previous settings were saved; "Turn telemetry back on" puts them back.' -f $changedServices, $changedTasks)
+}
+
+function Restore-DRTelemetry {
+    param(
+        [string]$TaskId,
+        [string]$Root = 'HKLM:\SOFTWARE',
+        [string]$ServicesRoot = 'HKLM:\SYSTEM\CurrentControlSet\Services',
+        [string]$BackupPath = (Get-DRTelemetryBackupPath)
+    )
+
+    if (-not (Test-Path -LiteralPath $BackupPath -PathType Leaf)) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'There was nothing to restore: the Cleaner has not turned off telemetry on this PC.'
+        return
+    }
+
+    $spec = Get-DRTelemetrySpec -Root $Root
+    $saved = Get-Content -LiteralPath $BackupPath -Raw | ConvertFrom-Json
+    # Only the switches this Cleaner changes; an edited backup cannot point anywhere else.
+    foreach ($entry in @($saved.Registry | ForEach-Object { $_ })) {
+        if (-not @($spec.Registry | Where-Object { $_.Key -eq $entry.Key -and $_.Name -eq $entry.Name }).Count) { continue }
+        if ($entry.Existed) {
+            if (-not (Test-Path -LiteralPath $entry.Key)) { New-Item -Path $entry.Key -Force | Out-Null }
+            New-ItemProperty -LiteralPath $entry.Key -Name $entry.Name -Value ([int]$entry.Value) -PropertyType DWord -Force | Out-Null
+        } else {
+            Remove-ItemProperty -LiteralPath $entry.Key -Name $entry.Name -ErrorAction SilentlyContinue
+        }
+    }
+    foreach ($entry in @($saved.Services | ForEach-Object { $_ })) {
+        if ($entry.Name -notin $spec.Services -or -not $entry.Existed) { continue }
+        $key = Join-Path $ServicesRoot $entry.Name
+        if (-not (Test-Path -LiteralPath $key)) { continue }
+        Set-ItemProperty -LiteralPath $key -Name Start -Value ([int]$entry.Start) -Type DWord
+        if ($null -ne $entry.Delayed) { Set-ItemProperty -LiteralPath $key -Name DelayedAutostart -Value ([int]$entry.Delayed) -Type DWord }
+        else { Remove-ItemProperty -LiteralPath $key -Name DelayedAutostart -ErrorAction SilentlyContinue }
+    }
+    foreach ($entry in @($saved.Tasks | ForEach-Object { $_ })) {
+        if (-not (Test-DRTelemetryTaskPath -Spec $spec -Path $entry.Path) -or -not $entry.Existed -or -not $entry.Enabled) { continue }
+        $task = Get-DRTelemetryTask -Path $entry.Path
+        if ($task) { try { $null = $task | Enable-ScheduledTask -ErrorAction Stop } catch { } }
+    }
+    Remove-DRSafeItem -LiteralPath $BackupPath -AllowedRoot (Split-Path -Parent $BackupPath) | Out-Null
+    New-DREvent -TaskId $TaskId -State Information -Message 'Telemetry settings are back to how they were before the Cleaner changed them. Restart Windows so the services start again.'
 }
 
 # ---------------------------------------------------------------------------
@@ -3614,6 +3916,14 @@ function Invoke-DRTask {
             'security.typing-privacy-restore' {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: typing settings were not changed.' }
                 else { Restore-DRTypingPrivacy -TaskId $TaskId }
+            }
+            'security.win11-extras' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Windows 11 settings were not changed.' }
+                else { Set-DRWin11Extras -TaskId $TaskId }
+            }
+            'security.win11-extras-restore' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Windows 11 settings were not changed.' }
+                else { Restore-DRWin11Extras -TaskId $TaskId }
             }
             'security.remove-exclusions' {
                 # Read-only on purpose: exclusions are often added deliberately (a work folder, a tool

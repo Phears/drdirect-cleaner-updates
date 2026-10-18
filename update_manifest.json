@@ -1,7 +1,7 @@
 {
-  "version": "1.4.113",
-  "notes": "While a task is running, two lights now blink in turn so you can see it is working. If a task fails, you get a red and blue blinking light and a reassuring message - a restart often fixes it.",
-  "published": "2026-10-16T12:39:04.7026401-04:00",
+  "version": "1.4.114",
+  "notes": "New: Turn off Windows telemetry (and Turn telemetry back on) on the Check my security page. It switches off Windows, browser, Office, NVIDIA and updater data-sharing in one go, saves your settings first, and can be undone.",
+  "published": "2026-10-18T00:51:36.3495774-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "476B589BAC9E54F8605EC0ABD22A44FEB44E12C4E1ED3EF170B14C74C2E7CE8E",
-      "size": 345961
+      "sha256": "B7711D093E81E9E1541B6D599D921E62D1E9781088F12A862EA12B41C93CBC97",
+      "size": 346418
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "253FE854E471519B769AEB1292AD2ED47B359E2AEFCD0AA487DE0CBA03619AB1",
-      "size": 256752
+      "sha256": "8C3724B732810F8DD1D661B12A2102C485492A416BAF03C325B6C92E9B35A259",
+      "size": 278113
     },
     {
       "name": "DRDirect Updater.ps1",
