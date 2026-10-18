@@ -1,7 +1,7 @@
 {
-  "version": "1.4.149",
-  "notes": "The green squares now have a 3D look.",
-  "published": "2026-10-18T16:01:08.4001951-04:00",
+  "version": "1.4.150",
+  "notes": "The green squares are bigger.",
+  "published": "2026-10-18T16:04:28.7489737-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "FFCDF5A1E79E4BD2F49168B75702E45026FC01772A6B47D738085BF15D3C3D8D",
+      "sha256": "4F3DA4EB0780BA6121878A29DA5971E91113FFD00C4EC29F25828A296EBAA15A",
       "size": 365086
     },
     {
