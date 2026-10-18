@@ -4173,11 +4173,17 @@ function Open-DRUninstaller {
 }
 # 3D buttons on the Dashboard: on unless the person switched them off.
 $script:DR3DKey = 'HKCU:\Software\DRDirect\PC Cleaner'
+# The 3D effects come from the XAML; keep them so they can be put back. They
+# go in as the plain .NET objects - a PowerShell wrapper crashes the window.
+$script:DR3DEffects = @{
+    Shadow = $window.Resources['DR3DShadow'].psobject.BaseObject
+    Text   = $window.Resources['DR3DText'].psobject.BaseObject
+}
 function Set-DR3DButtons {
     param([bool]$On)
     if ($On) {
-        $window.Resources['DR3DShadow'] = New-Object Windows.Media.Effects.DropShadowEffect -Property @{ Color = [Windows.Media.ColorConverter]::ConvertFromString('#0A1A4A'); Direction = 270; ShadowDepth = 5; BlurRadius = 12; Opacity = 0.5 }
-        $window.Resources['DR3DText'] = New-Object Windows.Media.Effects.DropShadowEffect -Property @{ Color = [Windows.Media.Colors]::Black; Direction = 270; ShadowDepth = 1.5; BlurRadius = 2; Opacity = 0.45 }
+        $window.Resources['DR3DShadow'] = $script:DR3DEffects.Shadow
+        $window.Resources['DR3DText'] = $script:DR3DEffects.Text
         $window.Resources['DR3DParts'] = [Windows.Visibility]::Visible
     } else {
         $window.Resources['DR3DShadow'] = $null

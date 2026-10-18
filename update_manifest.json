@@ -1,7 +1,7 @@
 {
-  "version": "1.4.130",
-  "notes": "The Dashboard buttons now look 3D, like real buttons you can press. Do not like it? Use the new 3D buttons switch under them to turn it off.",
-  "published": "2026-10-18T14:07:43.5130520-04:00",
+  "version": "1.4.131",
+  "notes": "Fixes the Cleaner not opening after the last update. Sorry about that.",
+  "published": "2026-10-18T14:11:33.4738336-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "0937C88042A49BEF4A9B88CC8DD5BFF17DEA196168D5B7385ADAD503455BA3BC",
-      "size": 357372
+      "sha256": "A12DB93CF13CE3D74F05202EAB7CB7C33A48070071FE5514958340C01C4225FB",
+      "size": 357362
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
