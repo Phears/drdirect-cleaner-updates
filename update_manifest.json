@@ -1,7 +1,7 @@
 {
-  "version": "1.4.131",
-  "notes": "Fixes the Cleaner not opening after the last update. Sorry about that.",
-  "published": "2026-10-18T14:11:33.4738336-04:00",
+  "version": "1.4.132",
+  "notes": "The whole Cleaner now has a 3D look: buttons and boxes stand out from the page. The 3D look switch on the Dashboard turns it on or off.",
+  "published": "2026-10-18T14:15:07.2620235-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "A12DB93CF13CE3D74F05202EAB7CB7C33A48070071FE5514958340C01C4225FB",
-      "size": 357362
+      "sha256": "A1E1060877FF7C28AC1BC66D7691CB7F3CCED21B07DD722FCE9BCF3C77C1854B",
+      "size": 358452
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
