@@ -809,6 +809,7 @@ $ErrorActionPreference = 'Stop'
                 </ScrollViewer.Resources>
                 <StackPanel x:Name="Navigation">
                     <Button x:Name="NavDashboard" Style="{StaticResource NavButton}" Tag="Active" Content="⌂   Dashboard"/>
+                    <Button x:Name="NavProgress" Style="{StaticResource NavButton}" Content="◐   Maintenance progress" Visibility="Collapsed"/>
                     <TextBlock Text="CLEAN" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
                     <Button x:Name="NavCleanup" Style="{StaticResource NavButton}" Content="✦   Clean my PC"/>
                     <Button x:Name="NavSpeed" Style="{StaticResource NavButton}" Content="◈   Speed and space"/>
@@ -826,7 +827,6 @@ $ErrorActionPreference = 'Stop'
                     <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   Cleaning history" ToolTip="See what the Cleaner did, open the reports, and undo changes to settings"/>
                     <TextBlock Text="UPDATE" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
                     <Button x:Name="NavAppUpdates" Style="{StaticResource WingetNavButton}" Content="⭳   Update my apps" Margin="10,4,10,4" ToolTip="Update every app with winget, in a colour PowerShell window"/>
-                    <Button x:Name="NavProgress" Style="{StaticResource NavButton}" Content="◐   Maintenance progress" Visibility="Collapsed"/>
                 </StackPanel>
                 </ScrollViewer>
                 <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="RunStrip" Visibility="Collapsed" Background="#12306B" BorderBrush="#2E6DEB" BorderThickness="1" CornerRadius="9" Padding="12,10" Margin="0,0,0,12" Cursor="Hand" ToolTip="Click to go to the progress page"><StackPanel><TextBlock x:Name="RunStripTitle" Text="Working..." Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock x:Name="RunStripDetail" Text="" Foreground="#B9C9DD" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,2,0,6"/><ProgressBar x:Name="RunStripBar" Height="6" Minimum="0" Maximum="100" Value="0" Foreground="#2BE37A" Background="#2A3F66" BorderThickness="0"/></StackPanel></Border><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>

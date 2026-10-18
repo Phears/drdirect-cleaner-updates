@@ -1,7 +1,7 @@
 {
-  "version": "1.4.119",
-  "notes": "New in Protect: turn off Windows 11 ads and suggestions, and turn off Windows tracking. Both can be turned back on with one click. Also new: a spyware and adware check that only looks and changes nothing.",
-  "published": "2026-10-18T12:48:28.1034493-04:00",
+  "version": "1.4.120",
+  "notes": "While a cleanup is running, Maintenance progress now shows at the top of the menu, so it is easy to find.",
+  "published": "2026-10-18T12:51:42.5949660-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "8B2A6114D97BB1F58437DEB7B52287B81B7F75AF853D6B571F7DF41F1E8FAD42",
-      "size": 352055
+      "sha256": "6D51B560B4D4F971854DEFB43745EBEA94D1ECFBA1EA0A576431CB99D2A24075",
+      "size": 346863
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
