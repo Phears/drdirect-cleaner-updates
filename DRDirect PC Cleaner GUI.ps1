@@ -839,6 +839,7 @@ $ErrorActionPreference = 'Stop'
 
             <Grid Grid.Row="1">
                 <ScrollViewer x:Name="PageDashboard" VerticalScrollBarVisibility="Auto"><StackPanel>
+<Border x:Name="DiskWarning" Visibility="Collapsed" Background="#FFF1F2" BorderBrush="#E5384A" BorderThickness="2" CornerRadius="12" Padding="20,14" Margin="0,0,0,16"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0"><Ellipse Width="22" Height="22" Fill="#E5384A" Stroke="White" StrokeThickness="3" Margin="0,0,7,0" VerticalAlignment="Center"><Ellipse.Effect><DropShadowEffect ShadowDepth="0" BlurRadius="16" Opacity="0.9" Color="#E5384A"/></Ellipse.Effect><Ellipse.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.2" Duration="0:0:0.6"/></Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers></Ellipse><Ellipse Width="22" Height="22" Fill="#1E90FF" Stroke="White" StrokeThickness="3" Margin="0" VerticalAlignment="Center"><Ellipse.Effect><DropShadowEffect ShadowDepth="0" BlurRadius="16" Opacity="0.9" Color="#1E90FF"/></Ellipse.Effect><Ellipse.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.2" To="1" Duration="0:0:0.6"/></Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers></Ellipse></StackPanel><StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock x:Name="DiskWarningTitle" Text="Your C: drive is almost full" FontSize="16" FontWeight="ExtraBold" Foreground="#B42318"/><TextBlock x:Name="DiskWarningText" TextWrapping="Wrap" Foreground="#7A271A" FontSize="13" Margin="0,3,0,0"/></StackPanel><Button x:Name="DiskWarningCleanButton" Grid.Column="2" Content="Clean my PC" Style="{StaticResource PrimaryButton}" VerticalAlignment="Center" Margin="16,0,0,0"/></Grid></Border>
 <Border x:Name="UpdateBanner" Visibility="Collapsed" Background="#12C25B" CornerRadius="12" Padding="20,14" Margin="0,0,0,16"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal" VerticalAlignment="Center"><TextBlock Text="&#10004;" Foreground="White" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,12,0"/><TextBlock x:Name="UpdateBannerText" Text="There is a new update" Foreground="White" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"/></StackPanel><Button x:Name="UpdateBannerButton" Grid.Column="1" Content="See what is new and update" Style="{StaticResource HeroButton}" Foreground="#0B7A3B" Margin="16,0,0,0"/></Grid></Border>
 <Border Style="{StaticResource Card}" Padding="34" Margin="0,0,0,18" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8"><StackPanel><TextBlock Text="START HERE" Foreground="#A8C4FF" FontSize="11" FontWeight="Bold"/><TextBlock Text="Make my PC cleaner" Foreground="White" FontSize="32" FontWeight="ExtraBold" Margin="0,8,0,8"/><TextBlock Text="One click. We only do the safe things, and we ask you before anything starts." Foreground="#C9D9FF" FontSize="16" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left"/><WrapPanel Orientation="Horizontal" Margin="0,24,0,0"><Button x:Name="SafeCleanButton" Content="Make my PC cleaner" Style="{StaticResource HeroButton}" Margin="0,0,10,10"/><Button x:Name="SafePreviewButton" Content="Show me first" Style="{StaticResource HeroGhostButton}" Margin="0,0,10,10"/><Button x:Name="HeroUpdateButton" Content="Check for updates" Style="{StaticResource HeroGhostButton}" Margin="0,0,10,10" FontSize="13" ToolTip="Look for a newer version of the Cleaner"/><Button x:Name="HeroUninstallButton" Style="{StaticResource HeroGreenButton}" Margin="0,0,10,10" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><StackPanel Orientation="Horizontal"><TextBlock Text="⌫" FontSize="14" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock Text="DRDirect Uninstaller Program" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button></WrapPanel><TextBlock Text="✓  Settings changes can be undone.   ✓  Your files and passwords are never touched." Foreground="#DDE8FF" FontSize="13" Margin="0,20,0,0" TextWrapping="Wrap"/></StackPanel></Border>
 <UniformGrid Columns="3" Margin="0,0,0,22">
@@ -1143,7 +1144,7 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningText','DiskWarningCleanButton','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -1289,9 +1290,38 @@ function Start-DRFadeIn {
     } catch { }
 }
 
+# Flashing red and blue warning on the Dashboard when C: is 80% full or more. A drive
+# this full slows Windows down and can make updates and saves fail.
+function Get-DRDiskWarning {
+    param([double]$Size, [double]$Free, [int]$Threshold = 80)
+    if ($Size -le 0) { return $null }
+    $usedPercent = [int][math]::Round(100 * ($Size - $Free) / $Size)
+    if ($usedPercent -lt $Threshold) { return $null }
+    [pscustomobject]@{
+        UsedPercent = $usedPercent
+        Title       = ('Your C: drive is {0}% full' -f $usedPercent)
+        Text        = ('Only {0} is free. Windows needs room to breathe: a drive this full runs slower, and updates and saving files can fail. Please clean it out soon.' -f (Format-Bytes $Free))
+    }
+}
+
+function Update-DRDiskWarning {
+    try {
+        $drive = Get-PSDrive -Name C -ErrorAction Stop
+        $warning = Get-DRDiskWarning -Size ([double]($drive.Used + $drive.Free)) -Free ([double]$drive.Free)
+    } catch { $warning = $null }
+    if ($warning) {
+        $ui.DiskWarningTitle.Text = $warning.Title
+        $ui.DiskWarningText.Text = $warning.Text
+        $ui.DiskWarning.Visibility = 'Visible'
+    } else {
+        $ui.DiskWarning.Visibility = 'Collapsed'
+    }
+}
+
 function Set-Page {
     param([string]$Name)
     $ui.PageDashboard.Visibility = if ($Name -eq 'Dashboard') { 'Visible' } else { 'Collapsed' }
+    if ($Name -eq 'Dashboard') { Update-DRDiskWarning }
     $ui.PageTasks.Visibility = if ($Name -in @('Cleanup','Repair','Security','Health','Memory','Speed','Hibernate','AI')) { 'Visible' } else { 'Collapsed' }
     $ui.PageProgress.Visibility = if ($Name -eq 'Progress') { 'Visible' } else { 'Collapsed' }
     $ui.PageHistory.Visibility = if ($Name -eq 'History') { 'Visible' } else { 'Collapsed' }
@@ -2891,6 +2921,8 @@ function Write-DRSafeRunReport {
 }
 
 function Complete-RunPlan {
+    # The run may have freed space, so the C: warning is checked again straight away.
+    Update-DRDiskWarning
     [string[]]$selectedIds = @(
         $catalog |
             Where-Object { $selection[$_.Id] } |
@@ -5053,6 +5085,8 @@ if (-not (Resolve-DRDuplicateFinderPath)) {
 $ui.AdminStatus.Text = if (Test-DRAdministrator) { '●  Administrator session' } else { '○  Standard user session' }
 if ($TestMode) { $ui.TestModeBanner.Visibility='Visible' }
 try { $drive=Get-PSDrive -Name C -ErrorAction Stop; $ui.FreeSpaceText.Text=Format-Bytes $drive.Free } catch { $ui.FreeSpaceText.Text='Unavailable' }
+Update-DRDiskWarning
+$ui.DiskWarningCleanButton.Add_Click({ Set-Page 'Cleanup' })
 $window.Add_Closed({ Stop-DRRestartCountdown; $pollTimer.Stop(); if ($script:activePowerShell) { try { $script:activePowerShell.Stop() } catch {}; Stop-EngineCall } })
 
 if ($NoShow) {

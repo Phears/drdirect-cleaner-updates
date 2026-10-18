@@ -1,7 +1,7 @@
 {
-  "version": "1.4.116",
-  "notes": "Turn off Windows telemetry now tells you how much is switched off, for example 98 percent, and lists anything Windows would not let it change.",
-  "published": "2026-10-18T01:08:13.7552674-04:00",
+  "version": "1.4.117",
+  "notes": "New: when your C: drive is 80 percent full or more, the Dashboard shows a flashing red and blue warning and a Clean my PC button, so you know to clear space before it causes problems.",
+  "published": "2026-10-18T01:14:46.2177203-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B7711D093E81E9E1541B6D599D921E62D1E9781088F12A862EA12B41C93CBC97",
-      "size": 346418
+      "sha256": "C2266D64140F13474F07162AB0AA082084DEC73F4FFB5CEECACBCCB79AE43703",
+      "size": 349938
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
