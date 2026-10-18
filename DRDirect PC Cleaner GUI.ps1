@@ -4214,6 +4214,52 @@ $ui.Buttons3DSwitch.Add_Click({
     }
 })
 
+# A waiting update must be impossible to miss: both update buttons flash
+# red and orange, pulse in size and glow until it is installed.
+$script:DRUpdateFlashOn = $false
+$script:DRUpdateFlashSaved = @{}
+function Start-DRUpdateFlash {
+    if ($script:DRUpdateFlashOn) { return }
+    $script:DRUpdateFlashOn = $true
+    $script:DRUpdateFlashSaved = @{}
+    foreach ($button in @($ui.HeroUpdateButton, $ui.CheckUpdatesButton)) {
+        $script:DRUpdateFlashSaved[$button.Name] = @{ Content = $button.Content; Background = $button.Background }
+        $button.Content = [string][char]0x2605 + '  NEW UPDATE  ' + [string][char]0x2605
+        $button.FontWeight = 'ExtraBold'
+        $button.Foreground = [Windows.Media.Brushes]::White
+
+        $brush = New-Object Windows.Media.SolidColorBrush ([Windows.Media.ColorConverter]::ConvertFromString('#FF2E63'))
+        $button.Background = $brush
+        $colour = New-Object Windows.Media.Animation.ColorAnimation
+        $colour.To = [Windows.Media.ColorConverter]::ConvertFromString('#FF9F1C')
+        $colour.Duration = [Windows.Duration]::new([TimeSpan]::FromMilliseconds(550))
+        $colour.AutoReverse = $true
+        $colour.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
+        $brush.BeginAnimation([Windows.Media.SolidColorBrush]::ColorProperty, $colour)
+
+        $scale = New-Object Windows.Media.ScaleTransform 1, 1
+        $button.RenderTransformOrigin = New-Object Windows.Point 0.5, 0.5
+        $button.RenderTransform = $scale
+        $pulse = New-Object Windows.Media.Animation.DoubleAnimation 1, 1.12, ([Windows.Duration]::new([TimeSpan]::FromMilliseconds(550)))
+        $pulse.AutoReverse = $true
+        $pulse.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
+        $scale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleXProperty, $pulse)
+        $scale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleYProperty, $pulse)
+    }
+}
+
+function Stop-DRUpdateFlash {
+    if (-not $script:DRUpdateFlashOn) { return }
+    $script:DRUpdateFlashOn = $false
+    foreach ($button in @($ui.HeroUpdateButton, $ui.CheckUpdatesButton)) {
+        $saved = $script:DRUpdateFlashSaved[$button.Name]
+        $button.RenderTransform = $null
+        if ($saved) { $button.Content = $saved.Content; $button.Background = $saved.Background }
+        $button.ClearValue([Windows.Controls.Control]::FontWeightProperty)
+        $button.ClearValue([Windows.Controls.Control]::ForegroundProperty)
+    }
+}
+
 $ui.NavUninstaller.Add_Click({ Open-DRUninstaller })
 $ui.HeroUninstallButton.Add_Click({ Open-DRUninstaller })
 
@@ -4926,7 +4972,7 @@ function Start-DRQuietUpdateCheck {
                 if ($line -like 'AVAILABLE*') {
                     $version = ($line -split ' ')[1]
                     # Only the Check for updates button in the blue box turns green; nothing else changes.
-                    try { $ui.HeroUpdateButton.Content = 'New update'; $ui.HeroUpdateButton.FontWeight = 'Bold'; $ui.HeroUpdateButton.Background = '#12C25B'; $ui.HeroUpdateButton.Foreground = 'White'; $ui.HeroUpdateButton.BorderBrush = '#0B7A3B' } catch { }
+                    try { Start-DRUpdateFlash } catch { }
                     $ui.CheckUpdatesButton.ToolTip =
                         "Version $version is ready. Click to see what changed and install it."
                 }
@@ -4993,11 +5039,7 @@ function Complete-DRUpdateInstall {
         # cleared it, so it kept advertising an update already installed
         # until the app was restarted. Put the button back now.
         try {
-            $ui.HeroUpdateButton.Content = 'Check for updates'
-            $ui.HeroUpdateButton.FontWeight = 'Normal'
-            $ui.HeroUpdateButton.ClearValue([Windows.Controls.Control]::BackgroundProperty)
-            $ui.HeroUpdateButton.ClearValue([Windows.Controls.Control]::ForegroundProperty)
-            $ui.HeroUpdateButton.ClearValue([Windows.Controls.Control]::BorderBrushProperty)
+            Stop-DRUpdateFlash
             $ui.CheckUpdatesButton.ToolTip = $null
         } catch { }
     }

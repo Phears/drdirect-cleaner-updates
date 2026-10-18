@@ -1,7 +1,7 @@
 {
-  "version": "1.4.140",
-  "notes": "More Dashboard buttons now have the colourful 3D look.",
-  "published": "2026-10-18T15:29:25.6822493-04:00",
+  "version": "1.4.141",
+  "notes": "When a new update is ready, the update buttons now flash so you cannot miss it.",
+  "published": "2026-10-18T15:31:49.1758439-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F9C72CC5FB9CBCAA7F1F7A26E693F2DD320D6E04A0F3CA29BEF818DF56176359",
-      "size": 359169
+      "sha256": "C22020B9D94A050A3F33589730F442CB744035966E5771BC41E61DA96C87603E",
+      "size": 361095
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
