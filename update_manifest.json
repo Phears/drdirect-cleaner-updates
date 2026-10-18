@@ -1,7 +1,7 @@
 {
-  "version": "1.4.148",
-  "notes": "Small look change: new green icon beside Fix Windows and PC Manager.",
-  "published": "2026-10-18T15:58:08.4268510-04:00",
+  "version": "1.4.149",
+  "notes": "The green squares now have a 3D look.",
+  "published": "2026-10-18T16:01:08.4001951-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "0FBA3A244E45330028F3AB9ADBA36F766F3F3A7A0827BC539CC6A968FCD5A273",
-      "size": 362159
+      "sha256": "FFCDF5A1E79E4BD2F49168B75702E45026FC01772A6B47D738085BF15D3C3D8D",
+      "size": 365086
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
