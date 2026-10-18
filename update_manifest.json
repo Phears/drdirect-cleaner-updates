@@ -1,7 +1,7 @@
 {
-  "version": "1.4.126",
-  "notes": "Fix Windows now has the Windows logo beside it, so it is easy to find.",
-  "published": "2026-10-18T13:54:59.3987369-04:00",
+  "version": "1.4.127",
+  "notes": "The menu headings are brighter, and Fix Windows is easy to read again.",
+  "published": "2026-10-18T13:56:41.0773312-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "E45DC0DBF94BCBE8AA65B84F6FF29D9E4012FF96AF12D9ED2F0667E463213ECA",
-      "size": 351960
+      "sha256": "283EFAEF23B7B9AA7CE99AE6DC8D7BEE8FFB09AFD70F5B6117F7C017BC70C06C",
+      "size": 352075
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

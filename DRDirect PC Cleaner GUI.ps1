@@ -857,22 +857,22 @@ $ErrorActionPreference = 'Stop'
                 <StackPanel x:Name="Navigation">
                     <Button x:Name="NavDashboard" Style="{StaticResource NavButton}" Tag="Active" Content="⌂   Dashboard"/>
                     <Button x:Name="NavProgress" Style="{StaticResource NavButton}" Content="◐   Maintenance progress" Visibility="Collapsed"/>
-                    <TextBlock Text="CLEAN" Foreground="#FFE600" FontSize="12" FontWeight="Bold" Margin="20,16,0,4"/>
+                    <TextBlock Text="CLEAN" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold" Margin="20,16,0,4"/>
                     <Button x:Name="NavCleanup" Style="{StaticResource NavButton}" Content="✦   Clean my PC"/>
                     <Button x:Name="NavSpeed" Style="{StaticResource NavButton}" Content="◈   Speed and space"/>
                     <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Foreground="#22C16F" FontWeight="Bold" Content="⧉   Find duplicate files"/>
                     <Button x:Name="NavHibernate" Style="{StaticResource NavButton}" Foreground="#22D3EE" FontWeight="SemiBold" Content="☾   Hibernate" ToolTip="Turn Hibernate off to free several GB, or back on"/>
                     <Button x:Name="NavUninstaller" Style="{StaticResource GreenNavButton}" Margin="10,4,10,4" Padding="12,8" FontSize="13" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⌫" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="DRDirect Uninstaller Program" Foreground="White" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/></Grid></Button>
-                    <TextBlock Text="FIX &amp; PROTECT" Foreground="#FFE600" FontSize="12" FontWeight="Bold" Margin="20,16,0,4"/>
-                    <Button x:Name="NavRepair" Style="{StaticResource NavButton}"><StackPanel Orientation="Horizontal"><TextBlock Text="⚒   Fix Windows" VerticalAlignment="Center"/><Grid Width="15" Height="15" Margin="10,1,0,0" VerticalAlignment="Center" ToolTip="Windows"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions><Rectangle Fill="#F25022" Margin="0,0,1,1"/><Rectangle Grid.Column="1" Fill="#7FBA00" Margin="1,0,0,1"/><Rectangle Grid.Row="1" Fill="#00A4EF" Margin="0,1,1,0"/><Rectangle Grid.Row="1" Grid.Column="1" Fill="#FFB900" Margin="1,1,0,0"/></Grid></StackPanel></Button>
+                    <TextBlock Text="FIX &amp; PROTECT" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold" Margin="20,16,0,4"/>
+                    <Button x:Name="NavRepair" Style="{StaticResource NavButton}"><StackPanel Orientation="Horizontal"><TextBlock Text="⚒   Fix Windows" VerticalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/><Grid Width="15" Height="15" Margin="10,1,0,0" VerticalAlignment="Center" ToolTip="Windows"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions><Rectangle Fill="#F25022" Margin="0,0,1,1"/><Rectangle Grid.Column="1" Fill="#7FBA00" Margin="1,0,0,1"/><Rectangle Grid.Row="1" Fill="#00A4EF" Margin="0,1,1,0"/><Rectangle Grid.Row="1" Grid.Column="1" Fill="#FFB900" Margin="1,1,0,0"/></Grid></StackPanel></Button>
                     <Button x:Name="NavSecurity" Style="{StaticResource NavButton}" Content="⬡   Check my security"/>
                     <Button x:Name="NavAI" Style="{StaticResource AINavButton}" Content="⊘   Switch off AI" Margin="10,4,10,4" ToolTip="Switch off AI in Windows and web browsers"/>
-                    <TextBlock Text="CHECK" Foreground="#FFE600" FontSize="12" FontWeight="Bold" Margin="20,16,0,4"/>
+                    <TextBlock Text="CHECK" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold" Margin="20,16,0,4"/>
                     <Button x:Name="NavHealth" Style="{StaticResource NavButton}" Foreground="#FACC15" Content="▰   Check my drives"/>
                     <Button x:Name="NavMemory" Style="{StaticResource NavButton}" Foreground="#FACC15" Content="▦   Check my RAM"/>
                     <Button x:Name="NavHardware" Style="{StaticResource NavButton}" Content="▤   About my PC"/>
                     <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Foreground="#22D3EE" FontWeight="SemiBold" Content="◷   Cleaning history" ToolTip="See what the Cleaner did, open the reports, and undo changes to settings"/>
-                    <TextBlock Text="UPDATE" Foreground="#FFE600" FontSize="12" FontWeight="Bold" Margin="20,16,0,4"/>
+                    <TextBlock Text="UPDATE" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold" Margin="20,16,0,4"/>
                     <Button x:Name="NavAppUpdates" Style="{StaticResource WingetNavButton}" Content="⭳   Update my apps" Margin="10,4,10,4" ToolTip="Update every app with winget, in a colour PowerShell window"/>
                 </StackPanel>
                 </ScrollViewer>
