@@ -1,7 +1,7 @@
 {
-  "version": "1.4.125",
-  "notes": "The Uninstaller button is now blue, and the menu headings are bright yellow so they are easy to spot.",
-  "published": "2026-10-18T13:54:19.2408947-04:00",
+  "version": "1.4.126",
+  "notes": "Fix Windows now has the Windows logo beside it, so it is easy to find.",
+  "published": "2026-10-18T13:54:59.3987369-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "444160D069C7041668F727BCBBFC040457BDF2768449AB1B439359879F2F9075",
-      "size": 351371
+      "sha256": "E45DC0DBF94BCBE8AA65B84F6FF29D9E4012FF96AF12D9ED2F0667E463213ECA",
+      "size": 351960
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
