@@ -1,7 +1,7 @@
 {
-  "version": "1.4.135",
-  "notes": "Buttons and boxes in the Cleaner and the Duplicate Finder now stand out a lot more, with a deep 3D look.",
-  "published": "2026-10-18T14:25:33.0779051-04:00",
+  "version": "1.4.136",
+  "notes": "The Uninstaller buttons now have the same 3D look as the Cleaner.",
+  "published": "2026-10-18T15:12:25.3484802-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "CB672B16A5F1093E0777C4BA5F04E52316400DDE2344C8269716124BC69C1FA3",
-      "size": 10413028
+      "sha256": "E3A26065482DE2F82782A81B00A04544773CD7E93FB62B6602B00C00A58B4C32",
+      "size": 10414128
     }
   ],
   "blocked": [
