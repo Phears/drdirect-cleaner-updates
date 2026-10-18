@@ -1,7 +1,7 @@
 {
-  "version": "1.4.136",
-  "notes": "The Uninstaller buttons now have the same 3D look as the Cleaner.",
-  "published": "2026-10-18T15:12:25.3484802-04:00",
+  "version": "1.4.137",
+  "notes": "The Uninstaller start screen has a new 3D logo that flies in from far away.",
+  "published": "2026-10-18T15:20:13.3289389-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "E3A26065482DE2F82782A81B00A04544773CD7E93FB62B6602B00C00A58B4C32",
-      "size": 10414128
+      "sha256": "1C71923EFE99734FA3F9E703EB50990BE0B89CF9F06B5856A4A37C0A4D8D134F",
+      "size": 10415861
     }
   ],
   "blocked": [
