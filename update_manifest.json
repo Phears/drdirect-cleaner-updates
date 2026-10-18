@@ -1,12 +1,12 @@
 {
-  "version": "1.4.133",
-  "notes": "The Duplicate Finder now has the same 3D buttons as the Cleaner. The 3D look switch on the Cleaner Dashboard turns it on or off for both.",
-  "published": "2026-10-18T14:19:04.9812147-04:00",
+  "version": "1.4.134",
+  "notes": "The Duplicate Finder buttons now really look 3D: raised, shiny and with a shadow.",
+  "published": "2026-10-18T14:22:30.7532884-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "BC9C468AF8A09E2E8D992654E57AF4C9533ADFC253652DC7FAFFA1A6EEBD5786",
-      "size": 158536
+      "sha256": "92CC5D458D9892E4A0ECC1F1660F27FF83931D64684B5180854841060AC826EE",
+      "size": 160107
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",

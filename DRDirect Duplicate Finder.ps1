@@ -877,7 +877,7 @@ $xaml = @'
     </LinearGradientBrush>
   </Window.Background>
   <Window.Resources>
-    <DropShadowEffect x:Key="DR3DButton" Color="#0A1A4A" Direction="270" ShadowDepth="3" BlurRadius="8" Opacity="0.35"/>
+    <DropShadowEffect x:Key="DR3DButton" Color="#0A1A4A" Direction="270" ShadowDepth="5" BlurRadius="10" Opacity="0.5"/><Visibility x:Key="DR3DParts">Visible</Visibility>
     <!-- Every button lifts on hover and presses in on click. -->
     <Style x:Key="Btn" TargetType="Button"><Setter Property="Effect" Value="{DynamicResource DR3DButton}"/>
       <Setter Property="Background" Value="#2563EB"/>
@@ -894,12 +894,14 @@ $xaml = @'
                 <ScaleTransform x:Name="sc" ScaleX="1" ScaleY="1"/>
               </Grid.RenderTransform>
 
+              <Border CornerRadius="6" Background="#59000A30" Margin="0,4,0,-4" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"/>
               <Border x:Name="shade" CornerRadius="6" Background="Black" Opacity="0"
                       Margin="0,2,0,-2" IsHitTestVisible="False"/>
               <Border x:Name="b" CornerRadius="6" Background="{TemplateBinding Background}"
                       Padding="{TemplateBinding Padding}">
                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Border>
+              <Border CornerRadius="6" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}" BorderThickness="0,0,0,3" BorderBrush="#33000000"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#70FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="0.5"/></LinearGradientBrush></Border.Background></Border>
               <Border x:Name="glow" CornerRadius="6" Background="White" Opacity="0"
                       IsHitTestVisible="False"/>
             </Grid>
@@ -989,10 +991,12 @@ $xaml = @'
           <ControlTemplate TargetType="ToggleButton">
             <Grid RenderTransformOrigin="0.5,0.5">
               <Grid.RenderTransform><ScaleTransform x:Name="csc" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+              <Border CornerRadius="16" Background="#59000A30" Margin="0,4,0,-4" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"/>
               <Border x:Name="cb" CornerRadius="16" Background="White" BorderBrush="#C9D4E6"
                       BorderThickness="1.5" Padding="14,7">
                 <ContentPresenter VerticalAlignment="Center"/>
               </Border>
+              <Border CornerRadius="16" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}" BorderThickness="0,0,0,3" BorderBrush="#33000000"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#70FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="0.5"/></LinearGradientBrush></Border.Background></Border>
             </Grid>
             <ControlTemplate.Triggers>
               <Trigger Property="IsChecked" Value="True">
@@ -1602,7 +1606,7 @@ function Set-DR3DFromCleaner {
     param($Window)
     try {
         $v = Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name 'Buttons3D' -ErrorAction Stop
-        if ([int]$v.Buttons3D -eq 0) { $Window.Resources['DR3DButton'] = $null }
+        if ([int]$v.Buttons3D -eq 0) { $Window.Resources['DR3DButton'] = $null; $Window.Resources['DR3DParts'] = [Windows.Visibility]::Collapsed }
     } catch { }
 }
 $win = [Windows.Markup.XamlReader]::Load($reader)
@@ -1913,7 +1917,7 @@ function Show-FolderPicker {
   </Window.Background>
 
   <Window.Resources>
-    <DropShadowEffect x:Key="DR3DButton" Color="#0A1A4A" Direction="270" ShadowDepth="3" BlurRadius="8" Opacity="0.35"/>
+    <DropShadowEffect x:Key="DR3DButton" Color="#0A1A4A" Direction="270" ShadowDepth="5" BlurRadius="10" Opacity="0.5"/><Visibility x:Key="DR3DParts">Visible</Visibility>
     <Style x:Key="PBtn" TargetType="Button"><Setter Property="Effect" Value="{DynamicResource DR3DButton}"/>
       <Setter Property="Background" Value="#2563EB"/>
       <Setter Property="Foreground" Value="White"/>
@@ -1929,6 +1933,7 @@ function Show-FolderPicker {
                       Padding="{TemplateBinding Padding}">
                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Border>
+              <Border CornerRadius="6" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}" BorderThickness="0,0,0,3" BorderBrush="#33000000"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#70FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="0.5"/></LinearGradientBrush></Border.Background></Border>
               <Border x:Name="glow" CornerRadius="6" Background="White" Opacity="0" IsHitTestVisible="False"/>
             </Grid>
             <ControlTemplate.Triggers>
