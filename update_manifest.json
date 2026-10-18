@@ -1,7 +1,7 @@
 {
-  "version": "1.4.139",
-  "notes": "The Show me first button has a brighter colour.",
-  "published": "2026-10-18T15:26:22.1777550-04:00",
+  "version": "1.4.140",
+  "notes": "More Dashboard buttons now have the colourful 3D look.",
+  "published": "2026-10-18T15:29:25.6822493-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "59DD82EC6E2D926766F40B5D7716F2C226BFEDFAC4167FED734AA272A6E7788F",
-      "size": 358454
+      "sha256": "F9C72CC5FB9CBCAA7F1F7A26E693F2DD320D6E04A0F3CA29BEF818DF56176359",
+      "size": 359169
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
