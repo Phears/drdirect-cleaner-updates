@@ -1892,6 +1892,8 @@ $script:DRConflictingTasks = @{
     'security.win11-extras-restore'   = 'security.win11-extras'
     'security.telemetry-off'          = 'security.telemetry-off-restore'
     'security.telemetry-off-restore'  = 'security.telemetry-off'
+    'security.compat-task-off'        = 'security.compat-task-on'
+    'security.compat-task-on'         = 'security.compat-task-off'
 }
 function Clear-DRConflictingTask {
     param([string]$TaskId)
@@ -1933,7 +1935,7 @@ function Clear-DRForRunsAlone {
 # Last safety net before a plan is shown or run: if both tasks of an undoing pair somehow
 # ended up selected, keep the one that changes something and drop the one that undoes it.
 function Remove-DRConflictingSelections {
-    foreach ($undo in @('cleanup.hibernate-on','security.typing-privacy-restore','security.win11-extras-restore','security.telemetry-off-restore')) {
+    foreach ($undo in @('cleanup.hibernate-on','security.typing-privacy-restore','security.win11-extras-restore','security.telemetry-off-restore','security.compat-task-on')) {
         $other = $script:DRConflictingTasks[$undo]
         if ($selection[$undo] -and $selection[$other]) { $selection[$undo] = $false }
     }
@@ -3493,7 +3495,7 @@ function Set-DRDefaultTicks {
     # Check my security starts with every task ticked except the full scan (an hour or more) and
     # "Restore typing settings" (it only undoes "Stop sending typing data") and "Remove Defender
     # exclusions", which deletes settings and is left for the person to choose.
-    foreach ($task in @($catalog | Where-Object { $_.Category -eq 'Security' -and $_.Id -notin @('security.full-scan','security.typing-privacy-restore','security.remove-exclusions','security.win11-extras','security.win11-extras-restore','security.telemetry-off','security.telemetry-off-restore') })) { $selection[$task.Id] = $true }
+    foreach ($task in @($catalog | Where-Object { $_.Category -eq 'Security' -and $_.Id -notin @('security.full-scan','security.typing-privacy-restore','security.remove-exclusions','security.win11-extras','security.win11-extras-restore','security.telemetry-off','security.telemetry-off-restore','security.compat-task-off','security.compat-task-on') })) { $selection[$task.Id] = $true }
     # Speed and space only looks at the PC (and releases idle memory), so it starts fully ticked.
     foreach ($task in @($catalog | Where-Object { $_.Category -eq 'Speed' })) { $selection[$task.Id] = $true }
     Update-SelectionSummary

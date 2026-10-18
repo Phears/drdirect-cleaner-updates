@@ -197,6 +197,8 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='security.win11-extras-restore'; Category='Security'; Name='Turn Windows 11 extras back on'; Description='Puts the ads and suggestions settings back exactly as they were before "Windows 11: turn off ads and suggestions" changed them. Does nothing if that option was never run.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.telemetry-off'; Category='Security'; Name='Turn off Windows telemetry'; Description='Stops Windows sending usage and diagnostic data to Microsoft: switches off the tracking services (Connected User Experiences, Error Reporting, Program Compatibility Assistant), their scheduled tasks, and the data-collection policies. It also turns off telemetry in Edge, Chrome, Brave, Firefox, NVIDIA and Office, stops Windows Search sharing your searches with Microsoft, switches off location and tailored experiences, and switches off the Google, Edge and Adobe updaters, so those programs no longer update themselves until you turn this back on. Your files, apps and logins are not touched. Windows Error Reporting stops too, so crash reports are no longer sent. Your current settings are saved first, and "Turn telemetry back on" puts them back.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.telemetry-off-restore'; Category='Security'; Name='Turn telemetry back on'; Description='Puts the telemetry services, scheduled tasks and policies back exactly as they were before "Turn off Windows telemetry" changed them. Does nothing if that option was never run.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='security.compat-task-off'; Category='Security'; Name='Turn off the Windows compatibility task'; Description='Switches off "SdbinstMergeDbTask", a Windows task that only helps very old programs run. Windows protects it, so the Cleaner uses the system account to switch it off. Nothing is deleted, and "Turn the compatibility task back on" undoes it.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='security.compat-task-on'; Category='Security'; Name='Turn the compatibility task back on'; Description='Switches "SdbinstMergeDbTask" back on, exactly as Windows has it by default. Does nothing if it is already on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
 
         [pscustomobject]@{ Id='health.chkdsk'; Category='Repair'; Name='CHKDSK disk check (deep drive test)'; Description='Checks the C: file system for corruption while Windows keeps running. Reports what it finds, repairs what is safe to repair, and never schedules a restart.'; Risk='Safe'; Duration='5-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
         [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -2135,6 +2137,57 @@ function Restore-DRTelemetry {
     New-DREvent -TaskId $TaskId -State Information -Message 'Telemetry settings are back to how they were before the Cleaner changed them. Restart Windows so the services start again.'
 }
 
+function Set-DRCompatTask {
+    # SdbinstMergeDbTask only merges compatibility files for very old programs. Windows protects
+    # it, so a normal administrator is refused; the system account is allowed. If the plain
+    # command is refused, the same command is run once by the system account and then removed.
+    param([string]$TaskId, [bool]$Enable)
+
+    $path = '\Microsoft\Windows\Application Experience\'
+    $name = 'SdbinstMergeDbTask'
+    $task = Get-ScheduledTask -TaskPath $path -TaskName $name -ErrorAction SilentlyContinue
+    if (-not $task) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'This task is not on this PC, so there is nothing to change.'
+        return
+    }
+    $isOff = ($task.State -eq 'Disabled')
+    if ($Enable -and -not $isOff) { New-DREvent -TaskId $TaskId -State Information -Message 'The compatibility task is already on. Nothing was changed.'; return }
+    if (-not $Enable -and $isOff) { New-DREvent -TaskId $TaskId -State Information -Message 'The compatibility task is already off. Nothing was changed.'; return }
+
+    $verb = if ($Enable) { 'Enable-ScheduledTask' } else { 'Disable-ScheduledTask' }
+    try {
+        $null = & $verb -TaskPath $path -TaskName $name -ErrorAction Stop
+    } catch {
+        $helper = 'DRDirect_OneTime_CompatTask'
+        try {
+            $command = ("{0} -TaskPath '{1}' -TaskName '{2}'" -f $verb, $path, $name)
+            $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument ('-NoProfile -ExecutionPolicy Bypass -Command "{0}"' -f $command)
+            $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
+            $null = Register-ScheduledTask -TaskName $helper -Action $action -Principal $principal -Force -ErrorAction Stop
+            Start-ScheduledTask -TaskName $helper -ErrorAction Stop
+            for ($wait = 0; $wait -lt 20; $wait++) {
+                Start-Sleep -Milliseconds 500
+                $helperTask = Get-ScheduledTask -TaskName $helper -ErrorAction SilentlyContinue
+                if (-not $helperTask -or $helperTask.State -ne 'Running') { break }
+            }
+        } catch {
+            New-DREvent -TaskId $TaskId -State Warning -Message ('Windows would not let the Cleaner change this task: {0}' -f $_.Exception.Message)
+        } finally {
+            Unregister-ScheduledTask -TaskName $helper -Confirm:$false -ErrorAction SilentlyContinue
+        }
+    }
+
+    # Check again instead of trusting the commands.
+    $after = Get-ScheduledTask -TaskPath $path -TaskName $name -ErrorAction SilentlyContinue
+    $nowOff = ($after -and $after.State -eq 'Disabled')
+    if (($Enable -and -not $nowOff) -or (-not $Enable -and $nowOff)) {
+        $word = if ($Enable) { 'on' } else { 'off' }
+        New-DREvent -TaskId $TaskId -State Information -Message ('The compatibility task is now {0}.' -f $word)
+    } else {
+        New-DREvent -TaskId $TaskId -State Warning -Message 'Windows still has this task in its old state. It is protected, and this PC would not let it be changed. Nothing else was affected.'
+    }
+}
+
 # ---------------------------------------------------------------------------
 # AI Remover. Windows and browser AI is switched off with the same policy
 # settings a company would use, saved first so "Turn back on" can undo it.
@@ -3950,6 +4003,14 @@ function Invoke-DRTask {
             'security.telemetry-off-restore' {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: telemetry settings were not changed.' }
                 else { Restore-DRTelemetry -TaskId $TaskId }
+            }
+            'security.compat-task-off' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the compatibility task was not changed.' }
+                else { Set-DRCompatTask -TaskId $TaskId -Enable $false }
+            }
+            'security.compat-task-on' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the compatibility task was not changed.' }
+                else { Set-DRCompatTask -TaskId $TaskId -Enable $true }
             }
             'security.remove-exclusions' {
                 # Read-only on purpose: exclusions are often added deliberately (a work folder, a tool
