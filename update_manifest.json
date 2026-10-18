@@ -1,7 +1,7 @@
 {
-  "version": "1.4.124",
-  "notes": "The menu has its colours back and the words are bigger and easier to read.",
-  "published": "2026-10-18T13:45:17.8248516-04:00",
+  "version": "1.4.125",
+  "notes": "The Uninstaller button is now blue, and the menu headings are bright yellow so they are easy to spot.",
+  "published": "2026-10-18T13:54:19.2408947-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "005417A82C57740B813E361BE6F1B44012A1B04DDC3665B2527F4EF25D23F5C7",
-      "size": 351358
+      "sha256": "444160D069C7041668F727BCBBFC040457BDF2768449AB1B439359879F2F9075",
+      "size": 351371
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
