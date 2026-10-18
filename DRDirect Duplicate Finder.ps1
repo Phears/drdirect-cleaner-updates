@@ -29,6 +29,51 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+# Only one window of this program at a time. A second click (or a double
+# click that starts it twice) brings the open window forward and quits.
+function Enter-DRSingleWindow {
+    param([string]$MutexName, [string]$Title, [switch]$CheckOnly)
+    $taken = $false
+    try {
+        if ($CheckOnly) {
+            $existing = $null
+            try { $taken = [Threading.Mutex]::TryOpenExisting($MutexName, [ref]$existing); if ($existing) { $existing.Dispose() } }
+            catch [UnauthorizedAccessException] { $taken = $true }
+        } else {
+            $created = $false
+            $script:DRSingleWindowMutex = New-Object Threading.Mutex($true, $MutexName, [ref]$created)
+            $taken = -not $created
+        }
+    } catch { return }
+    if (-not $taken) { return }
+    try {
+        if (-not ('DRSingleWindow' -as [type])) {
+            Add-Type -TypeDefinition @'
+using System; using System.Runtime.InteropServices;
+public static class DRSingleWindow {
+    [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr w, int c);
+    [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr w);
+    [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr w);
+}
+'@
+        }
+        # The first copy may still be starting; give its window a few seconds.
+        for ($i = 0; $i -lt 20; $i++) {
+            $open = Get-Process -Name 'powershell', 'DRDirect*' -ErrorAction SilentlyContinue |
+                Where-Object { $_.Id -ne $PID -and $_.MainWindowHandle -ne [IntPtr]::Zero -and $_.MainWindowTitle -eq $Title } |
+                Select-Object -First 1
+            if ($open) {
+                if ([DRSingleWindow]::IsIconic($open.MainWindowHandle)) { [void][DRSingleWindow]::ShowWindow($open.MainWindowHandle, 9) }
+                [void][DRSingleWindow]::SetForegroundWindow($open.MainWindowHandle)
+                break
+            }
+            Start-Sleep -Milliseconds 250
+        }
+    } catch { }
+    exit 0
+}
+if (-not $NoShow -and -not $ScanOnly) { Enter-DRSingleWindow -MutexName 'Global\DRDirectDuplicateFinderWindow' -Title 'DRDirect Duplicate Finder' }
+
 # The updater is a shared file rather than a copy of the same code, so the
 # Cleaner and this window always agree on what counts as a newer version.
 # Declared before the updater arrives, inlined or from disk, because it decides

@@ -1,17 +1,17 @@
 {
-  "version": "1.4.120",
-  "notes": "While a cleanup is running, Maintenance progress now shows at the top of the menu, so it is easy to find.",
-  "published": "2026-10-18T12:51:42.5949660-04:00",
+  "version": "1.4.121",
+  "notes": "Clicking the Cleaner or the Duplicate Finder more than once no longer opens extra windows. It brings the one already open to the front.",
+  "published": "2026-10-18T12:57:37.3652076-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "3B4A12E7E15B998B1A0C09F0E444C44AA64FC18C77FAA10458B693F1F5800BFD",
-      "size": 155505
+      "sha256": "94D79692A28EE157FE7D67208E3C40B7EB8BF978609C9461501BABCF5A4DD834",
+      "size": 157631
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "6D51B560B4D4F971854DEFB43745EBEA94D1ECFBA1EA0A576431CB99D2A24075",
-      "size": 346863
+      "sha256": "2E1155364E7DD1E18A38A184C5816C2A1AB44B7815251AA2B73AD63191AD382F",
+      "size": 349085
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
