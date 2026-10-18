@@ -1,7 +1,7 @@
 {
-  "version": "1.4.150",
-  "notes": "The green squares are bigger.",
-  "published": "2026-10-18T16:04:28.7489737-04:00",
+  "version": "1.4.151",
+  "notes": "Fixes the Cleaner closing by itself right after it opens. Sorry about that.",
+  "published": "2026-10-18T16:07:10.7315066-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "4F3DA4EB0780BA6121878A29DA5971E91113FFD00C4EC29F25828A296EBAA15A",
-      "size": 365086
+      "sha256": "E8DBB0993BE073D6DF44493E234D7CD45A9341BF2AD6B23874331AA6AFCBB8C9",
+      "size": 364630
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

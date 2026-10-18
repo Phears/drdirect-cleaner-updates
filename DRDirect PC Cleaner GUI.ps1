@@ -131,14 +131,14 @@ public static class DRSingleWindow {
     } catch { }
     exit 0
 }
-if (-not $NoShow) { $null }
+if (-not $NoShow) { Enter-DRSingleWindow -MutexName 'Global\DRDirectPCCleanerWindow' -Title 'DRDirect PC Cleaner' -CheckOnly }
 
 # Opened without administrator rights (for example from a script launcher)? Ask
 # Windows for them once, so every check and clean-up can do its job - without
 # them, drive health, memory and many cleaners cannot read or change anything.
 # Test mode asks too, so what you see is what a customer sees. Only the silent
 # smoke test never asks, and saying No carries on as a standard user.
-if ($false) {
+if (-not $NoShow -and $PSCommandPath) {
     $drIsAdmin = $false
     try { $drIsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) } catch { }
     if (-not $drIsAdmin) {
@@ -152,7 +152,7 @@ if ($false) {
     }
 }
 
-if (-not $NoShow) { $null }
+if (-not $NoShow) { Enter-DRSingleWindow -MutexName 'Global\DRDirectPCCleanerWindow' -Title 'DRDirect PC Cleaner' }
 
 # The updater is spliced in at build time, exactly like the engine above, so
 # the compiled exe carries it without needing a loose file beside it.
@@ -5380,6 +5380,5 @@ if ($NoShow) {
     }
     try { Start-DRQuietUpdateCheck } catch { }
     try { Start-DRHealthCheck } catch { }
-    $window.Add_ContentRendered({ Set-DR3DButtons -On $true; $window.Width=700; $window.Height=700; $script:tt=New-Object Windows.Threading.DispatcherTimer; $script:tt.Interval=[TimeSpan]::FromMilliseconds(900); $script:tt.Add_Tick({ $script:tt.Stop(); $b=New-Object Windows.Media.Imaging.RenderTargetBitmap(([int]$window.ActualWidth*2),([int]$window.ActualHeight*2),192,192,[Windows.Media.PixelFormats]::Pbgra32); $b.Render($window); $e=New-Object Windows.Media.Imaging.PngBitmapEncoder; $e.Frames.Add([Windows.Media.Imaging.BitmapFrame]::Create($b)); $fs=[IO.File]::Create("$PSScriptRoot\sq.png"); $e.Save($fs); $fs.Close(); $window.Close() }); $script:tt.Start() })
     [void]$window.ShowDialog()
 }
