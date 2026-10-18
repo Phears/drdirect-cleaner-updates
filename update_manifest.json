@@ -1,7 +1,7 @@
 {
-  "version": "1.4.127",
-  "notes": "The menu headings are brighter, and Fix Windows is easy to read again.",
-  "published": "2026-10-18T13:56:41.0773312-04:00",
+  "version": "1.4.128",
+  "notes": "The Dashboard is brighter and the buttons are bolder and easier to see.",
+  "published": "2026-10-18T13:59:25.8094395-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "283EFAEF23B7B9AA7CE99AE6DC8D7BEE8FFB09AFD70F5B6117F7C017BC70C06C",
-      "size": 352075
+      "sha256": "02361B4AB2D0AFFE6C763C825A38AA55EA8B5E6CCA63EC4BFCE1EBA277D90ADF",
+      "size": 352232
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
