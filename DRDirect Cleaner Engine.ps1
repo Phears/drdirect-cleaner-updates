@@ -199,6 +199,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='security.telemetry-off-restore'; Category='Security'; Name='Turn telemetry back on'; Description='Puts the telemetry services, scheduled tasks and policies back exactly as they were before "Turn off Windows telemetry" changed them. Does nothing if that option was never run.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.compat-task-off'; Category='Security'; Name='Turn off the Windows compatibility task'; Description='Switches off "SdbinstMergeDbTask", a Windows task that only helps very old programs run. Windows protects it, so the Cleaner uses the system account to switch it off. Nothing is deleted, and "Turn the compatibility task back on" undoes it.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.compat-task-on'; Category='Security'; Name='Turn the compatibility task back on'; Description='Switches "SdbinstMergeDbTask" back on, exactly as Windows has it by default. Does nothing if it is already on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='security.sweep'; Category='Security'; Name='Spyware and adware sweep'; Description='Looks for signs of spyware and adware that Defender may not call a virus: changed browser home pages and search engines, forced browser extensions, proxy and hosts-file changes, odd startup programs and scheduled tasks, and well-known junk programs. It only looks and shows a list. Nothing is changed or removed, because some of these can be normal on your PC.'; Risk='Safe'; Duration='1-3 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
 
         [pscustomobject]@{ Id='health.chkdsk'; Category='Repair'; Name='CHKDSK disk check (deep drive test)'; Description='Checks the C: file system for corruption while Windows keeps running. Reports what it finds, repairs what is safe to repair, and never schedules a restart.'; Risk='Safe'; Duration='5-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
         [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -2188,6 +2189,133 @@ function Set-DRCompatTask {
     }
 }
 
+function Get-DRSweepJunkNames {
+    # Well-known unwanted programs. A match is only reported, never removed.
+    @('Web Companion', 'WebCompanion', 'Conduit', 'Ask Toolbar', 'Babylon', 'Delta Search', 'Delta Toolbar', 'MyWebSearch',
+      'Crossrider', 'SearchProtect', 'OpenCandy', 'Wajam', 'Browser Assistant', 'PC Accelerate', 'MacKeeper', 'Driver Updater',
+      'Search Marquis', 'Yontoo', 'Snap.Do', 'Trovi', 'Linkury', 'SweetPacks', 'Mindspark', 'Genieo', 'Superfish', 'DealPly',
+      'InstallCore', 'Spigot', 'SaveSense', 'Bing Bar', 'Optimizer Pro', 'Registry Booster', 'Speed Up My PC')
+}
+
+function Test-DRSweepSuspiciousPath {
+    # True when a program starts from a place normal software does not live in.
+    param([string]$Command)
+    if (-not $Command) { return $false }
+    return [bool]($Command -match '(?i)\\(AppData\\Local\\Temp|Temp|Downloads|Users\\Public|\$Recycle\.Bin)\\')
+}
+
+function Invoke-DRSpywareSweep {
+    param([string]$TaskId, [string]$TestRoot)
+    if ($TestRoot) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the spyware and adware sweep was not run.'
+        return
+    }
+
+    $flags = New-Object System.Collections.Generic.List[string]
+    $notes = New-Object System.Collections.Generic.List[string]
+
+    # 1. Browser settings forced by policy: home page, search engine, extensions
+    $browserFlags = 0
+    foreach ($browser in @(@{ Name = 'Chrome'; Key = 'Policies\Google\Chrome' }, @{ Name = 'Edge'; Key = 'Policies\Microsoft\Edge' }, @{ Name = 'Brave'; Key = 'Policies\BraveSoftware\Brave' })) {
+        foreach ($hive in 'HKLM:\SOFTWARE', 'HKCU:\SOFTWARE') {
+            $key = Join-Path $hive $browser.Key
+            $item = Get-ItemProperty -LiteralPath $key -ErrorAction SilentlyContinue
+            if ($item) {
+                foreach ($name in 'HomepageLocation', 'NewTabPageLocation', 'DefaultSearchProviderSearchURL', 'DefaultSearchProviderName') {
+                    $value = Get-DRDiskProperty $item $name
+                    if ($value) { $browserFlags++; $flags.Add(('{0} has a forced setting: {1} = {2}' -f $browser.Name, $name, $value)) }
+                }
+            }
+            $forced = Get-Item -LiteralPath (Join-Path $key 'ExtensionInstallForcelist') -ErrorAction SilentlyContinue
+            if ($forced) {
+                foreach ($valueName in $forced.GetValueNames()) {
+                    $browserFlags++; $flags.Add(('{0} has an extension that cannot be removed: {1}' -f $browser.Name, $forced.GetValue($valueName)))
+                }
+            }
+        }
+    }
+    if (-not $browserFlags) { $notes.Add('Browser home page, search engine and forced extensions: nothing unusual.') }
+
+    # 2. Proxy settings
+    $proxy = Get-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings' -ErrorAction SilentlyContinue
+    $proxyFlags = 0
+    if ($proxy) {
+        if ((Get-DRDiskProperty $proxy 'ProxyEnable') -eq 1) { $proxyFlags++; $flags.Add(('A proxy server is switched on: {0}. Normal at some workplaces, but spyware also uses this to watch your traffic.' -f (Get-DRDiskProperty $proxy 'ProxyServer'))) }
+        $autoConfig = Get-DRDiskProperty $proxy 'AutoConfigURL'
+        if ($autoConfig) { $proxyFlags++; $flags.Add(('An automatic proxy script is set: {0}' -f $autoConfig)) }
+    }
+    if (-not $proxyFlags) { $notes.Add('Proxy settings: none set.') }
+
+    # 3. Hosts file entries
+    $hostsFlags = 0; $hostsBlocks = 0
+    $hostsPath = Join-Path $env:WINDIR 'System32\drivers\etc\hosts'
+    foreach ($line in @(Get-Content -LiteralPath $hostsPath -ErrorAction SilentlyContinue)) {
+        $text = ($line -replace '#.*$', '').Trim()
+        if (-not $text) { continue }
+        if ($text -match '^(127\.0\.0\.1|::1|0\.0\.0\.0)\s+(localhost|localhost\.localdomain|kubernetes\.docker\.internal|host\.docker\.internal|gateway\.docker\.internal)\s*$') { continue }
+        # 0.0.0.0 and 127.0.0.1 block a site, which is how ad and tracker blockers work.
+        # Only a site sent to some other address is a redirect worth a look.
+        if ($text -match '^(0\.0\.0\.0|127\.0\.0\.1|::1)\s+\S+') { $hostsBlocks++; continue }
+        $hostsFlags++
+        if ($hostsFlags -le 10) { $flags.Add(('Hosts file sends a site somewhere else: {0}' -f $text)) }
+    }
+    if ($hostsBlocks) { $notes.Add(('Hosts file blocks {0} site(s). That is normal if you or a blocker added them.' -f $hostsBlocks)) }
+    if (-not $hostsFlags) { $notes.Add('Hosts file: no redirects to other addresses.') }
+
+    # 4. Startup programs that start from odd places, or are well-known junk
+    $junk = @(Get-DRSweepJunkNames)
+    $startupFlags = 0
+    foreach ($entry in @(Get-DRStartupEntries)) {
+        $isJunk = [bool]@($junk | Where-Object { $entry.Name -like ('*' + $_ + '*') -or $entry.Command -like ('*' + $_ + '*') }).Count
+        if ($isJunk -or (Test-DRSweepSuspiciousPath $entry.Command)) { $startupFlags++; $flags.Add(('Starts with Windows from an unusual place: {0}  ({1})' -f $entry.Name, $entry.Command)) }
+    }
+    if (-not $startupFlags) { $notes.Add('Startup programs: all start from normal places.') }
+
+    # 5. Scheduled tasks that are not Microsoft's and run from odd places or hide a command
+    $taskFlags = 0
+    foreach ($task in @(Get-ScheduledTask -ErrorAction SilentlyContinue | Where-Object { $_.TaskPath -notlike '\Microsoft\*' })) {
+        foreach ($action in @($task.Actions)) {
+            $execute = [string](Get-DRDiskProperty $action 'Execute')
+            $arguments = [string](Get-DRDiskProperty $action 'Arguments')
+            $whole = ($execute + ' ' + $arguments)
+            if (Test-DRSweepSuspiciousPath $whole) { $taskFlags++; $flags.Add(('Scheduled task "{0}" runs from an unusual place: {1}' -f $task.TaskName, $whole.Trim())); break }
+        }
+    }
+    if (-not $taskFlags) { $notes.Add('Scheduled tasks (not Microsoft): none run from unusual places.') }
+
+    # 6. Well-known junk programs, and anything installed in the last 30 days
+    $programs = @(Get-DRInstalledProgramEntries)
+    $junkFound = 0
+    foreach ($program in $programs) {
+        if (@($junk | Where-Object { $program.Name -like ('*' + $_ + '*') }).Count) { $junkFound++; $flags.Add(('Known unwanted program installed: {0}' -f $program.Name)) }
+    }
+    if (-not $junkFound) { $notes.Add('Well-known junk programs: none found.') }
+    $recent = New-Object System.Collections.Generic.List[string]
+    $cutoff = (Get-Date).AddDays(-30)
+    foreach ($root in 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall', 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall', 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall') {
+        foreach ($item in @(Get-ChildItem -LiteralPath $root -ErrorAction SilentlyContinue)) {
+            $properties = Get-ItemProperty -LiteralPath $item.PSPath -ErrorAction SilentlyContinue
+            $installed = [string](Get-DRDiskProperty $properties 'InstallDate')
+            $name = [string](Get-DRDiskProperty $properties 'DisplayName')
+            $when = [datetime]::MinValue
+            if ($name -and $installed -match '^\d{8}$' -and [datetime]::TryParseExact($installed, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture, 'None', [ref]$when) -and $when -ge $cutoff) {
+                $recent.Add(('{0}  (installed {1})' -f $name, $when.ToString('d MMM yyyy')))
+            }
+        }
+    }
+
+    foreach ($note in $notes) { New-DREvent -TaskId $TaskId -State Information -Message $note }
+    if ($recent.Count) {
+        New-DREvent -TaskId $TaskId -State Information -Message ("Installed in the last 30 days (check you recognise them):`r`n  {0}" -f (($recent | Sort-Object -Unique) -join "`r`n  "))
+    }
+    if ($flags.Count) {
+        New-DREvent -TaskId $TaskId -State Warning -Message ("{0} thing(s) worth a look:`r`n  {1}" -f $flags.Count, ($flags -join "`r`n  "))
+        New-DREvent -TaskId $TaskId -State Information -Message 'Nothing was changed or removed. Some of these can be normal, so check each one yourself. If you do not recognise a program, remove it with the DRDirect Uninstaller, then run a Defender full scan.'
+    } else {
+        New-DREvent -TaskId $TaskId -State Information -Message 'Nothing suspicious was found. Nothing was changed. This sweep looks for signs of spyware and adware; keep using the Defender scans too.'
+    }
+}
+
 # ---------------------------------------------------------------------------
 # AI Remover. Windows and browser AI is switched off with the same policy
 # settings a company would use, saved first so "Turn back on" can undo it.
@@ -4011,6 +4139,10 @@ function Invoke-DRTask {
             'security.compat-task-on' {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the compatibility task was not changed.' }
                 else { Set-DRCompatTask -TaskId $TaskId -Enable $true }
+            }
+            'security.sweep' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the spyware and adware sweep was not run.' }
+                else { Invoke-DRSpywareSweep -TaskId $TaskId }
             }
             'security.remove-exclusions' {
                 # Read-only on purpose: exclusions are often added deliberately (a work folder, a tool

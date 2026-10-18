@@ -1967,6 +1967,7 @@ function New-TaskRow {
         'repair.component-cleanup' = @{ Badge = 'CAN TAKE 30 MIN OR MORE'; Caution = 'This clean-up can take 30 minutes or more, depending on your system. It can look stuck for a while, so please let it finish. Only tick it if you are ready to wait.' }
         'repair.sfc'              = @{ Badge = 'CAN TAKE 30 MIN OR MORE'; Caution = 'This scan can take 30 minutes or more, depending on your system. It can sit at the same percentage for a while, so please let it finish. Only tick it if you are ready to wait.' }
         'security.remove-exclusions' = @{ Badge = 'ONLY LOOKS'; Icon = '✔'; Caution = 'Shows which folders, programs and file types Defender skips, and marks any that look risky. Nothing is ever removed - exclusions you added on purpose, like a work or tools folder, always stay.' }
+        'security.sweep'          = @{ Badge = 'ONLY LOOKS'; Icon = '✔'; Caution = 'Looks for signs of spyware and adware and shows a list. Nothing is ever changed or removed, because some of these can be normal on your PC.' }
         'health.chkdsk'           = @{ Badge = 'CAN TAKE 30 MIN OR MORE'; Caution = 'A deep drive test can take 30 minutes or more, depending on the size and speed of your drive. Windows keeps running, but the PC may feel slower. Only tick it if you are ready to wait.' }
     }
     $longInfo = $longTasks[[string]$Task.Id]
@@ -3495,7 +3496,7 @@ function Set-DRDefaultTicks {
     # Check my security starts with every task ticked except the full scan (an hour or more) and
     # "Restore typing settings" (it only undoes "Stop sending typing data") and "Remove Defender
     # exclusions", which deletes settings and is left for the person to choose.
-    foreach ($task in @($catalog | Where-Object { $_.Category -eq 'Security' -and $_.Id -notin @('security.full-scan','security.typing-privacy-restore','security.remove-exclusions','security.win11-extras','security.win11-extras-restore','security.telemetry-off','security.telemetry-off-restore','security.compat-task-off','security.compat-task-on') })) { $selection[$task.Id] = $true }
+    foreach ($task in @($catalog | Where-Object { $_.Category -eq 'Security' -and $_.Id -notin @('security.full-scan','security.typing-privacy-restore','security.remove-exclusions','security.win11-extras','security.win11-extras-restore','security.telemetry-off','security.telemetry-off-restore','security.compat-task-off','security.compat-task-on','security.sweep') })) { $selection[$task.Id] = $true }
     # Speed and space only looks at the PC (and releases idle memory), so it starts fully ticked.
     foreach ($task in @($catalog | Where-Object { $_.Category -eq 'Speed' })) { $selection[$task.Id] = $true }
     Update-SelectionSummary

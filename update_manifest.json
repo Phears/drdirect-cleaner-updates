@@ -1,7 +1,7 @@
 {
-  "version": "1.4.118",
-  "notes": "New on Check my security: Turn off the Windows compatibility task, and Turn it back on. It switches off one last Windows background task that only helps very old programs.",
-  "published": "2026-10-18T11:53:11.3372047-04:00",
+  "version": "1.4.119",
+  "notes": "New in Protect: turn off Windows 11 ads and suggestions, and turn off Windows tracking. Both can be turned back on with one click. Also new: a spyware and adware check that only looks and changes nothing.",
+  "published": "2026-10-18T12:48:28.1034493-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "ED205DBE74CFF668189F7FBAECE497D33D421F8CDBCA7B48A4CBD38D145352C8",
-      "size": 351808
+      "sha256": "8B2A6114D97BB1F58437DEB7B52287B81B7F75AF853D6B571F7DF41F1E8FAD42",
+      "size": 352055
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "BFD831A7C3B0384BE977C909BC5F2E9C92A1761FB363BC98E08FF96E96FFEF86",
-      "size": 284431
+      "sha256": "EAE1798BEB0A80EC47EC3731D7C014873F035E4E20ECC66B799728F0C22DDE07",
+      "size": 293840
     },
     {
       "name": "DRDirect Updater.ps1",
