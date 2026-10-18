@@ -1,7 +1,7 @@
 {
   "version": "1.4.117",
-  "notes": "New: when your C: drive is 80 percent full or more, the Dashboard shows a flashing red and blue warning and a Clean my PC button, so you know to clear space before it causes problems.",
-  "published": "2026-10-18T01:14:46.2177203-04:00",
+  "notes": "New: when your C: drive is 80 percent full or more, a flashing red and blue warning appears next to the Dashboard title. Click More info to see what can go wrong, including possible data loss, and open Clean my PC to free space.",
+  "published": "2026-10-18T01:26:56.0818866-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "C2266D64140F13474F07162AB0AA082084DEC73F4FFB5CEECACBCCB79AE43703",
-      "size": 349938
+      "sha256": "FD8FE4212327E9C0D1216865512AD3EECD232BE64216168D59D0C4721F47F2F7",
+      "size": 351594
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
