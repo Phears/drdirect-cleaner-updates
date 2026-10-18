@@ -1,7 +1,7 @@
 {
-  "version": "1.4.114",
-  "notes": "New: Turn off Windows telemetry (and Turn telemetry back on) on the Check my security page. It switches off Windows, browser, Office, NVIDIA and updater data-sharing in one go, saves your settings first, and can be undone.",
-  "published": "2026-10-18T00:51:36.3495774-04:00",
+  "version": "1.4.115",
+  "notes": "Fixed: Turn off Windows telemetry now really switches telemetry off, and Turn telemetry back on undoes it.",
+  "published": "2026-10-18T00:58:51.6388590-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "8C3724B732810F8DD1D661B12A2102C485492A416BAF03C325B6C92E9B35A259",
-      "size": 278113
+      "sha256": "DA18CC59C880C7229ACECA99864EBFED7C6672F5DF22CACB67B0F009527FD741",
+      "size": 278109
     },
     {
       "name": "DRDirect Updater.ps1",

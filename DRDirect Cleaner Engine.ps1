@@ -739,14 +739,6 @@ function Get-DRAnalysis {
                     }
                     $detail = 'Only useful for diagnosing a specific past crash'
                 }
-                'security.telemetry-off' {
-                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: telemetry settings were not changed.' }
-                else { Set-DRTelemetryOff -TaskId $TaskId }
-            }
-            'security.telemetry-off-restore' {
-                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: telemetry settings were not changed.' }
-                else { Restore-DRTelemetry -TaskId $TaskId }
-            }
             'security.remove-exclusions' {
                     if (Get-Command Get-MpPreference -ErrorAction SilentlyContinue) {
                         $pref = Get-MpPreference
@@ -3924,6 +3916,14 @@ function Invoke-DRTask {
             'security.win11-extras-restore' {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Windows 11 settings were not changed.' }
                 else { Restore-DRWin11Extras -TaskId $TaskId }
+            }
+            'security.telemetry-off' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: telemetry settings were not changed.' }
+                else { Set-DRTelemetryOff -TaskId $TaskId }
+            }
+            'security.telemetry-off-restore' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: telemetry settings were not changed.' }
+                else { Restore-DRTelemetry -TaskId $TaskId }
             }
             'security.remove-exclusions' {
                 # Read-only on purpose: exclusions are often added deliberately (a work folder, a tool
