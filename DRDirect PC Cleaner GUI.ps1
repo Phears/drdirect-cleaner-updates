@@ -4215,7 +4215,7 @@ $ui.Buttons3DSwitch.Add_Click({
 })
 
 # A waiting update must be impossible to miss: both update buttons flash
-# red and orange, pulse in size and glow until it is installed.
+# green and yellow, pulse in size and glow until it is installed.
 $script:DRUpdateFlashOn = $false
 $script:DRUpdateFlashSaved = @{}
 function Start-DRUpdateFlash {
@@ -4228,10 +4228,10 @@ function Start-DRUpdateFlash {
         $button.FontWeight = 'ExtraBold'
         $button.Foreground = [Windows.Media.Brushes]::White
 
-        $brush = New-Object Windows.Media.SolidColorBrush ([Windows.Media.ColorConverter]::ConvertFromString('#FF2E63'))
+        $brush = New-Object Windows.Media.SolidColorBrush ([Windows.Media.ColorConverter]::ConvertFromString('#16C060'))
         $button.Background = $brush
         $colour = New-Object Windows.Media.Animation.ColorAnimation
-        $colour.To = [Windows.Media.ColorConverter]::ConvertFromString('#FF9F1C')
+        $colour.To = [Windows.Media.ColorConverter]::ConvertFromString('#F2C200')
         $colour.Duration = [Windows.Duration]::new([TimeSpan]::FromMilliseconds(550))
         $colour.AutoReverse = $true
         $colour.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
