@@ -1,7 +1,7 @@
 {
-  "version": "1.4.144",
-  "notes": "When an update is ready, the update button now flashes green and yellow.",
-  "published": "2026-10-18T15:44:51.4548167-04:00",
+  "version": "1.4.145",
+  "notes": "The side menu now has 3D buttons, and Show me first is dark green.",
+  "published": "2026-10-18T15:48:44.2763695-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "E01E611D67DC15C7762F75C7F9EEE18B9791E9643132349CDB3EEC67010FFE60",
-      "size": 361472
+      "sha256": "1543D098E5434FC9B273D21BD05A9BE70DCA245F9B6744A074ED082BF4218766",
+      "size": 362176
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
