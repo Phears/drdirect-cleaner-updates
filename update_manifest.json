@@ -1,7 +1,7 @@
 {
-  "version": "1.4.151",
-  "notes": "Fixes the Cleaner closing by itself right after it opens. Sorry about that.",
-  "published": "2026-10-18T16:07:10.7315066-04:00",
+  "version": "1.4.152",
+  "notes": "Stops Windows Defender from mistaking the Cleaner for a threat.",
+  "published": "2026-10-18T16:25:51.2247601-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "EAE1798BEB0A80EC47EC3731D7C014873F035E4E20ECC66B799728F0C22DDE07",
-      "size": 293840
+      "sha256": "9C3F0FA99012FA845CA3C4089076B5935EC2E0A14E39D6A6AEED23034EFCF0F1",
+      "size": 288445
     },
     {
       "name": "DRDirect Updater.ps1",

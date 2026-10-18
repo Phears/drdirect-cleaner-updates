@@ -197,7 +197,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='security.win11-extras-restore'; Category='Security'; Name='Turn Windows 11 extras back on'; Description='Puts the ads and suggestions settings back exactly as they were before "Windows 11: turn off ads and suggestions" changed them. Does nothing if that option was never run.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.telemetry-off'; Category='Security'; Name='Turn off Windows telemetry'; Description='Stops Windows sending usage and diagnostic data to Microsoft: switches off the tracking services (Connected User Experiences, Error Reporting, Program Compatibility Assistant), their scheduled tasks, and the data-collection policies. It also turns off telemetry in Edge, Chrome, Brave, Firefox, NVIDIA and Office, stops Windows Search sharing your searches with Microsoft, switches off location and tailored experiences, and switches off the Google, Edge and Adobe updaters, so those programs no longer update themselves until you turn this back on. Your files, apps and logins are not touched. Windows Error Reporting stops too, so crash reports are no longer sent. Your current settings are saved first, and "Turn telemetry back on" puts them back.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.telemetry-off-restore'; Category='Security'; Name='Turn telemetry back on'; Description='Puts the telemetry services, scheduled tasks and policies back exactly as they were before "Turn off Windows telemetry" changed them. Does nothing if that option was never run.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='security.compat-task-off'; Category='Security'; Name='Turn off the Windows compatibility task'; Description='Switches off "SdbinstMergeDbTask", a Windows task that only helps very old programs run. Windows protects it, so the Cleaner uses the system account to switch it off. Nothing is deleted, and "Turn the compatibility task back on" undoes it.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='security.compat-task-off'; Category='Security'; Name='Turn off the Windows compatibility task'; Description='Switches off "SdbinstMergeDbTask", a Windows task that only helps very old programs run. Some PCs protect it; if so, the Cleaner tells you and leaves it alone. Nothing is deleted, and "Turn the compatibility task back on" undoes it.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.compat-task-on'; Category='Security'; Name='Turn the compatibility task back on'; Description='Switches "SdbinstMergeDbTask" back on, exactly as Windows has it by default. Does nothing if it is already on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.sweep'; Category='Security'; Name='Spyware and adware sweep'; Description='Looks for signs of spyware and adware that Defender may not call a virus: changed browser home pages and search engines, forced browser extensions, proxy and hosts-file changes, odd startup programs and scheduled tasks, and well-known junk programs. It only looks and shows a list. Nothing is changed or removed, because some of these can be normal on your PC.'; Risk='Safe'; Duration='1-3 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
 
@@ -2140,8 +2140,7 @@ function Restore-DRTelemetry {
 
 function Set-DRCompatTask {
     # SdbinstMergeDbTask only merges compatibility files for very old programs. Windows protects
-    # it, so a normal administrator is refused; the system account is allowed. If the plain
-    # command is refused, the same command is run once by the system account and then removed.
+    # it, so on many PCs an administrator is refused. If so, the Cleaner says so and leaves it.
     param([string]$TaskId, [bool]$Enable)
 
     $path = '\Microsoft\Windows\Application Experience\'
@@ -2156,27 +2155,9 @@ function Set-DRCompatTask {
     if (-not $Enable -and $isOff) { New-DREvent -TaskId $TaskId -State Information -Message 'The compatibility task is already off. Nothing was changed.'; return }
 
     $verb = if ($Enable) { 'Enable-ScheduledTask' } else { 'Disable-ScheduledTask' }
-    try {
-        $null = & $verb -TaskPath $path -TaskName $name -ErrorAction Stop
-    } catch {
-        $helper = 'DRDirect_OneTime_CompatTask'
-        try {
-            $command = ("{0} -TaskPath '{1}' -TaskName '{2}'" -f $verb, $path, $name)
-            $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument ('-NoProfile -ExecutionPolicy Bypass -Command "{0}"' -f $command)
-            $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
-            $null = Register-ScheduledTask -TaskName $helper -Action $action -Principal $principal -Force -ErrorAction Stop
-            Start-ScheduledTask -TaskName $helper -ErrorAction Stop
-            for ($wait = 0; $wait -lt 20; $wait++) {
-                Start-Sleep -Milliseconds 500
-                $helperTask = Get-ScheduledTask -TaskName $helper -ErrorAction SilentlyContinue
-                if (-not $helperTask -or $helperTask.State -ne 'Running') { break }
-            }
-        } catch {
-            New-DREvent -TaskId $TaskId -State Warning -Message ('Windows would not let the Cleaner change this task: {0}' -f $_.Exception.Message)
-        } finally {
-            Unregister-ScheduledTask -TaskName $helper -Confirm:$false -ErrorAction SilentlyContinue
-        }
-    }
+    # Only the plain command. Running it through a hidden task under the system account
+    # made Windows Defender take the whole Cleaner for a hacking tool (PsExec) and block it.
+    try { $null = & $verb -TaskPath $path -TaskName $name -ErrorAction Stop } catch { }
 
     # Check again instead of trusting the commands.
     $after = Get-ScheduledTask -TaskPath $path -TaskName $name -ErrorAction SilentlyContinue
