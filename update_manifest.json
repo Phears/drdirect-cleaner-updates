@@ -1,7 +1,7 @@
 {
-  "version": "1.4.122",
-  "notes": "The Cleaner now does one thing at a time. While it is cleaning, or while the Duplicate Finder or Uninstaller is open, the others wait and a short message explains why. This keeps older PCs fast and safe.",
-  "published": "2026-10-18T12:58:53.7670238-04:00",
+  "version": "1.4.123",
+  "notes": "Find duplicate files is green again in the menu.",
+  "published": "2026-10-18T13:36:00.1329168-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "5A94AAFBEDE85FE22795714EFAA01B86A64D5C8F1970C723C8FD2F3C8F817674",
-      "size": 351191
+      "sha256": "DE0176287C2EB788F71A1E51528F3992AE10ED64B49DD9B02B8D7AA0927848AA",
+      "size": 351230
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
