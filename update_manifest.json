@@ -1,7 +1,7 @@
 {
-  "version": "1.4.138",
-  "notes": "The Uninstaller logo now really starts as a small dot and grows toward you.",
-  "published": "2026-10-18T15:23:33.4497193-04:00",
+  "version": "1.4.139",
+  "notes": "The Show me first button has a brighter colour.",
+  "published": "2026-10-18T15:26:22.1777550-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "9A40AA1380271B4D58B36B56895E196DAE09ABE85A1D923EB16C630591E90A54",
+      "sha256": "59DD82EC6E2D926766F40B5D7716F2C226BFEDFAC4167FED734AA272A6E7788F",
       "size": 358454
     },
     {
