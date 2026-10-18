@@ -1,7 +1,7 @@
 {
-  "version": "1.4.121",
-  "notes": "Clicking the Cleaner or the Duplicate Finder more than once no longer opens extra windows. It brings the one already open to the front.",
-  "published": "2026-10-18T12:57:37.3652076-04:00",
+  "version": "1.4.122",
+  "notes": "The Cleaner now does one thing at a time. While it is cleaning, or while the Duplicate Finder or Uninstaller is open, the others wait and a short message explains why. This keeps older PCs fast and safe.",
+  "published": "2026-10-18T12:58:53.7670238-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "2E1155364E7DD1E18A38A184C5816C2A1AB44B7815251AA2B73AD63191AD382F",
-      "size": 349085
+      "sha256": "5A94AAFBEDE85FE22795714EFAA01B86A64D5C8F1970C723C8FD2F3C8F817674",
+      "size": 351191
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

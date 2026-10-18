@@ -2740,7 +2740,42 @@ function Set-ProgressScanLevel {
     }
 }
 
+# One job at a time, so an older PC is never asked to clean, find duplicates
+# and uninstall all at once. Returns $true (and tells the person) when
+# something else is still working; that window is brought to the front.
+function Test-DROtherToolBusy {
+    param([ValidateSet('Clean', 'Finder', 'Uninstaller')][string]$Opening)
+    if ($TestMode) { return $false }
+    $what = $null; $window = $null
+    if ($Opening -ne 'Clean' -and $script:activePowerShell) {
+        $what = 'the cleaning'
+    }
+    if (-not $what -and $Opening -ne 'Finder') {
+        $window = Get-Process -Name 'powershell', 'DRDirect*' -ErrorAction SilentlyContinue |
+            Where-Object { $_.Id -ne $PID -and $_.MainWindowTitle -eq 'DRDirect Duplicate Finder' } | Select-Object -First 1
+        if ($window) { $what = 'the Duplicate Finder' }
+    }
+    if (-not $what -and $Opening -ne 'Uninstaller') {
+        $window = Get-Process -Name 'BCUninstaller' -ErrorAction SilentlyContinue |
+            Where-Object { $_.MainWindowHandle -ne [IntPtr]::Zero } | Select-Object -First 1
+        if ($window) { $what = 'the Uninstaller' }
+    }
+    if (-not $what) { return $false }
+    if ($window -and (Get-Command Enter-DRSingleWindow -ErrorAction SilentlyContinue) -and ('DRSingleWindow' -as [type])) {
+        try {
+            if ([DRSingleWindow]::IsIconic($window.MainWindowHandle)) { [void][DRSingleWindow]::ShowWindow($window.MainWindowHandle, 9) }
+            [void][DRSingleWindow]::SetForegroundWindow($window.MainWindowHandle)
+        } catch { }
+    }
+    [Windows.MessageBox]::Show(
+        "Please wait until $what is finished and closed." + [Environment]::NewLine + [Environment]::NewLine +
+        'Doing one thing at a time keeps your PC fast and safe.',
+        'DRDirect PC Cleaner', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information) | Out-Null
+    return $true
+}
+
 function Start-RunPlan {
+    if (Test-DROtherToolBusy -Opening 'Clean') { $ui.ConfirmOverlay.Visibility = 'Collapsed'; return }
     # A trial gets one cleanup run in total, not one per launch.
     if (Test-DRTrialMode) {
         if (Get-DRTrialValue 'clean_used') {
@@ -4078,6 +4113,7 @@ function Start-DRUninstallerUpdate {
 }
 
 function Open-DRUninstaller {
+    if (Test-DROtherToolBusy -Opening 'Uninstaller') { return }
     if ($TestMode) {
         [Windows.MessageBox]::Show('Test mode: the DRDirect Uninstaller Program would open here.', 'DRDirect PC Cleaner',
             [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information) | Out-Null
@@ -4601,6 +4637,7 @@ function Resolve-DRDuplicateFinderPath {
 }
 
 $ui.OpenDuplicatesButton.Add_Click({
+    if (Test-DROtherToolBusy -Opening 'Finder') { return }
     # Re-checked on every click, so a code entered mid-session takes effect
     # without restarting the Cleaner.
     try { $script:DRDuplicatesAllowed = Test-DRDuplicatesAllowed } catch { }
