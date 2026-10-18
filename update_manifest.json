@@ -1,17 +1,17 @@
 {
-  "version": "1.4.134",
-  "notes": "The Duplicate Finder buttons now really look 3D: raised, shiny and with a shadow.",
-  "published": "2026-10-18T14:22:30.7532884-04:00",
+  "version": "1.4.135",
+  "notes": "Buttons and boxes in the Cleaner and the Duplicate Finder now stand out a lot more, with a deep 3D look.",
+  "published": "2026-10-18T14:25:33.0779051-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "92CC5D458D9892E4A0ECC1F1660F27FF83931D64684B5180854841060AC826EE",
-      "size": 160107
+      "sha256": "F95B320C66B0CCA6B22F8F45E04AEACE80F91058F20AC516121426780A6BFF30",
+      "size": 160112
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "A1E1060877FF7C28AC1BC66D7691CB7F3CCED21B07DD722FCE9BCF3C77C1854B",
-      "size": 358452
+      "sha256": "9A40AA1380271B4D58B36B56895E196DAE09ABE85A1D923EB16C630591E90A54",
+      "size": 358454
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

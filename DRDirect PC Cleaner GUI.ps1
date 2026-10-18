@@ -182,11 +182,11 @@ $ErrorActionPreference = 'Stop'
         </LinearGradientBrush>
     </Window.Background>
     <Window.Resources>
-        <DropShadowEffect x:Key="DR3DShadow" Color="#0A1A4A" Direction="270" ShadowDepth="5" BlurRadius="12" Opacity="0.5"/>
+        <DropShadowEffect x:Key="DR3DShadow" Color="#0A1A4A" Direction="270" ShadowDepth="11" BlurRadius="18" Opacity="0.7"/>
         <DropShadowEffect x:Key="DR3DText" Color="Black" Direction="270" ShadowDepth="1.5" BlurRadius="2" Opacity="0.45"/>
         <Visibility x:Key="DR3DParts">Visible</Visibility>
-        <DropShadowEffect x:Key="DR3DButton" Color="#0A1A4A" Direction="270" ShadowDepth="3" BlurRadius="8" Opacity="0.35"/>
-        <DropShadowEffect x:Key="DR3DCard" Color="#0A1A4A" Direction="270" ShadowDepth="4" BlurRadius="16" Opacity="0.18"/>
+        <DropShadowEffect x:Key="DR3DButton" Color="#0A1A4A" Direction="270" ShadowDepth="9" BlurRadius="16" Opacity="0.6"/>
+        <DropShadowEffect x:Key="DR3DCard" Color="#0A1A4A" Direction="270" ShadowDepth="10" BlurRadius="22" Opacity="0.35"/>
         <Style x:Key="DRSwitch" TargetType="CheckBox"><Setter Property="Foreground" Value="White"/><Setter Property="Cursor" Value="Hand"/><Setter Property="FontSize" Value="13"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="CheckBox"><StackPanel Orientation="Horizontal" Background="Transparent">
                 <Border x:Name="Track" Width="40" Height="22" CornerRadius="11" Background="#55FFFFFF" BorderBrush="#CCFFFFFF" BorderThickness="1"><Ellipse x:Name="Knob" Width="16" Height="16" Fill="White" HorizontalAlignment="Left" Margin="3,0,0,0"/></Border>
@@ -319,7 +319,7 @@ $ErrorActionPreference = 'Stop'
                     <Grid.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
                     <Grid.Effect><DynamicResource ResourceKey="DR3DShadow"/></Grid.Effect>
                     <!-- The darker edge underneath makes the button look raised, like a key. -->
-                    <Border CornerRadius="16" Background="#66000A30" Margin="0,4,0,-4" Visibility="{DynamicResource DR3DParts}"/>
+                    <Border CornerRadius="16" Background="#B3000A30" Margin="0,8,0,-8" Visibility="{DynamicResource DR3DParts}"/>
                     <Grid x:Name="GreenFace">
                         <Grid.RenderTransform><TranslateTransform x:Name="GreenPress" Y="0"/></Grid.RenderTransform>
                         <Border x:Name="GreenBorder" Background="{TemplateBinding Background}" CornerRadius="16" BorderBrush="#E6FFFFFF" BorderThickness="1.5" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
@@ -332,7 +332,7 @@ $ErrorActionPreference = 'Stop'
                                 </ContentPresenter>
                             </Grid>
                         </Border>
-                        <Border CornerRadius="16" IsHitTestVisible="False" BorderThickness="0,0,0,3" BorderBrush="#40000000" Visibility="{DynamicResource DR3DParts}"/>
+                        <Border CornerRadius="16" IsHitTestVisible="False" BorderThickness="0,0,0,4" BorderBrush="#55000000" Visibility="{DynamicResource DR3DParts}"/>
                     </Grid>
                 </Grid>
                 <ControlTemplate.Triggers>
