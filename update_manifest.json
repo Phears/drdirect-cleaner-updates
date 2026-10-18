@@ -1,7 +1,7 @@
 {
-  "version": "1.4.115",
-  "notes": "Fixed: Turn off Windows telemetry now really switches telemetry off, and Turn telemetry back on undoes it.",
-  "published": "2026-10-18T00:58:51.6388590-04:00",
+  "version": "1.4.116",
+  "notes": "Turn off Windows telemetry now tells you how much is switched off, for example 98 percent, and lists anything Windows would not let it change.",
+  "published": "2026-10-18T01:08:13.7552674-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "DA18CC59C880C7229ACECA99864EBFED7C6672F5DF22CACB67B0F009527FD741",
-      "size": 278109
+      "sha256": "408929C7B348DB145A21942AE0DC46EF72DC483E8A14BBBB5B3F1483ED8D19D0",
+      "size": 279750
     },
     {
       "name": "DRDirect Updater.ps1",

@@ -2065,6 +2065,32 @@ function Set-DRTelemetryOff {
         New-ItemProperty -LiteralPath $value.Key -Name $value.Name -Value $value.Off -PropertyType DWord -Force | Out-Null
     }
     New-DREvent -TaskId $TaskId -State Information -Message ('Windows telemetry is off: {0} service(s) and {1} scheduled task(s) switched off, and the data-collection policies set (Windows, Edge, Chrome, Brave, Firefox, NVIDIA, Office). Your previous settings were saved; "Turn telemetry back on" puts them back.' -f $changedServices, $changedTasks)
+
+    # Check again instead of trusting the commands: a protected task or a policy can refuse a change.
+    $total = 0; $done = 0; $refused = New-Object System.Collections.Generic.List[string]
+    foreach ($name in $spec.Services) {
+        $key = Join-Path $ServicesRoot $name
+        if (-not (Test-Path -LiteralPath $key)) { continue }
+        $total++
+        $props = Get-ItemProperty -LiteralPath $key -ErrorAction SilentlyContinue
+        if ($props -and $props.Start -eq 4) { $done++ } else { $refused.Add($name) }
+    }
+    foreach ($path in (Get-DRTelemetryTaskPaths -Spec $spec)) {
+        $task = Get-DRTelemetryTask -Path $path
+        if (-not $task) { continue }
+        $total++
+        if ($task.State -eq 'Disabled') { $done++ } else { $refused.Add((Split-Path $path -Leaf)) }
+    }
+    foreach ($value in $spec.Registry) {
+        $total++
+        $property = Get-ItemProperty -LiteralPath $value.Key -Name $value.Name -ErrorAction SilentlyContinue
+        if ($property -and [int]$property.($value.Name) -eq $value.Off) { $done++ } else { $refused.Add($value.Name) }
+    }
+    $percent = if ($total) { [int][math]::Round(100 * $done / $total) } else { 0 }
+    New-DREvent -TaskId $TaskId -State Information -Message ('{0}% of telemetry is turned off ({1} of {2} switches). Restart Windows so it all takes effect.' -f $percent, $done, $total)
+    if ($refused.Count) {
+        New-DREvent -TaskId $TaskId -State Warning -Message ('Windows would not switch off {0} item(s): {1}. Windows protects some of its own tasks; the rest of the list is done.' -f $refused.Count, ($refused -join ', '))
+    }
 }
 
 function Restore-DRTelemetry {
