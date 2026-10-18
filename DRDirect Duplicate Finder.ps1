@@ -877,8 +877,9 @@ $xaml = @'
     </LinearGradientBrush>
   </Window.Background>
   <Window.Resources>
+    <DropShadowEffect x:Key="DR3DButton" Color="#0A1A4A" Direction="270" ShadowDepth="3" BlurRadius="8" Opacity="0.35"/>
     <!-- Every button lifts on hover and presses in on click. -->
-    <Style x:Key="Btn" TargetType="Button">
+    <Style x:Key="Btn" TargetType="Button"><Setter Property="Effect" Value="{DynamicResource DR3DButton}"/>
       <Setter Property="Background" Value="#2563EB"/>
       <Setter Property="Foreground" Value="White"/>
       <Setter Property="BorderThickness" Value="0"/>
@@ -980,7 +981,7 @@ $xaml = @'
       <Setter Property="Foreground" Value="#1E40AF"/>
     </Style>
     <!-- file-type chips: pick what you are hunting for -->
-    <Style x:Key="Chip" TargetType="ToggleButton">
+    <Style x:Key="Chip" TargetType="ToggleButton"><Setter Property="Effect" Value="{DynamicResource DR3DButton}"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="Margin" Value="0,0,8,0"/>
       <Setter Property="Template">
@@ -1596,7 +1597,16 @@ $xaml = @'
 '@
 
 $reader = New-Object System.Xml.XmlNodeReader ([xml]$xaml)
+# Same "3D look" switch as the Cleaner's Dashboard: off there means flat here.
+function Set-DR3DFromCleaner {
+    param($Window)
+    try {
+        $v = Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name 'Buttons3D' -ErrorAction Stop
+        if ([int]$v.Buttons3D -eq 0) { $Window.Resources['DR3DButton'] = $null }
+    } catch { }
+}
 $win = [Windows.Markup.XamlReader]::Load($reader)
+Set-DR3DFromCleaner $win
 # Small screens (a 15 inch laptop): shrink everything to fit instead of opening
 # a window bigger than the screen. Big screens are left exactly as they were.
 try {
@@ -1903,7 +1913,8 @@ function Show-FolderPicker {
   </Window.Background>
 
   <Window.Resources>
-    <Style x:Key="PBtn" TargetType="Button">
+    <DropShadowEffect x:Key="DR3DButton" Color="#0A1A4A" Direction="270" ShadowDepth="3" BlurRadius="8" Opacity="0.35"/>
+    <Style x:Key="PBtn" TargetType="Button"><Setter Property="Effect" Value="{DynamicResource DR3DButton}"/>
       <Setter Property="Background" Value="#2563EB"/>
       <Setter Property="Foreground" Value="White"/>
       <Setter Property="Padding" Value="18,9"/>
@@ -1966,7 +1977,7 @@ function Show-FolderPicker {
     </Style>
 
     <!-- shortcuts down the left -->
-    <Style x:Key="PlaceBtn" TargetType="Button">
+    <Style x:Key="PlaceBtn" TargetType="Button"><Setter Property="Effect" Value="{DynamicResource DR3DButton}"/>
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="Foreground" Value="#1D2939"/>
       <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -2118,6 +2129,7 @@ function Show-FolderPicker {
     # they touch has to live at script scope.
     $script:PickerWin = [Windows.Markup.XamlReader]::Load((New-Object System.Xml.XmlNodeReader ([xml]$pxaml)))
     $pw = $script:PickerWin
+    Set-DR3DFromCleaner $pw
 
     $p = @{}
     foreach ($n in 'BtnUp', 'TxtPath', 'Places', 'FolderList', 'EmptyMsg',
