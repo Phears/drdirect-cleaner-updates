@@ -1,7 +1,7 @@
 {
-  "version": "1.4.142",
-  "notes": "Fixes the Cleaner sometimes not opening after it found a new update.",
-  "published": "2026-10-18T15:36:28.5379705-04:00",
+  "version": "1.4.143",
+  "notes": "The Dashboard is tidier: everything is centred and Check for updates has its own corner.",
+  "published": "2026-10-18T15:44:09.4744445-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "C22020B9D94A050A3F33589730F442CB744035966E5771BC41E61DA96C87603E",
-      "size": 361095
+      "sha256": "441FE6DA2F8D8E1AEAC439C4AA15E30E06620182E05DD2FDBE2F42040183D3F7",
+      "size": 361470
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
