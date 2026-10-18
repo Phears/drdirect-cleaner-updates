@@ -331,7 +331,7 @@ $ErrorActionPreference = 'Stop'
         </Style>
         <Style x:Key="NavButton" TargetType="Button">
             <Setter Property="Foreground" Value="#BDCAE0"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="Padding" Value="18,12"/><Setter Property="Margin" Value="10,2"/><Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontSize" Value="15.5"/>
             <!-- Every nav label starts with a symbol Segoe UI does not contain, so
                  the glyph is borrowed from a fallback font. Segoe UI Symbol is the only
                  installed font carrying them, so name it rather than leave the fallback
@@ -861,17 +861,17 @@ $ErrorActionPreference = 'Stop'
                     <Button x:Name="NavCleanup" Style="{StaticResource NavButton}" Content="✦   Clean my PC"/>
                     <Button x:Name="NavSpeed" Style="{StaticResource NavButton}" Content="◈   Speed and space"/>
                     <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Foreground="#22C16F" FontWeight="Bold" Content="⧉   Find duplicate files"/>
-                    <Button x:Name="NavHibernate" Style="{StaticResource NavButton}" Content="☾   Hibernate" ToolTip="Turn Hibernate off to free several GB, or back on"/>
-                    <Button x:Name="NavUninstaller" Style="{StaticResource GreenNavButton}" Margin="10,4,10,4" Padding="12,7" FontSize="12.5" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⌫" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="DRDirect Uninstaller Program" Foreground="White" TextWrapping="Wrap" VerticalAlignment="Center"/></Grid></Button>
+                    <Button x:Name="NavHibernate" Style="{StaticResource NavButton}" Foreground="#22D3EE" FontWeight="SemiBold" Content="☾   Hibernate" ToolTip="Turn Hibernate off to free several GB, or back on"/>
+                    <Button x:Name="NavUninstaller" Style="{StaticResource GreenNavButton}" Margin="10,4,10,4" Padding="12,7" FontSize="14" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⌫" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="DRDirect Uninstaller Program" Foreground="White" TextWrapping="Wrap" VerticalAlignment="Center"/></Grid></Button>
                     <TextBlock Text="FIX &amp; PROTECT" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
                     <Button x:Name="NavRepair" Style="{StaticResource NavButton}" Content="⚒   Fix Windows"/>
                     <Button x:Name="NavSecurity" Style="{StaticResource NavButton}" Content="⬡   Check my security"/>
                     <Button x:Name="NavAI" Style="{StaticResource AINavButton}" Content="⊘   Switch off AI" Margin="10,4,10,4" ToolTip="Switch off AI in Windows and web browsers"/>
                     <TextBlock Text="CHECK" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
-                    <Button x:Name="NavHealth" Style="{StaticResource NavButton}" Content="▰   Check my drives"/>
-                    <Button x:Name="NavMemory" Style="{StaticResource NavButton}" Content="▦   Check my RAM"/>
+                    <Button x:Name="NavHealth" Style="{StaticResource NavButton}" Foreground="#FACC15" Content="▰   Check my drives"/>
+                    <Button x:Name="NavMemory" Style="{StaticResource NavButton}" Foreground="#FACC15" Content="▦   Check my RAM"/>
                     <Button x:Name="NavHardware" Style="{StaticResource NavButton}" Content="▤   About my PC"/>
-                    <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   Cleaning history" ToolTip="See what the Cleaner did, open the reports, and undo changes to settings"/>
+                    <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Foreground="#22D3EE" FontWeight="SemiBold" Content="◷   Cleaning history" ToolTip="See what the Cleaner did, open the reports, and undo changes to settings"/>
                     <TextBlock Text="UPDATE" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
                     <Button x:Name="NavAppUpdates" Style="{StaticResource WingetNavButton}" Content="⭳   Update my apps" Margin="10,4,10,4" ToolTip="Update every app with winget, in a colour PowerShell window"/>
                 </StackPanel>

@@ -1,7 +1,7 @@
 {
-  "version": "1.4.123",
-  "notes": "Find duplicate files is green again in the menu.",
-  "published": "2026-10-18T13:36:00.1329168-04:00",
+  "version": "1.4.124",
+  "notes": "The menu has its colours back and the words are bigger and easier to read.",
+  "published": "2026-10-18T13:45:17.8248516-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "DE0176287C2EB788F71A1E51528F3992AE10ED64B49DD9B02B8D7AA0927848AA",
-      "size": 351230
+      "sha256": "005417A82C57740B813E361BE6F1B44012A1B04DDC3665B2527F4EF25D23F5C7",
+      "size": 351358
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
