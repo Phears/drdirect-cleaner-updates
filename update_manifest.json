@@ -1,7 +1,7 @@
 {
-  "version": "1.4.147",
-  "notes": "Show me first is an even darker green.",
-  "published": "2026-10-18T15:51:09.3383848-04:00",
+  "version": "1.4.148",
+  "notes": "Small look change: new green icon beside Fix Windows and PC Manager.",
+  "published": "2026-10-18T15:58:08.4268510-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F6DBAD193BCB8C0DE30BAF803D15BD9366A1AE9CCA35600A3C6D8A327E8188CE",
-      "size": 362176
+      "sha256": "0FBA3A244E45330028F3AB9ADBA36F766F3F3A7A0827BC539CC6A968FCD5A273",
+      "size": 362159
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
