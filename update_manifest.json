@@ -1,7 +1,7 @@
 {
-  "version": "1.4.146",
-  "notes": "Show me first is a darker green.",
-  "published": "2026-10-18T15:50:17.5193748-04:00",
+  "version": "1.4.147",
+  "notes": "Show me first is an even darker green.",
+  "published": "2026-10-18T15:51:09.3383848-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F7D8A13495A721593B5E79436F286C152C2E871A36BBF66A49D7CB6BA505A127",
+      "sha256": "F6DBAD193BCB8C0DE30BAF803D15BD9366A1AE9CCA35600A3C6D8A327E8188CE",
       "size": 362176
     },
     {
