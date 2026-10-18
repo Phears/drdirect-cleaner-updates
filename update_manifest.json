@@ -1,7 +1,7 @@
 {
-  "version": "1.4.141",
-  "notes": "When a new update is ready, the update buttons now flash so you cannot miss it.",
-  "published": "2026-10-18T15:31:49.1758439-04:00",
+  "version": "1.4.142",
+  "notes": "Fixes the Cleaner sometimes not opening after it found a new update.",
+  "published": "2026-10-18T15:36:28.5379705-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -20,8 +20,8 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "8E41BB7EC8426AC5789025AD7A91F659FE6258080E4BCC49E09525AD549F2630",
-      "size": 58047
+      "sha256": "C037E09A3723CF4E6CD6389A0A2218391C63194ECDCAC772CA1D2314BC6C1376",
+      "size": 58727
     },
     {
       "name": "DRDirect Activation.ps1",
