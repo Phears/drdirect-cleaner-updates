@@ -1,7 +1,7 @@
 {
-  "version": "1.4.161",
-  "notes": "The Switch off AI page no longer has the Copilot key row, which only opened a Windows settings page and changed nothing itself.",
-  "published": "2026-10-22T09:59:23.9456132-04:00",
+  "version": "1.4.162",
+  "notes": "On the Switch off AI page, the Edge and Word Copilot buttons now say they open the app for you to finish, instead of just saying Turn off.",
+  "published": "2026-10-22T10:10:58.6922021-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "7C00EFB4EC7F0CD9250C5C3D5684940658CEF6410430534B7617CE4E132A3124",
-      "size": 374901
+      "sha256": "527F113DD1558833DD9382358B423A35B980CF04C79A6806B239F9F83F34B951",
+      "size": 375308
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

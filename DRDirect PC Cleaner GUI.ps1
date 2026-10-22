@@ -1810,6 +1810,9 @@ function New-DRAIChoicePanel {
         'ai.restore'       { '↺  Turn all back on' }
         'ai.remove-models' { '✕  Delete' }
         'ai.*-app'         { '✕  Remove' }
+        # These two only open the app, and the last click is the person's, so the button says so.
+        'ai.edge-button'   { '↗  Open Edge to hide it' }
+        'ai.office-copilot' { '↗  Open Word to turn off' }
         default            { '✕  Turn off' }
     }
     $offKind = switch ($id) { 'ai.restore' { 'On' } 'ai.check' { 'Look' } default { 'Off' } }
@@ -1828,7 +1831,11 @@ function New-DRAIChoicePanel {
     if ($offKind -eq 'Off' -and [string]$Task.Risk -ne 'Guided' -and $id -ne 'ai.claude-app') { [void]$script:DRAIOffButtons.Add($offButton) }
 
     if (@($catalog | Where-Object { $_.Id -eq $onId }).Count) {
-        $onLabel = if ($id -like 'ai.*-app') { '↻  Reinstall' } else { '✓  Turn back on' }
+        $onLabel = switch ($id) {
+            'ai.edge-button'    { '↗  Open Edge to show it' }
+            'ai.office-copilot' { '↗  Open Word to turn on' }
+            default             { if ($id -like 'ai.*-app') { '↻  Reinstall' } else { '✓  Turn back on' } }
+        }
         $canOn = [bool]($Status -and $Status.CanOn)
         $onReason = if ($canOn) { $null } elseif ($id -like 'ai.*-app') { 'Already installed.' } else { 'Already on - the Cleaner has not turned it off on this PC.' }
         [void]$panel.Children.Add((New-DRAIChoiceButton -Label $onLabel -Kind 'On' -TaskId $onId -Enabled $canOn -Reason $onReason -Active $(if ($null -ne $isOff) { -not $isOff } else { $null })))
