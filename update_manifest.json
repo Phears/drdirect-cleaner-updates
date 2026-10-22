@@ -1,7 +1,7 @@
 {
-  "version": "1.4.181",
-  "notes": "The Check for updates button is a deeper orange.",
-  "published": "2026-10-22T12:03:38.7481779-04:00",
+  "version": "1.4.182",
+  "notes": "On the Switch off AI page, the cards now run in a clearer order: Turn off all AI, Turn everything back on, then Uninstall all AI.",
+  "published": "2026-10-22T19:06:17.4158427-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "86F82690FCCAC60B0EDDFDEF213B2A1BFAABDA70320557593CE5E936E83A9277",
-      "size": 389152
+      "sha256": "5B9C5C124F3A67D3C8B5BD430C6285709979CCCAE359763C1497CE919CFA9A93",
+      "size": 389341
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

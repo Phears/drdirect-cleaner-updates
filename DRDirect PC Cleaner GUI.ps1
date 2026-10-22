@@ -2486,10 +2486,12 @@ function Show-TaskCategory {
         }
         $taskRow = New-TaskRow $task $rowNumber
         if ($foldThis) { $aiFoldPanel.Children.Add($taskRow) | Out-Null } else { $ui.TaskList.Children.Add($taskRow) | Out-Null }
-        # The two big buttons sit right under the check row at the top.
-        if ($Category -eq 'AI' -and $aiCardsPending) {
-            $aiCardsPending = $false
+        # The big buttons sit under the check row at the top: Turn off all AI, then Turn everything back on, then Uninstall all AI.
+        if ($Category -eq 'AI' -and $aiCardsPending -and $task.Id -eq 'ai.check') {
             $ui.TaskList.Children.Add((New-DRAIAllOffCard)) | Out-Null
+        }
+        elseif ($Category -eq 'AI' -and $aiCardsPending -and $task.Id -eq 'ai.restore') {
+            $aiCardsPending = $false
             $ui.TaskList.Children.Add((New-DRAIUninstallAllCard)) | Out-Null
         }
     }
