@@ -3153,17 +3153,6 @@ function Complete-RunPlan {
 
     $ui.ProgressPercent.Text = '100%'
     $ui.OverallProgress.Value = 100
-    # A voice says "Yabba Dabba Doo!" so the person knows the Cleaner is all done, even if they have looked away.
-    # It uses the voices that come with Windows, so nothing is downloaded and no sound file is needed.
-    if (-not $cancelAfterTask) {
-        try {
-            Add-Type -AssemblyName System.Speech
-            $script:DRDoneVoice = New-Object System.Speech.Synthesis.SpeechSynthesizer
-            $script:DRDoneVoice.SelectVoice('Microsoft David Desktop')
-            $script:DRDoneVoice.Volume = 100
-            $script:DRDoneVoice.SpeakSsmlAsync('<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US"><prosody pitch="-5%" rate="+35%" volume="100"><emphasis level="strong">Yabba</emphasis> <emphasis level="strong">dabba</emphasis> <prosody pitch="+30%" rate="-10%"><emphasis level="strong">doo!</emphasis></prosody></prosody></speak>') | Out-Null
-        } catch { }
-    }
     $ui.CancelPlanButton.Content = 'Return to dashboard'
     $ui.CancelPlanButton.IsEnabled = $true
     $ui.CancelPlanButton.Tag = 'Done'

@@ -1,7 +1,7 @@
 {
-  "version": "1.4.158",
-  "notes": "The Switch off AI page now has a search box, so you can type Copilot or Edge and see just those items.",
-  "published": "2026-10-22T09:33:13.4541408-04:00",
+  "version": "1.4.159",
+  "notes": "The Cleaner no longer makes any sound when a clean finishes.",
+  "published": "2026-10-22T09:37:55.6858991-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "7D3EC9916DAB41B0A4863A1FB330C55621446046A54EF163E042C160282B6D88",
-      "size": 371115
+      "sha256": "56504FB4A7CA7138AC6AD4883E0D3325C12513919AB032D7B3D0BCC6AF9C801F",
+      "size": 370197
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
