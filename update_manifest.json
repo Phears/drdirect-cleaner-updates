@@ -1,7 +1,7 @@
 {
-  "version": "1.4.163",
-  "notes": "On the Switch off AI page, every item now says whether its AI is on or off, even for Edge when it is not signed in.",
-  "published": "2026-10-22T10:15:52.8413967-04:00",
+  "version": "1.4.164",
+  "notes": "On the Switch off AI page, the check list now uses the same colours as the rows below it: green means the AI is on, red means it is off.",
+  "published": "2026-10-22T10:26:44.2530980-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "62AF4BCBF4B96F714588B5872DD46E0B51E02288CA44A47EDEAE232652CC7B93",
-      "size": 375401
+      "sha256": "2883038AE6C93428F3AF6AEB063EE34881A4B8F7DCDB55689C984BC487E3AD64",
+      "size": 375502
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

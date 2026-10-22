@@ -1702,7 +1702,8 @@ function Show-DRAICheckResults {
     foreach ($item in $rows) {
         $line = New-Object Windows.Controls.TextBlock -Property @{ TextWrapping = 'Wrap'; FontSize = 13; Margin = '0,3,0,0' }
         $dot = New-Object Windows.Documents.Run -ArgumentList '●  '
-        $dot.Foreground = if ($item.On) { '#E11D48' } else { '#16A34A' }
+        # Same colours as the row banners below: green when the AI is on, red when it is off.
+        $dot.Foreground = if ($item.On -or ([string]$item.Text -like '*(kept)*')) { '#16A34A' } else { '#E11D48' }
         $text = New-Object Windows.Documents.Run -ArgumentList ([string]$item.Text)
         $text.Foreground = '#172033'
         [void]$line.Inlines.Add($dot); [void]$line.Inlines.Add($text)
@@ -1713,7 +1714,7 @@ function Show-DRAICheckResults {
         $summary = if ($on) { '{0} AI item(s) still on - pick "Turn off" for them on this page.' -f $on } else { 'No AI that the Cleaner can switch off is still on.' }
         [void]$panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{
             Text = $summary; FontWeight = 'Bold'; FontSize = 13; Margin = '0,8,0,0'; TextWrapping = 'Wrap'
-            Foreground = $(if ($on) { '#BE123C' } else { '#15803D' }) }))
+            Foreground = '#172033' }))
         [void]$panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{
             Text = 'Gmail, Zoom, Word and Excel and the Edge button cannot be read from here.'
             Foreground = '#667085'; FontSize = 11.5; Margin = '0,4,0,0'; TextWrapping = 'Wrap' }))
