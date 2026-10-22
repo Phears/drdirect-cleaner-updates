@@ -551,6 +551,8 @@ $ErrorActionPreference = 'Stop'
             <Setter Property="FontSize" Value="12.5"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="Padding" Value="12,7"/>
             <Setter Property="Margin" Value="0,4"/><Setter Property="MinWidth" Value="124"/><Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ToggleButton">
+                <Grid>
+                <Border CornerRadius="10" Background="#B0000814" Margin="0,6,0,-6" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
                 <Border x:Name="ChoiceBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="10" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True" RenderTransformOrigin="0.5,0.5">
                     <Border.RenderTransform>
                         <TransformGroup>
@@ -563,6 +565,9 @@ $ErrorActionPreference = 'Stop'
                     </Border.Effect>
                     <ContentPresenter x:Name="ChoiceText" TextElement.Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
+                <Border CornerRadius="10,10,0,0" VerticalAlignment="Top" Height="15" Margin="2,2,2,0" Background="#40FFFFFF" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
+                <Border CornerRadius="0,0,10,10" VerticalAlignment="Bottom" Height="3" Margin="2,0,2,2" Background="#40000000" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
+                </Grid>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Trigger.EnterActions>
@@ -1713,7 +1718,7 @@ function Show-DRAICheckResults {
         [void]$panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = "The check could not finish: $failed"; Foreground = '#C63C3C'; TextWrapping = 'Wrap' }))
     }
     foreach ($item in $rows) {
-        $line = New-Object Windows.Controls.TextBlock -Property @{ TextWrapping = 'Wrap'; FontSize = 13; Margin = '0,3,0,0' }
+        $line = New-Object Windows.Controls.TextBlock -Property @{ TextWrapping = 'Wrap'; FontSize = 15; Margin = '0,5,0,0' }
         $dot = New-Object Windows.Documents.Run -ArgumentList '●  '
         # Same colours as the row banners below: green when the AI is on, red when it is off.
         $dot.Foreground = if ($item.On -or ([string]$item.Text -like '*(kept)*')) { '#16A34A' } else { '#E11D48' }
@@ -2104,6 +2109,15 @@ function New-TaskRow {
             $border.Margin = '0,0,0,18'
             Start-DRAIGlowEdge -Card $border -From '#16A34A' -To '#14B8A6'
         }
+        # The first thing on the page, so it glows cyan to blue and stands apart from the rows under it.
+        if ($Task.Id -eq 'ai.check') {
+            $border.Background = '#E9FBFF'
+            $border.Tag = '#E9FBFF'
+            $border.BorderThickness = '4'
+            $border.Margin = '0,0,0,22'
+            $border.Padding = '30,26'
+            Start-DRAIGlowEdge -Card $border -From '#06B6D4' -To '#2563EB'
+        }
     }
     $needsSignIn = [bool]($aiStatus -and $aiStatus.NeedsSignIn -and -not $aiStatus.SignedIn)
 
@@ -2438,11 +2452,9 @@ function Show-TaskCategory {
         $script:DRAIRestoreButton = $null
         $search = ([string]$ui.AISearchText.Text).Trim()
         # While searching only the matching rows show; the big cards come back when the box is empty.
-        if (-not $search) {
-            $ui.TaskList.Children.Add((New-DRAIAllOffCard)) | Out-Null
-            $ui.TaskList.Children.Add((New-DRAIUninstallAllCard)) | Out-Null
-        }
-        $visible = @(@($visible | Where-Object { $_.Id -eq 'ai.restore' }) + @($visible | Where-Object { $_.Id -ne 'ai.restore' }))
+        $aiCardsPending = -not $search
+        # "What AI is on this PC?" comes first: look, then act. "Turn everything back on" follows it.
+        $visible = @(@($visible | Where-Object { $_.Id -eq 'ai.check' }) + @($visible | Where-Object { $_.Id -eq 'ai.restore' }) + @($visible | Where-Object { $_.Id -notin @('ai.check','ai.restore') }))
         if ($search) {
             $visible = @($visible | Where-Object {
                 $id = [string]$_.Id
@@ -2452,7 +2464,16 @@ function Show-TaskCategory {
         }
     }
     $rowNumber = 0
-    foreach ($task in $visible) { $rowNumber++; $ui.TaskList.Children.Add((New-TaskRow $task $rowNumber)) | Out-Null }
+    foreach ($task in $visible) {
+        $rowNumber++
+        $ui.TaskList.Children.Add((New-TaskRow $task $rowNumber)) | Out-Null
+        # The two big buttons sit right under the check row at the top.
+        if ($Category -eq 'AI' -and $aiCardsPending) {
+            $aiCardsPending = $false
+            $ui.TaskList.Children.Add((New-DRAIAllOffCard)) | Out-Null
+            $ui.TaskList.Children.Add((New-DRAIUninstallAllCard)) | Out-Null
+        }
+    }
     $script:renderedCleanupFilter = $script:cleanupLevel
     Update-SelectionSummary
 }

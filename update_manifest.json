@@ -1,7 +1,7 @@
 {
-  "version": "1.4.167",
-  "notes": "The white cards are now a soft light blue.",
-  "published": "2026-10-22T10:45:00.2198860-04:00",
+  "version": "1.4.168",
+  "notes": "On the Switch off AI page, What AI is on this PC now comes first with a glowing edge, and all its buttons have the raised 3D look.",
+  "published": "2026-10-22T10:50:35.9916190-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "C990CB8A7B680DDF361EC49F67618AEEECB7EEF971BA0F342820BCDD43C440D3",
-      "size": 379404
+      "sha256": "39A9BA5BD57037136B65917D008FC640FA11DC391B4A571113596BA5B20959E8",
+      "size": 380785
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
