@@ -1,7 +1,7 @@
 {
-  "version": "1.4.159",
-  "notes": "The Cleaner no longer makes any sound when a clean finishes.",
-  "published": "2026-10-22T09:37:55.6858991-04:00",
+  "version": "1.4.160",
+  "notes": "When a clean finishes, the Cleaner now plays a soft chime that rings out for a few seconds. A new Sound switch on the Dashboard turns it on or off.",
+  "published": "2026-10-22T09:50:46.1487049-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "56504FB4A7CA7138AC6AD4883E0D3325C12513919AB032D7B3D0BCC6AF9C801F",
-      "size": 370197
+      "sha256": "9C2C85F159036D37B5B664EB981DD1B85D055F3AF9CC802839B5C7EEC08242F9",
+      "size": 374935
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
