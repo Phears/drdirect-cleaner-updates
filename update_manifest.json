@@ -1,7 +1,7 @@
 {
-  "version": "1.4.168",
-  "notes": "On the Switch off AI page, What AI is on this PC now comes first with a glowing edge, and all its buttons have the raised 3D look.",
-  "published": "2026-10-22T10:50:35.9916190-04:00",
+  "version": "1.4.169",
+  "notes": "The Claude row now has its own Turn off and Turn back on buttons. They block or open the Claude website in your browsers and never touch the Claude app.",
+  "published": "2026-10-22T11:06:40.4207511-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "39A9BA5BD57037136B65917D008FC640FA11DC391B4A571113596BA5B20959E8",
-      "size": 380785
+      "sha256": "3660DBA56392E945FCE7046E23D7277D19E1E233B9D15153B36C03087A7E29D0",
+      "size": 381859
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "F84EF890626FAA025AE414673EC6CAEA04C1439AB3DC90BB9CB0B57FE0AD005E",
-      "size": 301938
+      "sha256": "30CA153DC95928D14D63B4E81F4C8C6A27F5CB6D216312B804B6F66248104C50",
+      "size": 310188
     },
     {
       "name": "DRDirect Updater.ps1",

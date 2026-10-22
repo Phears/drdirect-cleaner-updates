@@ -228,6 +228,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='ai.firefox'; Category='AI'; Name='Firefox: turn off AI'; Description='Turns off the AI chatbot sidebar, AI link previews and AI tab groups. Passwords, bookmarks and sign-ins are not touched. Firefox settings will say the browser is managed by your organization while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.remove-models'; Category='AI'; Name='Delete downloaded AI models'; Description='Deletes the AI model Chrome and Edge download in the background - often 2 to 4 GB. Close the browser first, and also pick "Turn off" on the Chrome or Edge row, or the browser downloads it again. Only browsers that are signed in are changed.'; Risk='Cleanup'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.block-sites'; Category='AI'; Name='Block AI websites'; Description='Blocks the ChatGPT, Gemini, Copilot, Perplexity, DeepSeek, Grok and Meta AI websites in Edge, Chrome, Brave and Firefox. Claude is left open. Only browsers that are signed in are changed (Brave has no sign-in). The browsers will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.claude-block'; Category='AI'; Name='Claude website: turn off'; Description='Blocks the Claude website (claude.ai) in Edge, Chrome, Brave and Firefox. The Claude app stays installed and is never touched. Only browsers that are signed in are changed (Brave has no sign-in). Turn it back on any time.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.adobe'; Category='AI'; Name='Adobe Acrobat: turn off AI Assistant'; Description='Turns off the AI Assistant and generative AI features in Adobe Acrobat and Acrobat Reader. Only shown when Adobe Acrobat or Reader is installed. Your PDFs and Adobe sign-in are not touched. Close and reopen Acrobat afterwards. Acrobat may show that some settings are managed by your organization while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.search'; Category='AI'; Name='Windows Search: turn off web and Bing results'; Description='Stops the Start menu search box from sending what you type to Bing and showing web and AI results. Searching your own files and apps still works. Takes effect after you sign out and back in.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.gmail'; Category='AI'; Name='Gmail: turn off Gemini'; Description='Opens Gmail settings in the web browser: untick the Smart features boxes and click Save changes. Google keeps this switch in the Google account, so the last click is yours.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -245,6 +246,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='ai.brave.on'; Category='AI'; Name='Brave: turn Leo AI back on'; Description='Puts the Brave AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.firefox.on'; Category='AI'; Name='Firefox: turn AI back on'; Description='Puts the Firefox AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.block-sites.on'; Category='AI'; Name='Unblock AI websites'; Description='Takes out only the AI websites the Cleaner blocked.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.claude-block.on'; Category='AI'; Name='Claude website: turn back on'; Description='Opens the Claude website again in the browsers where the Cleaner blocked it.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.adobe.on'; Category='AI'; Name='Adobe Acrobat: turn AI Assistant back on'; Description='Puts the Adobe Acrobat AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.search.on'; Category='AI'; Name='Windows Search: turn web and Bing results back on'; Description='Puts the Start menu search settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.gmail.on'; Category='AI'; Name='Gmail: turn Gemini back on'; Description='Opens Gmail settings so you can tick Smart features again.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -2827,6 +2829,114 @@ function Invoke-DRAISiteBlock {
     New-DREvent -TaskId $TaskId -State Information -Message ('ChatGPT, Gemini, Copilot and other AI websites are now blocked in {0}, and Claude is left open. Close and reopen the browser. It will show "Managed by your organization" - that is what keeps them blocked. "Turn back on" removes it.' -f ($blocked -join ', '))
 }
 
+function Get-DRClaudeSite {
+    # The Claude website only. The Claude app is never touched by this.
+    param([ValidateSet('Chrome','Edge','Brave','Firefox')][string]$Browser)
+    if ($Browser -eq 'Firefox') { return '*://*.claude.ai/*' }
+    return 'claude.ai'
+}
+
+function Add-DRClaudeSiteBlock {
+    <#
+        Adds claude.ai to a browser's block list beside anything already on it and
+        records the one numbered entry added - before adding it - so "Turn back on"
+        takes out only that. Returns 1 when it added the entry, 0 when it was
+        already there.
+    #>
+    param(
+        [ValidateSet('Chrome','Edge','Brave','Firefox')][string]$Browser,
+        [string]$Root = 'HKLM:\SOFTWARE',
+        [string]$BackupFolder = (Get-DRAIBackupFolder)
+    )
+    $key = Get-DRAISiteBlockKey -Browser $Browser -Root $Root
+    $site = Get-DRClaudeSite -Browser $Browser
+    $backupPath = Join-Path $BackupFolder ('AI_ClaudeSite_{0}.json' -f $Browser)
+    $names = @(); $present = @()
+    $opened = Open-DRRegistryKey -Key $key
+    if ($opened) {
+        try {
+            $names = @($opened.GetValueNames())
+            $present = @($names | ForEach-Object { [string]$opened.GetValue($_) })
+        } finally { $opened.Close() }
+    }
+    if ($present -contains $site) { return 0 }
+    $next = 1
+    while ($names -contains [string]$next) { $next++ }
+    New-Item -Path $BackupFolder -ItemType Directory -Force | Out-Null
+    $record = [pscustomobject]@{
+        Target  = ('ClaudeSite_{0}' -f $Browser)
+        Key     = $key
+        Name    = [string]$next
+        Value   = $site
+        NewKeys = @(Get-DRMissingRegistryKeys -Key $key -Root $Root)
+    }
+    [System.IO.File]::WriteAllText($backupPath, (ConvertTo-Json -InputObject $record -Depth 4), (New-Object System.Text.UTF8Encoding($false)))
+    $opened = Open-DRRegistryKey -Key $key -Create
+    try { $opened.SetValue([string]$next, $site, [Microsoft.Win32.RegistryValueKind]::String) } finally { $opened.Close() }
+    return 1
+}
+
+function Remove-DRClaudeSiteBlock {
+    # Takes out only the entry Add-DRClaudeSiteBlock recorded, and only while it still holds claude.ai.
+    param(
+        [ValidateSet('Chrome','Edge','Brave','Firefox')][string]$Browser,
+        [string]$Root = 'HKLM:\SOFTWARE',
+        [string]$BackupFolder = (Get-DRAIBackupFolder)
+    )
+    $backupPath = Join-Path $BackupFolder ('AI_ClaudeSite_{0}.json' -f $Browser)
+    if (-not (Test-Path -LiteralPath $backupPath -PathType Leaf)) { return $false }
+    $saved = Get-Content -LiteralPath $backupPath -Raw | ConvertFrom-Json
+    $key = Get-DRAISiteBlockKey -Browser $Browser -Root $Root
+    $site = Get-DRClaudeSite -Browser $Browser
+    $name = [string](Get-DRDiskProperty $saved 'Name')
+    $opened = Open-DRRegistryKey -Key $key -Writable
+    if ($opened) {
+        try { if ($name -and [string]$opened.GetValue($name) -eq $site) { $opened.DeleteValue($name, $false) } } finally { $opened.Close() }
+    }
+    foreach ($newKey in @(Get-DRDiskProperty $saved 'NewKeys' | Where-Object { $_ } | Select-Object -Unique | Sort-Object Length -Descending)) {
+        if ([string]$newKey -like ($Root + '\*')) { Remove-DREmptyRegistryKey -Key $newKey | Out-Null }
+    }
+    Remove-DRSafeItem -LiteralPath $backupPath -AllowedRoot $BackupFolder | Out-Null
+    return $true
+}
+
+function Test-DRClaudeSiteBlocked {
+    param([ValidateSet('Chrome','Edge','Brave','Firefox')][string]$Browser, [string]$Root = 'HKLM:\SOFTWARE')
+    $opened = Open-DRRegistryKey -Key (Get-DRAISiteBlockKey -Browser $Browser -Root $Root)
+    if (-not $opened) { return $false }
+    try { $present = @($opened.GetValueNames() | ForEach-Object { [string]$opened.GetValue($_) }) } finally { $opened.Close() }
+    return ($present -contains (Get-DRClaudeSite -Browser $Browser))
+}
+
+function Invoke-DRClaudeSiteBlock {
+    param([string]$TaskId, [string]$TestRoot, [switch]$TurnOn)
+    $done = @(); $skipped = @()
+    foreach ($browser in @('Edge','Chrome','Brave','Firefox')) {
+        if (-not (Test-DRAIBrowserPresent -Browser $browser)) { continue }
+        if (-not $TurnOn) {
+            # Same rule as the other AI rows: a browser with accounts must be signed in first.
+            if ($browser -ne 'Brave' -and -not (Test-DRBrowserSignedIn -Browser $browser)) { $skipped += $browser; continue }
+            if (-not $TestRoot) { Add-DRClaudeSiteBlock -Browser $browser | Out-Null }
+            $done += $browser
+        } else {
+            if (-not $TestRoot) { if (Remove-DRClaudeSiteBlock -Browser $browser) { $done += $browser } } else { $done += $browser }
+        }
+    }
+    foreach ($browser in $skipped) {
+        New-DREvent -TaskId $TaskId -State Warning -Message ('{0} is not signed in, so the Claude website was not blocked there. Sign in to {0} first, then run this again.' -f $browser)
+    }
+    if (-not $done.Count) {
+        if (-not $skipped.Count) {
+            $none = if ($TurnOn) { 'The Claude website was not blocked by the Cleaner, so there was nothing to put back.' } else { 'No supported web browser was found. Nothing was changed.' }
+            New-DREvent -TaskId $TaskId -State Information -Message $none
+        }
+        return
+    }
+    $prefix = if ($TestRoot) { 'TEST MODE: nothing was changed. ' } else { '' }
+    if ($TurnOn) { New-DREvent -TaskId $TaskId -State Information -Message ($prefix + ('The Claude website is open again in {0}. Close and reopen the browser. The Claude app was never touched.' -f ($done -join ', '))) }
+    else { New-DREvent -TaskId $TaskId -State Information -Message ($prefix + ('The Claude website is now blocked in {0}. Close and reopen the browser. The Claude app was never touched, and "Turn back on" opens the website again.' -f ($done -join ', '))) }
+}
+
 function Open-DRForUser {
     # Opens a web page or program as the signed-in person rather than as
     # administrator, by handing it to Explorer. A browser started as administrator
@@ -3105,6 +3215,7 @@ function Invoke-DRAITurnBackOn {
         else { Restore-DRAIPolicy -TaskId $TaskId -Targets $policyTargets }
         return
     }
+    if ($base -eq 'ai.claude-block') { Invoke-DRClaudeSiteBlock -TaskId $TaskId -TestRoot $TestRoot -TurnOn; return }
     $app = switch ($base) { 'ai.copilot-app' {'Copilot'} 'ai.m365-app' {'M365Copilot'} 'ai.chatgpt-app' {'ChatGPT'} 'ai.claude-app' {'Claude'} default { $null } }
     if ($app) { Open-DRAIAppReinstall -TaskId $TaskId -App $app -TestRoot $TestRoot; return }
     Invoke-DRAIGuidedTask -TaskId $base -TestRoot $TestRoot -TurnOn -EventTaskId $TaskId
@@ -3459,6 +3570,7 @@ function Get-DRAIStatus {
             'ai.office-copilot' { [bool](Get-DRWordExe) }
             'ai.zoom'        { [bool](Get-DRZoomExe) }
             'ai.block-sites' { [bool]@(@('Edge','Chrome','Brave','Firefox') | Where-Object { Test-DRAIBrowserPresent -Browser $_ }).Count }
+            'ai.claude-block' { [bool]@(@('Edge','Chrome','Brave','Firefox') | Where-Object { Test-DRAIBrowserPresent -Browser $_ }).Count }
             'ai.gmail'       { $true }
             'ai.copilot-app' { & $hasApp 'Copilot' }
             'ai.m365-app'    { & $hasApp 'M365Copilot' }
@@ -3496,6 +3608,8 @@ function Get-DRAIStatus {
             $canOn = & $hasBackup $(if ($task.Id -eq 'ai.adobe') { 'Adobe' } else { 'Search' })
         } elseif ($task.Id -eq 'ai.block-sites') {
             $canOn = [bool]@(Get-ChildItem -LiteralPath $backupFolder -Filter 'AI_Sites_*.json' -File -ErrorAction SilentlyContinue).Count
+        } elseif ($task.Id -eq 'ai.claude-block') {
+            $canOn = [bool]@(Get-ChildItem -LiteralPath $backupFolder -Filter 'AI_ClaudeSite_*.json' -File -ErrorAction SilentlyContinue).Count
         } elseif ($task.Id -in @('ai.gmail','ai.office-copilot','ai.zoom','ai.edge-button','ai.copilot-key')) {
             $canOn = $true
         }
@@ -3505,6 +3619,11 @@ function Get-DRAIStatus {
         try {
             if ($appOf.ContainsKey($task.Id)) {
                 if ($canOff) { $state = 'On'; $stateText = 'App is installed' } else { $state = 'Off'; $stateText = 'App is removed' }
+                if ($task.Id -eq 'ai.claude-app' -and $canOff) {
+                    # Claude's Turn off / Turn back on act on the website, so the banner reports that.
+                    $openIn = @(@('Edge','Chrome','Brave','Firefox') | Where-Object { (Test-DRAIBrowserPresent -Browser $_) -and -not (Test-DRClaudeSiteBlocked -Browser $_) })
+                    if ($openIn.Count) { $state = 'On'; $stateText = 'Claude is ON - claude.ai is open in your browsers' } else { $state = 'Off'; $stateText = 'Claude is OFF - claude.ai blocked in your browsers' }
+                }
             } elseif ($task.Id -eq 'ai.windows') {
                 if (Test-DRAIPolicyApplied -Target Windows) { $state = 'Off' } else { $state = 'On' }
             } elseif ($task.Id -in @('ai.edge','ai.chrome','ai.brave','ai.firefox')) {
@@ -3516,6 +3635,9 @@ function Get-DRAIStatus {
             } elseif ($task.Id -eq 'ai.block-sites') {
                 $openIn = @(@('Edge','Chrome','Brave','Firefox') | Where-Object { (Test-DRAIBrowserPresent -Browser $_) -and -not (Test-DRAISitesBlocked -Browser $_) })
                 if ($openIn.Count) { $state = 'On'; $stateText = 'AI websites are still open in ' + ($openIn -join ', ') } else { $state = 'Off'; $stateText = 'AI websites are blocked' }
+            } elseif ($task.Id -eq 'ai.claude-block') {
+                $openIn = @(@('Edge','Chrome','Brave','Firefox') | Where-Object { (Test-DRAIBrowserPresent -Browser $_) -and -not (Test-DRClaudeSiteBlocked -Browser $_) })
+                if ($openIn.Count) { $state = 'On'; $stateText = 'Claude is ON - website open' } else { $state = 'Off'; $stateText = 'Claude is OFF - website blocked' }
             } elseif ($task.Id -eq 'ai.remove-models') {
                 if ($modelBytes -gt 0) { $state = 'On'; $stateText = 'AI models are still on this PC' } else { $state = 'Off'; $stateText = 'No AI models on this PC' }
             }
@@ -4320,6 +4442,7 @@ function Invoke-DRTask {
             'ai.brave'   { Invoke-DRAIBrowserTask -TaskId $TaskId -Browser Brave -TestRoot $TestRoot }
             'ai.firefox' { Invoke-DRAIBrowserTask -TaskId $TaskId -Browser Firefox -TestRoot $TestRoot }
             'ai.block-sites' { Invoke-DRAISiteBlock -TaskId $TaskId -TestRoot $TestRoot }
+            'ai.claude-block' { Invoke-DRClaudeSiteBlock -TaskId $TaskId -TestRoot $TestRoot }
             'ai.remove-models' { Remove-DRAIModels -TaskId $TaskId -TestRoot $TestRoot }
             { $_ -like 'ai.*.on' } { Invoke-DRAITurnBackOn -TaskId $TaskId -TestRoot $TestRoot }
             # Read-only, so it looks at the real PC even in test mode.

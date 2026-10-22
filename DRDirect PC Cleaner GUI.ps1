@@ -1842,12 +1842,22 @@ function New-DRAIChoicePanel {
     # Rows that can tell whether their AI is on show it in dark green (on) or dark red (off).
     $isOff = $null
     if ($Status -and $offKind -eq 'Off') { $isOff = [bool]($Status.CanOn -or -not $Status.CanOff) }
+    if ($id -eq 'ai.claude-app') {
+        # The Claude app has no setting to switch, so Turn off and Turn back on act on the Claude website
+        # (blocked or open in the browsers). The app itself is only touched by Remove below.
+        $blockStatus = @($script:DRAIStatus | Where-Object { $_.TaskId -eq 'ai.claude-block' }) | Select-Object -First 1
+        $blockOpen = [bool]($blockStatus -and $blockStatus.CanOff -and $blockStatus.State -eq 'On')
+        $blockCanOn = [bool]($blockStatus -and $blockStatus.CanOn)
+        $siteOff = New-DRAIChoiceButton -Label '✕  Turn off' -Kind 'Off' -TaskId 'ai.claude-block' -Enabled $blockOpen -Reason 'Already off: the Claude website is blocked.' -Active (-not $blockOpen)
+        $siteOn = New-DRAIChoiceButton -Label '✓  Turn back on' -Kind 'On' -TaskId 'ai.claude-block.on' -Enabled $blockCanOn -Reason 'Already on - the Cleaner has not turned it off.' -Active $blockOpen
+        [void]$panel.Children.Add($siteOff); [void]$panel.Children.Add($siteOn)
+    }
     $offButton = New-DRAIChoiceButton -Label $offLabel -Kind $offKind -TaskId $id -Enabled $canOff -Reason $offReason -Active $isOff
     [void]$panel.Children.Add($offButton)
     if ($id -eq 'ai.restore') { $script:DRAIRestoreButton = $offButton }
     # "Turn off all AI" picks everything the Cleaner can finish by itself.
     # Claude is never part of it: DRDirect keeps Claude.
-    if ($offKind -eq 'Off' -and [string]$Task.Risk -ne 'Guided' -and $id -ne 'ai.claude-app') { [void]$script:DRAIOffButtons.Add($offButton) }
+    if ($offKind -eq 'Off' -and [string]$Task.Risk -ne 'Guided' -and $id -notin @('ai.claude-app','ai.claude-block')) { [void]$script:DRAIOffButtons.Add($offButton) }
 
     if (@($catalog | Where-Object { $_.Id -eq $onId }).Count) {
         $onLabel = switch ($id) {
@@ -2374,6 +2384,7 @@ function Get-VisibleTasksForCategory {
         foreach ($status in @($script:DRAIStatus)) { if (-not $status.Present) { $hidden += $status.TaskId } }
         # A "turn back on" task is a choice inside its row, not a row of its own.
         $hidden += @($tasks | Where-Object { $_.Id -like '*.on' -or $_.Id -like '*.uninstall' -or $_.Id -like '*.reinstall' } | ForEach-Object { $_.Id })
+        $hidden += 'ai.claude-block'
     }
 
     if ($Category -in @('Cleanup','AI') -and $hidden.Count) {
