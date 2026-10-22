@@ -1,7 +1,7 @@
 {
-  "version": "1.4.172",
-  "notes": "In the Simple view, a bright Show all tools button now stays in view at the bottom of the menu, and the Dashboard tells you there are more tools.",
-  "published": "2026-10-22T11:29:25.6845166-04:00",
+  "version": "1.4.173",
+  "notes": "The Simple view menu is more compact, so all five items and the Show all tools button fit even in a small window.",
+  "published": "2026-10-22T11:32:37.8260187-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "45CF227E87950004FBAE22DB62D873F01E25D863B81F91929509D26EDA449A07",
-      "size": 386384
+      "sha256": "3ADE6E9CDAB1FB4154FA84E9F7A63AEF1E39F30BCDA255985A2C183F4657FD09",
+      "size": 386534
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
