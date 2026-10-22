@@ -1,7 +1,7 @@
 {
-  "version": "1.4.176",
-  "notes": "The Sound switch, the 3D look switch and the DRDirect Uninstaller button are always visible, in both the Simple and the full view.",
-  "published": "2026-10-22T11:36:54.5269366-04:00",
+  "version": "1.4.177",
+  "notes": "A tidier Dashboard: Sound, 3D look and Check for updates sit on one row, the Show all tools button is always at the top, and the gap in the menu is gone.",
+  "published": "2026-10-22T11:42:51.9466548-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "289FAAD27B557DE25778631DB99B6DF38E796E384E6EA8FC9163BD272A41FA8A",
-      "size": 387114
+      "sha256": "51F2DA1E1122E3938243394943A3DA3AECA6C5DC48244998BD6604B2AAA6F0E5",
+      "size": 387226
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
