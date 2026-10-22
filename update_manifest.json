@@ -1,7 +1,7 @@
 {
-  "version": "1.4.179",
-  "notes": "The Cleaner now opens taller, so the start card and the status cards fit without scrolling. A More tools below bar shows when the menu is longer than the window.",
-  "published": "2026-10-22T11:48:54.6903514-04:00",
+  "version": "1.4.180",
+  "notes": "The restart box now has three choices and always starts on I will restart myself, and the Cleaner reminds you if a restart is still waiting. Check for updates is a deeper orange and the extra Show all tools button at the top is gone.",
+  "published": "2026-10-22T12:02:06.7548915-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "80976F58A974EA2CDE236470FCAD3E9C1084AAC46D4B7289E86B4D2D2A74F169",
-      "size": 388759
+      "sha256": "C0A2E54A4C5B3DDA8C50DC6909DA7AA79B75BA71C8F218B5CD67FD5D11C08EB9",
+      "size": 389152
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
