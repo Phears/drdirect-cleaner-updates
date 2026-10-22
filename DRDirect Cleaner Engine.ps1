@@ -149,6 +149,9 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='cleanup.old-update-backups'; Category='Cleanup'; Name='Old Windows Update backup folders'; Description='Removes SoftwareDistribution.old and catroot2.old, copies left behind by an earlier Windows Update fix. Windows no longer uses them. The Windows Update folders in use are never touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.thumbnail-cache'; Category='Cleanup'; Name='Thumbnail cache'; Description='Clears cached thumbnail images. Windows rebuilds them the next time you browse those files.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.shader-cache'; Category='Cleanup'; Name='Graphics shader cache'; Description='Clears saved graphics files from DirectX and the NVIDIA, AMD and Intel drivers. Games rebuild them by themselves, so the first launch afterwards can be choppy for a few seconds.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.game-caches'; Category='Cleanup'; Name='Game launcher caches'; Description='Clears the web page caches kept by Steam and the Epic Games launcher. Games, saves and logins are not touched. The launchers rebuild these by themselves, so their store pages may load slowly once.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.dev-caches'; Category='Cleanup'; Name='Developer caches'; Description='Clears the download caches of npm, pip, NuGet, Yarn and Go. Your projects and installed packages are not touched. The next install or build downloads again, so it is slower once.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.windows-old'; Category='Cleanup'; Name='Previous Windows installation (Windows.old)'; Description='Removes the old copy of Windows kept after a big Windows update, using Windows Disk Cleanup. It can free 10-30 GB. You can NOT go back to the earlier Windows afterwards. Windows removes it by itself after about 10 days anyway.'; Risk='Confirm'; Duration='1-10 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.icon-cache'; Category='Cleanup'; Name='Icon cache'; Description='Clears the icon cache and restarts Explorer to rebuild it. Fixes blank or wrong icons. The taskbar and desktop will flash off and back on and open folder windows will close. Do not run it while File Explorer is copying or moving files.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.wer-queue'; Category='Cleanup'; Name='Windows Error Reporting queue'; Description='Removes queued and archived crash reports waiting to be sent to Microsoft.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.delivery-optimization-cache'; Category='Cleanup'; Name='Delivery Optimization cache'; Description='Clears the peer-to-peer Windows Update cache. Windows rebuilds it as needed.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
@@ -182,6 +185,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='repair.component-cleanup'; Category='Repair'; Name='DISM component cleanup'; Description='Removes superseded Windows component versions.'; Risk='Repair'; Duration='10-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='repair.sfc'; Category='Repair'; Name='System File Checker'; Description='Scans protected Windows files and repairs damaged copies.'; Risk='Repair'; Duration='10-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='repair.windows-update'; Category='Repair'; Name='Windows Update repair'; Description='Resets Windows Update services, caches, Winsock, and the WinHTTP proxy.'; Risk='Advanced'; Duration='5-15 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='repair.font-cache'; Category='Repair'; Name='Font cache reset'; Description='Rebuilds the Windows font cache. It fixes missing, blank or wrong-looking fonts. Fonts themselves are not touched. A restart is recommended afterwards.'; Risk='Advanced'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='repair.network-reset'; Category='Repair'; Name='Network reset'; Description='Flushes the DNS cache, releases and renews the IP address, resets Winsock, the TCP/IP stack, and the WinHTTP proxy, restores TCP auto-tuning to normal, disables TCP heuristics, and clears the ARP cache. The connection drops briefly during renew, a restart is required afterward, and any static IP or manual DNS configuration may need to be re-entered.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
 
         [pscustomobject]@{ Id='security.checkup'; Category='Security'; Name='Security checkup'; Description='Checks that the firewall, virus protection and Windows Update are all switched on. It only looks - nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -193,13 +197,6 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='security.network-files'; Category='Security'; Name='Enable network-file scanning'; Description='Enables Microsoft Defender scanning of files accessed over the network.'; Risk='Advanced'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.typing-privacy'; Category='Security'; Name='Stop sending typing data to Microsoft'; Description='Turns off "Improve inking and typing" and typing personalization, so Windows stops collecting what you type and write to tune its suggestions. Your current settings are saved first, and "Restore typing settings" puts them back.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='security.typing-privacy-restore'; Category='Security'; Name='Restore typing settings'; Description='Puts the typing settings back exactly as they were before "Stop sending typing data to Microsoft" changed them. Does nothing if that option was never run.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='security.win11-extras'; Category='Security'; Name='Windows 11: turn off ads and suggestions'; Description='Switches off the ads, app suggestions and "get the most out of Windows" nags in the Start menu, Settings and lock screen, and stops Windows silently installing promoted apps. Your apps and files are not touched. Your current settings are saved first, and "Turn Windows 11 extras back on" puts them back.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='security.win11-extras-restore'; Category='Security'; Name='Turn Windows 11 extras back on'; Description='Puts the ads and suggestions settings back exactly as they were before "Windows 11: turn off ads and suggestions" changed them. Does nothing if that option was never run.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='security.telemetry-off'; Category='Security'; Name='Turn off Windows telemetry'; Description='Stops Windows sending usage and diagnostic data to Microsoft: switches off the tracking services (Connected User Experiences, Error Reporting, Program Compatibility Assistant), their scheduled tasks, and the data-collection policies. It also turns off telemetry in Edge, Chrome, Brave, Firefox, NVIDIA and Office, stops Windows Search sharing your searches with Microsoft, switches off location and tailored experiences, and switches off the Google, Edge and Adobe updaters, so those programs no longer update themselves until you turn this back on. Your files, apps and logins are not touched. Windows Error Reporting stops too, so crash reports are no longer sent. Your current settings are saved first, and "Turn telemetry back on" puts them back.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='security.telemetry-off-restore'; Category='Security'; Name='Turn telemetry back on'; Description='Puts the telemetry services, scheduled tasks and policies back exactly as they were before "Turn off Windows telemetry" changed them. Does nothing if that option was never run.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='security.compat-task-off'; Category='Security'; Name='Turn off the Windows compatibility task'; Description='Switches off "SdbinstMergeDbTask", a Windows task that only helps very old programs run. Some PCs protect it; if so, the Cleaner tells you and leaves it alone. Nothing is deleted, and "Turn the compatibility task back on" undoes it.'; Risk='Confirm'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='security.compat-task-on'; Category='Security'; Name='Turn the compatibility task back on'; Description='Switches "SdbinstMergeDbTask" back on, exactly as Windows has it by default. Does nothing if it is already on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='security.sweep'; Category='Security'; Name='Spyware and adware sweep'; Description='Looks for signs of spyware and adware that Defender may not call a virus: changed browser home pages and search engines, forced browser extensions, proxy and hosts-file changes, odd startup programs and scheduled tasks, and well-known junk programs. It only looks and shows a list. Nothing is changed or removed, because some of these can be normal on your PC.'; Risk='Safe'; Duration='1-3 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
 
         [pscustomobject]@{ Id='health.chkdsk'; Category='Repair'; Name='CHKDSK disk check (deep drive test)'; Description='Checks the C: file system for corruption while Windows keeps running. Reports what it finds, repairs what is safe to repair, and never schedules a restart.'; Risk='Safe'; Duration='5-30 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$true ; CloudService=$null }
         [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -406,6 +403,112 @@ function Get-DRShaderCachePaths {
         (Join-Path $env:LOCALAPPDATA 'AMD\VkCache'),
         (Join-Path $env:LOCALAPPDATA 'Intel\ShaderCache')
     ) | Where-Object { Test-Path -LiteralPath $_ -PathType Container }
+}
+
+function Get-DRGameCachePaths {
+    <#
+        .SYNOPSIS
+            Web page caches of the Steam and Epic Games launchers.
+        .DESCRIPTION
+            Only these cache folders are returned: never game files, saves, logins
+            or the launchers' own settings. Both launchers rebuild them on demand.
+    #>
+    $paths = New-Object System.Collections.Generic.List[string]
+    $paths.Add((Join-Path $env:LOCALAPPDATA 'Steam\htmlcache'))
+    $epicSaved = Join-Path $env:LOCALAPPDATA 'EpicGamesLauncher\Saved'
+    if (Test-Path -LiteralPath $epicSaved -PathType Container) {
+        foreach ($dir in @(Get-ChildItem -LiteralPath $epicSaved -Directory -Filter 'webcache*' -Force -ErrorAction SilentlyContinue)) { $paths.Add($dir.FullName) }
+    }
+    @($paths) | Where-Object { Test-Path -LiteralPath $_ -PathType Container }
+}
+
+function Get-DRDevCachePaths {
+    <#
+        .SYNOPSIS
+            Download caches of common developer tools.
+        .DESCRIPTION
+            Caches only. Docker images and WSL disks are never listed: they hold
+            real data, not a cache. Each tool downloads again when it needs to.
+    #>
+    @(
+        (Join-Path $env:LOCALAPPDATA 'npm-cache'),
+        (Join-Path $env:LOCALAPPDATA 'pip\Cache'),
+        (Join-Path $env:LOCALAPPDATA 'NuGet\v3-cache'),
+        (Join-Path $env:LOCALAPPDATA 'Yarn\Cache'),
+        (Join-Path $env:LOCALAPPDATA 'go-build')
+    ) | Where-Object { Test-Path -LiteralPath $_ -PathType Container }
+}
+
+function Get-DRWindowsOldPath {
+    # The previous Windows install, only when it is a real folder at the root of
+    # the system drive. A link is never followed.
+    $path = Join-Path $env:SystemDrive 'Windows.old'
+    $item = Get-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue
+    if (-not $item -or -not $item.PSIsContainer) { return $null }
+    if ($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) { return $null }
+    return $item.FullName
+}
+
+function Invoke-DRWindowsOldCleanup {
+    # Windows removes its own old install: Disk Cleanup's "Previous
+    # Installations" item, on a profile of its own that holds nothing else.
+    # The Cleaner never deletes inside the Windows install folders itself.
+    param([string]$TaskId, [string]$TestRoot)
+    $cleanmgr = Join-Path $env:SystemRoot 'System32\cleanmgr.exe'
+    if ($TestRoot) {
+        Invoke-DRExternalCommand -TaskId $TaskId -FilePath $cleanmgr -Arguments @('/d','C:','/sagerun:778') -TestRoot $TestRoot | Out-Null
+        return
+    }
+    $path = Get-DRWindowsOldPath
+    if (-not $path) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'There is no previous Windows installation on this PC (Windows.old). Nothing was changed.'
+        return
+    }
+    $key = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches\Previous Installations'
+    if (-not (Test-Path -LiteralPath $key)) {
+        New-DREvent -TaskId $TaskId -State Warning -Message 'This version of Windows does not offer the previous-installation cleanup, so Windows.old was left alone.'
+        return
+    }
+    $before = Get-DRPathSize $path
+    try {
+        New-ItemProperty -Path $key -Name StateFlags0778 -Value 2 -PropertyType DWord -Force | Out-Null
+        Invoke-DRExternalCommand -TaskId $TaskId -FilePath $cleanmgr -Arguments @('/d','C:','/sagerun:778') -TestRoot $TestRoot | Out-Null
+    } finally {
+        Remove-ItemProperty -Path $key -Name StateFlags0778 -ErrorAction SilentlyContinue
+    }
+    $after = if (Get-DRWindowsOldPath) { Get-DRPathSize $path } else { [int64]0 }
+    New-DREvent -TaskId $TaskId -State Information -Message ('The previous Windows installation used {0}; about {1} was freed.' -f (Format-DRSize $before), (Format-DRSize ([Math]::Max([int64]0, $before - $after))))
+}
+
+function Invoke-DRFontCacheReset {
+    param([string]$TaskId, [string]$TestRoot)
+    if ($TestRoot) {
+        $removed = Clear-DRFolderContents -FolderPath $TestRoot -TaskId $TaskId -TestRoot $TestRoot
+        New-DREvent -TaskId $TaskId -State Information -Message ("TEST MODE: font cache files cleared in the test folder ({0})." -f $removed)
+        return
+    }
+    $folder = Join-Path $env:WINDIR 'ServiceProfiles\LocalService\AppData\Local\FontCache'
+    if (-not (Test-Path -LiteralPath $folder -PathType Container)) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'No font cache folder was found. Nothing was changed.'
+        return
+    }
+    $running = @()
+    foreach ($name in @('FontCache','FontCache3.0.0.0')) {
+        $svc = Get-Service -Name $name -ErrorAction SilentlyContinue
+        if ($svc -and $svc.Status -eq 'Running') { $running += $name }
+        if ($svc) { Stop-Service -Name $name -Force -ErrorAction SilentlyContinue }
+    }
+    $removed = 0
+    try {
+        # Only the cache data files, directly inside the font cache folder.
+        foreach ($file in @(Get-ChildItem -LiteralPath $folder -File -Force -Filter '*FontCache*.dat' -ErrorAction SilentlyContinue)) {
+            try { if (Remove-DRSafeItem -LiteralPath $file.FullName -AllowedRoot $folder) { $removed++ } }
+            catch { New-DREvent -TaskId $TaskId -State Warning -Message ("Skipped {0}: {1}" -f $file.Name, $_.Exception.Message) }
+        }
+    } finally {
+        foreach ($name in $running) { Start-Service -Name $name -ErrorAction SilentlyContinue }
+    }
+    New-DREvent -TaskId $TaskId -State Information -Message ("Font cache reset ({0} file(s) removed). Restart Windows so every program picks up the fresh cache." -f $removed)
 }
 
 function Get-DRBrowserCachePatterns {
@@ -678,6 +781,21 @@ function Get-DRAnalysis {
                     foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
                     $detail = 'Games rebuild these by themselves'
                 }
+                'cleanup.game-caches' {
+                    $paths = @(if ($TestRoot) { @($TestRoot) } else { @(Get-DRGameCachePaths) })
+                    foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
+                    $detail = 'Steam and Epic web caches; launchers rebuild them'
+                }
+                'cleanup.dev-caches' {
+                    $paths = @(if ($TestRoot) { @($TestRoot) } else { @(Get-DRDevCachePaths) })
+                    foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
+                    $detail = 'Download caches; tools fetch again when needed'
+                }
+                'cleanup.windows-old' {
+                    $path = if ($TestRoot) { $TestRoot } else { Get-DRWindowsOldPath }
+                    if ($path) { $bytes = Get-DRPathSize $path; $items = 1 }
+                    $detail = 'Old Windows copy; you cannot go back afterwards'
+                }
                 'cleanup.icon-cache' {
                     $matches = @(if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot -ErrorAction SilentlyContinue) } else { @(Get-DRPatternMatches @((Join-Path $env:LOCALAPPDATA 'Microsoft\Windows\Explorer\iconcache_*.db'))) })
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
@@ -742,7 +860,7 @@ function Get-DRAnalysis {
                     }
                     $detail = 'Only useful for diagnosing a specific past crash'
                 }
-            'security.remove-exclusions' {
+                'security.remove-exclusions' {
                     if (Get-Command Get-MpPreference -ErrorAction SilentlyContinue) {
                         $pref = Get-MpPreference
                         $items = @($pref.ExclusionPath).Count + @($pref.ExclusionProcess).Count + @($pref.ExclusionExtension).Count
@@ -1820,481 +1938,6 @@ function Restore-DRTypingPrivacy {
     }
     Remove-DRSafeItem -LiteralPath $BackupPath -AllowedRoot (Split-Path -Parent $BackupPath) | Out-Null
     New-DREvent -TaskId $TaskId -State Information -Message 'Typing settings are back to how they were before the Cleaner changed them.'
-}
-
-function Get-DRWin11ExtrasValues {
-    # The per-user switches behind the ads, app suggestions and promoted-app installs in
-    # Windows 11, with the value that turns each one off. All are HKCU, so no administrator
-    # access is needed. Copilot, Recall and Bing search have their own AI rows.
-    param([string]$Root = 'HKCU:\Software\Microsoft')
-    $cdm = Join-Path $Root 'Windows\CurrentVersion\ContentDeliveryManager'
-    $adv = Join-Path $Root 'Windows\CurrentVersion\Explorer\Advanced'
-    $values = foreach ($name in @(
-        'ContentDeliveryAllowed', 'FeatureManagementEnabled', 'OemPreInstalledAppsEnabled',
-        'PreInstalledAppsEnabled', 'PreInstalledAppsEverEnabled', 'RotatingLockScreenOverlayEnabled',
-        'SilentInstalledAppsEnabled', 'SoftLandingEnabled', 'SystemPaneSuggestionsEnabled',
-        'SubscribedContent-310093Enabled', 'SubscribedContent-338387Enabled', 'SubscribedContent-338388Enabled',
-        'SubscribedContent-338389Enabled', 'SubscribedContent-338393Enabled', 'SubscribedContent-353694Enabled',
-        'SubscribedContent-353696Enabled', 'SubscribedContent-353698Enabled', 'SubscribedContent-88000326Enabled'
-    )) { [pscustomobject]@{ Key = $cdm; Name = $name; Off = 0 } }
-    $values
-    [pscustomobject]@{ Key = $adv; Name = 'Start_IrisRecommendations';    Off = 0 }
-    [pscustomobject]@{ Key = $adv; Name = 'Start_AccountNotifications';   Off = 0 }
-    [pscustomobject]@{ Key = $adv; Name = 'ShowSyncProviderNotifications'; Off = 0 }
-    [pscustomobject]@{ Key = (Join-Path $Root 'Windows\CurrentVersion\AdvertisingInfo');          Name = 'Enabled';                   Off = 0 }
-    [pscustomobject]@{ Key = (Join-Path $Root 'Windows\CurrentVersion\UserProfileEngagement');    Name = 'ScoobeSystemSettingEnabled'; Off = 0 }
-}
-
-function Get-DRWin11ExtrasBackupPath {
-    Join-Path (Split-Path -Parent $script:DRReportRoot) 'Backups\Win11_Extras_Settings.json'
-}
-
-function Set-DRWin11Extras {
-    param(
-        [string]$TaskId,
-        [string]$Root = 'HKCU:\Software\Microsoft',
-        [string]$BackupPath = (Get-DRWin11ExtrasBackupPath)
-    )
-
-    $values = @(Get-DRWin11ExtrasValues -Root $Root)
-    # A backup that already exists holds the customer's original settings, so a second run never replaces it.
-    if (-not (Test-Path -LiteralPath $BackupPath -PathType Leaf)) {
-        $before = foreach ($value in $values) {
-            $current = $null
-            $property = Get-ItemProperty -LiteralPath $value.Key -Name $value.Name -ErrorAction SilentlyContinue
-            if ($property) { $current = $property.($value.Name) }
-            [pscustomobject]@{ Key = $value.Key; Name = $value.Name; Existed = ($null -ne $property); Value = $current }
-        }
-        New-Item -Path (Split-Path -Parent $BackupPath) -ItemType Directory -Force | Out-Null
-        [System.IO.File]::WriteAllText($BackupPath, (ConvertTo-Json -InputObject @($before) -Depth 3), (New-Object System.Text.UTF8Encoding($false)))
-    }
-
-    foreach ($value in $values) {
-        if (-not (Test-Path -LiteralPath $value.Key)) { New-Item -Path $value.Key -Force | Out-Null }
-        New-ItemProperty -LiteralPath $value.Key -Name $value.Name -Value $value.Off -PropertyType DWord -Force | Out-Null
-    }
-    New-DREvent -TaskId $TaskId -State Information -Message 'Windows 11 ads and suggestions are off. Sign out and back in to see the full effect. Your previous settings were saved; "Turn Windows 11 extras back on" puts them back.'
-}
-
-function Restore-DRWin11Extras {
-    param(
-        [string]$TaskId,
-        [string]$Root = 'HKCU:\Software\Microsoft',
-        [string]$BackupPath = (Get-DRWin11ExtrasBackupPath)
-    )
-
-    if (-not (Test-Path -LiteralPath $BackupPath -PathType Leaf)) {
-        New-DREvent -TaskId $TaskId -State Information -Message 'There was nothing to restore: the Cleaner has not changed the Windows 11 ads and suggestions on this PC.'
-        return
-    }
-
-    $allowed = @(Get-DRWin11ExtrasValues -Root $Root)
-    $saved = @(Get-Content -LiteralPath $BackupPath -Raw | ConvertFrom-Json | ForEach-Object { $_ })
-    foreach ($entry in $saved) {
-        # Only the switches this Cleaner changes; an edited backup cannot point anywhere else.
-        if (-not @($allowed | Where-Object { $_.Key -eq $entry.Key -and $_.Name -eq $entry.Name }).Count) { continue }
-        if ($entry.Existed) {
-            if (-not (Test-Path -LiteralPath $entry.Key)) { New-Item -Path $entry.Key -Force | Out-Null }
-            New-ItemProperty -LiteralPath $entry.Key -Name $entry.Name -Value ([int]$entry.Value) -PropertyType DWord -Force | Out-Null
-        } else {
-            Remove-ItemProperty -LiteralPath $entry.Key -Name $entry.Name -ErrorAction SilentlyContinue
-        }
-    }
-    Remove-DRSafeItem -LiteralPath $BackupPath -AllowedRoot (Split-Path -Parent $BackupPath) | Out-Null
-    New-DREvent -TaskId $TaskId -State Information -Message 'Windows 11 ads and suggestions are back to how they were before the Cleaner changed them.'
-}
-
-function Get-DRTelemetrySpec {
-    # Everything "Turn off Windows telemetry" changes, and nothing else: the registry
-    # policies, the services and the scheduled tasks. Root only moves for tests.
-    param([string]$Root = 'HKLM:\SOFTWARE')
-    $policies = @(
-        'Policies\Microsoft\Windows\DataCollection|AllowTelemetry|0',
-        'Policies\Microsoft\Windows\DataCollection|DoNotShowFeedbackNotifications|1',
-        'Policies\Microsoft\Windows\DataCollection|DisableOneSettingsDownloads|1',
-        'Policies\Microsoft\Windows\DataCollection|LimitDiagnosticLogCollection|1',
-        'Policies\Microsoft\Windows\DataCollection|LimitDumpCollection|1',
-        'Policies\Microsoft\Windows\DataCollection|LimitEnhancedDiagnosticDataWindowsAnalytics|0',
-        'Policies\Microsoft\Windows\AppCompat|DisableInventory|1',
-        'Policies\Microsoft\Windows\AppCompat|DisableUAR|1',
-        'Policies\Microsoft\Windows\AppCompat|AITEnable|0',
-        'Policies\Microsoft\SQMClient\Windows|CEIPEnable|0',
-        'Policies\Microsoft\Windows\Windows Error Reporting|Disabled|1',
-        'Policies\Microsoft\Windows\AdvertisingInfo|DisabledByGroupPolicy|1',
-        'Policies\Microsoft\Windows\System|PublishUserActivities|0',
-        'Policies\Microsoft\Windows\System|EnableActivityFeed|0',
-        'Policies\Microsoft\Windows\System|UploadUserActivities|0',
-        'Policies\Microsoft\Windows\WindowsAI|DisableAIDataAnalysis|1',
-        'Policies\Mozilla\Firefox|DisableTelemetry|1',
-        'Policies\Google\Chrome|MetricsReportingEnabled|0',
-        'Policies\BraveSoftware\Brave|MetricsReportingEnabled|0',
-        'Policies\Microsoft\Edge|MetricsReportingEnabled|0',
-        'Policies\Microsoft\Edge|DiagnosticData|0',
-        'Policies\Microsoft\Edge|PersonalizationReportingEnabled|0',
-        'Policies\Google\Chrome|UrlKeyedAnonymizedDataCollectionEnabled|0',
-        'Policies\Google\Chrome|ChromeCleanupReportingEnabled|0',
-        'Policies\Microsoft\Windows\LocationAndSensors|DisableLocation|1',
-        'Policies\Microsoft\Windows\CloudContent|DisableTailoredExperiencesWithDiagnosticData|1',
-        'Policies\Microsoft\InputPersonalization|AllowInputPersonalization|0',
-        'NVIDIA Corporation\NvControlPanel2\Client|OptInOrOutPreference|0',
-        'Policies\Microsoft\Office\16.0\Common\ClientTelemetry|SendTelemetry|3',
-        'Policies\Microsoft\Office\16.0\Common|QMEnable|0',
-        'Policies\Microsoft\Office\16.0\Common|UpdateReliabilityData|0',
-        'Policies\Microsoft\Windows\Windows Search|AllowCortana|0',
-        'Policies\Microsoft\Windows\Windows Search|AllowCloudSearch|0',
-        'Policies\Microsoft\Windows\Windows Search|ConnectedSearchUseWeb|0',
-        'Policies\Microsoft\Windows\Windows Search|DisableWebSearch|1'
-    )
-    $registry = foreach ($line in $policies) {
-        $part = $line -split '\|'
-        [pscustomobject]@{ Key = (Join-Path $Root $part[0]); Name = $part[1]; Off = [int]$part[2] }
-    }
-    $tasks = @(
-        '\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser Exp',
-        '\Microsoft\Windows\Application Experience\Microsoft Compatibility Appraiser',
-        '\Microsoft\Windows\Application Experience\ProgramDataUpdater',
-        '\Microsoft\Windows\Application Experience\MareBackup',
-        '\Microsoft\Windows\Application Experience\StartupAppTask',
-        '\Microsoft\Windows\Application Experience\PcaPatchDbTask',
-        '\Microsoft\Windows\Application Experience\SdbinstMergeDbTask',
-        '\Microsoft\Windows\Windows Error Reporting\QueueReporting',
-        '\Microsoft\Windows\Device Information\Device',
-        '\Microsoft\Windows\Device Information\Device User',
-        '\Microsoft\Windows\Customer Experience Improvement Program\Consolidator',
-        '\Microsoft\Windows\Customer Experience Improvement Program\UsbCeip',
-        '\Microsoft\Windows\Feedback\Siuf\DmClient',
-        '\Microsoft\Windows\Feedback\Siuf\DmClientOnScenarioDownload',
-        '\Microsoft\Windows\Flighting\FeatureConfig\UsageDataFlushing',
-        '\Microsoft\Windows\Flighting\FeatureConfig\UsageDataReceiver',
-        '\Microsoft\Windows\Flighting\FeatureConfig\UsageDataReporting',
-        '\Microsoft\Windows\Flighting\FeatureConfig\GovernedFeatureUsageProcessing',
-        '\Microsoft\Windows\Sustainability\SustainabilityTelemetry',
-        '\Microsoft\Windows\PerformanceTrace\ShowFeedbackToast',
-        '\Microsoft\Windows\Diagnosis\RecommendedTroubleshootingScanner',
-        '\Microsoft\Windows\Diagnosis\UnexpectedCodepath',
-        '\Microsoft\Windows\DiskFootprint\Diagnostics',
-        '\Microsoft\Windows\Power Efficiency Diagnostics\AnalyzeSystem'
-    )
-    [pscustomobject]@{
-        Registry = @($registry)
-        Services = @('PcaSvc', 'DiagTrack', 'dmwappushservice', 'WerSvc', 'NvTelemetryContainer', 'gupdate', 'gupdatem', 'edgeupdate', 'edgeupdatem', 'AdobeARMservice', 'diagnosticshub.standardcollector.service')
-        Tasks    = $tasks
-        # NVIDIA names its telemetry tasks with a changing ID, so they are found by name.
-        TaskPatterns = @('NvTm*', 'GoogleUpdateTask*', 'MicrosoftEdgeUpdateTask*', 'Adobe Acrobat Update Task', 'AdobeGCInvoker*')
-    }
-}
-
-function Get-DRTelemetryBackupPath {
-    Join-Path (Split-Path -Parent $script:DRReportRoot) 'Backups\Telemetry_Settings.json'
-}
-
-function Get-DRTelemetryTask {
-    param([string]$Path)
-    Get-ScheduledTask -TaskPath ((Split-Path $Path -Parent) + '\') -TaskName (Split-Path $Path -Leaf) -ErrorAction SilentlyContinue
-}
-
-function Get-DRTelemetryTaskPaths {
-    param($Spec)
-    $paths = New-Object System.Collections.Generic.List[string]
-    foreach ($path in $Spec.Tasks) { $paths.Add($path) }
-    foreach ($pattern in $Spec.TaskPatterns) {
-        foreach ($task in @(Get-ScheduledTask -TaskName $pattern -ErrorAction SilentlyContinue)) {
-            if ($task.TaskPath -eq '\') { $paths.Add($task.TaskPath + $task.TaskName) }
-        }
-    }
-    @($paths | Select-Object -Unique)
-}
-
-function Test-DRTelemetryTaskPath {
-    # Only tasks this Cleaner switches off; an edited backup cannot point anywhere else.
-    param($Spec, [string]$Path)
-    if ($Path -in $Spec.Tasks) { return $true }
-    if ((Split-Path $Path -Parent) -ne '\') { return $false }
-    foreach ($pattern in $Spec.TaskPatterns) { if ((Split-Path $Path -Leaf) -like $pattern) { return $true } }
-    return $false
-}
-
-function Set-DRTelemetryOff {
-    param(
-        [string]$TaskId,
-        [string]$Root = 'HKLM:\SOFTWARE',
-        [string]$ServicesRoot = 'HKLM:\SYSTEM\CurrentControlSet\Services',
-        [string]$BackupPath = (Get-DRTelemetryBackupPath)
-    )
-
-    $spec = Get-DRTelemetrySpec -Root $Root
-    # A backup that already exists holds the customer's original settings, so a second run never replaces it.
-    if (-not (Test-Path -LiteralPath $BackupPath -PathType Leaf)) {
-        $registry = foreach ($value in $spec.Registry) {
-            $current = $null
-            $property = Get-ItemProperty -LiteralPath $value.Key -Name $value.Name -ErrorAction SilentlyContinue
-            if ($property) { $current = $property.($value.Name) }
-            [pscustomobject]@{ Key = $value.Key; Name = $value.Name; Existed = ($null -ne $property); Value = $current }
-        }
-        $services = foreach ($name in $spec.Services) {
-            $props = Get-ItemProperty -LiteralPath (Join-Path $ServicesRoot $name) -ErrorAction SilentlyContinue
-            $delayed = $null
-            if ($props -and $props.PSObject.Properties['DelayedAutostart']) { $delayed = $props.DelayedAutostart }
-            $start = $null
-            if ($props) { $start = $props.Start }
-            [pscustomobject]@{ Name = $name; Existed = [bool]$props; Start = $start; Delayed = $delayed }
-        }
-        $tasks = foreach ($path in (Get-DRTelemetryTaskPaths -Spec $spec)) {
-            $task = Get-DRTelemetryTask -Path $path
-            [pscustomobject]@{ Path = $path; Existed = [bool]$task; Enabled = [bool]($task -and $task.State -ne 'Disabled') }
-        }
-        $backup = [pscustomobject]@{ Registry = @($registry); Services = @($services); Tasks = @($tasks) }
-        New-Item -Path (Split-Path -Parent $BackupPath) -ItemType Directory -Force | Out-Null
-        [System.IO.File]::WriteAllText($BackupPath, (ConvertTo-Json -InputObject $backup -Depth 4), (New-Object System.Text.UTF8Encoding($false)))
-    }
-
-    $changedServices = 0; $changedTasks = 0
-    foreach ($name in $spec.Services) {
-        $key = Join-Path $ServicesRoot $name
-        if (-not (Test-Path -LiteralPath $key)) { continue }
-        try {
-            Stop-Service -Name $name -Force -ErrorAction SilentlyContinue
-            Set-ItemProperty -LiteralPath $key -Name Start -Value 4 -Type DWord -ErrorAction Stop
-            $changedServices++
-        } catch { New-DREvent -TaskId $TaskId -State Warning -Message ('The {0} service could not be switched off: {1}' -f $name, $_.Exception.Message) }
-    }
-    foreach ($path in (Get-DRTelemetryTaskPaths -Spec $spec)) {
-        $task = Get-DRTelemetryTask -Path $path
-        if (-not $task -or $task.State -eq 'Disabled') { continue }
-        try { $null = $task | Disable-ScheduledTask -ErrorAction Stop; $changedTasks++ } catch { }
-    }
-    foreach ($value in $spec.Registry) {
-        if (-not (Test-Path -LiteralPath $value.Key)) { New-Item -Path $value.Key -Force | Out-Null }
-        New-ItemProperty -LiteralPath $value.Key -Name $value.Name -Value $value.Off -PropertyType DWord -Force | Out-Null
-    }
-    New-DREvent -TaskId $TaskId -State Information -Message ('Windows telemetry is off: {0} service(s) and {1} scheduled task(s) switched off, and the data-collection policies set (Windows, Edge, Chrome, Brave, Firefox, NVIDIA, Office). Your previous settings were saved; "Turn telemetry back on" puts them back.' -f $changedServices, $changedTasks)
-
-    # Check again instead of trusting the commands: a protected task or a policy can refuse a change.
-    $total = 0; $done = 0; $refused = New-Object System.Collections.Generic.List[string]
-    foreach ($name in $spec.Services) {
-        $key = Join-Path $ServicesRoot $name
-        if (-not (Test-Path -LiteralPath $key)) { continue }
-        $total++
-        $props = Get-ItemProperty -LiteralPath $key -ErrorAction SilentlyContinue
-        if ($props -and $props.Start -eq 4) { $done++ } else { $refused.Add($name) }
-    }
-    foreach ($path in (Get-DRTelemetryTaskPaths -Spec $spec)) {
-        $task = Get-DRTelemetryTask -Path $path
-        if (-not $task) { continue }
-        $total++
-        if ($task.State -eq 'Disabled') { $done++ } else { $refused.Add((Split-Path $path -Leaf)) }
-    }
-    foreach ($value in $spec.Registry) {
-        $total++
-        $property = Get-ItemProperty -LiteralPath $value.Key -Name $value.Name -ErrorAction SilentlyContinue
-        if ($property -and [int]$property.($value.Name) -eq $value.Off) { $done++ } else { $refused.Add($value.Name) }
-    }
-    $percent = if ($total) { [int][math]::Round(100 * $done / $total) } else { 0 }
-    New-DREvent -TaskId $TaskId -State Information -Message ('{0}% of telemetry is turned off ({1} of {2} switches). Restart Windows so it all takes effect.' -f $percent, $done, $total)
-    if ($refused.Count) {
-        New-DREvent -TaskId $TaskId -State Warning -Message ('Windows would not switch off {0} item(s): {1}. Windows protects some of its own tasks; the rest of the list is done.' -f $refused.Count, ($refused -join ', '))
-    }
-}
-
-function Restore-DRTelemetry {
-    param(
-        [string]$TaskId,
-        [string]$Root = 'HKLM:\SOFTWARE',
-        [string]$ServicesRoot = 'HKLM:\SYSTEM\CurrentControlSet\Services',
-        [string]$BackupPath = (Get-DRTelemetryBackupPath)
-    )
-
-    if (-not (Test-Path -LiteralPath $BackupPath -PathType Leaf)) {
-        New-DREvent -TaskId $TaskId -State Information -Message 'There was nothing to restore: the Cleaner has not turned off telemetry on this PC.'
-        return
-    }
-
-    $spec = Get-DRTelemetrySpec -Root $Root
-    $saved = Get-Content -LiteralPath $BackupPath -Raw | ConvertFrom-Json
-    # Only the switches this Cleaner changes; an edited backup cannot point anywhere else.
-    foreach ($entry in @($saved.Registry | ForEach-Object { $_ })) {
-        if (-not @($spec.Registry | Where-Object { $_.Key -eq $entry.Key -and $_.Name -eq $entry.Name }).Count) { continue }
-        if ($entry.Existed) {
-            if (-not (Test-Path -LiteralPath $entry.Key)) { New-Item -Path $entry.Key -Force | Out-Null }
-            New-ItemProperty -LiteralPath $entry.Key -Name $entry.Name -Value ([int]$entry.Value) -PropertyType DWord -Force | Out-Null
-        } else {
-            Remove-ItemProperty -LiteralPath $entry.Key -Name $entry.Name -ErrorAction SilentlyContinue
-        }
-    }
-    foreach ($entry in @($saved.Services | ForEach-Object { $_ })) {
-        if ($entry.Name -notin $spec.Services -or -not $entry.Existed) { continue }
-        $key = Join-Path $ServicesRoot $entry.Name
-        if (-not (Test-Path -LiteralPath $key)) { continue }
-        Set-ItemProperty -LiteralPath $key -Name Start -Value ([int]$entry.Start) -Type DWord
-        if ($null -ne $entry.Delayed) { Set-ItemProperty -LiteralPath $key -Name DelayedAutostart -Value ([int]$entry.Delayed) -Type DWord }
-        else { Remove-ItemProperty -LiteralPath $key -Name DelayedAutostart -ErrorAction SilentlyContinue }
-    }
-    foreach ($entry in @($saved.Tasks | ForEach-Object { $_ })) {
-        if (-not (Test-DRTelemetryTaskPath -Spec $spec -Path $entry.Path) -or -not $entry.Existed -or -not $entry.Enabled) { continue }
-        $task = Get-DRTelemetryTask -Path $entry.Path
-        if ($task) { try { $null = $task | Enable-ScheduledTask -ErrorAction Stop } catch { } }
-    }
-    Remove-DRSafeItem -LiteralPath $BackupPath -AllowedRoot (Split-Path -Parent $BackupPath) | Out-Null
-    New-DREvent -TaskId $TaskId -State Information -Message 'Telemetry settings are back to how they were before the Cleaner changed them. Restart Windows so the services start again.'
-}
-
-function Set-DRCompatTask {
-    # SdbinstMergeDbTask only merges compatibility files for very old programs. Windows protects
-    # it, so on many PCs an administrator is refused. If so, the Cleaner says so and leaves it.
-    param([string]$TaskId, [bool]$Enable)
-
-    $path = '\Microsoft\Windows\Application Experience\'
-    $name = 'SdbinstMergeDbTask'
-    $task = Get-ScheduledTask -TaskPath $path -TaskName $name -ErrorAction SilentlyContinue
-    if (-not $task) {
-        New-DREvent -TaskId $TaskId -State Information -Message 'This task is not on this PC, so there is nothing to change.'
-        return
-    }
-    $isOff = ($task.State -eq 'Disabled')
-    if ($Enable -and -not $isOff) { New-DREvent -TaskId $TaskId -State Information -Message 'The compatibility task is already on. Nothing was changed.'; return }
-    if (-not $Enable -and $isOff) { New-DREvent -TaskId $TaskId -State Information -Message 'The compatibility task is already off. Nothing was changed.'; return }
-
-    $verb = if ($Enable) { 'Enable-ScheduledTask' } else { 'Disable-ScheduledTask' }
-    # Only the plain command. Running it through a hidden task under the system account
-    # made Windows Defender take the whole Cleaner for a hacking tool (PsExec) and block it.
-    try { $null = & $verb -TaskPath $path -TaskName $name -ErrorAction Stop } catch { }
-
-    # Check again instead of trusting the commands.
-    $after = Get-ScheduledTask -TaskPath $path -TaskName $name -ErrorAction SilentlyContinue
-    $nowOff = ($after -and $after.State -eq 'Disabled')
-    if (($Enable -and -not $nowOff) -or (-not $Enable -and $nowOff)) {
-        $word = if ($Enable) { 'on' } else { 'off' }
-        New-DREvent -TaskId $TaskId -State Information -Message ('The compatibility task is now {0}.' -f $word)
-    } else {
-        New-DREvent -TaskId $TaskId -State Warning -Message 'Windows still has this task in its old state. It is protected, and this PC would not let it be changed. Nothing else was affected.'
-    }
-}
-
-function Get-DRSweepJunkNames {
-    # Well-known unwanted programs. A match is only reported, never removed.
-    @('Web Companion', 'WebCompanion', 'Conduit', 'Ask Toolbar', 'Babylon', 'Delta Search', 'Delta Toolbar', 'MyWebSearch',
-      'Crossrider', 'SearchProtect', 'OpenCandy', 'Wajam', 'Browser Assistant', 'PC Accelerate', 'MacKeeper', 'Driver Updater',
-      'Search Marquis', 'Yontoo', 'Snap.Do', 'Trovi', 'Linkury', 'SweetPacks', 'Mindspark', 'Genieo', 'Superfish', 'DealPly',
-      'InstallCore', 'Spigot', 'SaveSense', 'Bing Bar', 'Optimizer Pro', 'Registry Booster', 'Speed Up My PC')
-}
-
-function Test-DRSweepSuspiciousPath {
-    # True when a program starts from a place normal software does not live in.
-    param([string]$Command)
-    if (-not $Command) { return $false }
-    return [bool]($Command -match '(?i)\\(AppData\\Local\\Temp|Temp|Downloads|Users\\Public|\$Recycle\.Bin)\\')
-}
-
-function Invoke-DRSpywareSweep {
-    param([string]$TaskId, [string]$TestRoot)
-    if ($TestRoot) {
-        New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the spyware and adware sweep was not run.'
-        return
-    }
-
-    $flags = New-Object System.Collections.Generic.List[string]
-    $notes = New-Object System.Collections.Generic.List[string]
-
-    # 1. Browser settings forced by policy: home page, search engine, extensions
-    $browserFlags = 0
-    foreach ($browser in @(@{ Name = 'Chrome'; Key = 'Policies\Google\Chrome' }, @{ Name = 'Edge'; Key = 'Policies\Microsoft\Edge' }, @{ Name = 'Brave'; Key = 'Policies\BraveSoftware\Brave' })) {
-        foreach ($hive in 'HKLM:\SOFTWARE', 'HKCU:\SOFTWARE') {
-            $key = Join-Path $hive $browser.Key
-            $item = Get-ItemProperty -LiteralPath $key -ErrorAction SilentlyContinue
-            if ($item) {
-                foreach ($name in 'HomepageLocation', 'NewTabPageLocation', 'DefaultSearchProviderSearchURL', 'DefaultSearchProviderName') {
-                    $value = Get-DRDiskProperty $item $name
-                    if ($value) { $browserFlags++; $flags.Add(('{0} has a forced setting: {1} = {2}' -f $browser.Name, $name, $value)) }
-                }
-            }
-            $forced = Get-Item -LiteralPath (Join-Path $key 'ExtensionInstallForcelist') -ErrorAction SilentlyContinue
-            if ($forced) {
-                foreach ($valueName in $forced.GetValueNames()) {
-                    $browserFlags++; $flags.Add(('{0} has an extension that cannot be removed: {1}' -f $browser.Name, $forced.GetValue($valueName)))
-                }
-            }
-        }
-    }
-    if (-not $browserFlags) { $notes.Add('Browser home page, search engine and forced extensions: nothing unusual.') }
-
-    # 2. Proxy settings
-    $proxy = Get-ItemProperty -LiteralPath 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings' -ErrorAction SilentlyContinue
-    $proxyFlags = 0
-    if ($proxy) {
-        if ((Get-DRDiskProperty $proxy 'ProxyEnable') -eq 1) { $proxyFlags++; $flags.Add(('A proxy server is switched on: {0}. Normal at some workplaces, but spyware also uses this to watch your traffic.' -f (Get-DRDiskProperty $proxy 'ProxyServer'))) }
-        $autoConfig = Get-DRDiskProperty $proxy 'AutoConfigURL'
-        if ($autoConfig) { $proxyFlags++; $flags.Add(('An automatic proxy script is set: {0}' -f $autoConfig)) }
-    }
-    if (-not $proxyFlags) { $notes.Add('Proxy settings: none set.') }
-
-    # 3. Hosts file entries
-    $hostsFlags = 0; $hostsBlocks = 0
-    $hostsPath = Join-Path $env:WINDIR 'System32\drivers\etc\hosts'
-    foreach ($line in @(Get-Content -LiteralPath $hostsPath -ErrorAction SilentlyContinue)) {
-        $text = ($line -replace '#.*$', '').Trim()
-        if (-not $text) { continue }
-        if ($text -match '^(127\.0\.0\.1|::1|0\.0\.0\.0)\s+(localhost|localhost\.localdomain|kubernetes\.docker\.internal|host\.docker\.internal|gateway\.docker\.internal)\s*$') { continue }
-        # 0.0.0.0 and 127.0.0.1 block a site, which is how ad and tracker blockers work.
-        # Only a site sent to some other address is a redirect worth a look.
-        if ($text -match '^(0\.0\.0\.0|127\.0\.0\.1|::1)\s+\S+') { $hostsBlocks++; continue }
-        $hostsFlags++
-        if ($hostsFlags -le 10) { $flags.Add(('Hosts file sends a site somewhere else: {0}' -f $text)) }
-    }
-    if ($hostsBlocks) { $notes.Add(('Hosts file blocks {0} site(s). That is normal if you or a blocker added them.' -f $hostsBlocks)) }
-    if (-not $hostsFlags) { $notes.Add('Hosts file: no redirects to other addresses.') }
-
-    # 4. Startup programs that start from odd places, or are well-known junk
-    $junk = @(Get-DRSweepJunkNames)
-    $startupFlags = 0
-    foreach ($entry in @(Get-DRStartupEntries)) {
-        $isJunk = [bool]@($junk | Where-Object { $entry.Name -like ('*' + $_ + '*') -or $entry.Command -like ('*' + $_ + '*') }).Count
-        if ($isJunk -or (Test-DRSweepSuspiciousPath $entry.Command)) { $startupFlags++; $flags.Add(('Starts with Windows from an unusual place: {0}  ({1})' -f $entry.Name, $entry.Command)) }
-    }
-    if (-not $startupFlags) { $notes.Add('Startup programs: all start from normal places.') }
-
-    # 5. Scheduled tasks that are not Microsoft's and run from odd places or hide a command
-    $taskFlags = 0
-    foreach ($task in @(Get-ScheduledTask -ErrorAction SilentlyContinue | Where-Object { $_.TaskPath -notlike '\Microsoft\*' })) {
-        foreach ($action in @($task.Actions)) {
-            $execute = [string](Get-DRDiskProperty $action 'Execute')
-            $arguments = [string](Get-DRDiskProperty $action 'Arguments')
-            $whole = ($execute + ' ' + $arguments)
-            if (Test-DRSweepSuspiciousPath $whole) { $taskFlags++; $flags.Add(('Scheduled task "{0}" runs from an unusual place: {1}' -f $task.TaskName, $whole.Trim())); break }
-        }
-    }
-    if (-not $taskFlags) { $notes.Add('Scheduled tasks (not Microsoft): none run from unusual places.') }
-
-    # 6. Well-known junk programs, and anything installed in the last 30 days
-    $programs = @(Get-DRInstalledProgramEntries)
-    $junkFound = 0
-    foreach ($program in $programs) {
-        if (@($junk | Where-Object { $program.Name -like ('*' + $_ + '*') }).Count) { $junkFound++; $flags.Add(('Known unwanted program installed: {0}' -f $program.Name)) }
-    }
-    if (-not $junkFound) { $notes.Add('Well-known junk programs: none found.') }
-    $recent = New-Object System.Collections.Generic.List[string]
-    $cutoff = (Get-Date).AddDays(-30)
-    foreach ($root in 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall', 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall', 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall') {
-        foreach ($item in @(Get-ChildItem -LiteralPath $root -ErrorAction SilentlyContinue)) {
-            $properties = Get-ItemProperty -LiteralPath $item.PSPath -ErrorAction SilentlyContinue
-            $installed = [string](Get-DRDiskProperty $properties 'InstallDate')
-            $name = [string](Get-DRDiskProperty $properties 'DisplayName')
-            $when = [datetime]::MinValue
-            if ($name -and $installed -match '^\d{8}$' -and [datetime]::TryParseExact($installed, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture, 'None', [ref]$when) -and $when -ge $cutoff) {
-                $recent.Add(('{0}  (installed {1})' -f $name, $when.ToString('d MMM yyyy')))
-            }
-        }
-    }
-
-    foreach ($note in $notes) { New-DREvent -TaskId $TaskId -State Information -Message $note }
-    if ($recent.Count) {
-        New-DREvent -TaskId $TaskId -State Information -Message ("Installed in the last 30 days (check you recognise them):`r`n  {0}" -f (($recent | Sort-Object -Unique) -join "`r`n  "))
-    }
-    if ($flags.Count) {
-        New-DREvent -TaskId $TaskId -State Warning -Message ("{0} thing(s) worth a look:`r`n  {1}" -f $flags.Count, ($flags -join "`r`n  "))
-        New-DREvent -TaskId $TaskId -State Information -Message 'Nothing was changed or removed. Some of these can be normal, so check each one yourself. If you do not recognise a program, remove it with the DRDirect Uninstaller, then run a Defender full scan.'
-    } else {
-        New-DREvent -TaskId $TaskId -State Information -Message 'Nothing suspicious was found. Nothing was changed. This sweep looks for signs of spyware and adware; keep using the Defender scans too.'
-    }
 }
 
 # ---------------------------------------------------------------------------
@@ -3834,6 +3477,25 @@ function Invoke-DRTask {
                     New-DREvent -TaskId $TaskId -State Information -Message ('Cleared {0} graphics shader cache folder(s).' -f $folders.Count)
                 }
             }
+            'cleanup.game-caches' {
+                $folders = @(if ($TestRoot) { @($TestRoot) } else { @(Get-DRGameCachePaths) })
+                if ($folders.Count -eq 0) {
+                    New-DREvent -TaskId $TaskId -State Information -Message 'No Steam or Epic launcher caches were found on this PC.'
+                } else {
+                    foreach ($folder in $folders) { Clear-DRFolderContents -FolderPath $folder -TaskId $TaskId | Out-Null }
+                    New-DREvent -TaskId $TaskId -State Information -Message ('Cleared {0} game launcher cache folder(s).' -f $folders.Count)
+                }
+            }
+            'cleanup.dev-caches' {
+                $folders = @(if ($TestRoot) { @($TestRoot) } else { @(Get-DRDevCachePaths) })
+                if ($folders.Count -eq 0) {
+                    New-DREvent -TaskId $TaskId -State Information -Message 'No developer tool caches were found on this PC.'
+                } else {
+                    foreach ($folder in $folders) { Clear-DRFolderContents -FolderPath $folder -TaskId $TaskId | Out-Null }
+                    New-DREvent -TaskId $TaskId -State Information -Message ('Cleared {0} developer cache folder(s).' -f $folders.Count)
+                }
+            }
+            'cleanup.windows-old' { Invoke-DRWindowsOldCleanup -TaskId $TaskId -TestRoot $TestRoot }
             'cleanup.icon-cache' {
                 if ($TestRoot) { Clear-DRFolderContents -FolderPath $TestRoot -TaskId $TaskId -TestRoot $TestRoot | Out-Null }
                 else {
@@ -4061,6 +3723,7 @@ function Invoke-DRTask {
             'repair.dism-health' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath 'DISM.exe' -Arguments @('/Online','/Cleanup-Image','/RestoreHealth') -TestRoot $TestRoot | Out-Null }
             'repair.component-cleanup' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath 'DISM.exe' -Arguments @('/Online','/Cleanup-Image','/StartComponentCleanup') -TestRoot $TestRoot | Out-Null }
             'repair.sfc' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath 'sfc.exe' -Arguments @('/scannow') -TestRoot $TestRoot | Out-Null }
+            'repair.font-cache' { Invoke-DRFontCacheReset -TaskId $TaskId -TestRoot $TestRoot }
             'repair.windows-update' { Invoke-DRWindowsUpdateReset -TaskId $TaskId -TestRoot $TestRoot }
             'repair.network-reset' { Invoke-DRNetworkReset -TaskId $TaskId -TestRoot $TestRoot }
             'security.defender-update' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath (Find-DRMpCmdRun) -Arguments @('-SignatureUpdate') -TestRoot $TestRoot | Out-Null }
@@ -4096,34 +3759,6 @@ function Invoke-DRTask {
             'security.typing-privacy-restore' {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: typing settings were not changed.' }
                 else { Restore-DRTypingPrivacy -TaskId $TaskId }
-            }
-            'security.win11-extras' {
-                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Windows 11 settings were not changed.' }
-                else { Set-DRWin11Extras -TaskId $TaskId }
-            }
-            'security.win11-extras-restore' {
-                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Windows 11 settings were not changed.' }
-                else { Restore-DRWin11Extras -TaskId $TaskId }
-            }
-            'security.telemetry-off' {
-                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: telemetry settings were not changed.' }
-                else { Set-DRTelemetryOff -TaskId $TaskId }
-            }
-            'security.telemetry-off-restore' {
-                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: telemetry settings were not changed.' }
-                else { Restore-DRTelemetry -TaskId $TaskId }
-            }
-            'security.compat-task-off' {
-                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the compatibility task was not changed.' }
-                else { Set-DRCompatTask -TaskId $TaskId -Enable $false }
-            }
-            'security.compat-task-on' {
-                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the compatibility task was not changed.' }
-                else { Set-DRCompatTask -TaskId $TaskId -Enable $true }
-            }
-            'security.sweep' {
-                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: the spyware and adware sweep was not run.' }
-                else { Invoke-DRSpywareSweep -TaskId $TaskId }
             }
             'security.remove-exclusions' {
                 # Read-only on purpose: exclusions are often added deliberately (a work folder, a tool

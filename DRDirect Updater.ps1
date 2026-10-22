@@ -191,21 +191,20 @@ function Get-DRUpdateManifest {
             return $null
         }
 
-        # The verified pair is saved only once its files are installed (see
-        # Install-DRUpdate). The launcher checks the scripts on disk against the
-        # saved pair, so saving a newer one on a mere check made it refuse the
-        # installed scripts and fall back to the old built-in copy.
+        # Keep the verified pair. The app checks its own script against these
+        # before running it, and it must not have to trust the network to do so.
+        try {
+            $root = Get-DRUpdateRoot
+            [System.IO.File]::WriteAllBytes((Join-Path $root 'update_manifest.json'), $raw)
+            [System.IO.File]::WriteAllText((Join-Path $root 'update_manifest.sig'),
+                $sigText.Trim(), (New-Object System.Text.UTF8Encoding($false)))
+        } catch { }
 
         # A manifest written by PowerShell can start with a byte-order mark,
         # which ConvertFrom-Json refuses. Trim it before parsing.
         $text = [System.Text.Encoding]::UTF8.GetString($raw)
         $text = $text.TrimStart([char]0xFEFF, [char]0x200B).Trim()
-        $parsed = ConvertFrom-Json -InputObject $text
-        # Carried with the manifest, so the install (even in a background
-        # runspace) can save exactly this signed pair once its files are in.
-        $parsed | Add-Member -NotePropertyName DRSignedRaw -NotePropertyValue $raw -Force
-        $parsed | Add-Member -NotePropertyName DRSignedSig -NotePropertyValue $sigText.Trim() -Force
-        return $parsed
+        return ConvertFrom-Json -InputObject $text
     } catch {
         $script:DRLastUpdateError = $_.Exception.Message
         return $null
@@ -480,13 +479,6 @@ function Install-DRUpdate {
         # Everything verified - swap the files in as the last step.
         foreach ($item in $staged) {
             Move-Item -LiteralPath $item.Temp -Destination $item.Final -Force
-        }
-
-        # Now the files match it, keep the signed manifest the launcher checks them against.
-        if ($Manifest.PSObject.Properties['DRSignedRaw'] -and $Manifest.DRSignedRaw) {
-            [System.IO.File]::WriteAllBytes((Join-Path $root 'update_manifest.json'), [byte[]]$Manifest.DRSignedRaw)
-            [System.IO.File]::WriteAllText((Join-Path $root 'update_manifest.sig'),
-                [string]$Manifest.DRSignedSig, (New-Object System.Text.UTF8Encoding($false)))
         }
 
         @{ version = $Manifest.version.ToString(); installed = (Get-Date).ToString('o') } |

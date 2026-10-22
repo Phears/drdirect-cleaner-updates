@@ -88,51 +88,6 @@ if (-not $drStartedByDRDirect) {
     exit 2
 }
 
-# Only one window of this program at a time. A second click (or a double
-# click that starts it twice) brings the open window forward and quits.
-function Enter-DRSingleWindow {
-    param([string]$MutexName, [string]$Title, [switch]$CheckOnly)
-    $taken = $false
-    try {
-        if ($CheckOnly) {
-            $existing = $null
-            try { $taken = [Threading.Mutex]::TryOpenExisting($MutexName, [ref]$existing); if ($existing) { $existing.Dispose() } }
-            catch [UnauthorizedAccessException] { $taken = $true }
-        } else {
-            $created = $false
-            $script:DRSingleWindowMutex = New-Object Threading.Mutex($true, $MutexName, [ref]$created)
-            $taken = -not $created
-        }
-    } catch { return }
-    if (-not $taken) { return }
-    try {
-        if (-not ('DRSingleWindow' -as [type])) {
-            Add-Type -TypeDefinition @'
-using System; using System.Runtime.InteropServices;
-public static class DRSingleWindow {
-    [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr w, int c);
-    [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr w);
-    [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr w);
-}
-'@
-        }
-        # The first copy may still be starting; give its window a few seconds.
-        for ($i = 0; $i -lt 20; $i++) {
-            $open = Get-Process -Name 'powershell', 'DRDirect*' -ErrorAction SilentlyContinue |
-                Where-Object { $_.Id -ne $PID -and $_.MainWindowHandle -ne [IntPtr]::Zero -and $_.MainWindowTitle -eq $Title } |
-                Select-Object -First 1
-            if ($open) {
-                if ([DRSingleWindow]::IsIconic($open.MainWindowHandle)) { [void][DRSingleWindow]::ShowWindow($open.MainWindowHandle, 9) }
-                [void][DRSingleWindow]::SetForegroundWindow($open.MainWindowHandle)
-                break
-            }
-            Start-Sleep -Milliseconds 250
-        }
-    } catch { }
-    exit 0
-}
-if (-not $NoShow) { Enter-DRSingleWindow -MutexName 'Global\DRDirectPCCleanerWindow' -Title 'DRDirect PC Cleaner' -CheckOnly }
-
 # Opened without administrator rights (for example from a script launcher)? Ask
 # Windows for them once, so every check and clean-up can do its job - without
 # them, drive health, memory and many cleaners cannot read or change anything.
@@ -151,8 +106,6 @@ if (-not $NoShow -and $PSCommandPath) {
         } catch { }
     }
 }
-
-if (-not $NoShow) { Enter-DRSingleWindow -MutexName 'Global\DRDirectPCCleanerWindow' -Title 'DRDirect PC Cleaner' }
 
 # The updater is spliced in at build time, exactly like the engine above, so
 # the compiled exe carries it without needing a loose file beside it.
@@ -182,17 +135,6 @@ $ErrorActionPreference = 'Stop'
         </LinearGradientBrush>
     </Window.Background>
     <Window.Resources>
-        <DropShadowEffect x:Key="DR3DShadow" Color="#0A1A4A" Direction="270" ShadowDepth="11" BlurRadius="18" Opacity="0.7"/>
-        <DropShadowEffect x:Key="DR3DText" Color="Black" Direction="270" ShadowDepth="1.5" BlurRadius="2" Opacity="0.45"/>
-        <Visibility x:Key="DR3DParts">Visible</Visibility>
-        <DropShadowEffect x:Key="DR3DButton" Color="#0A1A4A" Direction="270" ShadowDepth="9" BlurRadius="16" Opacity="0.6"/>
-        <DropShadowEffect x:Key="DR3DCard" Color="#0A1A4A" Direction="270" ShadowDepth="10" BlurRadius="22" Opacity="0.35"/>
-        <Style x:Key="DRSwitch" TargetType="CheckBox"><Setter Property="Foreground" Value="White"/><Setter Property="Cursor" Value="Hand"/><Setter Property="FontSize" Value="13"/>
-            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="CheckBox"><StackPanel Orientation="Horizontal" Background="Transparent">
-                <Border x:Name="Track" Width="40" Height="22" CornerRadius="11" Background="#55FFFFFF" BorderBrush="#CCFFFFFF" BorderThickness="1"><Ellipse x:Name="Knob" Width="16" Height="16" Fill="White" HorizontalAlignment="Left" Margin="3,0,0,0"/></Border>
-                <ContentPresenter Margin="8,0,0,0" VerticalAlignment="Center"/></StackPanel>
-                <ControlTemplate.Triggers><Trigger Property="IsChecked" Value="True"><Setter TargetName="Track" Property="Background" Value="#22C55E"/><Setter TargetName="Knob" Property="HorizontalAlignment" Value="Right"/><Setter TargetName="Knob" Property="Margin" Value="0,0,3,0"/></Trigger></ControlTemplate.Triggers>
-            </ControlTemplate></Setter.Value></Setter></Style>
         <SolidColorBrush x:Key="Navy" Color="#15253D"/>
         <SolidColorBrush x:Key="Blue" Color="#2563EB"/>
         <SolidColorBrush x:Key="BlueSoft" Color="#E8F0FF"/>
@@ -227,7 +169,7 @@ $ErrorActionPreference = 'Stop'
         <Style x:Key="TitleText" TargetType="TextBlock"><Setter Property="FontSize" Value="30"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Margin" Value="0,2,0,0"/></Style>
         <Style x:Key="SectionText" TargetType="TextBlock"><Setter Property="FontSize" Value="20"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
 
-        <Style x:Key="PrimaryButton" TargetType="Button"><Setter Property="Effect" Value="{DynamicResource DR3DButton}"/>
+        <Style x:Key="PrimaryButton" TargetType="Button">
             <Setter Property="Foreground" Value="White"/><Setter Property="Background" Value="{StaticResource Blue}"/>
             <Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="20,11"/><Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Template">
@@ -305,38 +247,27 @@ $ErrorActionPreference = 'Stop'
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="DangerBorder" Background="{TemplateBinding Background}" BorderBrush="#EFCFCF" BorderThickness="1" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="DangerBorder" Property="Background" Value="{StaticResource DangerSoft}"/><Setter TargetName="DangerBorder" Property="BorderBrush" Value="#E2AFAF"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="DangerBorder" Property="Background" Value="#FADEDE"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.42"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
         <Style x:Key="HeroButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
-            <Setter Property="Foreground" Value="#1E3A8A"/><Setter Property="Background" Value="White"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="FontSize" Value="15"/>
+            <Setter Property="Foreground" Value="#1E3A8A"/><Setter Property="Background" Value="White"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="HeroBorder" Background="{TemplateBinding Background}" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="HeroBorder" Property="Background" Value="#EAF0FF"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="HeroBorder" Property="Background" Value="#D9E4FF"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
         <Style x:Key="HeroGhostButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
-            <Setter Property="Foreground" Value="White"/><Setter Property="Background" Value="#55FFFFFF"/><Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="GhostBorder" Background="{TemplateBinding Background}" BorderBrush="#CCFFFFFF" BorderThickness="1" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="GhostBorder" Property="Background" Value="#4DFFFFFF"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="GhostBorder" Property="Background" Value="#66FFFFFF"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+            <Setter Property="Foreground" Value="White"/><Setter Property="Background" Value="#33FFFFFF"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Border x:Name="GhostBorder" Background="{TemplateBinding Background}" BorderBrush="#66FFFFFF" BorderThickness="1" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="GhostBorder" Property="Background" Value="#4DFFFFFF"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="GhostBorder" Property="Background" Value="#66FFFFFF"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
-        <Style x:Key="HeroGreenButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}"><Setter Property="Effect" Value="{x:Null}"/><Setter Property="Background"><Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#4FC3FF" Offset="0"/><GradientStop Color="#1E6FE8" Offset="1"/></LinearGradientBrush></Setter.Value></Setter>
+        <Style x:Key="HeroGreenButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
             <Setter Property="Foreground" Value="White"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="FontSize" Value="13"/><Setter Property="Padding" Value="16,7"/><Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
                 <Grid x:Name="GreenRoot" RenderTransformOrigin="0.5,0.5">
                     <Grid.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
-                    <Grid.Effect><DynamicResource ResourceKey="DR3DShadow"/></Grid.Effect>
-                    <!-- The darker edge underneath makes the button look raised, like a key. -->
-                    <Border CornerRadius="16" Background="#B3000A30" Margin="0,8,0,-8" Visibility="{DynamicResource DR3DParts}"/>
-                    <Grid x:Name="GreenFace">
-                        <Grid.RenderTransform><TranslateTransform x:Name="GreenPress" Y="0"/></Grid.RenderTransform>
-                        <Border x:Name="GreenBorder" Background="{TemplateBinding Background}" CornerRadius="16" BorderBrush="#E6FFFFFF" BorderThickness="1.5" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
-                            <Grid>
-                                <Border CornerRadius="14,14,30,30" VerticalAlignment="Top" Margin="2,-5,2,0" Height="16" IsHitTestVisible="False">
-                                    <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#99FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background>
-                                </Border>
-                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <ContentPresenter.Effect><DynamicResource ResourceKey="DR3DText"/></ContentPresenter.Effect>
-                                </ContentPresenter>
-                            </Grid>
-                        </Border>
-                        <Border CornerRadius="16" IsHitTestVisible="False" BorderThickness="0,0,0,4" BorderBrush="#55000000" Visibility="{DynamicResource DR3DParts}"/>
-                    </Grid>
+                    <Border x:Name="GreenBorder" CornerRadius="16" BorderBrush="#E6FFFFFF" BorderThickness="1.5" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#2BE3BE" Offset="0"/><GradientStop Color="#00A88F" Offset="1"/></LinearGradientBrush></Border.Background>
+                        <Grid>
+                            <Border CornerRadius="14" VerticalAlignment="Top" Height="7" Margin="10,-3,10,0" Background="#40FFFFFF" IsHitTestVisible="False"/>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
                 </Grid>
                 <ControlTemplate.Triggers>
-                    <Trigger Property="IsPressed" Value="True"><Setter TargetName="GreenFace" Property="Margin" Value="0,3,0,-3"/></Trigger>
                     <Trigger Property="IsMouseOver" Value="True">
                         <Trigger.EnterActions><BeginStoryboard><Storyboard>
                             <DoubleAnimation Storyboard.TargetName="GreenRoot" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.1" Duration="0:0:0.45"><DoubleAnimation.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="2" Springiness="4"/></DoubleAnimation.EasingFunction></DoubleAnimation>
@@ -352,8 +283,8 @@ $ErrorActionPreference = 'Stop'
             </Setter>
         </Style>
         <Style x:Key="NavButton" TargetType="Button">
-            <Setter Property="Foreground" Value="#E6EEFA"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="Padding" Value="18,12"/><Setter Property="Margin" Value="10,3,10,8"/><Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="15.5"/>
+            <Setter Property="Foreground" Value="#BDCAE0"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="Padding" Value="18,12"/><Setter Property="Margin" Value="10,2"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="14"/>
             <!-- Every nav label starts with a symbol Segoe UI does not contain, so
                  the glyph is borrowed from a fallback font. Segoe UI Symbol is the only
                  installed font carrying them, so name it rather than leave the fallback
@@ -362,10 +293,7 @@ $ErrorActionPreference = 'Stop'
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
                     <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
-                    <!-- 3D: a raised tile with a darker edge underneath and a shine on top -->
-                    <Border CornerRadius="9" Background="#73000814" Margin="0,4,0,-4" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
-                    <Border CornerRadius="9" Visibility="{DynamicResource DR3DParts}" BorderBrush="#33FFFFFF" BorderThickness="1,1,1,0" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#3A5585" Offset="0"/><GradientStop Color="#22355C" Offset="0.5"/><GradientStop Color="#1A2A4C" Offset="1"/></LinearGradientBrush></Border.Background></Border>
-                    <Border x:Name="NavBorder" Background="{TemplateBinding Background}" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter Effect="{DynamicResource DR3DText}"/></Border>
+                    <Border x:Name="NavBorder" Background="{TemplateBinding Background}" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter/></Border>
                     <Border x:Name="NavAccent" Width="3" Height="22" CornerRadius="2" Background="#5B93FF" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0" Opacity="0" RenderTransformOrigin="0.5,0.5">
                         <Border.RenderTransform><ScaleTransform ScaleX="1" ScaleY="0.3"/></Border.RenderTransform>
                     </Border>
@@ -428,7 +356,7 @@ $ErrorActionPreference = 'Stop'
                 </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
         <!-- AI Remover gets its own violet, so it never reads as just another cleanup page. -->
-        <Style x:Key="AINavButton" TargetType="Button" BasedOn="{StaticResource NavButton}"><Setter Property="Effect" Value="{DynamicResource DR3DButton}"/>
+        <Style x:Key="AINavButton" TargetType="Button" BasedOn="{StaticResource NavButton}">
             <Setter Property="Foreground" Value="#E9D5FF"/><Setter Property="Background" Value="#2E1D5C"/><Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
@@ -467,13 +395,13 @@ $ErrorActionPreference = 'Stop'
                 </ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
         <!-- The winget update button gets its own very bright electric blue, in the same style as AI Remover's violet. -->
-        <Style x:Key="GreenNavButton" TargetType="Button" BasedOn="{StaticResource NavButton}"><Setter Property="Effect" Value="{DynamicResource DR3DButton}"/>
+        <Style x:Key="GreenNavButton" TargetType="Button" BasedOn="{StaticResource NavButton}">
             <Setter Property="Foreground" Value="#FFFFFF"/><Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
                     <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
                     <Border x:Name="NavBorder" CornerRadius="12" BorderBrush="#CCFFFFFF" BorderThickness="1.2" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
-                        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#4A9BFF" Offset="0"/><GradientStop Color="#1E5FD9" Offset="1"/></LinearGradientBrush></Border.Background>
+                        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#2BE3BE" Offset="0"/><GradientStop Color="#00A88F" Offset="1"/></LinearGradientBrush></Border.Background>
                         <Grid>
                             <Border CornerRadius="12" VerticalAlignment="Top" Height="6" Margin="8,-4,8,0" Background="#38FFFFFF" IsHitTestVisible="False"/>
                             <ContentPresenter/>
@@ -492,7 +420,7 @@ $ErrorActionPreference = 'Stop'
                 </ControlTemplate.Triggers></ControlTemplate></Setter.Value>
             </Setter>
         </Style>
-        <Style x:Key="WingetNavButton" TargetType="Button" BasedOn="{StaticResource NavButton}"><Setter Property="Effect" Value="{DynamicResource DR3DButton}"/>
+        <Style x:Key="WingetNavButton" TargetType="Button" BasedOn="{StaticResource NavButton}">
             <Setter Property="Foreground" Value="#FFFFFF"/><Setter Property="Background" Value="#0061FF"/><Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
@@ -532,7 +460,7 @@ $ErrorActionPreference = 'Stop'
         </Style>
         <!-- The choices on each AI Remover row: rose for "off", green for "back on", violet for
              "only looks". Coloured before they are picked; picked ones fill in, pop and glow. -->
-        <Style x:Key="AIChoice" TargetType="ToggleButton"><Setter Property="Effect" Value="{DynamicResource DR3DButton}"/>
+        <Style x:Key="AIChoice" TargetType="ToggleButton">
             <Setter Property="Foreground" Value="#475467"/><Setter Property="Background" Value="White"/><Setter Property="BorderBrush" Value="#D0D5DD"/>
             <Setter Property="FontSize" Value="12.5"/><Setter Property="FontWeight" Value="Bold"/><Setter Property="Padding" Value="12,7"/>
             <Setter Property="Margin" Value="0,4"/><Setter Property="MinWidth" Value="124"/><Setter Property="Cursor" Value="Hand"/>
@@ -680,14 +608,14 @@ $ErrorActionPreference = 'Stop'
                 <Trigger Property="Tag" Value="Look"><Setter Property="Background" Value="#F5F3FF"/><Setter Property="BorderBrush" Value="#C4B5FD"/><Setter Property="Foreground" Value="#6D28D9"/></Trigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="Card" TargetType="Border"><Setter Property="Effect" Value="{DynamicResource DR3DCard}"/><Setter Property="Background" Value="White"/><Setter Property="CornerRadius" Value="14"/><Setter Property="BorderBrush" Value="{StaticResource Line}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="22"/><Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Style x:Key="Card" TargetType="Border"><Setter Property="Background" Value="White"/><Setter Property="CornerRadius" Value="14"/><Setter Property="BorderBrush" Value="{StaticResource Line}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="22"/><Setter Property="SnapsToDevicePixels" Value="True"/>
             <Setter Property="Effect"><Setter.Value><DropShadowEffect Color="#6B82A6" BlurRadius="26" ShadowDepth="5" Direction="270" Opacity="0.22"/></Setter.Value></Setter>
         </Style>
         <Style x:Key="HistoryRow" TargetType="Border"><Setter Property="Background" Value="Transparent"/><Setter Property="CornerRadius" Value="10"/><Setter Property="Padding" Value="14,12"/><Setter Property="BorderThickness" Value="1"/><Setter Property="BorderBrush" Value="Transparent"/><Setter Property="Margin" Value="0,0,0,4"/><Setter Property="SnapsToDevicePixels" Value="True"/>
             <Style.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#F6F9FD"/><Setter Property="BorderBrush" Value="{StaticResource Line}"/></Trigger></Style.Triggers>
         </Style>
         <Style x:Key="TaskCheck" TargetType="CheckBox"><Setter Property="VerticalAlignment" Value="Center"/><Setter Property="Margin" Value="0,0,14,0"/><Setter Property="Cursor" Value="Hand"/><Setter Property="LayoutTransform"><Setter.Value><ScaleTransform ScaleX="1.2" ScaleY="1.2"/></Setter.Value></Setter></Style>
-        <Style x:Key="PresetChoiceButton" TargetType="Button"><Setter Property="Effect" Value="{DynamicResource DR3DButton}"/>
+        <Style x:Key="PresetChoiceButton" TargetType="Button">
             <Setter Property="Foreground" Value="{StaticResource Ink}"/>
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="{StaticResource Line}"/>
@@ -881,24 +809,24 @@ $ErrorActionPreference = 'Stop'
                 </ScrollViewer.Resources>
                 <StackPanel x:Name="Navigation">
                     <Button x:Name="NavDashboard" Style="{StaticResource NavButton}" Tag="Active" Content="⌂   Dashboard"/>
-                    <Button x:Name="NavProgress" Style="{StaticResource NavButton}" Content="◐   Maintenance progress" Visibility="Collapsed"/>
-                    <TextBlock Text="CLEAN" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold" Margin="20,16,0,4"/>
+                    <TextBlock Text="CLEAN" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
                     <Button x:Name="NavCleanup" Style="{StaticResource NavButton}" Content="✦   Clean my PC"/>
                     <Button x:Name="NavSpeed" Style="{StaticResource NavButton}" Content="◈   Speed and space"/>
-                    <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Foreground="#22C16F" FontWeight="Bold" Content="⧉   Find duplicate files"/>
-                    <Button x:Name="NavHibernate" Style="{StaticResource NavButton}" Foreground="#22D3EE" FontWeight="SemiBold" Content="☾   Hibernate" ToolTip="Turn Hibernate off to free several GB, or back on"/>
-                    <Button x:Name="NavUninstaller" Style="{StaticResource GreenNavButton}" Margin="10,4,10,4" Padding="12,8" FontSize="13" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⌫" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="DRDirect Uninstaller Program" Foreground="White" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/></Grid></Button>
-                    <TextBlock Text="FIX &amp; PROTECT" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold" Margin="20,16,0,4"/>
-                    <Button x:Name="NavRepair" Style="{StaticResource NavButton}"><StackPanel Orientation="Horizontal"><TextBlock Text="⚒   Fix Windows" VerticalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/><Grid Width="22" Height="22" Margin="10,0,0,0" VerticalAlignment="Center" Effect="{DynamicResource DR3DText}"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions><Rectangle Margin="0,0,1,1" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Column="1" Margin="1,0,0,1" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Row="1" Margin="0,1,1,0" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Row="1" Grid.Column="1" Margin="1,1,0,0" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle></Grid></StackPanel></Button>
+                    <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Content="⧉   Find duplicate files"/>
+                    <Button x:Name="NavHibernate" Style="{StaticResource NavButton}" Content="☾   Hibernate" ToolTip="Turn Hibernate off to free several GB, or back on"/>
+                    <Button x:Name="NavUninstaller" Style="{StaticResource GreenNavButton}" Margin="10,4,10,4" Padding="12,7" FontSize="12.5" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⌫" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="DRDirect Uninstaller Program" Foreground="White" TextWrapping="Wrap" VerticalAlignment="Center"/></Grid></Button>
+                    <TextBlock Text="FIX &amp; PROTECT" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
+                    <Button x:Name="NavRepair" Style="{StaticResource NavButton}" Content="⚒   Fix Windows"/>
                     <Button x:Name="NavSecurity" Style="{StaticResource NavButton}" Content="⬡   Check my security"/>
                     <Button x:Name="NavAI" Style="{StaticResource AINavButton}" Content="⊘   Switch off AI" Margin="10,4,10,4" ToolTip="Switch off AI in Windows and web browsers"/>
-                    <TextBlock Text="CHECK" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold" Margin="20,16,0,4"/>
-                    <Button x:Name="NavHealth" Style="{StaticResource NavButton}" Foreground="#FACC15" Content="▰   Check my drives"/>
-                    <Button x:Name="NavMemory" Style="{StaticResource NavButton}" Foreground="#FACC15" Content="▦   Check my RAM"/>
+                    <TextBlock Text="CHECK" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
+                    <Button x:Name="NavHealth" Style="{StaticResource NavButton}" Content="▰   Check my drives"/>
+                    <Button x:Name="NavMemory" Style="{StaticResource NavButton}" Content="▦   Check my RAM"/>
                     <Button x:Name="NavHardware" Style="{StaticResource NavButton}" Content="▤   About my PC"/>
-                    <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Foreground="#22D3EE" FontWeight="SemiBold" Content="◷   Cleaning history" ToolTip="See what the Cleaner did, open the reports, and undo changes to settings"/>
-                    <TextBlock Text="UPDATE" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold" Margin="20,16,0,4"/>
+                    <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Content="◷   Cleaning history" ToolTip="See what the Cleaner did, open the reports, and undo changes to settings"/>
+                    <TextBlock Text="UPDATE" Foreground="#2BE37A" FontSize="11" FontWeight="Bold" Margin="20,16,0,4"/>
                     <Button x:Name="NavAppUpdates" Style="{StaticResource WingetNavButton}" Content="⭳   Update my apps" Margin="10,4,10,4" ToolTip="Update every app with winget, in a colour PowerShell window"/>
+                    <Button x:Name="NavProgress" Style="{StaticResource NavButton}" Content="◐   Maintenance progress" Visibility="Collapsed"/>
                 </StackPanel>
                 </ScrollViewer>
                 <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="RunStrip" Visibility="Collapsed" Background="#12306B" BorderBrush="#2E6DEB" BorderThickness="1" CornerRadius="9" Padding="12,10" Margin="0,0,0,12" Cursor="Hand" ToolTip="Click to go to the progress page"><StackPanel><TextBlock x:Name="RunStripTitle" Text="Working..." Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock x:Name="RunStripDetail" Text="" Foreground="#B9C9DD" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,2,0,6"/><ProgressBar x:Name="RunStripBar" Height="6" Minimum="0" Maximum="100" Value="0" Foreground="#2BE37A" Background="#2A3F66" BorderThickness="0"/></StackPanel></Border><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
@@ -907,20 +835,20 @@ $ErrorActionPreference = 'Stop'
 
         <Grid Grid.Column="1" Margin="34,26,34,28">
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-            <Grid Grid.Row="0" Margin="0,0,0,20"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal"><StackPanel><TextBlock x:Name="PageEyebrow" Text="THIS PC" Style="{StaticResource MutedText}" FontSize="11" FontWeight="SemiBold"/><TextBlock x:Name="PageTitle" Text="Dashboard" Style="{StaticResource TitleText}"/></StackPanel><Border x:Name="DiskWarning" Visibility="Collapsed" Cursor="Hand" MinWidth="560" CornerRadius="24" Background="#FFF1F2" BorderThickness="3" Padding="20,10" Margin="28,6,0,0" VerticalAlignment="Center"><Border.BorderBrush><SolidColorBrush Color="#E5384A"/></Border.BorderBrush><Border.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><ColorAnimation Storyboard.TargetProperty="BorderBrush.Color" From="#E5384A" To="#1E90FF" Duration="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Border.Triggers><StackPanel Orientation="Horizontal"><Ellipse Width="28" Height="28" Fill="#E5384A" Stroke="White" StrokeThickness="3" Margin="0,0,8,0" VerticalAlignment="Center"><Ellipse.Effect><DropShadowEffect ShadowDepth="0" BlurRadius="20" Opacity="0.9" Color="#E5384A"/></Ellipse.Effect><Ellipse.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.05" Duration="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers></Ellipse><Ellipse Width="28" Height="28" Fill="#1E90FF" Stroke="White" StrokeThickness="3" Margin="0" VerticalAlignment="Center"><Ellipse.Effect><DropShadowEffect ShadowDepth="0" BlurRadius="20" Opacity="0.9" Color="#1E90FF"/></Ellipse.Effect><Ellipse.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.05" To="1" Duration="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers></Ellipse><StackPanel VerticalAlignment="Center" Margin="16,0,0,0"><TextBlock x:Name="DiskWarningTitle" FontSize="20" FontWeight="ExtraBold" Foreground="#B42318"/></StackPanel><TextBlock x:Name="DiskWarningMore" Text="More info - click here" FontSize="16" FontWeight="SemiBold" Foreground="#1E5BD8" TextDecorations="Underline" Cursor="Hand" VerticalAlignment="Center" Margin="22,0,0,0"/></StackPanel></Border></StackPanel><Border Grid.Column="1" CornerRadius="16" Background="#E7F6EF" Padding="12,7" VerticalAlignment="Center"><TextBlock Text="●  Protected mode" Foreground="{StaticResource Success}" FontSize="12"/></Border></Grid>
+            <Grid Grid.Row="0" Margin="0,0,0,20"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel><TextBlock x:Name="PageEyebrow" Text="THIS PC" Style="{StaticResource MutedText}" FontSize="11" FontWeight="SemiBold"/><TextBlock x:Name="PageTitle" Text="Dashboard" Style="{StaticResource TitleText}"/></StackPanel><Border Grid.Column="1" CornerRadius="16" Background="#E7F6EF" Padding="12,7" VerticalAlignment="Center"><TextBlock Text="●  Protected mode" Foreground="{StaticResource Success}" FontSize="12"/></Border></Grid>
 
             <Grid Grid.Row="1">
                 <ScrollViewer x:Name="PageDashboard" VerticalScrollBarVisibility="Auto"><StackPanel>
 <Border x:Name="UpdateBanner" Visibility="Collapsed" Background="#12C25B" CornerRadius="12" Padding="20,14" Margin="0,0,0,16"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal" VerticalAlignment="Center"><TextBlock Text="&#10004;" Foreground="White" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,12,0"/><TextBlock x:Name="UpdateBannerText" Text="There is a new update" Foreground="White" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"/></StackPanel><Button x:Name="UpdateBannerButton" Grid.Column="1" Content="See what is new and update" Style="{StaticResource HeroButton}" Foreground="#0B7A3B" Margin="16,0,0,0"/></Grid></Border>
-<Border Style="{StaticResource Card}" Padding="34" Margin="0,0,0,18" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><StackPanel HorizontalAlignment="Center"><TextBlock Text="START HERE" HorizontalAlignment="Center" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold"/><TextBlock Text="Make my PC cleaner" HorizontalAlignment="Center" Foreground="White" FontSize="32" FontWeight="ExtraBold" Margin="0,8,0,8"/><TextBlock Text="One click. We only do the safe things, and we ask you before anything starts." Foreground="#C9D9FF" FontSize="16" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Center" TextAlignment="Center"/><WrapPanel Orientation="Horizontal" Margin="0,24,0,0" HorizontalAlignment="Center"><Button x:Name="SafeCleanButton" Content="Make my PC cleaner" Style="{StaticResource HeroGreenButton}" FontSize="15" FontWeight="Bold" Padding="20,9" Margin="0,0,10,10"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#5BE584" Offset="0"/><GradientStop Color="#13A64A" Offset="1"/></LinearGradientBrush></Button.Background></Button><Button x:Name="SafePreviewButton" Content="Show me first" Style="{StaticResource HeroGreenButton}" Padding="18,9" Margin="0,0,10,10"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#0E5A2D" Offset="0"/><GradientStop Color="#02240F" Offset="1"/></LinearGradientBrush></Button.Background></Button><Button x:Name="HeroUninstallButton" Style="{StaticResource HeroGreenButton}" Margin="0,0,10,10" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><StackPanel Orientation="Horizontal"><TextBlock Text="⌫" FontSize="14" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock Text="DRDirect Uninstaller Program" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button></WrapPanel><TextBlock Text="✓  Settings changes can be undone.   ✓  Your files and passwords are never touched." Foreground="White" FontSize="13.5" FontWeight="SemiBold" Margin="0,20,0,0" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center"/><CheckBox x:Name="Buttons3DSwitch" Style="{StaticResource DRSwitch}" Content="3D look" Margin="0,14,0,0" HorizontalAlignment="Center" ToolTip="Turn the raised 3D look of the Cleaner on or off"/></StackPanel><Button x:Name="HeroUpdateButton" Content="Check for updates" Style="{StaticResource HeroGreenButton}" Grid.Row="1" Margin="0,10,0,0" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="18,9" ToolTip="Look for a newer version of the Cleaner"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFC04D" Offset="0"/><GradientStop Color="#F08200" Offset="1"/></LinearGradientBrush></Button.Background></Button></Grid></Border>
+<Border Style="{StaticResource Card}" Padding="34" Margin="0,0,0,18" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8"><StackPanel><TextBlock Text="START HERE" Foreground="#A8C4FF" FontSize="11" FontWeight="Bold"/><TextBlock Text="Make my PC cleaner" Foreground="White" FontSize="32" FontWeight="ExtraBold" Margin="0,8,0,8"/><TextBlock Text="One click. We only do the safe things, and we ask you before anything starts." Foreground="#C9D9FF" FontSize="16" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left"/><WrapPanel Orientation="Horizontal" Margin="0,24,0,0"><Button x:Name="SafeCleanButton" Content="Make my PC cleaner" Style="{StaticResource HeroButton}" Margin="0,0,10,10"/><Button x:Name="SafePreviewButton" Content="Show me first" Style="{StaticResource HeroGhostButton}" Margin="0,0,10,10"/><Button x:Name="HeroUpdateButton" Content="Check for updates" Style="{StaticResource HeroGhostButton}" Margin="0,0,10,10" FontSize="13" ToolTip="Look for a newer version of the Cleaner"/><Button x:Name="HeroUninstallButton" Style="{StaticResource HeroGreenButton}" Margin="0,0,10,10" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><StackPanel Orientation="Horizontal"><TextBlock Text="⌫" FontSize="14" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock Text="DRDirect Uninstaller Program" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button></WrapPanel><TextBlock Text="✓  Settings changes can be undone.   ✓  Your files and passwords are never touched." Foreground="#DDE8FF" FontSize="13" Margin="0,20,0,0" TextWrapping="Wrap"/></StackPanel></Border>
 <UniformGrid Columns="3" Margin="0,0,0,22">
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Violet}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource VioletSoft}"><TextBlock Text="◷" Foreground="{StaticResource Violet}" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="LAST CLEAN" Foreground="{StaticResource Violet}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock Text="Not yet" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="Shows here after your first clean" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Teal}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource TealSoft}"><TextBlock Text="▰" Foreground="{StaticResource Teal}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="FREE SPACE" Foreground="{StaticResource Teal}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="FreeSpaceText" Text="Checking…" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="On your main drive" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
                             <Border x:Name="HealthCard" Style="{StaticResource Card}" BorderBrush="{StaticResource Amber}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border x:Name="HealthIconBox" Style="{StaticResource StatIcon}" Background="{StaticResource AmberSoft}"><TextBlock x:Name="HealthIcon" Text="⬡" Foreground="{StaticResource Amber}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock x:Name="HealthLabel" Text="WINDOWS HEALTH" Foreground="{StaticResource Amber}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="WindowsStatusText" Text="Checking..." FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock x:Name="WindowsStatusHint" Text="Takes a few seconds. Nothing is changed." Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap"/><Button x:Name="HealthCheckButton" Content="↻  Check again" Cursor="Hand" HorizontalAlignment="Left" Margin="0,10,0,0" Visibility="Collapsed" ToolTip="Look again, for example after fixing something. Nothing is changed."><Button.Template><ControlTemplate TargetType="Button"><TextBlock x:Name="LinkText" Text="{TemplateBinding Content}" Foreground="#2563EB" FontSize="13" FontWeight="SemiBold" Background="Transparent"/><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="LinkText" Property="TextDecorations" Value="Underline"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template></Button></StackPanel></Border>
                         </UniformGrid>
 <TextBlock Text="Other things you can do" FontSize="18" FontWeight="ExtraBold" Margin="0,0,0,10"/>
-<UniformGrid Columns="3" Margin="0,0,0,14"><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Check my PC" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="See how much space you can free. Nothing is changed." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="ScanButton" Content="Check my PC" Style="{StaticResource HeroGreenButton}" FontSize="14" Padding="20,9" HorizontalAlignment="Left"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#4FC3FF" Offset="0"/><GradientStop Color="#1E6FE8" Offset="1"/></LinearGradientBrush></Button.Background></Button></StackPanel></Border><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Past results" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Look at what the Cleaner did before." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="LastReportButton" Content="See past results" Style="{StaticResource HeroGreenButton}" FontSize="14" Padding="20,9" HorizontalAlignment="Left"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#3EE0C8" Offset="0"/><GradientStop Color="#0E9F8A" Offset="1"/></LinearGradientBrush></Button.Background></Button></StackPanel></Border><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Update this program" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Look for a newer version of the Cleaner." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="CheckUpdatesButton" Content="Update this program" Style="{StaticResource HeroGreenButton}" FontSize="14" Padding="20,9" HorizontalAlignment="Left"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFC04D" Offset="0"/><GradientStop Color="#F08200" Offset="1"/></LinearGradientBrush></Button.Background></Button></StackPanel></Border></UniformGrid>
-<StackPanel Margin="0,0,0,22"><TextBlock Text="MS Tools" FontSize="18" FontWeight="ExtraBold" Margin="0,0,0,10"/><Button x:Name="PCManagerButton" Style="{StaticResource HeroGreenButton}" FontSize="14" Padding="20,9" Foreground="White" HorizontalAlignment="Left" Margin="0,0,0,0" ToolTip="Opens Microsoft PC Manager, or its Microsoft Store page if it is not installed"><StackPanel Orientation="Horizontal"><Grid Width="22" Height="22" Margin="0,0,10,0" VerticalAlignment="Center" Effect="{DynamicResource DR3DText}"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions><Rectangle Margin="0,0,1,1" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Column="1" Margin="1,0,0,1" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Row="1" Margin="0,1,1,0" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Row="1" Grid.Column="1" Margin="1,1,0,0" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle></Grid><TextBlock Text="Microsoft PC Manager" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button><TextBlock Text="If it did not do the job, or you want your PC spick and span, use DRDirect PC Cleaner for a deeper clean-up." Style="{StaticResource MutedText}" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left" Margin="0,10,0,0"/></StackPanel>
+<UniformGrid Columns="3" Margin="0,0,0,14"><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Check my PC" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="See how much space you can free. Nothing is changed." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="ScanButton" Content="Check my PC" Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"/></StackPanel></Border><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Past results" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Look at what the Cleaner did before." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="LastReportButton" Content="See past results" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"/></StackPanel></Border><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Update this program" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Look for a newer version of the Cleaner." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="CheckUpdatesButton" Content="Update this program" Style="{StaticResource SecondaryButton}" HorizontalAlignment="Left"/></StackPanel></Border></UniformGrid>
+<StackPanel Margin="0,0,0,22"><TextBlock Text="MS Tools" FontSize="18" FontWeight="ExtraBold" Margin="0,0,0,10"/><Button x:Name="PCManagerButton" Style="{StaticResource HeroGhostButton}" Background="#0078D4" Foreground="White" HorizontalAlignment="Left" Margin="0,0,0,0" ToolTip="Opens Microsoft PC Manager, or its Microsoft Store page if it is not installed"><StackPanel Orientation="Horizontal"><Grid Width="16" Height="16" Margin="0,0,10,0" VerticalAlignment="Center"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions><Rectangle Fill="#F25022" Margin="0,0,1,1"/><Rectangle Grid.Column="1" Fill="#7FBA00" Margin="1,0,0,1"/><Rectangle Grid.Row="1" Fill="#00A4EF" Margin="0,1,1,0"/><Rectangle Grid.Row="1" Grid.Column="1" Fill="#FFB900" Margin="1,1,0,0"/></Grid><TextBlock Text="Microsoft PC Manager" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button><TextBlock Text="If it did not do the job, or you want your PC spick and span, use DRDirect PC Cleaner for a deeper clean-up." Style="{StaticResource MutedText}" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left" Margin="0,10,0,0"/></StackPanel>
 <Expander Header="More options: choose how deep to clean, and see recent changes" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,18"><StackPanel Margin="0,12,0,0"><Grid Margin="0,0,0,18"><Grid.ColumnDefinitions><ColumnDefinition Width="1*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
                             <Border Style="{StaticResource Card}" Padding="22" Margin="0,0,16,0">
                                 <StackPanel>
@@ -1215,7 +1143,7 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -1361,56 +1289,9 @@ function Start-DRFadeIn {
     } catch { }
 }
 
-# Flashing red and blue warning on the Dashboard when C: is 80% full or more. A drive
-# this full slows Windows down and can make updates and saves fail.
-function Get-DRDiskWarning {
-    param([double]$Size, [double]$Free, [int]$Threshold = 80)
-    if ($Size -le 0) { return $null }
-    $usedPercent = [int][math]::Round(100 * ($Size - $Free) / $Size)
-    if ($usedPercent -lt $Threshold) { return $null }
-    [pscustomobject]@{
-        UsedPercent = $usedPercent
-        Title       = ('Your C: drive is {0}% full' -f $usedPercent)
-        Text        = ('Only {0} is free. Windows needs room to breathe: a drive this full runs slower, and updates and saving files can fail. Please clean it out soon.' -f (Format-Bytes $Free))
-    }
-}
-
-function Get-DRDiskWarningInfo {
-    param($Warning)
-    ("Your C: drive is {0}% full ({1}).`r`n`r`n" -f $Warning.UsedPercent, ($Warning.Text -replace '^Only (.+?) is free\..*$', '$1 free')) +
-    "Windows needs room to breathe. It needs free space on C: to work properly, and without it things start to go wrong. If it stays this full:`r`n`r`n" +
-    "  - The PC gets slower, and programs can freeze or crash.`r`n" +
-    "  - Windows updates can fail to install, so the PC misses security fixes.`r`n" +
-    "  - YOU COULD LOSE DATA: files you are saving can fail to save or be damaged, and a crash while the drive is full can lose work you have not saved.`r`n" +
-    "  - In bad cases Windows may have trouble starting.`r`n`r`n" +
-    "TO PREVENT LOSING DATA, YOU NEED TO CLEAN SOME SPACE OUT OF C: NOW. Click Yes below to open Clean my PC and clear junk files, then use Find large files, or move photos and videos to another drive. Try to keep at least 20% of the drive free."
-}
-
-function Show-DRDiskWarningInfo {
-    if (-not $script:diskWarning) { return }
-    $answer = [Windows.MessageBox]::Show(((Get-DRDiskWarningInfo -Warning $script:diskWarning) + "`r`n`r`nOpen Clean my PC now?"), 'Why your C: drive needs space', 'YesNo', 'Warning')
-    if ($answer -eq 'Yes') { Set-Page 'Cleanup' }
-}
-
-function Update-DRDiskWarning {
-    try {
-        $drive = Get-PSDrive -Name C -ErrorAction Stop
-        $warning = Get-DRDiskWarning -Size ([double]($drive.Used + $drive.Free)) -Free ([double]$drive.Free)
-    } catch { $warning = $null }
-    $script:diskWarning = $warning
-    if ($warning) {
-        $ui.DiskWarningTitle.Text = ('Your C: drive is {0}% full' -f $warning.UsedPercent)
-        $ui.DiskWarning.ToolTip = $warning.Text
-        $ui.DiskWarning.Visibility = 'Visible'
-    } else {
-        $ui.DiskWarning.Visibility = 'Collapsed'
-    }
-}
-
 function Set-Page {
     param([string]$Name)
     $ui.PageDashboard.Visibility = if ($Name -eq 'Dashboard') { 'Visible' } else { 'Collapsed' }
-    if ($Name -eq 'Dashboard') { Update-DRDiskWarning }
     $ui.PageTasks.Visibility = if ($Name -in @('Cleanup','Repair','Security','Health','Memory','Speed','Hibernate','AI')) { 'Visible' } else { 'Collapsed' }
     $ui.PageProgress.Visibility = if ($Name -eq 'Progress') { 'Visible' } else { 'Collapsed' }
     $ui.PageHistory.Visibility = if ($Name -eq 'History') { 'Visible' } else { 'Collapsed' }
@@ -1448,11 +1329,11 @@ function Get-CleanupPresetDescription {
     }
 
     if ($Preset -eq 'Medium') {
-        return 'Full cleanup: Safe plus Windows Disk Cleanup.'
+        return 'Full cleanup: Safe plus Windows Disk Cleanup and game launcher caches.'
     }
 
     if ($Preset -eq 'Advanced') {
-        return 'Everything in Medium plus icon cache, jump lists, memory dumps, old restore points, event logs, a Defender quick scan, and full Windows repair: restore point, DISM, SFC, and Windows Update repair. Cookies and the network reset stay manual.'
+        return 'Everything in Medium plus developer caches, the previous Windows installation (Windows.old), icon cache, jump lists, memory dumps, old restore points, event logs, a Defender quick scan, and full Windows repair: restore point, DISM, SFC, and Windows Update repair. Cookies and the network reset stay manual.'
     }
 
     return 'Custom selection. Security and drive-health operations remain manual.'
@@ -1508,13 +1389,15 @@ function Test-TaskInOrderedPreset {
     )
     # Compacting browser databases skips any browser that is open, so a full
     # cleanup can include it without risking a file the browser is using.
-    $mediumIds = $safeIds + @('cleanup.disk-cleanup', 'cleanup.browser-compact') + $cloudCacheIds + $traceIds
+    $mediumIds = $safeIds + @('cleanup.disk-cleanup', 'cleanup.browser-compact', 'cleanup.game-caches') + $cloudCacheIds + $traceIds
     # Apart from the Recycle Bin, Safe and Medium never pre-select anything that
     # loses something the person cannot get back. Advanced is the full sweep and
     # takes all of it - icon cache (closes Explorer windows), jump lists (loses
     # pins), memory dumps, old restore points and event logs - except cookies,
     # which signs the person out and so is only ever ticked by hand.
     $advancedIds = $mediumIds + @(
+        'cleanup.dev-caches',
+        'cleanup.windows-old',
         'cleanup.icon-cache',
         'cleanup.jumplists',
         'cleanup.memory-dumps',
@@ -1540,7 +1423,7 @@ function Test-TaskInOrderedPreset {
         # has to have those re-entered afterwards, and a remote session drops
         # while the address renews. It stays on the Repair page to tick by hand.
         return (($advancedIds -contains $Task.Id) -or
-                ($Task.Category -eq 'Repair' -and $Task.Id -notin @('repair.network-reset','health.chkdsk','health.ram-test','cleanup.hibernate-off','cleanup.hibernate-on')) -or
+                ($Task.Category -eq 'Repair' -and $Task.Id -notin @('repair.network-reset','repair.font-cache','health.chkdsk','health.ram-test','cleanup.hibernate-off','cleanup.hibernate-on')) -or
                 $Task.Id -eq 'security.quick-scan')
     }
 
@@ -1960,12 +1843,6 @@ $script:DRConflictingTasks = @{
     'cleanup.hibernate-on'            = 'cleanup.hibernate-off'
     'security.typing-privacy'         = 'security.typing-privacy-restore'
     'security.typing-privacy-restore' = 'security.typing-privacy'
-    'security.win11-extras'           = 'security.win11-extras-restore'
-    'security.win11-extras-restore'   = 'security.win11-extras'
-    'security.telemetry-off'          = 'security.telemetry-off-restore'
-    'security.telemetry-off-restore'  = 'security.telemetry-off'
-    'security.compat-task-off'        = 'security.compat-task-on'
-    'security.compat-task-on'         = 'security.compat-task-off'
 }
 function Clear-DRConflictingTask {
     param([string]$TaskId)
@@ -2007,7 +1884,7 @@ function Clear-DRForRunsAlone {
 # Last safety net before a plan is shown or run: if both tasks of an undoing pair somehow
 # ended up selected, keep the one that changes something and drop the one that undoes it.
 function Remove-DRConflictingSelections {
-    foreach ($undo in @('cleanup.hibernate-on','security.typing-privacy-restore','security.win11-extras-restore','security.telemetry-off-restore','security.compat-task-on')) {
+    foreach ($undo in @('cleanup.hibernate-on','security.typing-privacy-restore')) {
         $other = $script:DRConflictingTasks[$undo]
         if ($selection[$undo] -and $selection[$other]) { $selection[$undo] = $false }
     }
@@ -2039,7 +1916,6 @@ function New-TaskRow {
         'repair.component-cleanup' = @{ Badge = 'CAN TAKE 30 MIN OR MORE'; Caution = 'This clean-up can take 30 minutes or more, depending on your system. It can look stuck for a while, so please let it finish. Only tick it if you are ready to wait.' }
         'repair.sfc'              = @{ Badge = 'CAN TAKE 30 MIN OR MORE'; Caution = 'This scan can take 30 minutes or more, depending on your system. It can sit at the same percentage for a while, so please let it finish. Only tick it if you are ready to wait.' }
         'security.remove-exclusions' = @{ Badge = 'ONLY LOOKS'; Icon = '✔'; Caution = 'Shows which folders, programs and file types Defender skips, and marks any that look risky. Nothing is ever removed - exclusions you added on purpose, like a work or tools folder, always stay.' }
-        'security.sweep'          = @{ Badge = 'ONLY LOOKS'; Icon = '✔'; Caution = 'Looks for signs of spyware and adware and shows a list. Nothing is ever changed or removed, because some of these can be normal on your PC.' }
         'health.chkdsk'           = @{ Badge = 'CAN TAKE 30 MIN OR MORE'; Caution = 'A deep drive test can take 30 minutes or more, depending on the size and speed of your drive. Windows keeps running, but the PC may feel slower. Only tick it if you are ready to wait.' }
     }
     $longInfo = $longTasks[[string]$Task.Id]
@@ -2765,42 +2641,7 @@ function Set-ProgressScanLevel {
     }
 }
 
-# One job at a time, so an older PC is never asked to clean, find duplicates
-# and uninstall all at once. Returns $true (and tells the person) when
-# something else is still working; that window is brought to the front.
-function Test-DROtherToolBusy {
-    param([ValidateSet('Clean', 'Finder', 'Uninstaller')][string]$Opening)
-    if ($TestMode) { return $false }
-    $what = $null; $window = $null
-    if ($Opening -ne 'Clean' -and $script:activePowerShell) {
-        $what = 'the cleaning'
-    }
-    if (-not $what -and $Opening -ne 'Finder') {
-        $window = Get-Process -Name 'powershell', 'DRDirect*' -ErrorAction SilentlyContinue |
-            Where-Object { $_.Id -ne $PID -and $_.MainWindowTitle -eq 'DRDirect Duplicate Finder' } | Select-Object -First 1
-        if ($window) { $what = 'the Duplicate Finder' }
-    }
-    if (-not $what -and $Opening -ne 'Uninstaller') {
-        $window = Get-Process -Name 'BCUninstaller' -ErrorAction SilentlyContinue |
-            Where-Object { $_.MainWindowHandle -ne [IntPtr]::Zero } | Select-Object -First 1
-        if ($window) { $what = 'the Uninstaller' }
-    }
-    if (-not $what) { return $false }
-    if ($window -and (Get-Command Enter-DRSingleWindow -ErrorAction SilentlyContinue) -and ('DRSingleWindow' -as [type])) {
-        try {
-            if ([DRSingleWindow]::IsIconic($window.MainWindowHandle)) { [void][DRSingleWindow]::ShowWindow($window.MainWindowHandle, 9) }
-            [void][DRSingleWindow]::SetForegroundWindow($window.MainWindowHandle)
-        } catch { }
-    }
-    [Windows.MessageBox]::Show(
-        "Please wait until $what is finished and closed." + [Environment]::NewLine + [Environment]::NewLine +
-        'Doing one thing at a time keeps your PC fast and safe.',
-        'DRDirect PC Cleaner', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information) | Out-Null
-    return $true
-}
-
 function Start-RunPlan {
-    if (Test-DROtherToolBusy -Opening 'Clean') { $ui.ConfirmOverlay.Visibility = 'Collapsed'; return }
     # A trial gets one cleanup run in total, not one per launch.
     if (Test-DRTrialMode) {
         if (Get-DRTrialValue 'clean_used') {
@@ -3048,8 +2889,6 @@ function Write-DRSafeRunReport {
 }
 
 function Complete-RunPlan {
-    # The run may have freed space, so the C: warning is checked again straight away.
-    Update-DRDiskWarning
     [string[]]$selectedIds = @(
         $catalog |
             Where-Object { $selection[$_.Id] } |
@@ -3603,7 +3442,7 @@ function Set-DRDefaultTicks {
     # Check my security starts with every task ticked except the full scan (an hour or more) and
     # "Restore typing settings" (it only undoes "Stop sending typing data") and "Remove Defender
     # exclusions", which deletes settings and is left for the person to choose.
-    foreach ($task in @($catalog | Where-Object { $_.Category -eq 'Security' -and $_.Id -notin @('security.full-scan','security.typing-privacy-restore','security.remove-exclusions','security.win11-extras','security.win11-extras-restore','security.telemetry-off','security.telemetry-off-restore','security.compat-task-off','security.compat-task-on','security.sweep') })) { $selection[$task.Id] = $true }
+    foreach ($task in @($catalog | Where-Object { $_.Category -eq 'Security' -and $_.Id -notin @('security.full-scan','security.typing-privacy-restore','security.remove-exclusions') })) { $selection[$task.Id] = $true }
     # Speed and space only looks at the PC (and releases idle memory), so it starts fully ticked.
     foreach ($task in @($catalog | Where-Object { $_.Category -eq 'Speed' })) { $selection[$task.Id] = $true }
     Update-SelectionSummary
@@ -4138,7 +3977,6 @@ function Start-DRUninstallerUpdate {
 }
 
 function Open-DRUninstaller {
-    if (Test-DROtherToolBusy -Opening 'Uninstaller') { return }
     if ($TestMode) {
         [Windows.MessageBox]::Show('Test mode: the DRDirect Uninstaller Program would open here.', 'DRDirect PC Cleaner',
             [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information) | Out-Null
@@ -4176,93 +4014,6 @@ function Open-DRUninstaller {
             [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Error) | Out-Null
     }
 }
-# 3D buttons on the Dashboard: on unless the person switched them off.
-$script:DR3DKey = 'HKCU:\Software\DRDirect\PC Cleaner'
-# The 3D effects come from the XAML; keep them so they can be put back. They
-# go in as the plain .NET objects - a PowerShell wrapper crashes the window.
-$script:DR3DEffects = @{
-    Shadow = $window.Resources['DR3DShadow'].psobject.BaseObject
-    Text   = $window.Resources['DR3DText'].psobject.BaseObject
-    Button = $window.Resources['DR3DButton'].psobject.BaseObject
-    Card   = $window.Resources['DR3DCard'].psobject.BaseObject
-}
-function Set-DR3DButtons {
-    param([bool]$On)
-    if ($On) {
-        $window.Resources['DR3DShadow'] = $script:DR3DEffects.Shadow
-        $window.Resources['DR3DText'] = $script:DR3DEffects.Text
-        $window.Resources['DR3DButton'] = $script:DR3DEffects.Button
-        $window.Resources['DR3DCard'] = $script:DR3DEffects.Card
-        $window.Resources['DR3DParts'] = [Windows.Visibility]::Visible
-    } else {
-        $window.Resources['DR3DShadow'] = $null
-        $window.Resources['DR3DText'] = $null
-        $window.Resources['DR3DButton'] = $null
-        $window.Resources['DR3DCard'] = $null
-        $window.Resources['DR3DParts'] = [Windows.Visibility]::Collapsed
-    }
-}
-$dr3dOn = $true
-try { $v = Get-ItemProperty -LiteralPath $script:DR3DKey -Name 'Buttons3D' -ErrorAction Stop; $dr3dOn = [int]$v.Buttons3D -ne 0 } catch { }
-Set-DR3DButtons -On $dr3dOn
-$ui.Buttons3DSwitch.IsChecked = $dr3dOn
-$ui.Buttons3DSwitch.Add_Click({
-    $on = [bool]$ui.Buttons3DSwitch.IsChecked
-    Set-DR3DButtons -On $on
-    if (-not $TestMode) {
-        try {
-            if (-not (Test-Path -LiteralPath $script:DR3DKey)) { New-Item -Path $script:DR3DKey -Force | Out-Null }
-            Set-ItemProperty -LiteralPath $script:DR3DKey -Name 'Buttons3D' -Value ([int]$on) -Type DWord
-        } catch { }
-    }
-})
-
-# A waiting update must be impossible to miss: both update buttons flash
-# green and yellow, pulse in size and glow until it is installed.
-$script:DRUpdateFlashOn = $false
-$script:DRUpdateFlashSaved = @{}
-function Start-DRUpdateFlash {
-    if ($script:DRUpdateFlashOn) { return }
-    $script:DRUpdateFlashOn = $true
-    $script:DRUpdateFlashSaved = @{}
-    foreach ($button in @($ui.HeroUpdateButton, $ui.CheckUpdatesButton)) {
-        $script:DRUpdateFlashSaved[$button.Name] = @{ Content = $button.Content; Background = $button.Background }
-        $button.Content = [string][char]0x2605 + '  NEW UPDATE  ' + [string][char]0x2605
-        $button.FontWeight = 'ExtraBold'
-        $button.Foreground = [Windows.Media.Brushes]::White
-
-        $brush = New-Object Windows.Media.SolidColorBrush ([Windows.Media.ColorConverter]::ConvertFromString('#16C060'))
-        $button.Background = $brush
-        $colour = New-Object Windows.Media.Animation.ColorAnimation
-        $colour.To = [Windows.Media.ColorConverter]::ConvertFromString('#F2C200')
-        $colour.Duration = [Windows.Duration]::new([TimeSpan]::FromMilliseconds(550))
-        $colour.AutoReverse = $true
-        $colour.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
-        $brush.BeginAnimation([Windows.Media.SolidColorBrush]::ColorProperty, $colour)
-
-        $scale = New-Object Windows.Media.ScaleTransform 1, 1
-        $button.RenderTransformOrigin = New-Object Windows.Point 0.5, 0.5
-        $button.RenderTransform = $scale
-        $pulse = New-Object Windows.Media.Animation.DoubleAnimation 1, 1.12, ([Windows.Duration]::new([TimeSpan]::FromMilliseconds(550)))
-        $pulse.AutoReverse = $true
-        $pulse.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
-        $scale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleXProperty, $pulse)
-        $scale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleYProperty, $pulse)
-    }
-}
-
-function Stop-DRUpdateFlash {
-    if (-not $script:DRUpdateFlashOn) { return }
-    $script:DRUpdateFlashOn = $false
-    foreach ($button in @($ui.HeroUpdateButton, $ui.CheckUpdatesButton)) {
-        $saved = $script:DRUpdateFlashSaved[$button.Name]
-        $button.RenderTransform = $null
-        if ($saved) { $button.Content = $saved.Content; $button.Background = $saved.Background }
-        $button.ClearValue([Windows.Controls.Control]::FontWeightProperty)
-        $button.ClearValue([Windows.Controls.Control]::ForegroundProperty)
-    }
-}
-
 $ui.NavUninstaller.Add_Click({ Open-DRUninstaller })
 $ui.HeroUninstallButton.Add_Click({ Open-DRUninstaller })
 
@@ -4749,7 +4500,6 @@ function Resolve-DRDuplicateFinderPath {
 }
 
 $ui.OpenDuplicatesButton.Add_Click({
-    if (Test-DROtherToolBusy -Opening 'Finder') { return }
     # Re-checked on every click, so a code entered mid-session takes effect
     # without restarting the Cleaner.
     try { $script:DRDuplicatesAllowed = Test-DRDuplicatesAllowed } catch { }
@@ -4975,7 +4725,7 @@ function Start-DRQuietUpdateCheck {
                 if ($line -like 'AVAILABLE*') {
                     $version = ($line -split ' ')[1]
                     # Only the Check for updates button in the blue box turns green; nothing else changes.
-                    try { Start-DRUpdateFlash } catch { }
+                    try { $ui.HeroUpdateButton.Content = 'New update'; $ui.HeroUpdateButton.FontWeight = 'Bold'; $ui.HeroUpdateButton.Background = '#12C25B'; $ui.HeroUpdateButton.Foreground = 'White'; $ui.HeroUpdateButton.BorderBrush = '#0B7A3B' } catch { }
                     $ui.CheckUpdatesButton.ToolTip =
                         "Version $version is ready. Click to see what changed and install it."
                 }
@@ -5042,7 +4792,11 @@ function Complete-DRUpdateInstall {
         # cleared it, so it kept advertising an update already installed
         # until the app was restarted. Put the button back now.
         try {
-            Stop-DRUpdateFlash
+            $ui.HeroUpdateButton.Content = 'Check for updates'
+            $ui.HeroUpdateButton.FontWeight = 'Normal'
+            $ui.HeroUpdateButton.ClearValue([Windows.Controls.Control]::BackgroundProperty)
+            $ui.HeroUpdateButton.ClearValue([Windows.Controls.Control]::ForegroundProperty)
+            $ui.HeroUpdateButton.ClearValue([Windows.Controls.Control]::BorderBrushProperty)
             $ui.CheckUpdatesButton.ToolTip = $null
         } catch { }
     }
@@ -5297,9 +5051,6 @@ if (-not (Resolve-DRDuplicateFinderPath)) {
 $ui.AdminStatus.Text = if (Test-DRAdministrator) { '●  Administrator session' } else { '○  Standard user session' }
 if ($TestMode) { $ui.TestModeBanner.Visibility='Visible' }
 try { $drive=Get-PSDrive -Name C -ErrorAction Stop; $ui.FreeSpaceText.Text=Format-Bytes $drive.Free } catch { $ui.FreeSpaceText.Text='Unavailable' }
-Update-DRDiskWarning
-$ui.DiskWarning.Add_MouseLeftButtonUp({ Show-DRDiskWarningInfo })
-$ui.DiskWarningMore.Add_MouseLeftButtonUp({ param($sender, $e) $e.Handled = $true; Show-DRDiskWarningInfo })
 $window.Add_Closed({ Stop-DRRestartCountdown; $pollTimer.Stop(); if ($script:activePowerShell) { try { $script:activePowerShell.Stop() } catch {}; Stop-EngineCall } })
 
 if ($NoShow) {

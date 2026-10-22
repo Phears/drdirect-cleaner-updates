@@ -29,51 +29,6 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-# Only one window of this program at a time. A second click (or a double
-# click that starts it twice) brings the open window forward and quits.
-function Enter-DRSingleWindow {
-    param([string]$MutexName, [string]$Title, [switch]$CheckOnly)
-    $taken = $false
-    try {
-        if ($CheckOnly) {
-            $existing = $null
-            try { $taken = [Threading.Mutex]::TryOpenExisting($MutexName, [ref]$existing); if ($existing) { $existing.Dispose() } }
-            catch [UnauthorizedAccessException] { $taken = $true }
-        } else {
-            $created = $false
-            $script:DRSingleWindowMutex = New-Object Threading.Mutex($true, $MutexName, [ref]$created)
-            $taken = -not $created
-        }
-    } catch { return }
-    if (-not $taken) { return }
-    try {
-        if (-not ('DRSingleWindow' -as [type])) {
-            Add-Type -TypeDefinition @'
-using System; using System.Runtime.InteropServices;
-public static class DRSingleWindow {
-    [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr w, int c);
-    [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr w);
-    [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr w);
-}
-'@
-        }
-        # The first copy may still be starting; give its window a few seconds.
-        for ($i = 0; $i -lt 20; $i++) {
-            $open = Get-Process -Name 'powershell', 'DRDirect*' -ErrorAction SilentlyContinue |
-                Where-Object { $_.Id -ne $PID -and $_.MainWindowHandle -ne [IntPtr]::Zero -and $_.MainWindowTitle -eq $Title } |
-                Select-Object -First 1
-            if ($open) {
-                if ([DRSingleWindow]::IsIconic($open.MainWindowHandle)) { [void][DRSingleWindow]::ShowWindow($open.MainWindowHandle, 9) }
-                [void][DRSingleWindow]::SetForegroundWindow($open.MainWindowHandle)
-                break
-            }
-            Start-Sleep -Milliseconds 250
-        }
-    } catch { }
-    exit 0
-}
-if (-not $NoShow -and -not $ScanOnly) { Enter-DRSingleWindow -MutexName 'Global\DRDirectDuplicateFinderWindow' -Title 'DRDirect Duplicate Finder' }
-
 # The updater is a shared file rather than a copy of the same code, so the
 # Cleaner and this window always agree on what counts as a newer version.
 # Declared before the updater arrives, inlined or from disk, because it decides
@@ -877,9 +832,8 @@ $xaml = @'
     </LinearGradientBrush>
   </Window.Background>
   <Window.Resources>
-    <DropShadowEffect x:Key="DR3DButton" Color="#0A1A4A" Direction="270" ShadowDepth="11" BlurRadius="18" Opacity="0.7"/><Visibility x:Key="DR3DParts">Visible</Visibility>
     <!-- Every button lifts on hover and presses in on click. -->
-    <Style x:Key="Btn" TargetType="Button"><Setter Property="Effect" Value="{DynamicResource DR3DButton}"/>
+    <Style x:Key="Btn" TargetType="Button">
       <Setter Property="Background" Value="#2563EB"/>
       <Setter Property="Foreground" Value="White"/>
       <Setter Property="BorderThickness" Value="0"/>
@@ -894,14 +848,12 @@ $xaml = @'
                 <ScaleTransform x:Name="sc" ScaleX="1" ScaleY="1"/>
               </Grid.RenderTransform>
 
-              <Border CornerRadius="6" Background="#B3000A30" Margin="0,8,0,-8" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"/>
               <Border x:Name="shade" CornerRadius="6" Background="Black" Opacity="0"
                       Margin="0,2,0,-2" IsHitTestVisible="False"/>
               <Border x:Name="b" CornerRadius="6" Background="{TemplateBinding Background}"
                       Padding="{TemplateBinding Padding}">
                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Border>
-              <Border CornerRadius="6" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}" BorderThickness="0,0,0,4" BorderBrush="#55000000"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#A6FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="0.55"/></LinearGradientBrush></Border.Background></Border>
               <Border x:Name="glow" CornerRadius="6" Background="White" Opacity="0"
                       IsHitTestVisible="False"/>
             </Grid>
@@ -983,7 +935,7 @@ $xaml = @'
       <Setter Property="Foreground" Value="#1E40AF"/>
     </Style>
     <!-- file-type chips: pick what you are hunting for -->
-    <Style x:Key="Chip" TargetType="ToggleButton"><Setter Property="Effect" Value="{DynamicResource DR3DButton}"/>
+    <Style x:Key="Chip" TargetType="ToggleButton">
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="Margin" Value="0,0,8,0"/>
       <Setter Property="Template">
@@ -991,12 +943,10 @@ $xaml = @'
           <ControlTemplate TargetType="ToggleButton">
             <Grid RenderTransformOrigin="0.5,0.5">
               <Grid.RenderTransform><ScaleTransform x:Name="csc" ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
-              <Border CornerRadius="16" Background="#B3000A30" Margin="0,8,0,-8" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"/>
               <Border x:Name="cb" CornerRadius="16" Background="White" BorderBrush="#C9D4E6"
                       BorderThickness="1.5" Padding="14,7">
                 <ContentPresenter VerticalAlignment="Center"/>
               </Border>
-              <Border CornerRadius="16" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}" BorderThickness="0,0,0,4" BorderBrush="#55000000"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#A6FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="0.55"/></LinearGradientBrush></Border.Background></Border>
             </Grid>
             <ControlTemplate.Triggers>
               <Trigger Property="IsChecked" Value="True">
@@ -1601,16 +1551,7 @@ $xaml = @'
 '@
 
 $reader = New-Object System.Xml.XmlNodeReader ([xml]$xaml)
-# Same "3D look" switch as the Cleaner's Dashboard: off there means flat here.
-function Set-DR3DFromCleaner {
-    param($Window)
-    try {
-        $v = Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name 'Buttons3D' -ErrorAction Stop
-        if ([int]$v.Buttons3D -eq 0) { $Window.Resources['DR3DButton'] = $null; $Window.Resources['DR3DParts'] = [Windows.Visibility]::Collapsed }
-    } catch { }
-}
 $win = [Windows.Markup.XamlReader]::Load($reader)
-Set-DR3DFromCleaner $win
 # Small screens (a 15 inch laptop): shrink everything to fit instead of opening
 # a window bigger than the screen. Big screens are left exactly as they were.
 try {
@@ -1917,8 +1858,7 @@ function Show-FolderPicker {
   </Window.Background>
 
   <Window.Resources>
-    <DropShadowEffect x:Key="DR3DButton" Color="#0A1A4A" Direction="270" ShadowDepth="11" BlurRadius="18" Opacity="0.7"/><Visibility x:Key="DR3DParts">Visible</Visibility>
-    <Style x:Key="PBtn" TargetType="Button"><Setter Property="Effect" Value="{DynamicResource DR3DButton}"/>
+    <Style x:Key="PBtn" TargetType="Button">
       <Setter Property="Background" Value="#2563EB"/>
       <Setter Property="Foreground" Value="White"/>
       <Setter Property="Padding" Value="18,9"/>
@@ -1933,7 +1873,6 @@ function Show-FolderPicker {
                       Padding="{TemplateBinding Padding}">
                 <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Border>
-              <Border CornerRadius="6" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}" BorderThickness="0,0,0,4" BorderBrush="#55000000"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#A6FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="0.55"/></LinearGradientBrush></Border.Background></Border>
               <Border x:Name="glow" CornerRadius="6" Background="White" Opacity="0" IsHitTestVisible="False"/>
             </Grid>
             <ControlTemplate.Triggers>
@@ -1982,7 +1921,7 @@ function Show-FolderPicker {
     </Style>
 
     <!-- shortcuts down the left -->
-    <Style x:Key="PlaceBtn" TargetType="Button"><Setter Property="Effect" Value="{DynamicResource DR3DButton}"/>
+    <Style x:Key="PlaceBtn" TargetType="Button">
       <Setter Property="Background" Value="Transparent"/>
       <Setter Property="Foreground" Value="#1D2939"/>
       <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -2134,7 +2073,6 @@ function Show-FolderPicker {
     # they touch has to live at script scope.
     $script:PickerWin = [Windows.Markup.XamlReader]::Load((New-Object System.Xml.XmlNodeReader ([xml]$pxaml)))
     $pw = $script:PickerWin
-    Set-DR3DFromCleaner $pw
 
     $p = @{}
     foreach ($n in 'BtnUp', 'TxtPath', 'Places', 'FolderList', 'EmptyMsg',
