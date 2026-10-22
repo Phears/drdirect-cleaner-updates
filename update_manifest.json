@@ -1,7 +1,7 @@
 {
   "version": "1.4.156",
   "notes": "The start card on the dashboard now has a raised 3D look, with 3D lettering. It follows the 3D look switch.",
-  "published": "2026-10-22T00:36:01.5157048-04:00",
+  "published": "2026-10-22T00:37:42.5526728-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
