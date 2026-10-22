@@ -1715,7 +1715,7 @@ function Show-DRAICheckResults {
             Text = $summary; FontWeight = 'Bold'; FontSize = 13; Margin = '0,8,0,0'; TextWrapping = 'Wrap'
             Foreground = $(if ($on) { '#BE123C' } else { '#15803D' }) }))
         [void]$panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{
-            Text = 'Gmail, Zoom, Word and Excel, the Edge button and the Copilot key cannot be read from here.'
+            Text = 'Gmail, Zoom, Word and Excel and the Edge button cannot be read from here.'
             Foreground = '#667085'; FontSize = 11.5; Margin = '0,4,0,0'; TextWrapping = 'Wrap' }))
     }
     [void]$copy.Children.Add($panel)
@@ -1900,7 +1900,7 @@ function New-DRAIAllOffCard {
     [Windows.Controls.Grid]::SetColumn($copy, 1)
     [void]$copy.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = 'Turn off all AI'; FontWeight = 'Bold'; FontSize = 17; Foreground = '#5B21B6' }))
     [void]$copy.Children.Add((New-Object Windows.Controls.TextBlock -Property @{
-        Text = 'One click picks every "Turn off", "Remove" and "Delete" below that the Cleaner can do by itself. Claude is always left alone. Gmail, Word, the Edge button and the Copilot key each open their own page, so pick those one by one. Nothing runs until you review and confirm.'
+        Text = 'One click picks every "Turn off", "Remove" and "Delete" below that the Cleaner can do by itself. Claude is always left alone. Gmail, Word and the Edge button each open their own page, so pick those one by one. Nothing runs until you review and confirm.'
         Foreground = '#667085'; TextWrapping = 'Wrap'; Margin = '0,5,12,0'; MaxWidth = 650 }))
     [void]$grid.Children.Add($button); [void]$grid.Children.Add($copy)
     $border.Child = $grid

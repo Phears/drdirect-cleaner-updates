@@ -1,7 +1,7 @@
 {
-  "version": "1.4.160",
-  "notes": "When a clean finishes, the Cleaner now plays a soft chime that rings out for a few seconds. A new Sound switch on the Dashboard turns it on or off.",
-  "published": "2026-10-22T09:50:57.7083710-04:00",
+  "version": "1.4.161",
+  "notes": "The Switch off AI page no longer has the Copilot key row, which only opened a Windows settings page and changed nothing itself.",
+  "published": "2026-10-22T09:59:23.9456132-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "9C2C85F159036D37B5B664EB981DD1B85D055F3AF9CC802839B5C7EEC08242F9",
-      "size": 374935
+      "sha256": "7C00EFB4EC7F0CD9250C5C3D5684940658CEF6410430534B7617CE4E132A3124",
+      "size": 374901
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "86527ACE6524DF28EB4766BD0696A4FE33A65CA077F7B6588FBF45C65B243F7D",
-      "size": 302839
+      "sha256": "F84EF890626FAA025AE414673EC6CAEA04C1439AB3DC90BB9CB0B57FE0AD005E",
+      "size": 301938
     },
     {
       "name": "DRDirect Updater.ps1",
