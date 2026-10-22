@@ -1,7 +1,7 @@
 {
-  "version": "1.4.177",
-  "notes": "A tidier Dashboard: Sound, 3D look and Check for updates sit on one row, the Show all tools button is always at the top, and the gap in the menu is gone.",
-  "published": "2026-10-22T11:42:51.9466548-04:00",
+  "version": "1.4.178",
+  "notes": "When the menu is longer than the window, a More tools below bar now shows so you know to scroll for the rest.",
+  "published": "2026-10-22T11:46:55.5276937-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "51F2DA1E1122E3938243394943A3DA3AECA6C5DC48244998BD6604B2AAA6F0E5",
-      "size": 387226
+      "sha256": "8CB5341702A6FEAEEFAB912D11D993996B850B063467A11206EDA66F96114E44",
+      "size": 388330
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
