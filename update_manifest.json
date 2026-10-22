@@ -1,7 +1,7 @@
 {
-  "version": "1.4.170",
-  "notes": "New people now start in a Simple view with a short menu and one big start button. A button at the bottom of the menu shows every tool. The Switch off AI page is easier to follow, with plainer wording.",
-  "published": "2026-10-22T11:22:43.7568896-04:00",
+  "version": "1.4.171",
+  "notes": "The Cleaner now always opens in the Simple view. Show all tools opens everything for that visit.",
+  "published": "2026-10-22T11:26:42.0373191-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F04083C4C22897B0A354B160000AE87FB29CB3D33434424E24E4666E3313AF1E",
-      "size": 385690
+      "sha256": "AC16C36B53B50B760C14398761E226C27241176BC6914F05A0589A3A377F6F1C",
+      "size": 384918
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

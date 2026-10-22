@@ -4375,25 +4375,11 @@ function Set-DRUiMode {
     # Never leave someone on a page the short menu no longer lists.
     if ($Simple -and $script:currentCategory -in @('Speed','Hibernate','Security','Hardware','Health','Memory','AppUpdates','Duplicates')) { Set-Page 'Dashboard' }
 }
-# New people start simple. Someone who has already used the Cleaner keeps the full view until they choose.
+# Every time the Cleaner opens it starts in the Simple view. Show all tools opens the rest for that visit only.
 $script:DRSimpleMode = $true
-$modeSaved = $false
-try { $v = Get-ItemProperty -LiteralPath $script:DR3DKey -Name 'SimpleMode' -ErrorAction Stop; $script:DRSimpleMode = [int]$v.SimpleMode -ne 0; $modeSaved = $true } catch { }
-if (-not $modeSaved -and -not $TestMode) {
-    try {
-        $reports = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Reports'
-        if (@(Get-ChildItem -LiteralPath $reports -File -ErrorAction SilentlyContinue).Count) { $script:DRSimpleMode = $false }
-    } catch { }
-}
 Set-DRUiMode -Simple $script:DRSimpleMode
 $ui.NavModeToggle.Add_Click({
     Set-DRUiMode -Simple (-not $script:DRSimpleMode)
-    if (-not $TestMode) {
-        try {
-            if (-not (Test-Path -LiteralPath $script:DR3DKey)) { New-Item -Path $script:DR3DKey -Force | Out-Null }
-            Set-ItemProperty -LiteralPath $script:DR3DKey -Name 'SimpleMode' -Value ([int]$script:DRSimpleMode) -Type DWord
-        } catch { }
-    }
 })
 $ui.SoundSwitch.Add_Click({
     $script:DRSoundOn = [bool]$ui.SoundSwitch.IsChecked
