@@ -1,7 +1,7 @@
 {
-  "version": "1.4.166",
-  "notes": "Every button now has the same raised 3D look, and the More options cards on the Dashboard stand out from the page.",
-  "published": "2026-10-22T10:43:16.2118615-04:00",
+  "version": "1.4.167",
+  "notes": "The white cards are now a soft light blue.",
+  "published": "2026-10-22T10:45:00.2198860-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "91D46A5249561D665A172C0351326FFF2F4F7C869DBDC0F75789777050B97412",
+      "sha256": "C990CB8A7B680DDF361EC49F67618AEEECB7EEF971BA0F342820BCDD43C440D3",
       "size": 379404
     },
     {
