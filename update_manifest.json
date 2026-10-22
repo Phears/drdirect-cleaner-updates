@@ -1,7 +1,7 @@
 {
-  "version": "1.4.165",
-  "notes": "A stronger 3D look: the menu buttons and white cards now look raised, and the page behind them is darker so everything stands out.",
-  "published": "2026-10-22T10:38:18.9768530-04:00",
+  "version": "1.4.166",
+  "notes": "Every button now has the same raised 3D look, and the More options cards on the Dashboard stand out from the page.",
+  "published": "2026-10-22T10:43:16.2118615-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "0EB227C57A3C46D5B4AAD44E0B844E0E81175E8DA8FEE433EEE063ADDE88714E",
-      "size": 377974
+      "sha256": "91D46A5249561D665A172C0351326FFF2F4F7C869DBDC0F75789777050B97412",
+      "size": 379404
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
