@@ -2205,7 +2205,8 @@ function New-TaskRow {
 
     # At the bottom of a row that knows its state: green when its AI is active, dark red when it is off.
     $stateBanner = $null
-    if ($aiStatus -and $Task.Id -notin @('ai.restore', 'ai.check') -and -not $needsSignIn) {
+    # Shown even when the browser is not signed in: the state is read from the PC, so the row still says on or off.
+    if ($aiStatus -and $Task.Id -notin @('ai.restore', 'ai.check')) {
         # The banner tells only what the Cleaner has verified: off, still on, or "cannot check".
         $rowState = [string](Get-DRPropertyValue -InputObject $aiStatus -Name 'State')
         $stateText = [string](Get-DRPropertyValue -InputObject $aiStatus -Name 'StateText')

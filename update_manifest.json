@@ -1,7 +1,7 @@
 {
-  "version": "1.4.162",
-  "notes": "On the Switch off AI page, the Edge and Word Copilot buttons now say they open the app for you to finish, instead of just saying Turn off.",
-  "published": "2026-10-22T10:10:58.6922021-04:00",
+  "version": "1.4.163",
+  "notes": "On the Switch off AI page, every item now says whether its AI is on or off, even for Edge when it is not signed in.",
+  "published": "2026-10-22T10:15:52.8413967-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "527F113DD1558833DD9382358B423A35B980CF04C79A6806B239F9F83F34B951",
-      "size": 375308
+      "sha256": "62AF4BCBF4B96F714588B5872DD46E0B51E02288CA44A47EDEAE232652CC7B93",
+      "size": 375401
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
