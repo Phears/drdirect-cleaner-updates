@@ -172,7 +172,7 @@ $ErrorActionPreference = 'Stop'
 [xml]$xaml = @'
 <Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="DRDirect PC Cleaner" Width="1020" Height="660" MinWidth="860" MinHeight="560"
+        Title="DRDirect PC Cleaner" Width="1020" Height="840" MinWidth="860" MinHeight="560"
         WindowStartupLocation="CenterScreen" FontFamily="Segoe UI" FontSize="14" TextOptions.TextFormattingMode="Ideal"
         WindowStyle="None" ResizeMode="CanResize" BorderBrush="#D7DFEA" BorderThickness="1">
     <Window.Background>
@@ -5580,5 +5580,12 @@ if ($NoShow) {
     }
     try { Start-DRQuietUpdateCheck } catch { }
     try { Start-DRHealthCheck } catch { }
+    # Open tall enough that the start card and the three status cards show without scrolling,
+    # but never taller than the screen.
+    try {
+        $work = [System.Windows.SystemParameters]::WorkArea
+        if ($window.Height -gt ($work.Height - 20)) { $window.Height = [Math]::Max($window.MinHeight, $work.Height - 20) }
+        $window.Top = $work.Top + [Math]::Max(0, ($work.Height - $window.Height) / 2)
+    } catch { }
     [void]$window.ShowDialog()
 }
