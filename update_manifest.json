@@ -1,7 +1,7 @@
 {
-  "version": "1.4.154",
-  "notes": "Brings back the 3D look and recent fixes that were missing from the last update. Also adds new cleanups for game launcher and developer-tool caches and the old Windows folder, and a font repair option.",
-  "published": "2026-10-21T23:41:14.8308066-04:00",
+  "version": "1.4.155",
+  "notes": "The D.R.Direct App Updater title now shows in bright green.",
+  "published": "2026-10-22T00:14:29.3935687-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "17BF8986982D394DBB894F936D004A6AE5B8199FFF42C7824F3DEE585B4D9F22",
-      "size": 370212
+      "sha256": "1C06ADF9E5C440B76E9C162FEDF13AC520340A79777C540BBA9C8E01190B8E87",
+      "size": 370252
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
