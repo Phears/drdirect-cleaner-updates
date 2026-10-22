@@ -1,7 +1,7 @@
 {
-  "version": "1.4.180",
-  "notes": "The restart box now has three choices and always starts on I will restart myself, and the Cleaner reminds you if a restart is still waiting. Check for updates is a deeper orange and the extra Show all tools button at the top is gone.",
-  "published": "2026-10-22T12:02:06.7548915-04:00",
+  "version": "1.4.181",
+  "notes": "The Check for updates button is a deeper orange.",
+  "published": "2026-10-22T12:03:38.7481779-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "C0A2E54A4C5B3DDA8C50DC6909DA7AA79B75BA71C8F218B5CD67FD5D11C08EB9",
+      "sha256": "86F82690FCCAC60B0EDDFDEF213B2A1BFAABDA70320557593CE5E936E83A9277",
       "size": 389152
     },
     {
