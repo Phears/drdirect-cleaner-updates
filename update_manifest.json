@@ -1,7 +1,7 @@
 {
-  "version": "1.4.174",
-  "notes": "In the Simple view, an orange Show all tools button now also sits at the top of the page, next to the title, so you see it as soon as the Cleaner opens.",
-  "published": "2026-10-22T11:33:15.9628436-04:00",
+  "version": "1.4.175",
+  "notes": "The Sound and 3D look switches are always visible now, in both the Simple and the full view.",
+  "published": "2026-10-22T11:35:12.4083844-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F1DC85589484C8E1FDA00E31B26393120FA061A4CAD4FB6D6C62BF29F7DA31E3",
-      "size": 387168
+      "sha256": "0988591768D7A071499ADD68CB920E823BDAB0CAC62AB37F7FE71EF6E13083F2",
+      "size": 387136
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

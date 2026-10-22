@@ -4365,7 +4365,7 @@ $ui.SoundSwitch.IsChecked = $script:DRSoundOn
 
 # Simple view for a first-time person: one big button and a short menu. Every tool is one click away.
 $script:DRSimpleHidden = @('NavSpeed','NavDuplicates','NavHibernate','NavUninstaller','NavSecurity','NavHealth','NavMemory','NavHardware','NavAppUpdates','NavHeadUpdate','NavHeadClean','NavHeadFix','NavHeadCheck',
-    'HeroUninstallButton','Buttons3DSwitch','SoundSwitch','DashOtherTitle','DashOtherGrid','DashMsTools','DashMoreOptions')
+    'HeroUninstallButton','DashOtherTitle','DashOtherGrid','DashMsTools','DashMoreOptions')
 function Set-DRUiMode {
     param([bool]$Simple)
     $script:DRSimpleMode = $Simple
