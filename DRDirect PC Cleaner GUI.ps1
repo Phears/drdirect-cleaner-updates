@@ -176,10 +176,12 @@ $ErrorActionPreference = 'Stop'
         WindowStartupLocation="CenterScreen" FontFamily="Segoe UI" FontSize="14" TextOptions.TextFormattingMode="Ideal"
         WindowStyle="None" ResizeMode="CanResize" BorderBrush="#D7DFEA" BorderThickness="1">
     <Window.Background>
-        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-            <GradientStop Color="#F7F9FD" Offset="0"/>
-            <GradientStop Color="#E4EBF5" Offset="1"/>
-        </LinearGradientBrush>
+        <!-- Darker toward the edges, so the page sits far back and the cards stand out in front of it -->
+        <RadialGradientBrush Center="0.5,0.38" GradientOrigin="0.5,0.3" RadiusX="0.95" RadiusY="0.95">
+            <GradientStop Color="#D9E0EE" Offset="0"/>
+            <GradientStop Color="#BAC6DD" Offset="0.6"/>
+            <GradientStop Color="#97A7C5" Offset="1"/>
+        </RadialGradientBrush>
     </Window.Background>
     <Window.Resources>
         <DropShadowEffect x:Key="DR3DShadow" Color="#0A1A4A" Direction="270" ShadowDepth="11" BlurRadius="18" Opacity="0.7"/>
@@ -187,7 +189,7 @@ $ErrorActionPreference = 'Stop'
         <DropShadowEffect x:Key="DR3DHeroText" Color="#000820" Direction="300" ShadowDepth="3.5" BlurRadius="3" Opacity="0.85"/>
         <Visibility x:Key="DR3DParts">Visible</Visibility>
         <DropShadowEffect x:Key="DR3DButton" Color="#0A1A4A" Direction="270" ShadowDepth="9" BlurRadius="16" Opacity="0.6"/>
-        <DropShadowEffect x:Key="DR3DCard" Color="#0A1A4A" Direction="270" ShadowDepth="10" BlurRadius="22" Opacity="0.35"/>
+        <DropShadowEffect x:Key="DR3DCard" Color="#16275A" Direction="270" ShadowDepth="8" BlurRadius="3" Opacity="0.9"/>
         <Style x:Key="DRSwitch" TargetType="CheckBox"><Setter Property="Foreground" Value="White"/><Setter Property="Cursor" Value="Hand"/><Setter Property="FontSize" Value="13"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="CheckBox"><StackPanel Orientation="Horizontal" Background="Transparent">
                 <Border x:Name="Track" Width="40" Height="22" CornerRadius="11" Background="#55FFFFFF" BorderBrush="#CCFFFFFF" BorderThickness="1"><Ellipse x:Name="Knob" Width="16" Height="16" Fill="White" HorizontalAlignment="Left" Margin="3,0,0,0"/></Border>
@@ -364,9 +366,11 @@ $ErrorActionPreference = 'Stop'
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
                     <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
                     <!-- 3D: a raised tile with a darker edge underneath and a shine on top -->
-                    <Border CornerRadius="9" Background="#73000814" Margin="0,4,0,-4" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
-                    <Border CornerRadius="9" Visibility="{DynamicResource DR3DParts}" BorderBrush="#33FFFFFF" BorderThickness="1,1,1,0" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#3A5585" Offset="0"/><GradientStop Color="#22355C" Offset="0.5"/><GradientStop Color="#1A2A4C" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+                    <Border CornerRadius="9" Background="#B0000814" Margin="0,6,0,-6" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
+                    <Border CornerRadius="9" Visibility="{DynamicResource DR3DParts}" BorderBrush="#88FFFFFF" BorderThickness="1,1,1,0" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#5272AD" Offset="0"/><GradientStop Color="#28396B" Offset="0.5"/><GradientStop Color="#111C3B" Offset="1"/></LinearGradientBrush></Border.Background></Border>
                     <Border x:Name="NavBorder" Background="{TemplateBinding Background}" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter Effect="{DynamicResource DR3DText}"/></Border>
+                    <Border CornerRadius="9,9,0,0" VerticalAlignment="Top" Height="17" Margin="1,1,1,0" Background="#26FFFFFF" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
+                    <Border CornerRadius="0,0,9,9" VerticalAlignment="Bottom" Height="3" Margin="1,0,1,1" Background="#55000000" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
                     <Border x:Name="NavAccent" Width="3" Height="22" CornerRadius="2" Background="#5B93FF" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0" Opacity="0" RenderTransformOrigin="0.5,0.5">
                         <Border.RenderTransform><ScaleTransform ScaleX="1" ScaleY="0.3"/></Border.RenderTransform>
                     </Border>
@@ -434,7 +438,11 @@ $ErrorActionPreference = 'Stop'
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
                     <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
-                    <Border x:Name="NavBorder" Background="{TemplateBinding Background}" BorderBrush="#8B5CF6" BorderThickness="1" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter/></Border>
+                    <!-- 3D, like the other buttons: a darker edge underneath and a shine across the top -->
+                    <Border CornerRadius="9" Background="#B0000814" Margin="0,6,0,-6" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
+                    <Border x:Name="NavBorder" Background="{TemplateBinding Background}" BorderBrush="#8B5CF6" BorderThickness="1" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter Effect="{DynamicResource DR3DText}"/></Border>
+                    <Border CornerRadius="9" Visibility="{DynamicResource DR3DParts}" BorderBrush="#66FFFFFF" BorderThickness="1,1,1,0" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#55FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="0.5"/><GradientStop Color="#33000000" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+                    <Border CornerRadius="0,0,9,9" VerticalAlignment="Bottom" Height="3" Margin="1,0,1,1" Background="#55000000" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
                     <Border x:Name="NavAccent" Width="3" Height="22" CornerRadius="2" Background="#C084FC" HorizontalAlignment="Left" VerticalAlignment="Center" Opacity="0"/>
                 </Grid>
                 <ControlTemplate.Triggers>
@@ -473,6 +481,7 @@ $ErrorActionPreference = 'Stop'
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
                     <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
+                    <Border CornerRadius="12" Background="#B0000814" Margin="0,6,0,-6" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
                     <Border x:Name="NavBorder" CornerRadius="12" BorderBrush="#CCFFFFFF" BorderThickness="1.2" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
                         <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#4A9BFF" Offset="0"/><GradientStop Color="#1E5FD9" Offset="1"/></LinearGradientBrush></Border.Background>
                         <Grid>
@@ -498,7 +507,10 @@ $ErrorActionPreference = 'Stop'
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
                     <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
-                    <Border x:Name="NavBorder" Background="{TemplateBinding Background}" BorderBrush="#00E5FF" BorderThickness="1" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter/></Border>
+                    <Border CornerRadius="9" Background="#B0000814" Margin="0,6,0,-6" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
+                    <Border x:Name="NavBorder" Background="{TemplateBinding Background}" BorderBrush="#00E5FF" BorderThickness="1" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter Effect="{DynamicResource DR3DText}"/></Border>
+                    <Border CornerRadius="9,9,0,0" VerticalAlignment="Top" Height="17" Margin="1,1,1,0" Background="#33FFFFFF" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
+                    <Border CornerRadius="0,0,9,9" VerticalAlignment="Bottom" Height="3" Margin="1,0,1,1" Background="#55000000" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
                     <Border x:Name="NavAccent" Width="3" Height="22" CornerRadius="2" Background="#FFFFFF" HorizontalAlignment="Left" VerticalAlignment="Center" Opacity="0"/>
                 </Grid>
                 <ControlTemplate.Triggers>
@@ -681,7 +693,7 @@ $ErrorActionPreference = 'Stop'
                 <Trigger Property="Tag" Value="Look"><Setter Property="Background" Value="#F5F3FF"/><Setter Property="BorderBrush" Value="#C4B5FD"/><Setter Property="Foreground" Value="#6D28D9"/></Trigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="Card" TargetType="Border"><Setter Property="Effect" Value="{DynamicResource DR3DCard}"/><Setter Property="Background" Value="White"/><Setter Property="CornerRadius" Value="14"/><Setter Property="BorderBrush" Value="{StaticResource Line}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="22"/><Setter Property="SnapsToDevicePixels" Value="True"/>
+        <Style x:Key="Card" TargetType="Border"><Setter Property="Effect" Value="{DynamicResource DR3DCard}"/><Setter Property="Background"><Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#FFFFFF" Offset="0.5"/><GradientStop Color="#D3DBEE" Offset="1"/></LinearGradientBrush></Setter.Value></Setter><Setter Property="CornerRadius" Value="14"/><Setter Property="BorderBrush" Value="{StaticResource Line}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="22"/><Setter Property="SnapsToDevicePixels" Value="True"/>
             <Setter Property="Effect"><Setter.Value><DropShadowEffect Color="#6B82A6" BlurRadius="26" ShadowDepth="5" Direction="270" Opacity="0.22"/></Setter.Value></Setter>
         </Style>
         <Style x:Key="HistoryRow" TargetType="Border"><Setter Property="Background" Value="Transparent"/><Setter Property="CornerRadius" Value="10"/><Setter Property="Padding" Value="14,12"/><Setter Property="BorderThickness" Value="1"/><Setter Property="BorderBrush" Value="Transparent"/><Setter Property="Margin" Value="0,0,0,4"/><Setter Property="SnapsToDevicePixels" Value="True"/>
