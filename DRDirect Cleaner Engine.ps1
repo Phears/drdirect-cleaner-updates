@@ -3615,7 +3615,7 @@ function Get-DRAIStatus {
         }
         # What is really true for this row, so the screen never claims more than the Cleaner knows.
         # Off = its AI is verified off, On = verified still on, Unknown = the Cleaner cannot read it.
-        $state = 'Unknown'; $stateText = 'Cannot check - you decide'
+        $state = 'Unknown'; $stateText = 'Cannot tell - check it yourself'
         try {
             if ($appOf.ContainsKey($task.Id)) {
                 if ($canOff) { $state = 'On'; $stateText = 'App is installed' } else { $state = 'Off'; $stateText = 'App is removed' }
@@ -3641,9 +3641,9 @@ function Get-DRAIStatus {
             } elseif ($task.Id -eq 'ai.remove-models') {
                 if ($modelBytes -gt 0) { $state = 'On'; $stateText = 'AI models are still on this PC' } else { $state = 'Off'; $stateText = 'No AI models on this PC' }
             }
-            if ($state -eq 'Off' -and $stateText -eq 'Cannot check - you decide') { $stateText = 'AI is turned off' }
-            if ($state -eq 'On' -and $stateText -eq 'Cannot check - you decide') { $stateText = 'AI is still on' }
-        } catch { $state = 'Unknown'; $stateText = 'Cannot check - you decide' }
+            if ($state -eq 'Off' -and $stateText -eq 'Cannot tell - check it yourself') { $stateText = 'AI is turned off' }
+            if ($state -eq 'On' -and $stateText -eq 'Cannot tell - check it yourself') { $stateText = 'AI is still on' }
+        } catch { $state = 'Unknown'; $stateText = 'Cannot tell - check it yourself' }
         $needsSignIn = $browser -in @('Chrome','Edge','Firefox')
         [pscustomobject]@{
             TaskId      = $task.Id
