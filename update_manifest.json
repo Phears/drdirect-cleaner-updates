@@ -1,7 +1,7 @@
 {
-  "version": "1.4.157",
-  "notes": "The Cleaner now plays a short chime with a bass line when a clean is all done, so you know it has finished.",
-  "published": "2026-10-22T00:46:03.4542039-04:00",
+  "version": "1.4.158",
+  "notes": "The Switch off AI page now has a search box, so you can type Copilot or Edge and see just those items.",
+  "published": "2026-10-22T09:33:13.4541408-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "DFF4FEB42E19A5A3C7C320E264B96C0E7E1B9A7814ABB1C5D6F17E14C1284A62",
-      "size": 369692
+      "sha256": "7D3EC9916DAB41B0A4863A1FB330C55621446046A54EF163E042C160282B6D88",
+      "size": 371115
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

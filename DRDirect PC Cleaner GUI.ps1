@@ -908,7 +908,7 @@ $ErrorActionPreference = 'Stop'
 
         <Grid Grid.Column="1" Margin="34,26,34,28">
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-            <Grid Grid.Row="0" Margin="0,0,0,20"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal"><StackPanel><TextBlock x:Name="PageEyebrow" Text="THIS PC" Style="{StaticResource MutedText}" FontSize="11" FontWeight="SemiBold"/><TextBlock x:Name="PageTitle" Text="Dashboard" Style="{StaticResource TitleText}"/></StackPanel><Border x:Name="DiskWarning" Visibility="Collapsed" Cursor="Hand" MinWidth="560" CornerRadius="24" Background="#FFF1F2" BorderThickness="3" Padding="20,10" Margin="28,6,0,0" VerticalAlignment="Center"><Border.BorderBrush><SolidColorBrush Color="#E5384A"/></Border.BorderBrush><Border.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><ColorAnimation Storyboard.TargetProperty="BorderBrush.Color" From="#E5384A" To="#1E90FF" Duration="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Border.Triggers><StackPanel Orientation="Horizontal"><Ellipse Width="28" Height="28" Fill="#E5384A" Stroke="White" StrokeThickness="3" Margin="0,0,8,0" VerticalAlignment="Center"><Ellipse.Effect><DropShadowEffect ShadowDepth="0" BlurRadius="20" Opacity="0.9" Color="#E5384A"/></Ellipse.Effect><Ellipse.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.05" Duration="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers></Ellipse><Ellipse Width="28" Height="28" Fill="#1E90FF" Stroke="White" StrokeThickness="3" Margin="0" VerticalAlignment="Center"><Ellipse.Effect><DropShadowEffect ShadowDepth="0" BlurRadius="20" Opacity="0.9" Color="#1E90FF"/></Ellipse.Effect><Ellipse.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.05" To="1" Duration="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers></Ellipse><StackPanel VerticalAlignment="Center" Margin="16,0,0,0"><TextBlock x:Name="DiskWarningTitle" FontSize="20" FontWeight="ExtraBold" Foreground="#B42318"/></StackPanel><TextBlock x:Name="DiskWarningMore" Text="More info - click here" FontSize="16" FontWeight="SemiBold" Foreground="#1E5BD8" TextDecorations="Underline" Cursor="Hand" VerticalAlignment="Center" Margin="22,0,0,0"/></StackPanel></Border></StackPanel><Border Grid.Column="1" CornerRadius="16" Background="#E7F6EF" Padding="12,7" VerticalAlignment="Center"><TextBlock Text="●  Protected mode" Foreground="{StaticResource Success}" FontSize="12"/></Border></Grid>
+            <Grid Grid.Row="0" Margin="0,0,0,20"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal"><StackPanel><TextBlock x:Name="PageEyebrow" Text="THIS PC" Style="{StaticResource MutedText}" FontSize="11" FontWeight="SemiBold"/><TextBlock x:Name="PageTitle" Text="Dashboard" Style="{StaticResource TitleText}"/></StackPanel><Border x:Name="AISearchBox" Visibility="Collapsed" Width="300" Height="40" CornerRadius="20" Background="White" BorderBrush="#7C3AED" BorderThickness="2" Margin="28,8,0,0" VerticalAlignment="Center"><Grid><TextBlock Text="🔍" FontSize="14" Margin="14,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#7C3AED"/><TextBlock x:Name="AISearchHint" Text="Search AI items (Copilot, Edge...)" Margin="40,0,12,0" VerticalAlignment="Center" Foreground="#98A2B3" FontSize="13" IsHitTestVisible="False"/><TextBox x:Name="AISearchText" Background="Transparent" BorderThickness="0" Margin="38,0,12,0" VerticalContentAlignment="Center" FontSize="13" Foreground="#101828"/></Grid></Border><Border x:Name="DiskWarning" Visibility="Collapsed" Cursor="Hand" MinWidth="560" CornerRadius="24" Background="#FFF1F2" BorderThickness="3" Padding="20,10" Margin="28,6,0,0" VerticalAlignment="Center"><Border.BorderBrush><SolidColorBrush Color="#E5384A"/></Border.BorderBrush><Border.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><ColorAnimation Storyboard.TargetProperty="BorderBrush.Color" From="#E5384A" To="#1E90FF" Duration="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Border.Triggers><StackPanel Orientation="Horizontal"><Ellipse Width="28" Height="28" Fill="#E5384A" Stroke="White" StrokeThickness="3" Margin="0,0,8,0" VerticalAlignment="Center"><Ellipse.Effect><DropShadowEffect ShadowDepth="0" BlurRadius="20" Opacity="0.9" Color="#E5384A"/></Ellipse.Effect><Ellipse.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.05" Duration="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers></Ellipse><Ellipse Width="28" Height="28" Fill="#1E90FF" Stroke="White" StrokeThickness="3" Margin="0" VerticalAlignment="Center"><Ellipse.Effect><DropShadowEffect ShadowDepth="0" BlurRadius="20" Opacity="0.9" Color="#1E90FF"/></Ellipse.Effect><Ellipse.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.05" To="1" Duration="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers></Ellipse><StackPanel VerticalAlignment="Center" Margin="16,0,0,0"><TextBlock x:Name="DiskWarningTitle" FontSize="20" FontWeight="ExtraBold" Foreground="#B42318"/></StackPanel><TextBlock x:Name="DiskWarningMore" Text="More info - click here" FontSize="16" FontWeight="SemiBold" Foreground="#1E5BD8" TextDecorations="Underline" Cursor="Hand" VerticalAlignment="Center" Margin="22,0,0,0"/></StackPanel></Border></StackPanel><Border Grid.Column="1" CornerRadius="16" Background="#E7F6EF" Padding="12,7" VerticalAlignment="Center"><TextBlock Text="●  Protected mode" Foreground="{StaticResource Success}" FontSize="12"/></Border></Grid>
 
             <Grid Grid.Row="1">
                 <ScrollViewer x:Name="PageDashboard" VerticalScrollBarVisibility="Auto"><StackPanel>
@@ -1216,7 +1216,7 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -1285,6 +1285,7 @@ $script:DRNavState = @{}
 $script:DRSavedSelection = $null
 $script:DRWasBusy = $false
 $script:DRFinishedUnseen = $false
+$script:DRAISearchRefresh = $false
 $script:DRAIOffButtons = New-Object System.Collections.ArrayList
 $script:DRAIAllOffButton = $null
 $script:DRAIUninstallButtons = New-Object System.Collections.ArrayList
@@ -1420,6 +1421,8 @@ function Set-Page {
     $ui.PageAppUpdates.Visibility = if ($Name -eq 'AppUpdates') { 'Visible' } else { 'Collapsed' }
     $ui.PageTitle.Text = switch ($Name) { 'Cleanup' {'Clean my PC'} 'Repair' {'Fix Windows problems'} 'Security' {'Check my security'} 'Health' {'Check my drives'} 'Memory' {'Check my memory'} 'Speed' {'Speed and space'} 'Hibernate' {'Hibernate'} 'Hardware' {'About my PC'} 'History' {'Cleaning history'} 'Duplicates' {'Find duplicate files'} 'AI' {'Switch off AI'} 'AppUpdates' {'Update my apps'} 'Progress' {'Maintenance progress'} default {$Name} }
     $script:currentCategory = $Name
+    $ui.AISearchBox.Visibility = if ($Name -eq 'AI') { 'Visible' } else { 'Collapsed' }
+    if ($Name -ne 'AI' -and $ui.AISearchText.Text) { $ui.AISearchText.Text = '' }
     $ui.CleanupPresetPanel.Visibility = if ($Name -eq 'Cleanup') { 'Visible' } else { 'Collapsed' }
     $navMap = @{ Dashboard='NavDashboard'; Cleanup='NavCleanup'; Repair='NavRepair'; Security='NavSecurity'; Health='NavHealth'; Memory='NavMemory'; Speed='NavSpeed'; Hibernate='NavHibernate'; History='NavHistory'; Progress='NavProgress'; Duplicates='NavDuplicates'; Hardware='NavHardware'; AppUpdates='NavAppUpdates'; AI='NavAI' }
     foreach ($key in $navMap.Keys) { $ui[$navMap[$key]].Tag = if ($key -eq $Name) { 'Active' } else { $null } }
@@ -2390,7 +2393,7 @@ function Show-TaskCategory {
         'Memory' { 'The memory check only looks. The Windows memory test needs a restart that Windows asks about, and this app never restarts the PC by itself.' }
         'AI' { 'Pick "Turn off" or "Turn back on" for each item. A browser has to be signed in before its AI is turned off. Passwords, bookmarks, files and sign-ins are never touched.' }
     }
-    if ($Category -eq 'AI') {
+    if ($Category -eq 'AI' -and -not $script:DRAISearchRefresh) {
         # Checked fresh every time, so signing in and coming back unlocks the row.
         try {
             $window.Cursor = [System.Windows.Input.Cursors]::Wait
@@ -2411,15 +2414,34 @@ function Show-TaskCategory {
         $script:DRAIOffButtons.Clear()
         $script:DRAIUninstallButtons.Clear()
         $script:DRAIRestoreButton = $null
-        $ui.TaskList.Children.Add((New-DRAIAllOffCard)) | Out-Null
-        $ui.TaskList.Children.Add((New-DRAIUninstallAllCard)) | Out-Null
+        $search = ([string]$ui.AISearchText.Text).Trim()
+        # While searching only the matching rows show; the big cards come back when the box is empty.
+        if (-not $search) {
+            $ui.TaskList.Children.Add((New-DRAIAllOffCard)) | Out-Null
+            $ui.TaskList.Children.Add((New-DRAIUninstallAllCard)) | Out-Null
+        }
         $visible = @(@($visible | Where-Object { $_.Id -eq 'ai.restore' }) + @($visible | Where-Object { $_.Id -ne 'ai.restore' }))
+        if ($search) {
+            $visible = @($visible | Where-Object {
+                $id = [string]$_.Id
+                $text = (@($catalog | Where-Object { $_.Id -in @($id, "$id.on", "$id.uninstall", "$id.reinstall") } | ForEach-Object { "$($_.Name) $($_.Description)" }) -join ' ') + " $id"
+                $text -like "*$([Management.Automation.WildcardPattern]::Escape($search))*"
+            })
+        }
     }
     $rowNumber = 0
     foreach ($task in $visible) { $rowNumber++; $ui.TaskList.Children.Add((New-TaskRow $task $rowNumber)) | Out-Null }
     $script:renderedCleanupFilter = $script:cleanupLevel
     Update-SelectionSummary
 }
+
+$ui.AISearchText.Add_TextChanged({
+    $ui.AISearchHint.Visibility = if ($ui.AISearchText.Text) { 'Collapsed' } else { 'Visible' }
+    if ($script:currentCategory -ne 'AI') { return }
+    # Redraw with the status already read, so each keystroke is instant.
+    $script:DRAISearchRefresh = $true
+    try { Show-TaskCategory 'AI' } finally { $script:DRAISearchRefresh = $false }
+})
 
 function Update-SelectionSummary {
     $selected = @($catalog | Where-Object { $selection[$_.Id] })
@@ -3131,34 +3153,15 @@ function Complete-RunPlan {
 
     $ui.ProgressPercent.Text = '100%'
     $ui.OverallProgress.Value = 100
-    # A short chime so the person knows the Cleaner is all done, even if they have looked away.
-    # It is made here rather than taken from Windows, so it is clear and loud whatever sounds the PC is set to.
+    # A voice says "Yabba Dabba Doo!" so the person knows the Cleaner is all done, even if they have looked away.
+    # It uses the voices that come with Windows, so nothing is downloaded and no sound file is needed.
     if (-not $cancelAfterTask) {
         try {
-            $rate = 11025
-            $notes = @(@(523.25, 0.00, 0.25), @(659.25, 0.09, 0.25), @(783.99, 0.18, 0.25), @(1046.5, 0.27, 0.25), @(1318.5, 0.36, 1.00), @(659.25, 0.36, 1.00), @(130.81, 0.00, 0.55), @(98.00, 0.27, 0.45), @(130.81, 0.36, 1.00))
-            $samples = New-Object 'int16[]' ([int]($rate * 1.4))
-            foreach ($note in $notes) {
-                $start = [int]($note[1] * $rate); $count = [int]($note[2] * $rate)
-                for ($i = 0; $i -lt $count -and ($start + $i) -lt $samples.Length; $i++) {
-                    $t = $i / $rate
-                    $envelope = [math]::Min(1.0, $i / 400.0) * [math]::Exp(-4.0 * $t / $note[2])
-                    $wave = [math]::Sin(2 * [math]::PI * $note[0] * $t) + 0.35 * [math]::Sin(4 * [math]::PI * $note[0] * $t)
-                    $mixed = [int]($samples[$start + $i] + 6500 * $envelope * $wave)
-                    $samples[$start + $i] = [int16][math]::Max(-32000, [math]::Min(32000, $mixed))
-                }
-            }
-            $stream = New-Object System.IO.MemoryStream
-            $writer = New-Object System.IO.BinaryWriter($stream)
-            $dataBytes = $samples.Length * 2
-            $writer.Write([Text.Encoding]::ASCII.GetBytes('RIFF')); $writer.Write([int](36 + $dataBytes))
-            $writer.Write([Text.Encoding]::ASCII.GetBytes('WAVEfmt ')); $writer.Write([int]16); $writer.Write([int16]1); $writer.Write([int16]1)
-            $writer.Write([int]$rate); $writer.Write([int]($rate * 2)); $writer.Write([int16]2); $writer.Write([int16]16)
-            $writer.Write([Text.Encoding]::ASCII.GetBytes('data')); $writer.Write([int]$dataBytes)
-            foreach ($sample in $samples) { $writer.Write($sample) }
-            $writer.Flush(); $stream.Position = 0
-            $script:DRDoneChime = New-Object System.Media.SoundPlayer($stream)
-            $script:DRDoneChime.Play()
+            Add-Type -AssemblyName System.Speech
+            $script:DRDoneVoice = New-Object System.Speech.Synthesis.SpeechSynthesizer
+            $script:DRDoneVoice.SelectVoice('Microsoft David Desktop')
+            $script:DRDoneVoice.Volume = 100
+            $script:DRDoneVoice.SpeakSsmlAsync('<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="en-US"><prosody pitch="-5%" rate="+35%" volume="100"><emphasis level="strong">Yabba</emphasis> <emphasis level="strong">dabba</emphasis> <prosody pitch="+30%" rate="-10%"><emphasis level="strong">doo!</emphasis></prosody></prosody></speak>') | Out-Null
         } catch { }
     }
     $ui.CancelPlanButton.Content = 'Return to dashboard'
@@ -5361,6 +5364,15 @@ if ($NoShow) {
     $checkCard.Child.Children[0].Children[0].IsChecked = $true
     if (-not @($checkCard.Child.Children[1].Children | Where-Object { $_.Tag -eq 'AICheckResults' }).Count) { throw 'GUI smoke test: "Check now" showed no results.' }
     if ($selection['ai.check']) { throw 'GUI smoke test: "Check now" was added to the plan.' }
+    # The search box narrows the list to the Copilot rows and brings everything back when cleared.
+    $allRows = @($ui.TaskList.Children).Count
+    $ui.AISearchText.Text = 'copilot'
+    $found = @($ui.TaskList.Children).Count
+    if ($found -lt 1 -or $found -ge $allRows) { throw "GUI smoke test: the AI search showed $found of $allRows rows." }
+    $ui.AISearchText.Text = 'zzzz-no-such-ai'
+    if (@($ui.TaskList.Children).Count) { throw 'GUI smoke test: the AI search showed rows for text that matches nothing.' }
+    $ui.AISearchText.Text = ''
+    if (@($ui.TaskList.Children).Count -ne $allRows) { throw 'GUI smoke test: clearing the AI search did not bring the rows back.' }
     Set-Page 'Dashboard'
     $pollTimer.Stop()
     $window.Close()
