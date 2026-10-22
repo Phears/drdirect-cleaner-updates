@@ -1,7 +1,7 @@
 {
   "version": "1.4.160",
   "notes": "When a clean finishes, the Cleaner now plays a soft chime that rings out for a few seconds. A new Sound switch on the Dashboard turns it on or off.",
-  "published": "2026-10-22T09:50:46.1487049-04:00",
+  "published": "2026-10-22T09:50:57.7083710-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
