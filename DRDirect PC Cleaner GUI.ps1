@@ -3131,6 +3131,36 @@ function Complete-RunPlan {
 
     $ui.ProgressPercent.Text = '100%'
     $ui.OverallProgress.Value = 100
+    # A short chime so the person knows the Cleaner is all done, even if they have looked away.
+    # It is made here rather than taken from Windows, so it is clear and loud whatever sounds the PC is set to.
+    if (-not $cancelAfterTask) {
+        try {
+            $rate = 11025
+            $notes = @(@(523.25, 0.00, 0.25), @(659.25, 0.09, 0.25), @(783.99, 0.18, 0.25), @(1046.5, 0.27, 0.25), @(1318.5, 0.36, 1.00), @(659.25, 0.36, 1.00), @(130.81, 0.00, 0.55), @(98.00, 0.27, 0.45), @(130.81, 0.36, 1.00))
+            $samples = New-Object 'int16[]' ([int]($rate * 1.4))
+            foreach ($note in $notes) {
+                $start = [int]($note[1] * $rate); $count = [int]($note[2] * $rate)
+                for ($i = 0; $i -lt $count -and ($start + $i) -lt $samples.Length; $i++) {
+                    $t = $i / $rate
+                    $envelope = [math]::Min(1.0, $i / 400.0) * [math]::Exp(-4.0 * $t / $note[2])
+                    $wave = [math]::Sin(2 * [math]::PI * $note[0] * $t) + 0.35 * [math]::Sin(4 * [math]::PI * $note[0] * $t)
+                    $mixed = [int]($samples[$start + $i] + 6500 * $envelope * $wave)
+                    $samples[$start + $i] = [int16][math]::Max(-32000, [math]::Min(32000, $mixed))
+                }
+            }
+            $stream = New-Object System.IO.MemoryStream
+            $writer = New-Object System.IO.BinaryWriter($stream)
+            $dataBytes = $samples.Length * 2
+            $writer.Write([Text.Encoding]::ASCII.GetBytes('RIFF')); $writer.Write([int](36 + $dataBytes))
+            $writer.Write([Text.Encoding]::ASCII.GetBytes('WAVEfmt ')); $writer.Write([int]16); $writer.Write([int16]1); $writer.Write([int16]1)
+            $writer.Write([int]$rate); $writer.Write([int]($rate * 2)); $writer.Write([int16]2); $writer.Write([int16]16)
+            $writer.Write([Text.Encoding]::ASCII.GetBytes('data')); $writer.Write([int]$dataBytes)
+            foreach ($sample in $samples) { $writer.Write($sample) }
+            $writer.Flush(); $stream.Position = 0
+            $script:DRDoneChime = New-Object System.Media.SoundPlayer($stream)
+            $script:DRDoneChime.Play()
+        } catch { }
+    }
     $ui.CancelPlanButton.Content = 'Return to dashboard'
     $ui.CancelPlanButton.IsEnabled = $true
     $ui.CancelPlanButton.Tag = 'Done'

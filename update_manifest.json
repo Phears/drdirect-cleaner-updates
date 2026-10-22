@@ -1,7 +1,7 @@
 {
-  "version": "1.4.156",
-  "notes": "The start card on the dashboard now has a raised 3D look, with 3D lettering. It follows the 3D look switch.",
-  "published": "2026-10-22T00:37:42.5526728-04:00",
+  "version": "1.4.157",
+  "notes": "The Cleaner now plays a short chime with a bass line when a clean is all done, so you know it has finished.",
+  "published": "2026-10-22T00:46:03.4542039-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "21DFFD4C27D0DC97BDF13F6A24A4D74143EFDCDD212721D1901CA7854F56C950",
-      "size": 367528
+      "sha256": "DFF4FEB42E19A5A3C7C320E264B96C0E7E1B9A7814ABB1C5D6F17E14C1284A62",
+      "size": 369692
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
