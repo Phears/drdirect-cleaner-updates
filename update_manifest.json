@@ -1,27 +1,27 @@
 {
-  "version": "1.4.153",
-  "notes": "New cleanups free space from game launcher and developer-tool caches, and from the old Windows folder left behind after big updates. A new Repair option fixes missing or odd-looking fonts.",
-  "published": "2026-10-21T23:36:28.0941905-04:00",
+  "version": "1.4.154",
+  "notes": "Brings back the 3D look and recent fixes that were missing from the last update. Also adds new cleanups for game launcher and developer-tool caches and the old Windows folder, and a font repair option.",
+  "published": "2026-10-21T23:41:14.8308066-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "3B4A12E7E15B998B1A0C09F0E444C44AA64FC18C77FAA10458B693F1F5800BFD",
-      "size": 155505
+      "sha256": "3AAAF10918062C7D85BEAA2603FAF6EF05C694A48C5099A20F758B0FE3FAE311",
+      "size": 163244
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "61FDB11933677AB0129591192C10B86C4FE30632EE21F89CA1705CE7137B0630",
-      "size": 346159
+      "sha256": "17BF8986982D394DBB894F936D004A6AE5B8199FFF42C7824F3DEE585B4D9F22",
+      "size": 370212
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "4F260CC3074A55B5495B3BACA68AC100A040462CA1BDA7AC3A01F0AC52ACB5FA",
-      "size": 266894
+      "sha256": "86527ACE6524DF28EB4766BD0696A4FE33A65CA077F7B6588FBF45C65B243F7D",
+      "size": 302839
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "8E41BB7EC8426AC5789025AD7A91F659FE6258080E4BCC49E09525AD549F2630",
-      "size": 58047
+      "sha256": "C037E09A3723CF4E6CD6389A0A2218391C63194ECDCAC772CA1D2314BC6C1376",
+      "size": 58727
     },
     {
       "name": "DRDirect Activation.ps1",
@@ -40,10 +40,12 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "CB672B16A5F1093E0777C4BA5F04E52316400DDE2344C8269716124BC69C1FA3",
-      "size": 10413028
+      "sha256": "AE791A81EAD022F43121CC5EFDB9A07A1C30A0BE3173F877E4E8AF001EAC2B98",
+      "size": 10416129
     }
   ],
-  "blocked": [],
+  "blocked": [
+    "e859a1a8-fb44-0000-0000-000000000000-m80-f8007500542"
+  ],
   "blockedHard": []
 }
