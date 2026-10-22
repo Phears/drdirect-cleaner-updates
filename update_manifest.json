@@ -1,7 +1,7 @@
 {
-  "version": "1.4.173",
-  "notes": "The Simple view menu is more compact, so all five items and the Show all tools button fit even in a small window.",
-  "published": "2026-10-22T11:32:37.8260187-04:00",
+  "version": "1.4.174",
+  "notes": "In the Simple view, an orange Show all tools button now also sits at the top of the page, next to the title, so you see it as soon as the Cleaner opens.",
+  "published": "2026-10-22T11:33:15.9628436-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "3ADE6E9CDAB1FB4154FA84E9F7A63AEF1E39F30BCDA255985A2C183F4657FD09",
-      "size": 386534
+      "sha256": "F1DC85589484C8E1FDA00E31B26393120FA061A4CAD4FB6D6C62BF29F7DA31E3",
+      "size": 387168
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
