@@ -1,7 +1,7 @@
 {
-  "version": "1.4.171",
-  "notes": "The Cleaner now always opens in the Simple view. Show all tools opens everything for that visit.",
-  "published": "2026-10-22T11:26:42.0373191-04:00",
+  "version": "1.4.172",
+  "notes": "In the Simple view, a bright Show all tools button now stays in view at the bottom of the menu, and the Dashboard tells you there are more tools.",
+  "published": "2026-10-22T11:29:25.6845166-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "AC16C36B53B50B760C14398761E226C27241176BC6914F05A0589A3A377F6F1C",
-      "size": 384918
+      "sha256": "45CF227E87950004FBAE22DB62D873F01E25D863B81F91929509D26EDA449A07",
+      "size": 386384
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
