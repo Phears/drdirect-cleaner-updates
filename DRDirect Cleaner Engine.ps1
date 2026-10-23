@@ -209,6 +209,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='health.drive-check'; Category='Health'; Name='Drive health check'; Description='Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='health.pc-checkup'; Category='Speed'; Name='PC checkup'; Description='One quick summary of memory use, free disk space, how long Windows has been running, startup programs and any restart waiting. Nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='health.ram-check'; Category='Memory'; Name='Memory (RAM) check'; Description='Shows the memory installed in this PC (size, type, speed), how much is in use, and whether Windows has recorded memory errors in the last 30 days. Only looks - nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='health.power-heat-check'; Category='Health'; Name='Power and heat check'; Description='Looks for signs of a failing power supply or a PC that runs too hot: unexpected shutdowns, hardware errors, temperature and heat slowdowns in the last 30 days. It can only point to a likely cause, such as dust or a tired power supply. Nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='health.ram-test'; Category='Repair'; Name='Memory test (Windows Memory Diagnostic)'; Description='Opens the Windows memory test. It is the thorough way to find faulty RAM, but it needs a restart: Windows asks whether to restart now or at the next start, and the test can take 1 hour or more depending on your system. The Cleaner never restarts the PC by itself.'; Risk='Guided'; Duration='1 min to start'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='health.boost-memory'; Category='Speed'; Name='Free up memory (Boost)'; Description='Asks Windows to release idle memory held by running programs, like PC Manager Boost. Nothing is closed and no data is lost; programs reload what they need.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='health.startup-apps'; Category='Speed'; Name='Startup apps'; Description='Lists the programs that start with Windows so you can see what slows sign-in. Only looks - nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -1405,6 +1406,89 @@ function Invoke-DRRamCheck {
     $lines.Add('Nothing was changed on this PC.')
 
     $headline = if ($problem) { 'Memory (RAM): PROBLEM FOUND' } else { 'Memory (RAM): NO PROBLEMS FOUND' }
+    $state = if ($problem) { 'Warning' } else { 'Information' }
+    New-DREvent -TaskId $TaskId -State $state -Message ("{0}`r`n  {1}" -f $headline, ($lines -join "`r`n  "))
+}
+
+function Invoke-DRPowerHeatCheck {
+    param([string]$TaskId, [string]$TestRoot)
+    # This check only reads, so it runs for real even in test mode.
+    # Windows cannot measure a power supply or dust. This looks for the signs they leave behind:
+    # sudden shutdowns, hardware errors, a hot processor, and the processor slowing itself down.
+
+    $lines = New-Object System.Collections.Generic.List[string]
+    $problem = $false
+    $since = (Get-Date).AddDays(-30)
+
+    # Sudden power loss or hard resets: Kernel-Power event 41 with no crash code means the PC lost power.
+    $powerLoss = 0; $crashes = 0
+    try {
+        foreach ($event in @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; ProviderName = 'Microsoft-Windows-Kernel-Power'; Id = 41; StartTime = $since } -MaxEvents 100 -ErrorAction Stop)) {
+            $code = 0
+            try { $code = [int](([xml]$event.ToXml()).Event.EventData.Data | Where-Object { $_.Name -eq 'BugcheckCode' } | Select-Object -First 1 -ExpandProperty '#text') } catch { }
+            if ($code -eq 0) { $powerLoss++ } else { $crashes++ }
+        }
+    } catch { }
+    if ($powerLoss -gt 0) {
+        $problem = $true
+        $lines.Add(('The PC lost power or was reset suddenly {0} time(s) in the last 30 days. If you did not do it yourself, the power supply, the power cable or the power socket may be at fault. Heat can also cause it.' -f $powerLoss))
+    } else {
+        $lines.Add('No sudden power loss in the last 30 days.')
+    }
+    if ($crashes -gt 0) {
+        $problem = $true
+        $lines.Add(('Windows crashed and restarted {0} time(s) in the last 30 days. Crashes can come from heat, failing memory or a weak power supply.' -f $crashes))
+    }
+
+    # Hardware errors Windows logged (not only memory ones).
+    $hardwareErrors = 0
+    try { $hardwareErrors = @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; ProviderName = 'Microsoft-Windows-WHEA-Logger'; StartTime = $since } -MaxEvents 200 -ErrorAction Stop).Count } catch { }
+    if ($hardwareErrors -gt 0) {
+        $problem = $true
+        $lines.Add(('Windows recorded {0} hardware error(s) in the last 30 days. Repeated ones point to the processor, memory, a drive or the power supply.' -f $hardwareErrors))
+    } else {
+        $lines.Add('No hardware errors recorded in the last 30 days.')
+    }
+
+    # Temperature, when the motherboard shares it with Windows.
+    $hottest = $null
+    try {
+        $zones = @(Get-CimInstance -Namespace 'root/wmi' -ClassName MSAcpi_ThermalZoneTemperature -ErrorAction Stop)
+        $values = @($zones | ForEach-Object { [math]::Round(([double]$_.CurrentTemperature / 10) - 273.15, 0) } | Where-Object { $_ -gt 0 -and $_ -lt 150 })
+        if ($values.Count) { $hottest = ($values | Measure-Object -Maximum).Maximum }
+    } catch { }
+    if ($null -ne $hottest) {
+        $lines.Add(('Temperature reported by the motherboard right now: {0} C.' -f $hottest))
+        if ($hottest -ge 85) {
+            $problem = $true
+            $lines.Add('That is hot. Dust in the fans and heatsinks is the usual cause. Switch the PC off, and blow the dust out with compressed air.')
+        }
+    } else {
+        $lines.Add('This PC does not share its temperature with Windows, so it cannot be read here. A free tool such as HWiNFO can show it.')
+    }
+
+    # Fan speed is rarely shared with Windows.
+    $fans = @()
+    try { $fans = @(Get-CimInstance -ClassName Win32_Fan -ErrorAction Stop) } catch { }
+    if ($fans.Count) { $lines.Add(('Windows lists {0} fan(s), but it does not report how fast they turn.' -f $fans.Count)) }
+    else { $lines.Add('This PC does not share fan speed with Windows. If the fans are loud, or a fan has stopped, look inside the case or use a tool such as HWiNFO.') }
+
+    # Windows logs it when the processor is held back by power or heat limits.
+    $slowed = 0
+    try { $slowed = @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; ProviderName = 'Microsoft-Windows-Kernel-Processor-Power'; Id = 37; StartTime = $since } -MaxEvents 200 -ErrorAction Stop).Count } catch { }
+    if ($slowed -ge 10) {
+        $problem = $true
+        $lines.Add(('Windows held the processor back {0} time(s) in the last 30 days because of power or heat limits. That is a sign of dust or a cooling problem.' -f $slowed))
+    } elseif ($slowed -gt 0) {
+        $lines.Add(('Windows held the processor back {0} time(s) in the last 30 days. A few times is normal.' -f $slowed))
+    } else {
+        $lines.Add('The processor was not held back by heat or power limits in the last 30 days.')
+    }
+
+    if ($problem) { $lines.Add('If these signs keep coming back, clean the dust from the fans and check the power supply. This check only points to a likely cause; it cannot prove it.') }
+    $lines.Add('Nothing was changed on this PC.')
+
+    $headline = if ($problem) { 'Power and heat: SIGNS OF A PROBLEM' } else { 'Power and heat: NO PROBLEMS FOUND' }
     $state = if ($problem) { 'Warning' } else { 'Information' }
     New-DREvent -TaskId $TaskId -State $state -Message ("{0}`r`n  {1}" -f $headline, ($lines -join "`r`n  "))
 }
@@ -4553,6 +4637,7 @@ function Invoke-DRTask {
             'health.pc-checkup' { Invoke-DRPCCheckup -TaskId $TaskId -TestRoot $TestRoot }
             'health.boost-memory' { Invoke-DRMemoryBoost -TaskId $TaskId -TestRoot $TestRoot }
             'health.ram-check' { Invoke-DRRamCheck -TaskId $TaskId -TestRoot $TestRoot }
+            'health.power-heat-check' { Invoke-DRPowerHeatCheck -TaskId $TaskId -TestRoot $TestRoot }
             'health.ram-test' { Invoke-DRRamTest -TaskId $TaskId -TestRoot $TestRoot }
             'health.startup-apps' { Invoke-DRStartupReport -TaskId $TaskId -TestRoot $TestRoot }
             'health.large-files' { Invoke-DRLargeFiles -TaskId $TaskId -TestRoot $TestRoot }
