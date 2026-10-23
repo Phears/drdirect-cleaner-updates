@@ -1,7 +1,7 @@
 {
-  "version": "1.4.187",
-  "notes": "New Check power and heat button under Show all tools. It looks for signs of a failing power supply, dust or a PC that runs too hot, such as sudden shutdowns, hardware errors and the processor slowing down from heat.",
-  "published": "2026-10-23T11:42:16.7418629-04:00",
+  "version": "1.4.188",
+  "notes": "New Max 3D switch next to 3D look for a much deeper raised look. A soft tick plays when you point at a button while Sound is on. The restart reminder now lets you choose Yes or No. After an update the Cleaner now waits for the old window to close before opening again. The Check power and heat result now says heat can make games lag.",
+  "published": "2026-10-23T12:09:28.7758243-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "32FD84D207851D1AC871AA17160EC9E7B1F4AB837225054AFB5747D98A7A244E",
-      "size": 410429
+      "sha256": "48EEC76BA9D52FF1B953849D5E88D35129AD32911DA266E8B8B1AC01CC1A9C0B",
+      "size": 419125
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "8738F8717CCC3E55F174398EBA013D8944B860D92C75395E558F55D868717EBF",
-      "size": 321426
+      "sha256": "B6733C0A7CB94BD2D75F0A5422836B540897DA4F69BD9C7E311FAE3AA79610DC",
+      "size": 321634
     },
     {
       "name": "DRDirect Updater.ps1",
