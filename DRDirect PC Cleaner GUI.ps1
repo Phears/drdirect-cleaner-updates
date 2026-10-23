@@ -950,17 +950,18 @@ $ErrorActionPreference = 'Stop'
                     </Style>
                 </ScrollViewer.Resources>
                 <StackPanel x:Name="Navigation">
-                    <Button x:Name="NavDashboard" Style="{StaticResource NavButton}" Tag="Active" Content="⌂   Dashboard"/>
+                    <Button x:Name="NavDashboard" Style="{StaticResource NavButton}" Foreground="#FFE600" Tag="Active" Content="⌂   Dashboard"/>
+                    <Button x:Name="NavModeToggle" Style="{StaticResource HeroGreenButton}" Margin="10,4,10,10" Padding="14,11" FontSize="15" FontWeight="Bold" Content="＋  Show all tools" ToolTip="Switch between the simple view and every tool"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFC04D" Offset="0"/><GradientStop Color="#F08200" Offset="1"/></LinearGradientBrush></Button.Background></Button>
                     <Button x:Name="NavProgress" Style="{StaticResource NavButton}" Content="◐   Maintenance progress" Visibility="Collapsed"/>
                     <TextBlock x:Name="NavHeadClean" Text="CLEAN" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold" Margin="20,16,0,4"/>
-                    <Button x:Name="NavCleanup" Style="{StaticResource NavButton}" Content="✦   Clean my PC"/>
-                    <Button x:Name="NavSpeed" Style="{StaticResource NavButton}" Content="◈   Speed and space"/>
+                    <Button x:Name="NavCleanup" Style="{StaticResource NavButton}" Foreground="#FFE600" Content="✦   Clean my PC"/>
+                    <Button x:Name="NavSpeed" Style="{StaticResource NavButton}" Foreground="#FFE600" Content="◈   Speed and space"/>
                     <Button x:Name="NavDuplicates" Style="{StaticResource NavButton}" Foreground="#22C16F" FontWeight="Bold" Content="⧉   Find duplicate files"/>
                     <Button x:Name="NavHibernate" Style="{StaticResource NavButton}" Foreground="#22D3EE" FontWeight="SemiBold" Content="☾   Hibernate" ToolTip="Turn Hibernate off to free several GB, or back on"/>
                     <Button x:Name="NavUninstaller" Style="{StaticResource GreenNavButton}" Margin="10,4,10,4" Padding="12,8" FontSize="13" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><TextBlock Text="⌫" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock Grid.Column="1" Text="DRDirect Uninstaller Program" Foreground="White" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/></Grid></Button>
                     <TextBlock x:Name="NavHeadFix" Text="FIX &amp; PROTECT" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold" Margin="20,16,0,4"/>
-                    <Button x:Name="NavRepair" Style="{StaticResource NavButton}"><StackPanel Orientation="Horizontal"><TextBlock Text="⚒   Fix Windows" VerticalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/><Grid Width="22" Height="22" Margin="10,0,0,0" VerticalAlignment="Center" Effect="{DynamicResource DR3DText}"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions><Rectangle Margin="0,0,1,1" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Column="1" Margin="1,0,0,1" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Row="1" Margin="0,1,1,0" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Row="1" Grid.Column="1" Margin="1,1,0,0" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle></Grid></StackPanel></Button>
-                    <Button x:Name="NavSecurity" Style="{StaticResource NavButton}" Content="⬡   Check my security"/>
+                    <Button x:Name="NavRepair" Style="{StaticResource NavButton}" Foreground="#FFE600"><StackPanel Orientation="Horizontal"><TextBlock Text="⚒   Fix Windows" VerticalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/><Grid Width="22" Height="22" Margin="10,0,0,0" VerticalAlignment="Center" Effect="{DynamicResource DR3DText}"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions><Rectangle Margin="0,0,1,1" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Column="1" Margin="1,0,0,1" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Row="1" Margin="0,1,1,0" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Row="1" Grid.Column="1" Margin="1,1,0,0" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle></Grid></StackPanel></Button>
+                    <Button x:Name="NavSecurity" Style="{StaticResource NavButton}" Foreground="#FFE600" Content="⬡   Check my security"/>
                     <Button x:Name="NavAI" Style="{StaticResource AINavButton}" Content="⊘   Switch off AI" Margin="10,4,10,4" ToolTip="Switch off AI in Windows and web browsers"/>
                     <TextBlock x:Name="NavHeadCheck" Text="CHECK" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold" Margin="20,16,0,4"/>
                     <Button x:Name="NavHealth" Style="{StaticResource NavButton}" Foreground="#FACC15" Content="▰   Check my drives"/>
@@ -970,7 +971,6 @@ $ErrorActionPreference = 'Stop'
                     <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Foreground="#22D3EE" FontWeight="SemiBold" Content="◷   Cleaning history" ToolTip="See what the Cleaner did, open the reports, and undo changes to settings"/>
                     <TextBlock x:Name="NavHeadUpdate" Text="UPDATE" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold" Margin="20,16,0,4"/>
                     <Button x:Name="NavAppUpdates" Style="{StaticResource WingetNavButton}" Content="⭳   Update my apps" Margin="10,4,10,4" ToolTip="Update every app with winget, in a colour PowerShell window"/>
-                    <Button x:Name="NavModeToggle" Style="{StaticResource HeroGreenButton}" Margin="10,18,10,4" Padding="14,11" FontSize="15" FontWeight="Bold" Content="＋  Show all tools" ToolTip="Switch between the simple view and every tool"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFC04D" Offset="0"/><GradientStop Color="#F08200" Offset="1"/></LinearGradientBrush></Button.Background></Button>
                     <Button x:Name="NavNoteButton" Content="Please read first  :)" Style="{StaticResource HeroGreenButton}" Margin="10,10,10,4" Padding="14,11" FontSize="15" FontWeight="Bold" ToolTip="Click to read a short, friendly note"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#5BE584" Offset="0"/><GradientStop Color="#13A64A" Offset="1"/></LinearGradientBrush></Button.Background></Button>
                 </StackPanel>
                 </ScrollViewer>
@@ -1276,6 +1276,37 @@ try {
     $window.MaxHeight = $wa.Height
     $window.MaxWidth  = $wa.Width
 } catch { }
+
+# Open where the person left it: the size and place they gave the window last time are remembered,
+# as long as they still fit on a screen that is connected now. A first start keeps the default.
+try {
+    $drWinKey = 'HKCU:\Software\DRDirect\PC Cleaner'
+    $drSaved = Get-ItemProperty -LiteralPath $drWinKey -ErrorAction Stop
+    $drW = [double]$drSaved.WinWidth; $drH = [double]$drSaved.WinHeight; $drL = [double]$drSaved.WinLeft; $drT = [double]$drSaved.WinTop
+    if ($drW -ge 300 -and $drH -ge 300) {
+        $drW = [Math]::Max($window.MinWidth,  [Math]::Min($drW, $wa.Width))
+        $drH = [Math]::Max($window.MinHeight, [Math]::Min($drH, $wa.Height))
+        $drVL = [Windows.SystemParameters]::VirtualScreenLeft;  $drVT = [Windows.SystemParameters]::VirtualScreenTop
+        $drVW = [Windows.SystemParameters]::VirtualScreenWidth; $drVH = [Windows.SystemParameters]::VirtualScreenHeight
+        $window.Width = $drW; $window.Height = $drH
+        $window.Left = [Math]::Max($drVL, [Math]::Min($drL, $drVL + $drVW - $drW))
+        $window.Top  = [Math]::Max($drVT, [Math]::Min($drT, $drVT + $drVH - $drH))
+        $window.WindowStartupLocation = [Windows.WindowStartupLocation]::Manual
+        if ([int]$drSaved.WinMax -eq 1) { $window.WindowState = [Windows.WindowState]::Maximized }
+    }
+} catch { }
+$window.Add_Closing({
+    try {
+        $b = if ($window.WindowState -eq [Windows.WindowState]::Normal) { New-Object Windows.Rect($window.Left, $window.Top, $window.Width, $window.Height) } else { $window.RestoreBounds }
+        if ($b.Width -lt 300 -or $b.Height -lt 300) { return }
+        if (-not (Test-Path -LiteralPath $drWinKey)) { New-Item -Path $drWinKey -Force | Out-Null }
+        Set-ItemProperty -LiteralPath $drWinKey -Name 'WinLeft'   -Value ([int][Math]::Round($b.Left))   -Type DWord
+        Set-ItemProperty -LiteralPath $drWinKey -Name 'WinTop'    -Value ([int][Math]::Round($b.Top))    -Type DWord
+        Set-ItemProperty -LiteralPath $drWinKey -Name 'WinWidth'  -Value ([int][Math]::Round($b.Width))  -Type DWord
+        Set-ItemProperty -LiteralPath $drWinKey -Name 'WinHeight' -Value ([int][Math]::Round($b.Height)) -Type DWord
+        Set-ItemProperty -LiteralPath $drWinKey -Name 'WinMax'    -Value ([int]($window.WindowState -eq [Windows.WindowState]::Maximized)) -Type DWord
+    } catch { }
+})
 
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
