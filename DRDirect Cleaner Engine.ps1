@@ -1202,6 +1202,13 @@ function Invoke-DRDriveHealth {
         if ($media) { $lines.Add(('Type: {0}' -f $media)) }
         $bus = Get-DRDiskProperty $disk 'BusType'
         if ($bus) { $lines.Add(('Connection: {0}' -f $bus)) }
+        # A RAID set gets its own labelled box. Windows sees only the controller's combined drive, so the
+        # real disks behind it are checked with the RAID controller's own program, not here.
+        if ($bus -eq 'RAID') {
+            $name = 'RAID drive  -  ' + $name
+            $lines.Add('This is a RAID set. Windows sees the combined drive the RAID controller presents, not the disks behind it.')
+            $lines.Add('To check those disks, open the RAID controller program (for example Intel Rapid Storage, MegaRAID or the motherboard RAID tool).')
+        }
 
         $counter = $null
         try { $counter = $disk | Get-StorageReliabilityCounter -ErrorAction Stop } catch { $counter = $null }

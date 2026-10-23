@@ -1,7 +1,7 @@
 {
-  "version": "1.4.185",
-  "notes": "Update my apps now brings PowerShell 7 up to date instead of showing a false problem. Check all and Check off have calmer colours. There is a Sound switch on the dashboard for the chime that plays when a clean finishes.",
-  "published": "2026-10-23T11:24:01.3284113-04:00",
+  "version": "1.4.186",
+  "notes": "The green check marks beside Check my drives and Check my RAM now last 30 days before asking you to check again. If a PC has a RAID drive, the drive check shows it in its own box and tells you how to check the disks behind it.",
+  "published": "2026-10-23T11:32:56.2658636-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "AB071BFA00609ECFF540E4B07E34B83347FDCA59B81D5D4709E5759318E243A5",
+      "sha256": "54B36E3443EDE333BB78E366676293C26A31A4A845FAF355ECC4A36398CC9B07",
       "size": 409796
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "510152A944688815CF573B7FC4A0973DD4F8115264352D29D53ACBE5FA90AF99",
-      "size": 315020
+      "sha256": "4AE6D845861928E3CED552F32F533C1DD49A8DBD5EA16EB1CAA05419C3FF4855",
+      "size": 315601
     },
     {
       "name": "DRDirect Updater.ps1",

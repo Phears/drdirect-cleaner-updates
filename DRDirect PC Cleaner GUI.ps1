@@ -2694,7 +2694,7 @@ function Set-DRNavCheckMark {
 
 # How long a check result stays valid. After this the menu item goes back to the red
 # dot, as a reminder to check again.
-$script:DRCheckValidDays = 90
+$script:DRCheckValidDays = 30
 $script:DRCheckMarks = @{
     'health.drive-check' = @{ Nav = 'NavHealth'; Label = ([string][char]0x25B0 + '   Check my drives') }
     'health.ram-check'   = @{ Nav = 'NavMemory'; Label = ([string][char]0x25A6 + '   Check my RAM') }
