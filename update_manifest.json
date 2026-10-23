@@ -1,7 +1,7 @@
 {
-  "version": "1.4.184",
-  "notes": "The Clean my PC page now keeps its level box in view while you scroll, with Check all and Check off buttons and the day each level was last done. The Last clean card also shows your last quick and full scan. A friendly \"Yabba Dabba Doo!\" plays when a clean finishes. The 3D look now starts switched off until you turn it on.",
-  "published": "2026-10-23T11:11:58.4533465-04:00",
+  "version": "1.4.185",
+  "notes": "Update my apps now brings PowerShell 7 up to date instead of showing a false problem. Check all and Check off have calmer colours. There is a Sound switch on the dashboard for the chime that plays when a clean finishes.",
+  "published": "2026-10-23T11:24:01.3284113-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "99E535B3C20AAA3266A09C514035A6FC801F2006C07749B543801D790984532D",
-      "size": 408280
+      "sha256": "AB071BFA00609ECFF540E4B07E34B83347FDCA59B81D5D4709E5759318E243A5",
+      "size": 409796
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

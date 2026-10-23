@@ -1015,7 +1015,7 @@ $ErrorActionPreference = 'Stop'
                     <Grid Grid.Row="0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                     <Border x:Name="CleanupPresetPanel" Grid.Row="0" Style="{StaticResource Card}" Padding="16" Margin="0,0,0,14" Visibility="Visible">
                         <StackPanel>
-                            <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal"><TextBlock Text="Choose cleanup level" FontSize="16" FontWeight="SemiBold"/><Border Background="#E8F0FF" CornerRadius="10" Padding="8,3" Margin="10,0,0,0"><TextBlock Text="ORDERED PRESETS" Foreground="#2563EB" FontSize="11" FontWeight="SemiBold"/></Border></StackPanel><Border Grid.Column="1" Background="#F4F7FF" BorderBrush="#C7D5F5" BorderThickness="1" CornerRadius="10" Padding="8,4" VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><Button x:Name="CleanCheckAllButton" Content="Check all" Style="{StaticResource GlossyChoiceButton}" Padding="14,5" FontSize="12" Margin="0,0,8,4" ToolTip="Tick every item below, except the cookie item that signs you out"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFD54A" Offset="0"/><GradientStop Color="#F59E0B" Offset="1"/></LinearGradientBrush></Button.Background></Button><Button x:Name="CleanCheckOffButton" Content="Check off" Style="{StaticResource GlossyChoiceButton}" Padding="14,5" FontSize="12" Margin="0,0,0,4" ToolTip="Untick every item below"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFD54A" Offset="0"/><GradientStop Color="#F59E0B" Offset="1"/></LinearGradientBrush></Button.Background></Button></StackPanel></Border></Grid>
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal"><TextBlock Text="Choose cleanup level" FontSize="16" FontWeight="SemiBold"/><Border Background="#E8F0FF" CornerRadius="10" Padding="8,3" Margin="10,0,0,0"><TextBlock Text="ORDERED PRESETS" Foreground="#2563EB" FontSize="11" FontWeight="SemiBold"/></Border></StackPanel><Border Grid.Column="1" Background="#F4F7FF" BorderBrush="#C7D5F5" BorderThickness="1" CornerRadius="10" Padding="8,4" VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><Button x:Name="CleanCheckAllButton" Content="Check all" Style="{StaticResource GlossyChoiceButton}" Padding="14,5" FontSize="12" Margin="0,0,8,4" ToolTip="Tick every item below, except the cookie item that signs you out"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#6F8FC4" Offset="0"/><GradientStop Color="#2E4F85" Offset="1"/></LinearGradientBrush></Button.Background></Button><Button x:Name="CleanCheckOffButton" Content="Check off" Style="{StaticResource GlossyChoiceButton}" Padding="14,5" FontSize="12" Margin="0,0,0,4" ToolTip="Untick every item below"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#B4BECE" Offset="0"/><GradientStop Color="#76849B" Offset="1"/></LinearGradientBrush></Button.Background></Button></StackPanel></Border></Grid>
                             <TextBlock Text="Safe = regular cleanup. Medium = full cleanup. Advanced = full cleanup plus Windows repair." Style="{StaticResource MutedText}" FontSize="12" Margin="0,4,0,12"/>
                             <UniformGrid Columns="3">
                                 <StackPanel><TextBlock x:Name="PresetSafeDate" HorizontalAlignment="Center" Style="{StaticResource MutedText}" FontSize="12" Margin="0,0,0,4"/><Button x:Name="PresetSafe" Style="{StaticResource GlossyChoiceButton}" Padding="16,12" Margin="0,0,10,8"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#5BE584" Offset="0"/><GradientStop Color="#13A64A" Offset="1"/></LinearGradientBrush></Button.Background><TextBlock Text="SAFE SCAN" Foreground="White" FontSize="15" FontWeight="Bold"/></Button></StackPanel>
@@ -4289,6 +4289,30 @@ foreach ($p in $pkgs) {
     elseif ($proc.ExitCode -eq 0) {
         Write-Host (RGB 80 255 120 "✅ $($p.Name) upgraded")
         $ok += $p.Name
+    }
+    elseif ($proc.ExitCode -eq -1978335212 -and $p.Name -like 'PowerShell 7*') {
+        # PowerShell 7 was put on by hand, so winget lists it as out of date but cannot upgrade it by that name.
+        # Installing the winget package over it brings it up to date and lets winget look after it from now on.
+        Write-Host (RGB 0 255 200 "🧰 $($p.Name) was not installed through winget - bringing it under winget...")
+        $ia = @('install', '--id', 'Microsoft.PowerShell', '--exact', '--silent', '--accept-source-agreements', '--accept-package-agreements')
+        $iproc = Start-Process $wingetExe -ArgumentList $ia -NoNewWindow -PassThru
+        $null = $iproc.Handle
+        if (-not $iproc.WaitForExit($TimeoutMinutes * 60000)) {
+            try { Stop-Process -Id $iproc.Id -Force } catch {}
+            Write-Host (RGB 255 60 90 "⏰ PowerShell 7 timed out after ${TimeoutMinutes}m - skipped")
+            $fail += 'PowerShell 7 (timeout)'
+        }
+        elseif ($iproc.ExitCode -eq 0) {
+            Write-Host (RGB 80 255 120 '✅ PowerShell 7 is now installed through winget and up to date')
+            $ok += 'PowerShell 7'
+        }
+        elseif ($iproc.ExitCode -in -1978335135, -1978335189) {
+            Write-Host (RGB 150 150 255 '⏭️  PowerShell 7 - already current, kept as it is')
+        }
+        else {
+            Write-Host (RGB 255 60 90 "💥 PowerShell 7 failed (exit code $($iproc.ExitCode))")
+            $fail += "PowerShell 7 (exit $($iproc.ExitCode))"
+        }
     }
     else {
         Write-Host (RGB 255 60 90 "💥 $($p.Name) failed (exit code $($proc.ExitCode))")
