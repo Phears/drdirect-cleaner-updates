@@ -1,7 +1,7 @@
 {
-  "version": "1.4.197",
-  "notes": "Your DRDirect logo now shows in the menu and the title bar. New Full scan only button in the menu: one click runs a Microsoft Defender full scan and nothing else.",
-  "published": "2026-10-23T15:40:34.8310876-04:00",
+  "version": "1.4.198",
+  "notes": "When Defender scans, the blue bar now fills up as the scan goes, with a percentage, and the Cleaner learns how long your scans take so it gets more accurate each time. When the scan ends you are asked if you want to restart now or later.",
+  "published": "2026-10-23T15:48:03.0338082-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "92FED392D93DB7CD3FB2DB56389FC48CF89FD5606C258E3612D15D7E8DCF15A0",
-      "size": 489504
+      "sha256": "41E918B93B034C31A93FC268FC12027DC4734618FDFD4967C16D54184B900850",
+      "size": 491822
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

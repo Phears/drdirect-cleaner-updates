@@ -1428,6 +1428,7 @@ $childPidFile = Join-Path $env:TEMP ('DRDirect_child_{0}.pid' -f $PID)
 $env:DRDIRECT_CHILD_PID_FILE = $childPidFile
 $script:restartCountdownTimer = $null
 $script:restartSecondsLeft = 0
+$script:DRScanStart = $null; $script:DRScanTask = $null; $script:DRScanGuess = 1200.0
 $script:restartDelaySeconds = 0
 $script:restartCountdownBaseMessage = ''
 $analysisMode = $false
@@ -3987,6 +3988,32 @@ $pollTimer.Add_Tick({
     # cannot be pressed: a second run would wipe the first one's progress.
     try {
         $busyNow = Test-DRRunBusy
+        # Defender does not report a percentage while it scans, so the bar fills by time instead, using how long the last
+        # scan of this kind took (a first scan guesses). It slows near the end and never reaches 100% until Defender is done.
+        $scanningNow = [bool]($busyNow -and $activeTaskId -in @('security.full-scan','security.quick-scan'))
+        if ($scanningNow) {
+            if ($script:DRScanTask -ne $activeTaskId -or -not $script:DRScanStart) {
+                $script:DRScanTask = $activeTaskId; $script:DRScanStart = Get-Date
+                $script:DRScanGuess = if ($activeTaskId -eq 'security.full-scan') { 1200.0 } else { 180.0 }
+                try { $lastSecs = [double](Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('Last_' + $activeTaskId) -ErrorAction Stop).('Last_' + $activeTaskId); if ($lastSecs -ge 20) { $script:DRScanGuess = $lastSecs } } catch { }
+            }
+            $scanElapsed = ((Get-Date) - $script:DRScanStart).TotalSeconds
+            $scanFrac = $scanElapsed / $script:DRScanGuess
+            $scanPct = if ($scanFrac -lt 0.9) { 100 * $scanFrac } else { 90 + 9 * (1 - [Math]::Exp(-($scanFrac - 0.9) * 2)) }
+            $ui.OverallProgress.IsIndeterminate = $false; $ui.RunStripBar.IsIndeterminate = $false
+            $ui.OverallProgress.Value = $scanPct; $ui.RunStripBar.Value = $scanPct
+            $ui.ProgressPercent.Text = 'About ' + [int]$scanPct + '%'
+        } elseif ($script:DRScanStart) {
+            # The scan is over. A scan that finished on its own teaches the next one how long to take.
+            try {
+                $scanDone = @($runEvents | Where-Object { $_.TaskId -eq $script:DRScanTask -and $_.State -eq 'Completed' }).Count -gt 0
+                if ($scanDone) {
+                    if (-not (Test-Path -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner')) { New-Item -Path 'HKCU:\Software\DRDirect\PC Cleaner' -Force | Out-Null }
+                    Set-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('Last_' + $script:DRScanTask) -Value ([int]((Get-Date) - $script:DRScanStart).TotalSeconds) -Type DWord
+                }
+            } catch { }
+            $script:DRScanStart = $null
+        }
         # The progress box: always shows where a run is up to, on every page, and takes
         # you back to the progress page when clicked.
         if ($busyNow) { $script:DRWasBusy = $true }
