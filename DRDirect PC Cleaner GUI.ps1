@@ -5564,10 +5564,23 @@ function Complete-DRUpdateInstall {
                 # its parent check ("failed to obtain executable path for parent process")
                 # once the parent has gone. This asks PyInstaller to treat it as a fresh start.
                 $env:PYINSTALLER_RESET_ENVIRONMENT = '1'
-                # Wait until this copy has fully closed (the old window holds the "only one window" lock until
-                # its process is gone), then open the new one. A fixed pause was not long enough on a slow close.
-                $waitIds = (@($script:DRLauncherPids) | ForEach-Object { [string][int]$_ }) -join ','
-                $reopen = "foreach (`$i in @($waitIds)) { Wait-Process -Id `$i -Timeout 40 -ErrorAction SilentlyContinue }; Start-Sleep -Seconds 2; Start-Process -FilePath '$($launcher.Replace("'", "''"))'"
+                # Open the new copy once this one has gone. The old window holds the "only one window" lock until its
+                # process is gone, so a helper waits for it (up to 10 seconds), ends it if it is still there, and then
+                # starts the new one. It writes what it did to a small log so a missed restart can be traced.
+                $waitIds = (@(@($script:DRLauncherPids) + @([int]$PID)) | Select-Object -Unique | ForEach-Object { [string][int]$_ }) -join ','
+                $logFile = Join-Path (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Logs') 'Update_Relaunch.log'
+                $launcherQuoted = $launcher.Replace("'", "''")
+                $reopen = @(
+                    "`$log = '$($logFile.Replace("'", "''"))'",
+                    "function Say(`$m) { try { Add-Content -LiteralPath `$log -Value ((Get-Date).ToString('s') + ' ' + `$m) } catch { } }",
+                    "Say 'helper started; waiting for: $waitIds'",
+                    "`$ids = @($waitIds)",
+                    "`$deadline = (Get-Date).AddSeconds(10)",
+                    "while ((Get-Date) -lt `$deadline -and @(`$ids | Where-Object { Get-Process -Id `$_ -ErrorAction SilentlyContinue }).Count) { Start-Sleep -Milliseconds 300 }",
+                    "foreach (`$i in `$ids) { if (Get-Process -Id `$i -ErrorAction SilentlyContinue) { Say ('still running, ending ' + `$i); Stop-Process -Id `$i -Force -ErrorAction SilentlyContinue } }",
+                    "Start-Sleep -Seconds 2",
+                    "try { Start-Process -FilePath '$launcherQuoted'; Say 'opened the new copy' } catch { Say ('could not open: ' + `$_.Exception.Message) }"
+                ) -join '; '
                 $encodedReopen = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($reopen))
                 Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden `
                     -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-EncodedCommand', $encodedReopen

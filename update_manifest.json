@@ -1,7 +1,7 @@
 {
-  "version": "1.4.189",
-  "notes": "Max 3D now reaches every card, the left menu and the buttons, with shaded blue edges. All letters get a small shadow when the 3D look is on.",
-  "published": "2026-10-23T12:27:09.0050829-04:00",
+  "version": "1.4.190",
+  "notes": "After an update, the Cleaner now makes sure the old window is gone before it opens the new one, so it can no longer just stay on screen.",
+  "published": "2026-10-23T12:30:55.1150371-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "365307E98D325DE299504C0779FF30E786D10DF060A642DDC05C28D225703F3B",
-      "size": 428669
+      "sha256": "8C92E730B1A40E725C38EF18BD88876684ABE1DF29B519936AA99878267F81E4",
+      "size": 429841
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
