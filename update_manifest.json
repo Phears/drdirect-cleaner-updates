@@ -1,7 +1,7 @@
 {
-  "version": "1.4.196",
-  "notes": "New Smart App Control button in the menu and on the Dashboard. It opens the Windows page where you can switch Smart App Control on or off, in case Windows blocks the Cleaner from opening.",
-  "published": "2026-10-23T15:01:34.4618273-04:00",
+  "version": "1.4.197",
+  "notes": "Your DRDirect logo now shows in the menu and the title bar. New Full scan only button in the menu: one click runs a Microsoft Defender full scan and nothing else.",
+  "published": "2026-10-23T15:40:34.8310876-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "0006A0870CAFF20EEBA7966FDA43B35C2A4DEAE8155AA2472710D43345F04589",
-      "size": 437876
+      "sha256": "92FED392D93DB7CD3FB2DB56389FC48CF89FD5606C258E3612D15D7E8DCF15A0",
+      "size": 489504
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
