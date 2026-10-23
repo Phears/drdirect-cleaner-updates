@@ -1,7 +1,7 @@
 {
-  "version": "1.4.195",
-  "notes": "Menu names like Dashboard, Clean my PC and Fix Windows are now bright yellow, easier to read. The Show all tools button is now at the top of the menu, so you no longer have to scroll to find it. The Cleaner now opens at the same size and place you left it.",
-  "published": "2026-10-23T14:51:59.6189965-04:00",
+  "version": "1.4.196",
+  "notes": "New Smart App Control button in the menu and on the Dashboard. It opens the Windows page where you can switch Smart App Control on or off, in case Windows blocks the Cleaner from opening.",
+  "published": "2026-10-23T15:01:34.4618273-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "0B9164A11184566BF62DA41DAF78A53E6677B43FE67AE3DD9DE21420B43359C3",
-      "size": 436681
+      "sha256": "0006A0870CAFF20EEBA7966FDA43B35C2A4DEAE8155AA2472710D43345F04589",
+      "size": 437876
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
