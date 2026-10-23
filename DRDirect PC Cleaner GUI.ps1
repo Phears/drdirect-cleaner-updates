@@ -971,6 +971,7 @@ $ErrorActionPreference = 'Stop'
                     <TextBlock x:Name="NavHeadUpdate" Text="UPDATE" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold" Margin="20,16,0,4"/>
                     <Button x:Name="NavAppUpdates" Style="{StaticResource WingetNavButton}" Content="⭳   Update my apps" Margin="10,4,10,4" ToolTip="Update every app with winget, in a colour PowerShell window"/>
                     <Button x:Name="NavModeToggle" Style="{StaticResource HeroGreenButton}" Margin="10,18,10,4" Padding="14,11" FontSize="15" FontWeight="Bold" Content="＋  Show all tools" ToolTip="Switch between the simple view and every tool"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFC04D" Offset="0"/><GradientStop Color="#F08200" Offset="1"/></LinearGradientBrush></Button.Background></Button>
+                    <Button x:Name="NavNoteButton" Content="Please read first  :)" Style="{StaticResource HeroGreenButton}" Margin="10,10,10,4" Padding="14,11" FontSize="15" FontWeight="Bold" ToolTip="Click to read a short, friendly note"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#5BE584" Offset="0"/><GradientStop Color="#13A64A" Offset="1"/></LinearGradientBrush></Button.Background></Button>
                 </StackPanel>
                 </ScrollViewer>
                 <Border x:Name="NavMoreHint" Grid.Row="1" Visibility="Collapsed" VerticalAlignment="Bottom" Height="64" Cursor="Hand" ToolTip="Scroll down for more tools"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#0015253D" Offset="0"/><GradientStop Color="#F015253D" Offset="0.62"/><GradientStop Color="#FF15253D" Offset="1"/></LinearGradientBrush></Border.Background><TextBlock Text="▼   More tools below" Foreground="#FFC04D" FontSize="14" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,8"/></Border>
@@ -995,6 +996,7 @@ $ErrorActionPreference = 'Stop'
 <TextBlock x:Name="DashOtherTitle" Text="Other things you can do" FontSize="18" FontWeight="ExtraBold" Margin="0,0,0,10"/>
 <UniformGrid x:Name="DashOtherGrid" Columns="3" Margin="0,0,0,14"><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Check my PC" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Checks your drives (SSD and NVMe too), memory, processor and heat in one go. Nothing is changed." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="ScanButton" Content="Check my PC" Style="{StaticResource HeroGreenButton}" FontSize="14" Padding="20,9" HorizontalAlignment="Left"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#4FC3FF" Offset="0"/><GradientStop Color="#1E6FE8" Offset="1"/></LinearGradientBrush></Button.Background></Button></StackPanel></Border><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Past results" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Look at what the Cleaner did before." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="LastReportButton" Content="See past results" Style="{StaticResource HeroGreenButton}" FontSize="14" Padding="20,9" HorizontalAlignment="Left"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#3EE0C8" Offset="0"/><GradientStop Color="#0E9F8A" Offset="1"/></LinearGradientBrush></Button.Background></Button></StackPanel></Border><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Update the Cleaner" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Look for a newer version of the Cleaner." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="CheckUpdatesButton" Content="Update this program" Style="{StaticResource HeroGreenButton}" FontSize="14" Padding="20,9" HorizontalAlignment="Left"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFC04D" Offset="0"/><GradientStop Color="#F08200" Offset="1"/></LinearGradientBrush></Button.Background></Button></StackPanel></Border></UniformGrid>
 <StackPanel x:Name="DashMsTools" Margin="0,0,0,22"><TextBlock Text="MS Tools" FontSize="18" FontWeight="ExtraBold" Margin="0,0,0,10"/><Button x:Name="PCManagerButton" Style="{StaticResource HeroGreenButton}" FontSize="14" Padding="20,9" Foreground="White" HorizontalAlignment="Left" Margin="0,0,0,0" ToolTip="Opens Microsoft PC Manager, or its Microsoft Store page if it is not installed"><StackPanel Orientation="Horizontal"><Grid Width="22" Height="22" Margin="0,0,10,0" VerticalAlignment="Center" Effect="{DynamicResource DR3DText}"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions><Rectangle Margin="0,0,1,1" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Column="1" Margin="1,0,0,1" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Row="1" Margin="0,1,1,0" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Row="1" Grid.Column="1" Margin="1,1,0,0" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle></Grid><TextBlock Text="Microsoft PC Manager" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button><TextBlock Text="If it did not do the job, or you want your PC spotless, use DRDirect PC Cleaner for a deeper clean-up." Style="{StaticResource MutedText}" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left" Margin="0,10,0,0"/></StackPanel>
+<Button x:Name="DashNoteButton" Content="Please read first  :)" Style="{StaticResource SecondaryButton}" FontSize="13" Padding="16,8" HorizontalAlignment="Left" Margin="0,4,0,24" ToolTip="Click to read a short, friendly note"/>
 <Expander x:Name="DashMoreOptions" Header="More options: choose how deep to clean, and see recent changes" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,18"><StackPanel Margin="0,12,0,0"><Grid Margin="0,0,0,18"><Grid.ColumnDefinitions><ColumnDefinition Width="1*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
                             <Grid Margin="0,0,16,10"><Border CornerRadius="14" Background="#16275A" Margin="0,10,0,0" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,0,10" Effect="{x:Null}">
                                 <StackPanel>
@@ -1278,7 +1280,7 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('NavScroll','NavMoreHint','NavHeadClean','NavHeadFix','NavHeadCheck','DashMoreHint','DashShowAllButton','NavModeToggle','NavHeadUpdate','DashOtherTitle','DashOtherGrid','DashMsTools','DashMoreOptions','SoundSwitch','Max3DSwitch','AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavPowerHeat','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','LastCleanCard','LastCleanLightBlue','LastCleanLightRed','LastCleanValue','LastCleanHint','LastCleanQuickScan','LastCleanFullScan','CleanCheckAllButton','CleanCheckOffButton','PresetSafeDate','PresetMediumDate','PresetAdvancedDate','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('NavScroll','NavMoreHint','NavHeadClean','NavHeadFix','NavHeadCheck','DashMoreHint','DashShowAllButton','NavModeToggle','NavHeadUpdate','DashOtherTitle','DashOtherGrid','DashMsTools','DashMoreOptions','SoundSwitch','Max3DSwitch','DashNoteButton','NavNoteButton','AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavPowerHeat','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','LastCleanCard','LastCleanLightBlue','LastCleanLightRed','LastCleanValue','LastCleanHint','LastCleanQuickScan','LastCleanFullScan','CleanCheckAllButton','CleanCheckOffButton','PresetSafeDate','PresetMediumDate','PresetAdvancedDate','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -2607,6 +2609,18 @@ function Set-DRLevelDates {
     }
 }
 
+function Test-DRRestartReminderDue {
+    # The restart reminder shows when the Cleaner opens after a clean that needs a restart. If the person says No, it
+    # comes back after 2 days, and keeps coming back every 2 days until the PC has been restarted.
+    param([string]$RegistryKey, [datetime]$Now = (Get-Date), [double]$QuietDays = 2)
+    try {
+        $last = [string](Get-ItemProperty -LiteralPath $RegistryKey -Name 'RestartLastReminded' -ErrorAction Stop).RestartLastReminded
+        $lastTime = [datetime]::Parse($last, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::RoundtripKind)
+        if (($Now - $lastTime).TotalDays -lt $QuietDays) { return $false }
+    } catch { }
+    return $true
+}
+
 function Update-SelectionSummary {
     $selected = @($catalog | Where-Object { $selection[$_.Id] })
     $total = @($selected).Count
@@ -3472,6 +3486,8 @@ function Complete-RunPlan {
         try {
             if (-not (Test-Path -LiteralPath $script:DR3DKey)) { New-Item -Path $script:DR3DKey -Force | Out-Null }
             Set-ItemProperty -LiteralPath $script:DR3DKey -Name 'RestartOwedSince' -Value ((Get-Date).ToString('o')) -Type String
+            # A new clean starts the reminders fresh, so the next time the Cleaner opens it reminds right away.
+            Remove-ItemProperty -LiteralPath $script:DR3DKey -Name 'RestartLastReminded' -ErrorAction SilentlyContinue
         } catch { }
     }
     if ($needsRestart -and -not $cancelAfterTask) {
@@ -4975,6 +4991,42 @@ $ui.NavDuplicates.Add_Click({ $ui.OpenDuplicatesButton.RaiseEvent((New-Object Wi
 $ui.NavAI.Add_Click({ Set-Page 'AI' })
 $ui.NavProgress.Add_Click({ Set-Page 'Progress' })
 $ui.DashboardHistoryButton.Add_Click({ Set-Page 'History' })
+# A short, friendly note that opens when the person clicks the link on the Dashboard.
+function Show-DRNote {
+    $text = @(
+        'My goal is simple: to make Windows run better on every PC.',
+        '',
+
+        'I clear the junk, fix what is broken and give your PC a good tune-up, and I really am trying to make it last longer. I am not perfect, you know, but I am doing my best to keep it alive. But sometimes I have to say what nobody wants to hear: an old PC can only do so much.',
+        '',
+        'It happens to every PC, and to all of us. As we get older, we get slower too. We all take longer to get going in the morning, we all forget things for no reason, and we all groan when someone asks too much at once.',
+        '',
+        'So if a PC still crawls after a clean, it is nobody''s fault. It may simply be ready to retire to a quiet life on a shelf, with a gold watch and a farewell cake. Give it a good send-off, and when the new one arrives, I will keep that one running nicely too.',
+        '',
+        '- DRDirect'
+    ) -join [Environment]::NewLine
+    [void][Windows.MessageBox]::Show($text, 'Please read first', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information)
+}
+$ui.DashNoteButton.Add_Click({ Show-DRNote })
+$ui.NavNoteButton.Add_Click({ Show-DRNote })
+# The note is only there for the first week the Cleaner is used. After that people know about it, so both buttons go away.
+$script:DRNoteFirstSeen = $null
+try {
+    $storedNoteDate = [string](Get-ItemProperty -LiteralPath $script:DR3DKey -Name 'NoteFirstSeen' -ErrorAction Stop).NoteFirstSeen
+    $script:DRNoteFirstSeen = [datetime]::Parse($storedNoteDate, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::RoundtripKind)
+} catch { }
+if (-not $script:DRNoteFirstSeen) {
+    $script:DRNoteFirstSeen = Get-Date
+    if (-not $TestMode) {
+        try {
+            if (-not (Test-Path -LiteralPath $script:DR3DKey)) { New-Item -Path $script:DR3DKey -Force | Out-Null }
+            Set-ItemProperty -LiteralPath $script:DR3DKey -Name 'NoteFirstSeen' -Value ($script:DRNoteFirstSeen.ToString('o')) -Type String
+        } catch { }
+    }
+}
+$noteVisibility = if (((Get-Date) - $script:DRNoteFirstSeen).TotalDays -lt 7) { 'Visible' } else { 'Collapsed' }
+$ui.DashNoteButton.Visibility = $noteVisibility
+$ui.NavNoteButton.Visibility = $noteVisibility
 # Check my PC looks at everything in one go: every drive (SSD and NVMe too), memory, the processor and heat, and the power.
 $ui.ScanButton.Add_Click({ Invoke-DRAIRunNow -TaskIds @('health.drive-check', 'health.ram-check', 'health.power-heat-check', 'health.pc-checkup') })
 $ui.HealthCheckButton.Add_Click({ Start-DRHealthCheck })
@@ -6027,12 +6079,19 @@ if ($NoShow) {
             $booted = (Get-CimInstance Win32_OperatingSystem -ErrorAction Stop).LastBootUpTime
             if ($booted -gt $since) {
                 Remove-ItemProperty -LiteralPath $script:DR3DKey -Name 'RestartOwedSince' -ErrorAction SilentlyContinue
+                Remove-ItemProperty -LiteralPath $script:DR3DKey -Name 'RestartLastReminded' -ErrorAction SilentlyContinue
                 return
             }
+            # Said No recently? Then stay quiet; the reminder comes back after 2 days.
+            if (-not (Test-DRRestartReminderDue -RegistryKey $script:DR3DKey)) { return }
             # The person chooses. No is the default answer, so pressing Enter or Space never restarts the PC
             # by accident: only an explicit click on Yes does, and even then Windows waits 30 seconds first.
             $answer = [Windows.MessageBox]::Show("Reminder: this PC has not been restarted since the last clean, and Windows may still be finishing the changes.`n`nRestart now? Save your open work first.`n`nChoose No to restart later yourself. Nothing restarts unless you choose Yes.",
                 'DRDirect PC Cleaner', [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question, [Windows.MessageBoxResult]::No)
+            if ($answer -ne [Windows.MessageBoxResult]::Yes) {
+                # No: ask again in 2 days, and every 2 days after that until the PC has been restarted.
+                try { Set-ItemProperty -LiteralPath $script:DR3DKey -Name 'RestartLastReminded' -Value ((Get-Date).ToString('o')) -Type String } catch { }
+            }
             if ($answer -eq [Windows.MessageBoxResult]::Yes) {
                 try { Invoke-DRDirectRestartNow -DelaySeconds 30 }
                 catch { [void][Windows.MessageBox]::Show("The PC could not be restarted from here: $($_.Exception.Message)`n`nRestart it yourself when you are ready.", 'DRDirect PC Cleaner', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Warning) }

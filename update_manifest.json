@@ -1,7 +1,7 @@
 {
-  "version": "1.4.192",
-  "notes": "Check my PC now checks everything in one go: your drives (SSD and NVMe too), memory, processor, heat and power. The three Check buttons can be pressed any time. A green tick lasts 7 days, then a small green dot, and after 30 days a big red dot says it needs checking. A serious problem shows red and blue lights on the button. Text shadows are a little softer.",
-  "published": "2026-10-23T13:19:08.5052006-04:00",
+  "version": "1.4.193",
+  "notes": "A friendly Please read first note from DRDirect appears for the first week. If you say No to the restart reminder, it asks again after 2 days, until the PC has been restarted.",
+  "published": "2026-10-23T13:50:49.5822645-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "3C4A0037296182319C58D1C0B7461655CF3B3A825DADE968DEF946DFFF62DB90",
-      "size": 429355
+      "sha256": "24BC1D0A3850B15E1E33378DC62AD9D5EFD10E6E0DF9F7C187F6570969117C16",
+      "size": 434042
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
