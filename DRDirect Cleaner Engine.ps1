@@ -1198,6 +1198,7 @@ function Invoke-DRDriveHealth {
         $sizeBytes = Get-DRDiskProperty $disk 'Size'
 
         $concernsBefore = $concerns
+        $driveSerious = $false
         $lines = New-Object System.Collections.Generic.List[string]
         if ($sizeBytes) { $lines.Add(('Size: {0:N0} GB' -f ($sizeBytes / 1GB))) }
         if ($media) { $lines.Add(('Type: {0}' -f $media)) }
@@ -1271,6 +1272,7 @@ function Invoke-DRDriveHealth {
         } elseif ($health) {
             $concerns++
             $verdict = 'Windows reports this drive as "{0}". Back up anything important on it now and have the drive replaced.' -f $health
+            $driveSerious = $true
         } else {
             $verdict = 'This drive did not report a health status. That is normal for some external drives.'
         }
@@ -1278,11 +1280,13 @@ function Invoke-DRDriveHealth {
         if ($null -ne $readErrors -and $readErrors -gt 0) {
             $concerns++
             $lines.Add(('This drive has failed to read data {0} time(s) without being able to correct it. That is an early sign of a failing drive.' -f $readErrors))
+            $driveSerious = $true
         }
         $writeErrors = Get-DRDiskProperty $counter 'WriteErrorsUncorrected'
         if ($null -ne $writeErrors -and $writeErrors -gt 0) {
             $concerns++
             $lines.Add(('This drive has failed to write data {0} time(s) without being able to correct it. That is an early sign of a failing drive.' -f $writeErrors))
+            $driveSerious = $true
         }
         $operational = @(Get-DRDiskProperty $disk 'OperationalStatus' | Where-Object { $_ -and ([string]$_ -ne 'OK') })
         if ($operational.Count) {
@@ -1296,7 +1300,7 @@ function Invoke-DRDriveHealth {
 
         $lines.Add($verdict)
         $hasProblem = ($concerns -gt $concernsBefore)
-        $headline = if ($hasProblem) { 'PROBLEM FOUND' } elseif ($health -eq 'Healthy') { 'NO PROBLEMS FOUND' } else { 'NO PROBLEMS REPORTED' }
+        $headline = if ($driveSerious) { 'SERIOUS PROBLEM' } elseif ($hasProblem) { 'PROBLEM FOUND' } elseif ($health -eq 'Healthy') { 'NO PROBLEMS FOUND' } else { 'NO PROBLEMS REPORTED' }
         $state = if ($hasProblem -or ($health -and $health -ne 'Healthy')) { 'Warning' } else { 'Information' }
         New-DREvent -TaskId $TaskId -State $state -Message ("{0}: {1}`r`n  {2}" -f $name, $headline, ($lines -join "`r`n  "))
     }
@@ -1381,11 +1385,12 @@ function Invoke-DRRamCheck {
     # Memory errors Windows has logged: hardware errors that mention memory, and the
     # result of any earlier Windows Memory Diagnostic run.
     $since = (Get-Date).AddDays(-30)
-    $memoryErrors = 0
+    $memoryErrors = 0; $ramSerious = $false
     try {
         $events = @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; ProviderName = 'Microsoft-Windows-WHEA-Logger'; StartTime = $since } -MaxEvents 200 -ErrorAction Stop)
         $memoryErrors = @($events | Where-Object { $_.Message -match 'memory' }).Count
     } catch { }
+    if ($memoryErrors -ge 3) { $ramSerious = $true }
     if ($memoryErrors -gt 0) {
         $problem = $true
         $lines.Add(('Windows recorded {0} hardware error(s) mentioning memory in the last 30 days. That can mean faulty or badly seated RAM. Run the "Memory test" in Fix Windows to check it properly.' -f $memoryErrors))
@@ -1398,14 +1403,14 @@ function Invoke-DRRamCheck {
         if ($last.Count) {
             $when = $last[0].TimeCreated.ToString('d MMM yyyy')
             if ($last[0].Id -eq 1101) { $lines.Add(('The last Windows memory test ({0}) found no errors.' -f $when)) }
-            else { $problem = $true; $lines.Add(('The last Windows memory test ({0}) reported a problem. Replace or reseat the RAM, and back up anything important.' -f $when)) }
+            else { $problem = $true; $ramSerious = $true; $lines.Add(('The last Windows memory test ({0}) reported a problem. Replace or reseat the RAM, and back up anything important.' -f $when)) }
         }
     } catch {
         $lines.Add('The Windows memory test has not been run on this PC yet (it is in Fix Windows). Only that test can prove RAM is fault-free.')
     }
     $lines.Add('Nothing was changed on this PC.')
 
-    $headline = if ($problem) { 'Memory (RAM): PROBLEM FOUND' } else { 'Memory (RAM): NO PROBLEMS FOUND' }
+    $headline = if ($ramSerious) { 'Memory (RAM): SERIOUS PROBLEM' } elseif ($problem) { 'Memory (RAM): PROBLEM FOUND' } else { 'Memory (RAM): NO PROBLEMS FOUND' }
     $state = if ($problem) { 'Warning' } else { 'Information' }
     New-DREvent -TaskId $TaskId -State $state -Message ("{0}`r`n  {1}" -f $headline, ($lines -join "`r`n  "))
 }
@@ -1419,6 +1424,14 @@ function Invoke-DRPowerHeatCheck {
     $lines = New-Object System.Collections.Generic.List[string]
     $problem = $false
     $since = (Get-Date).AddDays(-30)
+
+    # The processor itself: which one it is, how busy it is, and how fast it is running against its top speed.
+    try {
+        $cpu = @(Get-CimInstance Win32_Processor -ErrorAction Stop)[0]
+        $load = $cpu.LoadPercentage
+        $lines.Add(('Processor: {0} ({1} cores, {2} threads).' -f (([string]$cpu.Name) -replace '\s+', ' ').Trim(), $cpu.NumberOfCores, $cpu.NumberOfLogicalProcessors))
+        if ($cpu.MaxClockSpeed) { $lines.Add(('Speed now {0:N2} GHz of up to {1:N2} GHz, busy {2}% right now.' -f ($cpu.CurrentClockSpeed / 1000), ($cpu.MaxClockSpeed / 1000), $load)) }
+    } catch { }
 
     # Sudden power loss or hard resets: Kernel-Power event 41 with no crash code means the PC lost power.
     $powerLoss = 0; $crashes = 0
@@ -1489,7 +1502,11 @@ function Invoke-DRPowerHeatCheck {
     $lines.Add('Games lagging? Heat is a possible cause: when the processor or graphics card gets too hot, it slows itself down to cool off, and games stutter.')
     $lines.Add('Nothing was changed on this PC.')
 
-    $headline = if ($problem) { 'Power and heat: SIGNS OF A PROBLEM' } else { 'Power and heat: NO PROBLEMS FOUND' }
+    # Serious (the Cleaner shows red and blue lights): repeated sudden power loss, a very hot reading, or the processor
+    # held back by heat or power limits again and again. Anything milder is a yellow warning.
+    $serious = ($powerLoss -ge 3) -or ($null -ne $hottest -and $hottest -ge 90) -or ($slowed -ge 30)
+    if ($serious) { $lines.Add('This is serious. Switch the PC off and let it cool, clean the dust from the fans and heatsinks, and have the power supply checked before using it hard again.') }
+    $headline = if ($serious) { 'Power and heat: SERIOUS PROBLEM' } elseif ($problem) { 'Power and heat: SIGNS OF A PROBLEM' } else { 'Power and heat: NO PROBLEMS FOUND' }
     $state = if ($problem) { 'Warning' } else { 'Information' }
     New-DREvent -TaskId $TaskId -State $state -Message ("{0}`r`n  {1}" -f $headline, ($lines -join "`r`n  "))
 }

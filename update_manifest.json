@@ -1,7 +1,7 @@
 {
-  "version": "1.4.191",
-  "notes": "The Max 3D switch now only appears after you turn the 3D look on, so the Cleaner always starts plain and flat on a new PC.",
-  "published": "2026-10-23T12:42:32.5988429-04:00",
+  "version": "1.4.192",
+  "notes": "Check my PC now checks everything in one go: your drives (SSD and NVMe too), memory, processor, heat and power. The three Check buttons can be pressed any time. A green tick lasts 7 days, then a small green dot, and after 30 days a big red dot says it needs checking. A serious problem shows red and blue lights on the button. Text shadows are a little softer.",
+  "published": "2026-10-23T13:19:08.5052006-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "0734AC476D54128790AE6A69C6CDF1573CA2BAC5E4252D7253CF75E881E04B83",
-      "size": 430169
+      "sha256": "3C4A0037296182319C58D1C0B7461655CF3B3A825DADE968DEF946DFFF62DB90",
+      "size": 429355
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "B6733C0A7CB94BD2D75F0A5422836B540897DA4F69BD9C7E311FAE3AA79610DC",
-      "size": 321634
+      "sha256": "9F8060B498212B0757325572A637CBB3826469B2AEF0FDFCDAF8096EAAC9ECDE",
+      "size": 323147
     },
     {
       "name": "DRDirect Updater.ps1",

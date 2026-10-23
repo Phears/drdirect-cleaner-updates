@@ -189,7 +189,7 @@ $ErrorActionPreference = 'Stop'
         <DropShadowEffect x:Key="DR3DHeroText" Color="#000820" Direction="300" ShadowDepth="3.5" BlurRadius="3" Opacity="0.85"/>
         <DropShadowEffect x:Key="DR3DCardSoft" Color="#6B82A6" BlurRadius="26" ShadowDepth="5" Direction="270" Opacity="0.22"/>
         <LinearGradientBrush x:Key="DR3DCardFace" StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#EEF6FF" Offset="0"/><GradientStop Color="#DFEDFF" Offset="0.5"/><GradientStop Color="#CFE2FB" Offset="1"/></LinearGradientBrush>
-        <DropShadowEffect x:Key="DR3DLetter" Color="#0A1438" Direction="270" ShadowDepth="1" BlurRadius="2" Opacity="0.22"/>
+        <DropShadowEffect x:Key="DR3DLetter" Color="#0A1438" Direction="270" ShadowDepth="1" BlurRadius="1.5" Opacity="0.18"/>
         <SolidColorBrush x:Key="DR3DSlabA" Color="#B0000814"/>
         <SolidColorBrush x:Key="DR3DSlabB" Color="#B3000A30"/>
         <Visibility x:Key="DR3DParts">Visible</Visibility>
@@ -993,7 +993,7 @@ $ErrorActionPreference = 'Stop'
                         </UniformGrid>
 <Border x:Name="DashMoreHint" Visibility="Collapsed" Style="{StaticResource Card}" Padding="22,16" Margin="0,0,0,22" BorderBrush="#F08200" BorderThickness="2"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center"><TextBlock Text="There are more tools here" FontSize="18" FontWeight="ExtraBold" Foreground="#9A4B00"/><TextBlock Text="Find duplicate files, speed and space, security, drive and memory checks, Hibernate, app updates and more." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,4,12,0"/></StackPanel><Button x:Name="DashShowAllButton" Grid.Column="1" Style="{StaticResource HeroGreenButton}" Padding="18,10" FontSize="15" FontWeight="Bold" Content="＋  Show all tools" VerticalAlignment="Center"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFC04D" Offset="0"/><GradientStop Color="#F08200" Offset="1"/></LinearGradientBrush></Button.Background></Button></Grid></Border>
 <TextBlock x:Name="DashOtherTitle" Text="Other things you can do" FontSize="18" FontWeight="ExtraBold" Margin="0,0,0,10"/>
-<UniformGrid x:Name="DashOtherGrid" Columns="3" Margin="0,0,0,14"><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Check my PC" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="See how much space you can free. Nothing is changed." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="ScanButton" Content="Check my PC" Style="{StaticResource HeroGreenButton}" FontSize="14" Padding="20,9" HorizontalAlignment="Left"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#4FC3FF" Offset="0"/><GradientStop Color="#1E6FE8" Offset="1"/></LinearGradientBrush></Button.Background></Button></StackPanel></Border><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Past results" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Look at what the Cleaner did before." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="LastReportButton" Content="See past results" Style="{StaticResource HeroGreenButton}" FontSize="14" Padding="20,9" HorizontalAlignment="Left"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#3EE0C8" Offset="0"/><GradientStop Color="#0E9F8A" Offset="1"/></LinearGradientBrush></Button.Background></Button></StackPanel></Border><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Update the Cleaner" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Look for a newer version of the Cleaner." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="CheckUpdatesButton" Content="Update this program" Style="{StaticResource HeroGreenButton}" FontSize="14" Padding="20,9" HorizontalAlignment="Left"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFC04D" Offset="0"/><GradientStop Color="#F08200" Offset="1"/></LinearGradientBrush></Button.Background></Button></StackPanel></Border></UniformGrid>
+<UniformGrid x:Name="DashOtherGrid" Columns="3" Margin="0,0,0,14"><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Check my PC" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Checks your drives (SSD and NVMe too), memory, processor and heat in one go. Nothing is changed." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="ScanButton" Content="Check my PC" Style="{StaticResource HeroGreenButton}" FontSize="14" Padding="20,9" HorizontalAlignment="Left"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#4FC3FF" Offset="0"/><GradientStop Color="#1E6FE8" Offset="1"/></LinearGradientBrush></Button.Background></Button></StackPanel></Border><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Past results" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Look at what the Cleaner did before." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="LastReportButton" Content="See past results" Style="{StaticResource HeroGreenButton}" FontSize="14" Padding="20,9" HorizontalAlignment="Left"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#3EE0C8" Offset="0"/><GradientStop Color="#0E9F8A" Offset="1"/></LinearGradientBrush></Button.Background></Button></StackPanel></Border><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,12,0"><StackPanel><TextBlock Text="Update the Cleaner" FontSize="18" FontWeight="ExtraBold"/><TextBlock Text="Look for a newer version of the Cleaner." Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,6,0,14" MinHeight="40"/><Button x:Name="CheckUpdatesButton" Content="Update this program" Style="{StaticResource HeroGreenButton}" FontSize="14" Padding="20,9" HorizontalAlignment="Left"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFC04D" Offset="0"/><GradientStop Color="#F08200" Offset="1"/></LinearGradientBrush></Button.Background></Button></StackPanel></Border></UniformGrid>
 <StackPanel x:Name="DashMsTools" Margin="0,0,0,22"><TextBlock Text="MS Tools" FontSize="18" FontWeight="ExtraBold" Margin="0,0,0,10"/><Button x:Name="PCManagerButton" Style="{StaticResource HeroGreenButton}" FontSize="14" Padding="20,9" Foreground="White" HorizontalAlignment="Left" Margin="0,0,0,0" ToolTip="Opens Microsoft PC Manager, or its Microsoft Store page if it is not installed"><StackPanel Orientation="Horizontal"><Grid Width="22" Height="22" Margin="0,0,10,0" VerticalAlignment="Center" Effect="{DynamicResource DR3DText}"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions><Rectangle Margin="0,0,1,1" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Column="1" Margin="1,0,0,1" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Row="1" Margin="0,1,1,0" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Rectangle Grid.Row="1" Grid.Column="1" Margin="1,1,0,0" RadiusX="1.5" RadiusY="1.5" Stroke="#0A5A2C" StrokeThickness="0.6"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#B6FFD2" Offset="0"/><GradientStop Color="#2BE37A" Offset="0.45"/><GradientStop Color="#0B7A3B" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle></Grid><TextBlock Text="Microsoft PC Manager" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button><TextBlock Text="If it did not do the job, or you want your PC spotless, use DRDirect PC Cleaner for a deeper clean-up." Style="{StaticResource MutedText}" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Left" Margin="0,10,0,0"/></StackPanel>
 <Expander x:Name="DashMoreOptions" Header="More options: choose how deep to clean, and see recent changes" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,18"><StackPanel Margin="0,12,0,0"><Grid Margin="0,0,0,18"><Grid.ColumnDefinitions><ColumnDefinition Width="1*"/><ColumnDefinition Width="1*"/></Grid.ColumnDefinitions>
                             <Grid Margin="0,0,16,10"><Border CornerRadius="14" Background="#16275A" Margin="0,10,0,0" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/><Border Style="{StaticResource Card}" Padding="22" Margin="0,0,0,10" Effect="{x:Null}">
@@ -1343,6 +1343,10 @@ $script:DRNoRestartTaskIds = @('health.chkdsk','health.drive-check','health.pc-c
     'ai.chrome.reinstall','ai.brave.reinstall','ai.firefox.reinstall')
 # The "Turn off" choices "Turn off all AI" picks, filled as the AI rows are drawn.
 $script:DRCheckWarned = @{}
+$script:DRCheckSevere = @{}
+$script:DRNavLights = @{}
+$script:DRNavLightTimer = $null
+$script:DRNavLightOn = $false
 $script:DRNavState = @{}
 $script:DRSavedSelection = $null
 $script:DRWasBusy = $false
@@ -1819,7 +1823,7 @@ function Invoke-DRAIRunNow {
         if ($answer -ne [Windows.MessageBoxResult]::Yes) { return }
     }
     # The one-click checks must not cost the person the ticks they had already set.
-    if (@($TaskIds | Where-Object { $_ -in @('health.drive-check', 'health.ram-check', 'health.power-heat-check') }).Count) {
+    if (@($TaskIds | Where-Object { $_ -in @('health.drive-check', 'health.ram-check', 'health.power-heat-check', 'health.pc-checkup') }).Count) {
         $script:DRSavedSelection = @{}
         foreach ($key in @($selection.Keys)) { $script:DRSavedSelection[$key] = [bool]$selection[$key] }
     }
@@ -2691,23 +2695,66 @@ function New-ProgressRow {
 function Set-DRNavCheckMark {
     # The mark beside a menu item: a small red dot until its check has run, then a
     # green tick when it passed or a yellow warning sign when something needs attention.
-    param([string]$NavName, [string]$Label, [ValidateSet('Unchecked','Good','Attention')][string]$Status, [string]$Tip = '')
+    param([string]$NavName, [string]$Label, [ValidateSet('Unchecked','Good','Expired','Attention')][string]$Status, [string]$Tip = '', [bool]$Severe = $false)
     $button = $ui[$NavName]
     if (-not $button) { return }
     $script:DRNavState[$NavName] = $Status
     [Windows.Controls.ToolTipService]::SetShowOnDisabled($button, $true)
     $panel = New-Object Windows.Controls.StackPanel -Property @{ Orientation = 'Horizontal' }
     [void]$panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = $Label; VerticalAlignment = 'Center' }))
-    $mark = switch ($Status) { 'Good' { [string][char]0x2714 } 'Attention' { [string][char]0x26A0 } default { [string][char]0x25CF } }
-    $color = switch ($Status) { 'Good' { '#2BE37A' } 'Attention' { '#FACC15' } default { '#EF4444' } }
-    [void]$panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = $mark; Margin = '10,0,0,0'; Foreground = $color; FontWeight = 'Bold'; FontSize = $(if ($Status -eq 'Unchecked') { 11 } else { 17 }); VerticalAlignment = 'Center' }))
+    $mark = switch ($Status) { 'Good' { [string][char]0x2714 } 'Attention' { [string][char]0x26A0 } default { [string][char]0x25CF } }  # 'Expired' and 'Unchecked' are both a dot
+    $color = switch ($Status) { 'Good' { '#2BE37A' } 'Expired' { '#2BE37A' } 'Attention' { '#FACC15' } default { '#EF4444' } }
+    [void]$panel.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = $mark; Margin = $(if ($NavName -eq 'NavPowerHeat' -or $Status -eq 'Unchecked') { '4,0,0,0' } else { '10,0,0,0' }); Foreground = $color; FontWeight = 'Bold'; FontSize = $(if ($Status -eq 'Unchecked') { 20 } elseif ($Status -eq 'Expired') { 12 } else { 17 }); VerticalAlignment = 'Center' }))
+    # A serious result also gets red and blue lights that take turns, like an emergency light.
+    if (-not $script:DRNavLights) { $script:DRNavLights = @{} }
+    if ($Severe -and $Status -eq 'Attention') {
+        $blue = New-Object Windows.Shapes.Ellipse -Property @{ Width = 10; Height = 10; Fill = '#1E90FF'; Margin = '0,0,2,0'; VerticalAlignment = 'Center' }
+        $red = New-Object Windows.Shapes.Ellipse -Property @{ Width = 10; Height = 10; Fill = '#E02424'; Margin = '0,0,6,0'; VerticalAlignment = 'Center' }
+        $blue.Effect = New-Object Windows.Media.Effects.DropShadowEffect -Property @{ Color = [Windows.Media.ColorConverter]::ConvertFromString('#1E90FF'); BlurRadius = 12; ShadowDepth = 0; Opacity = 0.95 }
+        $red.Effect = New-Object Windows.Media.Effects.DropShadowEffect -Property @{ Color = [Windows.Media.ColorConverter]::ConvertFromString('#E02424'); BlurRadius = 12; ShadowDepth = 0; Opacity = 0.95 }
+        # With the lights on, the label and mark are a little smaller so everything fits on the button.
+        $panel.Children[0].FontSize = 13.5; $panel.Children[1].Margin = '6,0,0,0'; $panel.Children[1].FontSize = 15
+        # Keep the label in the button's own colour (it turned dark when the lights were added).
+        $panel.Children[0].SetBinding([Windows.Controls.TextBlock]::ForegroundProperty, (New-Object Windows.Data.Binding -Property @{ Path = [Windows.PropertyPath]'Foreground'; Source = $button })) | Out-Null
+        # The lights sit at the left of the label so a long label can never push them off the button.
+        $panel.Children.Insert(0, $red); $panel.Children.Insert(0, $blue)
+        $script:DRNavLights[$NavName] = @($blue, $red)
+        if (-not $Tip) { $Tip = 'Serious: this needs attention now. Click to check again.' }
+    } else {
+        [void]$script:DRNavLights.Remove($NavName)
+    }
+    # One timer makes every set of lights take turns, and it stops when none are left.
+    if ($script:DRNavLights.Count -and -not $script:DRNavLightTimer) {
+        $script:DRNavLightOn = $false
+        $script:DRNavLightTimer = New-Object Windows.Threading.DispatcherTimer
+        $script:DRNavLightTimer.Interval = [TimeSpan]::FromMilliseconds(450)
+        $script:DRNavLightTimer.Add_Tick({
+            $script:DRNavLightOn = -not $script:DRNavLightOn
+            foreach ($pair in @($script:DRNavLights.Values)) {
+                $pair[0].Opacity = $(if ($script:DRNavLightOn) { 1.0 } else { 0.15 })
+                $pair[1].Opacity = $(if ($script:DRNavLightOn) { 0.15 } else { 1.0 })
+            }
+        })
+        $script:DRNavLightTimer.Start()
+    } elseif (-not $script:DRNavLights.Count -and $script:DRNavLightTimer) {
+        $script:DRNavLightTimer.Stop(); $script:DRNavLightTimer = $null
+    }
+    # The longest label gets slightly smaller text so its mark is never cut off at the edge of the button.
+    if ($NavName -eq 'NavPowerHeat' -and $panel.Children[0] -is [Windows.Controls.TextBlock] -and -not $Severe) {
+        $panel.Children[0].FontSize = 14
+        # Keep the label in the button's own colour (a size set in code otherwise turns it dark).
+        $panel.Children[0].SetBinding([Windows.Controls.TextBlock]::ForegroundProperty, (New-Object Windows.Data.Binding -Property @{ Path = [Windows.PropertyPath]'Foreground'; Source = $button })) | Out-Null
+    }
     $button.Content = $panel
-    $button.ToolTip = if ($Tip) { $Tip } else { switch ($Status) { 'Good' { 'All good. No need to check again for now.' } 'Attention' { 'Checked: something needs attention. Click to check again.' } default { 'Not checked yet. Click to check.' } } }
+    $button.ToolTip = if ($Tip) { $Tip } else { switch ($Status) { 'Good' { 'All good. You can check again any time.' } 'Expired' { 'It passed last time. A week has gone by, so it is time to check again.' } 'Attention' { 'Checked: something needs attention. Click to check again.' } default { 'Not checked yet. Click to check.' } } }
 }
 
 # How long a check result stays valid. After this the menu item goes back to the red
 # dot, as a reminder to check again.
-$script:DRCheckValidDays = 30
+$script:DRCheckValidDays = 7
+# A check can be run any time. Within 7 days it shows its tick (or warning); from 7 to 30 days a small green dot says it
+# passed but a week has gone by; after 30 days, or if it was never run, a big red dot says it needs checking.
+$script:DRCheckDueDays = 30
 $script:DRCheckMarks = @{
     'health.drive-check' = @{ Nav = 'NavHealth'; Label = ([string][char]0x25B0 + '   Check my drives') }
     'health.ram-check'   = @{ Nav = 'NavMemory'; Label = ([string][char]0x25A6 + '   Check my RAM') }
@@ -2726,21 +2773,21 @@ function Read-DRCheckStatus {
     try {
         $saved = [System.IO.File]::ReadAllText($file) | ConvertFrom-Json
         foreach ($property in $saved.PSObject.Properties) {
-            $result[$property.Name] = @{ Date = [datetime]$property.Value.date; Attention = [bool]$property.Value.attention }
+            $result[$property.Name] = @{ Date = [datetime]$property.Value.date; Attention = [bool]$property.Value.attention; Severe = [bool]($property.Value.PSObject.Properties['severe'] -and $property.Value.severe) }
         }
     } catch { }
     return $result
 }
 
 function Save-DRCheckStatus {
-    param([string]$TaskId, [bool]$Attention)
+    param([string]$TaskId, [bool]$Attention, [bool]$Severe = $false)
     $file = Get-DRCheckStatusPath
     if (-not $file) { return }
     try {
         $all = Read-DRCheckStatus
-        $all[$TaskId] = @{ Date = (Get-Date); Attention = $Attention }
+        $all[$TaskId] = @{ Date = (Get-Date); Attention = $Attention; Severe = $Severe }
         $out = [ordered]@{}
-        foreach ($key in $all.Keys) { $out[$key] = [ordered]@{ date = $all[$key].Date.ToString('o'); attention = $all[$key].Attention } }
+        foreach ($key in $all.Keys) { $out[$key] = [ordered]@{ date = $all[$key].Date.ToString('o'); attention = $all[$key].Attention; severe = [bool]$all[$key].Severe } }
         [void][System.IO.Directory]::CreateDirectory([System.IO.Path]::GetDirectoryName($file))
         [System.IO.File]::WriteAllText($file, ($out | ConvertTo-Json), (New-Object System.Text.UTF8Encoding($false)))
     } catch { }
@@ -2757,12 +2804,16 @@ function Restore-DRCheckMarks {
             $when = $saved[$taskId].Date.ToString('d MMM yyyy')
             if ($ageDays -le $script:DRCheckValidDays) {
                 $status = if ($saved[$taskId].Attention) { 'Attention' } else { 'Good' }
-                $tip = if ($saved[$taskId].Attention) { "Last checked ${when}: something needs attention. Click to check again." } else { "Last checked ${when}: all good. No need to check again until the red dot comes back." }
+                $tip = if ($saved[$taskId].Attention) { "Last checked ${when}: something needs attention. Click to check again." } else { "Last checked ${when}: all good. You can check again any time." }
+            } elseif ($ageDays -le $script:DRCheckDueDays -and -not $saved[$taskId].Attention) {
+                $status = 'Expired'
+                $tip = "Last checked $when. It was fine. A week has gone by, so it is time to check again."
             } else {
-                $tip = "Last checked $when. It is time to check again."
+                $tip = "Last checked $when. It needs to be checked again. Click to check."
             }
         }
-        Set-DRNavCheckMark -NavName $info.Nav -Label $info.Label -Status $status -Tip $tip
+        $severe = ($status -eq 'Attention' -and $saved.ContainsKey($taskId) -and [bool]$saved[$taskId].Severe)
+        Set-DRNavCheckMark -NavName $info.Nav -Label $info.Label -Status $status -Tip $tip -Severe $severe
     }
 }
 
@@ -2794,13 +2845,15 @@ function Set-ProgressRowState {
     # The two quick checks leave their result on the menu.
     $navFor = @{ 'health.drive-check' = @('NavHealth', ([string][char]0x25B0 + '   Check my drives')); 'health.ram-check' = @('NavMemory', ([string][char]0x25A6 + '   Check my RAM')); 'health.power-heat-check' = @('NavPowerHeat', ([string][char]0x26A1 + '   Check power and heat')) }
     if ($navFor.ContainsKey($TaskId)) {
-        if ($State -eq 'Started') { $script:DRCheckWarned[$TaskId] = $false }
+        if ($State -eq 'Started') { $script:DRCheckWarned[$TaskId] = $false; $script:DRCheckSevere[$TaskId] = $false }
+        if ($Message -match 'SERIOUS PROBLEM') { $script:DRCheckSevere[$TaskId] = $true }
         if ($State -in @('Warning','Failed')) { $script:DRCheckWarned[$TaskId] = $true }
         if ($State -in @('Completed','Failed')) {
             $attention = $false
             if ($script:DRCheckWarned.ContainsKey($TaskId)) { $attention = [bool]$script:DRCheckWarned[$TaskId] }
-            Set-DRNavCheckMark -NavName $navFor[$TaskId][0] -Label $navFor[$TaskId][1] -Status $(if ($attention) { 'Attention' } else { 'Good' }) -Tip $(if ($attention) { 'Checked today: something needs attention. Click to check again.' } else { 'Checked today: all good. No need to check again for now.' })
-            Save-DRCheckStatus -TaskId $TaskId -Attention $attention
+            $severe = ($attention -and $script:DRCheckSevere.ContainsKey($TaskId) -and [bool]$script:DRCheckSevere[$TaskId])
+            Set-DRNavCheckMark -NavName $navFor[$TaskId][0] -Label $navFor[$TaskId][1] -Status $(if ($attention) { 'Attention' } else { 'Good' }) -Severe $severe -Tip $(if ($attention) { 'Checked today: something needs attention. Click to check again.' } else { 'Checked today: all good. No need to check again for now.' })
+            Save-DRCheckStatus -TaskId $TaskId -Attention $attention -Severe $severe
         }
     }
     $row = @($ui.ProgressList.Children | Where-Object Tag -eq $TaskId | Select-Object -First 1)
@@ -3889,7 +3942,8 @@ $pollTimer.Add_Tick({
             $ui.RunStrip.Visibility = 'Collapsed'
         }
         foreach ($navName in @('NavHealth', 'NavMemory', 'NavPowerHeat')) {
-            $locked = ($script:DRNavState.ContainsKey($navName) -and $script:DRNavState[$navName] -eq 'Good')
+            # The three checks are never locked: each can be pressed every time, even while it shows a green tick.
+            $locked = $false
             $wantEnabled = ((-not $busyNow) -and (-not $locked))
             if ($ui[$navName].IsEnabled -ne $wantEnabled) { $ui[$navName].IsEnabled = $wantEnabled }
             $wantOpacity = if ($busyNow) { 0.35 } else { 1 }
@@ -4586,11 +4640,11 @@ function New-DRShadow([string]$Color, [double]$Depth, [double]$Blur, [double]$Op
 }
 $script:DR3DMaxEffects = @{
     Shadow   = New-DRShadow '#2147A8' 30 40 0.55
-    Text     = New-DRShadow '#000000' 4 4 0.75
+    Text     = New-DRShadow '#000000' 3 3 0.6
     Button   = New-DRShadow '#2147A8' 24 32 0.6
     Card     = New-DRShadow '#3A63C4' 18 0 1.0
-    HeroText = New-DRShadow '#000820' 11 5 1.0 300
-    Letter   = New-DRShadow '#0A1438' 2 3 0.32
+    HeroText = New-DRShadow '#000820' 8 4 0.9 300
+    Letter   = New-DRShadow '#0A1438' 1.5 2 0.26
 }
 function Set-DR3DButtons {
     param([bool]$On, [bool]$Max = $false)
@@ -4921,7 +4975,8 @@ $ui.NavDuplicates.Add_Click({ $ui.OpenDuplicatesButton.RaiseEvent((New-Object Wi
 $ui.NavAI.Add_Click({ Set-Page 'AI' })
 $ui.NavProgress.Add_Click({ Set-Page 'Progress' })
 $ui.DashboardHistoryButton.Add_Click({ Set-Page 'History' })
-$ui.ScanButton.Add_Click({ Start-Analysis })
+# Check my PC looks at everything in one go: every drive (SSD and NVMe too), memory, the processor and heat, and the power.
+$ui.ScanButton.Add_Click({ Invoke-DRAIRunNow -TaskIds @('health.drive-check', 'health.ram-check', 'health.power-heat-check', 'health.pc-checkup') })
 $ui.HealthCheckButton.Add_Click({ Start-DRHealthCheck })
 $ui.OverlayContinueButton.Add_Click({ $ui.BusyOverlay.Visibility='Collapsed'; $ui.OverlayContinueButton.Visibility='Collapsed'; Set-Page 'Cleanup' })
 $ui.LastReportButton.Add_Click({ Set-Page 'History' })
