@@ -1,7 +1,7 @@
 {
-  "version": "1.4.199",
-  "notes": "The blue progress bar now fills up for every long task, like DISM and Windows repair, with a percentage, and it learns how long each one takes on your PC. If your PC is strong enough you can now run up to 3 tools at the same time (Cleaner, Duplicate Finder, Uninstaller); if not, the Cleaner tells you and you can run one at a time.",
-  "published": "2026-10-23T16:02:46.1113966-04:00",
+  "version": "1.4.200",
+  "notes": "About my PC now shows your PC's serial number and product number, the ones printed on the sticker, so you can give them to support. PCs built from parts that report no model now show the motherboard name instead of nothing.",
+  "published": "2026-10-23T17:01:04.4067935-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "D9E1B28B67BAB0D8B64F9EC2F3D5479356C1A54F3F6A958B25B3D10DDBF92398",
-      "size": 496256
+      "sha256": "E0ECA87114D619E29CD4190E4EE1E750CEC35BE950753BCD0E12BD6BA77486E6",
+      "size": 496284
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "9F8060B498212B0757325572A637CBB3826469B2AEF0FDFCDAF8096EAAC9ECDE",
-      "size": 323147
+      "sha256": "D4D22CE09574339D6F802C8FB5D4C5670B79C5496EAB280107752E4098325821",
+      "size": 324882
     },
     {
       "name": "DRDirect Updater.ps1",

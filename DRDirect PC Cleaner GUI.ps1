@@ -1262,14 +1262,14 @@ try {
     $logoBmp.StreamSource = New-Object System.IO.MemoryStream (,[Convert]::FromBase64String($logoB64))
     $logoBmp.EndInit()
     $logoBmp.Freeze()
-    foreach ($logoSpec in @(@('SidebarLogo', 58), @('TitleLogo', 30))) {
+    foreach ($logoSpec in @(@('SidebarLogo', 86), @('TitleLogo', 38))) {
         $logoBox = $window.FindName($logoSpec[0])
         if ($logoBox) {
             $logoBox.Child = $null
-            $logoBox.CornerRadius = New-Object System.Windows.CornerRadius(0)
+            $logoBox.CornerRadius = New-Object System.Windows.CornerRadius([double]($logoSpec[1] * 0.19))
             $logoBox.Width = $logoSpec[1]; $logoBox.Height = $logoSpec[1]
             $logoBox.Background = New-Object System.Windows.Media.ImageBrush($logoBmp)
-            if ($logoSpec[0] -eq 'TitleLogo') { $logoBox.Margin = New-Object System.Windows.Thickness(12,5,10,5) }
+            if ($logoSpec[0] -eq 'TitleLogo') { $logoBox.Margin = New-Object System.Windows.Thickness(12,1,10,1) }
         }
     }
 } catch { }
