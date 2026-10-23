@@ -212,6 +212,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='health.ram-test'; Category='Repair'; Name='Memory test (Windows Memory Diagnostic)'; Description='Opens the Windows memory test. It is the thorough way to find faulty RAM, but it needs a restart: Windows asks whether to restart now or at the next start, and the test can take 1 hour or more depending on your system. The Cleaner never restarts the PC by itself.'; Risk='Guided'; Duration='1 min to start'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='health.boost-memory'; Category='Speed'; Name='Free up memory (Boost)'; Description='Asks Windows to release idle memory held by running programs, like PC Manager Boost. Nothing is closed and no data is lost; programs reload what they need.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='health.startup-apps'; Category='Speed'; Name='Startup apps'; Description='Lists the programs that start with Windows so you can see what slows sign-in. Only looks - nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='health.php-check'; Category='Speed'; Name='PHP security check'; Description='Looks for PHP on this PC (XAMPP, WAMP, Laragon and similar) and tells you if it is open to the PHP2Shell flaw that is being attacked right now. Only looks - nothing is changed.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='health.large-files'; Category='Speed'; Name='Find large files'; Description='Lists the 25 biggest files (over 100 MB) in your user folders so you can decide what to remove. Only looks - nothing is deleted.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
 
         # AI Remover. Nothing here is ever pre-selected or part of a cleanup level.
@@ -1145,9 +1146,10 @@ function Get-DRWindowsHealth {
     } catch { }
 
     try {
-        $drive = Get-CimInstance -ClassName Win32_LogicalDisk -Filter ("DeviceID='{0}'" -f $env:SystemDrive) -ErrorAction Stop
-        if ($drive.Size -gt 0 -and (100 * [double]$drive.FreeSpace / [double]$drive.Size) -lt 10) {
-            $problems.Add(('{0} is almost full' -f $env:SystemDrive))
+        foreach ($drive in @(Get-CimInstance -ClassName Win32_LogicalDisk -Filter 'DriveType=2 OR DriveType=3' -ErrorAction Stop)) {
+            if ($drive.Size -gt 0 -and (100 * [double]$drive.FreeSpace / [double]$drive.Size) -lt 10) {
+                $problems.Add(('{0} is almost full' -f $drive.DeviceID))
+            }
         }
     } catch { }
 
@@ -1156,8 +1158,17 @@ function Get-DRWindowsHealth {
         $problems.Add('A restart is waiting to finish updates')
     }
 
+    $phpAlarm = $false
+    try {
+        $phpRisky = @(Get-DRPhpScan | Where-Object { $_.Status -in @('Vulnerable', 'Old') })
+        if ($phpRisky.Count) {
+            $phpAlarm = $true
+            $problems.Add('PHP on this PC needs a security update')
+        }
+    } catch { }
+
     # TaskId and State are empty so the analysis loop, which reads both, passes this by.
-    [pscustomobject]@{ TaskId = $null; State = $null; HealthCheck = $true; Problems = @($problems) }
+    [pscustomobject]@{ TaskId = $null; State = $null; HealthCheck = $true; Problems = @($problems); PhpAlarm = $phpAlarm }
 }
 
 function Invoke-DRDriveHealth {
@@ -1469,6 +1480,77 @@ function Invoke-DRLargeFiles {
     $lines = foreach ($file in $top) { '{0,10}  {1}' -f (Format-DRSize $file.Length), $file.FullName }
     New-DREvent -TaskId $TaskId -State Information -Message ("The {0} biggest file(s) in your folders:`r`n  {1}" -f $top.Count, ($lines -join "`r`n  "))
     New-DREvent -TaskId $TaskId -State Information -Message 'These are only listed. Nothing was changed or deleted - check each one yourself before removing it.'
+}
+
+# PHP2Shell (CVE-2026-109618 / CVE-2026-109619): finds PHP installs on this PC and compares each to the fixed release. Read-only.
+function Get-DRPhpInstalls {
+    param([string[]]$Roots)
+    $found = @{}
+    foreach ($root in $Roots) {
+        if (-not $root -or -not (Test-Path -LiteralPath $root)) { continue }
+        foreach ($file in @(Get-ChildItem -LiteralPath $root -Filter 'php.exe' -File -Recurse -Depth 4 -Force -ErrorAction SilentlyContinue)) {
+            $found[$file.FullName.ToLowerInvariant()] = $file.FullName
+        }
+    }
+    return @($found.Values | Sort-Object)
+}
+
+function Get-DRPhpStatus {
+    param([string]$Version)
+    $parsed = $null
+    if (-not [version]::TryParse(($Version -replace '^(\d+\.\d+\.\d+).*$', '$1'), [ref]$parsed)) { return 'Unknown' }
+    $fixed = @{ '8.2' = 35; '8.3' = 36; '8.4' = 27; '8.5' = 12 }
+    $branch = '{0}.{1}' -f $parsed.Major, $parsed.Minor
+    if ($fixed.ContainsKey($branch)) {
+        if ($parsed.Build -ge $fixed[$branch]) { return 'Fixed' } else { return 'Vulnerable' }
+    }
+    if ($parsed.Major -gt 8 -or ($parsed.Major -eq 8 -and $parsed.Minor -gt 5)) { return 'Fixed' }
+    return 'Old'
+}
+
+function Get-DRPhpScan {
+    param([string]$TestRoot)
+    $roots = if ($TestRoot) { @($TestRoot) } else {
+        $pf = @($env:ProgramFiles, ${env:ProgramFiles(x86)}) | Where-Object { $_ }
+        @('C:\xampp', 'C:\wamp', 'C:\wamp64', 'C:\laragon', 'C:\php', 'C:\Ampps', 'C:\MAMP', (Join-Path $env:ProgramData 'chocolatey\lib')) + @($pf | ForEach-Object { Join-Path $_ 'PHP' }) + @($pf | ForEach-Object { Join-Path $_ 'Ampps' }) + @($pf | ForEach-Object { Join-Path $_ 'Zend' })
+    }
+    $installs = New-Object System.Collections.Generic.List[string]
+    foreach ($p in @(Get-DRPhpInstalls -Roots $roots)) { $installs.Add($p) }
+    if (-not $TestRoot) {
+        foreach ($cmd in @(Get-Command php.exe -All -ErrorAction SilentlyContinue)) {
+            if ($cmd.Source -and -not ($installs | Where-Object { $_ -ieq $cmd.Source })) { $installs.Add($cmd.Source) }
+        }
+    }
+    foreach ($path in $installs) {
+        $version = [string](Get-Item -LiteralPath $path -ErrorAction SilentlyContinue).VersionInfo.ProductVersion
+        [pscustomobject]@{ Path = $path; Version = $version; Status = (Get-DRPhpStatus -Version $version) }
+    }
+}
+
+function Invoke-DRPhpCheck {
+    param([string]$TaskId, [string]$TestRoot)
+    $installs = @(Get-DRPhpScan -TestRoot $TestRoot)
+    if (-not $installs.Count) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'No PHP was found on this PC, so the PHP security flaw (PHP2Shell) cannot be used against it. Nothing was changed.'
+        return
+    }
+    $lines = New-Object System.Collections.Generic.List[string]
+    $risky = 0
+    foreach ($install in $installs) {
+        $label = switch ($install.Status) {
+            'Fixed'      { 'protected' }
+            'Vulnerable' { 'NEEDS UPDATE'; $risky++ }
+            'Old'        { 'too old, no official fix - move to a newer PHP'; $risky++ }
+            default      { 'version not recognised - check it yourself' }
+        }
+        $lines.Add(("{0}  {1}`r`n    {2}" -f $(if ($install.Version) { $install.Version } else { '?' }), $label, $install.Path))
+    }
+    New-DREvent -TaskId $TaskId -State Information -Message ("{0} PHP install(s) found:`r`n  {1}" -f $installs.Count, ($lines -join "`r`n  "))
+    if ($risky) {
+        New-DREvent -TaskId $TaskId -State Warning -Message 'PROBLEM FOUND: PHP on this PC is open to the PHP2Shell flaw (CVE-2026-109618 / CVE-2026-109619). Update to PHP 8.2.35, 8.3.36, 8.4.27 or 8.5.12 or newer, and keep any PHP web server off the internet until then. Nothing was changed.'
+    } else {
+        New-DREvent -TaskId $TaskId -State Information -Message 'NO PROBLEMS FOUND: every PHP install found has the fix. Nothing was changed.'
+    }
 }
 
 # PC Manager "Health check": one summary of memory, disk space, uptime, startup load and pending restart.
@@ -4467,6 +4549,7 @@ function Invoke-DRTask {
             'health.ram-test' { Invoke-DRRamTest -TaskId $TaskId -TestRoot $TestRoot }
             'health.startup-apps' { Invoke-DRStartupReport -TaskId $TaskId -TestRoot $TestRoot }
             'health.large-files' { Invoke-DRLargeFiles -TaskId $TaskId -TestRoot $TestRoot }
+            'health.php-check' { Invoke-DRPhpCheck -TaskId $TaskId -TestRoot $TestRoot }
         }
         New-DREvent -TaskId $TaskId -State Completed -Message ("{0} completed." -f $task.Name) -Percent 100
     } catch {

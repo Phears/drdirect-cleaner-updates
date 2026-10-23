@@ -935,7 +935,7 @@ $ErrorActionPreference = 'Stop'
 <Border x:Name="UpdateBanner" Visibility="Collapsed" Background="#12C25B" CornerRadius="12" Padding="20,14" Margin="0,0,0,16"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal" VerticalAlignment="Center"><TextBlock Text="&#10004;" Foreground="White" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,12,0"/><TextBlock x:Name="UpdateBannerText" Text="There is a new update" Foreground="White" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"/></StackPanel><Button x:Name="UpdateBannerButton" Grid.Column="1" Content="See what is new and update" Style="{StaticResource HeroButton}" Foreground="#0B7A3B" Margin="16,0,0,0"/></Grid></Border>
 <Border Style="{StaticResource Card}" Effect="{DynamicResource DR3DShadow}" Padding="34" Margin="0,0,0,18" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Border Grid.RowSpan="2" Margin="-34" CornerRadius="14" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}" BorderThickness="3,3,3,9" BorderBrush="#99FFFFFF"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#66FFFFFF" Offset="0"/><GradientStop Color="#14FFFFFF" Offset="0.30"/><GradientStop Color="#00000000" Offset="0.55"/><GradientStop Color="#99000820" Offset="1"/></LinearGradientBrush></Border.Background></Border><StackPanel HorizontalAlignment="Center"><TextBlock Text="START HERE" Effect="{DynamicResource DR3DHeroText}" HorizontalAlignment="Center" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold"/><Grid HorizontalAlignment="Center" Margin="0,8,6,14"><TextBlock Text="Make my PC cleaner" Foreground="#0A1D78" FontSize="32" FontWeight="ExtraBold" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"><TextBlock.RenderTransform><TranslateTransform X="6" Y="6"/></TextBlock.RenderTransform><TextBlock.Effect><BlurEffect Radius="4"/></TextBlock.Effect></TextBlock><TextBlock Text="Make my PC cleaner" Foreground="#0A1D78" FontSize="32" FontWeight="ExtraBold" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"><TextBlock.RenderTransform><TranslateTransform X="4" Y="4"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="Make my PC cleaner" Foreground="#1A35A8" FontSize="32" FontWeight="ExtraBold" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"><TextBlock.RenderTransform><TranslateTransform X="3" Y="3"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="Make my PC cleaner" Foreground="#2447B8" FontSize="32" FontWeight="ExtraBold" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"><TextBlock.RenderTransform><TranslateTransform X="2" Y="2"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="Make my PC cleaner" Foreground="#3A5FD0" FontSize="32" FontWeight="ExtraBold" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"><TextBlock.RenderTransform><TranslateTransform X="1" Y="1"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="Make my PC cleaner" FontSize="32" FontWeight="ExtraBold"><TextBlock.Foreground><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#F4F8FF" Offset="0.48"/><GradientStop Color="#BFD4FF" Offset="0.52"/><GradientStop Color="#FFFFFF" Offset="1"/></LinearGradientBrush></TextBlock.Foreground></TextBlock></Grid><TextBlock Text="One click. We only do the safe things, and we ask you before anything starts." Effect="{DynamicResource DR3DHeroText}" Foreground="#C9D9FF" FontSize="16" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Center" TextAlignment="Center"/><WrapPanel Orientation="Horizontal" Margin="0,24,0,0" HorizontalAlignment="Center"><Button x:Name="SafeCleanButton" Content="Make my PC cleaner" Style="{StaticResource HeroGreenButton}" FontSize="15" FontWeight="Bold" Padding="20,9" Margin="0,0,10,10"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#5BE584" Offset="0"/><GradientStop Color="#13A64A" Offset="1"/></LinearGradientBrush></Button.Background></Button><Button x:Name="SafePreviewButton" Content="Show me first" Style="{StaticResource HeroGreenButton}" Padding="18,9" Margin="0,0,10,10"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#0E5A2D" Offset="0"/><GradientStop Color="#02240F" Offset="1"/></LinearGradientBrush></Button.Background></Button><Button x:Name="HeroUninstallButton" Style="{StaticResource HeroGreenButton}" Margin="0,0,10,10" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><StackPanel Orientation="Horizontal"><TextBlock Text="⌫" FontSize="14" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock Text="DRDirect Uninstaller Program" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button></WrapPanel><TextBlock Text="✓  Settings changes can be undone.   ✓  Your files and passwords are never touched." Effect="{DynamicResource DR3DHeroText}" Foreground="White" FontSize="13.5" FontWeight="SemiBold" Margin="0,20,0,0" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel><StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,10,0,0"><CheckBox x:Name="SoundSwitch" Style="{StaticResource DRSwitch}" Effect="{DynamicResource DR3DHeroText}" Content="Sound" Margin="0,0,30,0" VerticalAlignment="Center" ToolTip="Play a soft chime when a clean finishes"/><CheckBox x:Name="Buttons3DSwitch" Style="{StaticResource DRSwitch}" Effect="{DynamicResource DR3DHeroText}" Content="3D look" VerticalAlignment="Center" ToolTip="Turn the raised 3D look of the Cleaner on or off"/></StackPanel><Button x:Name="HeroUpdateButton" Content="Check for updates" Style="{StaticResource HeroGreenButton}" Grid.Row="1" Margin="0,10,0,0" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="18,9" ToolTip="Look for a newer version of the Cleaner"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#D2700F" Offset="0"/><GradientStop Color="#8F3800" Offset="1"/></LinearGradientBrush></Button.Background></Button></Grid></Border>
 <UniformGrid Columns="3" Margin="0,0,0,22">
-                            <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Violet}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource VioletSoft}"><TextBlock Text="◷" Foreground="{StaticResource Violet}" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="LAST CLEAN" Foreground="{StaticResource Violet}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock Text="Not yet" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="Shows here after your first clean" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
+                            <Border x:Name="LastCleanCard" Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Violet}" BorderThickness="5,1,1,1"><Grid><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource VioletSoft}"><TextBlock Text="◷" Foreground="{StaticResource Violet}" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="LAST CLEAN" Foreground="{StaticResource Violet}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="LastCleanValue" Text="Not yet" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock x:Name="LastCleanHint" Text="Shows here after your first clean" Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap"/></StackPanel><Ellipse x:Name="LastCleanLightBlue" Width="14" Height="14" Fill="#1E90FF" Margin="-12,-12,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed"><Ellipse.Effect><DropShadowEffect Color="#1E90FF" BlurRadius="14" ShadowDepth="0" Opacity="0.9"/></Ellipse.Effect></Ellipse><Ellipse x:Name="LastCleanLightRed" Width="14" Height="14" Fill="#E02424" Margin="0,-12,-12,0" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed"><Ellipse.Effect><DropShadowEffect Color="#E02424" BlurRadius="14" ShadowDepth="0" Opacity="0.9"/></Ellipse.Effect></Ellipse></Grid></Border>
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Teal}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource TealSoft}"><TextBlock Text="▰" Foreground="{StaticResource Teal}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="FREE SPACE" Foreground="{StaticResource Teal}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="FreeSpaceText" Text="Checking…" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="On your main drive" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
                             <Border x:Name="HealthCard" Style="{StaticResource Card}" BorderBrush="{StaticResource Amber}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border x:Name="HealthIconBox" Style="{StaticResource StatIcon}" Background="{StaticResource AmberSoft}"><TextBlock x:Name="HealthIcon" Text="⬡" Foreground="{StaticResource Amber}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock x:Name="HealthLabel" Text="WINDOWS HEALTH" Foreground="{StaticResource Amber}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="WindowsStatusText" Text="Checking..." FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock x:Name="WindowsStatusHint" Text="Takes a few seconds. Nothing is changed." Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap"/><Button x:Name="HealthCheckButton" Content="↻  Check again" Cursor="Hand" HorizontalAlignment="Left" Margin="0,10,0,0" Visibility="Collapsed" ToolTip="Look again, for example after fixing something. Nothing is changed."><Button.Template><ControlTemplate TargetType="Button"><TextBlock x:Name="LinkText" Text="{TemplateBinding Content}" Foreground="#2563EB" FontSize="13" FontWeight="SemiBold" Background="Transparent"/><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="LinkText" Property="TextDecorations" Value="Underline"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template></Button></StackPanel></Border>
                         </UniformGrid>
@@ -1078,7 +1078,7 @@ $ErrorActionPreference = 'Stop'
                     </Border>
                     <ProgressBar x:Name="OverallProgress" Grid.Row="1" Height="8" Minimum="0" Maximum="100" Value="0" Margin="0,96,0,18" Foreground="{StaticResource Blue}" Background="#DEE5F0" BorderThickness="0"/>
                     <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"><StackPanel x:Name="ProgressList"/></ScrollViewer>
-                    <Grid Grid.Row="3" Margin="0,16,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Border x:Name="RunRestartPanel" Grid.Row="0" Grid.ColumnSpan="3" Visibility="Collapsed" Background="#EEF4FF" BorderBrush="#C7D7F5" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,0,0,12"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="When the clean-up finishes, restart Windows:" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,14,0"/><ComboBox x:Name="RunRestartCombo" Grid.Column="1" MinWidth="290" FontSize="13" Padding="10,6" SelectedIndex="0"><ComboBoxItem Tag="0" Content="No, I will restart myself"/><ComboBoxItem Tag="10" Content="Right away (10 seconds after it finishes)"/><ComboBoxItem Tag="300" Content="In 5 minutes"/></ComboBox></Grid></Border><TextBlock Grid.Row="1" x:Name="ProgressSafetyText" Text="Long-running Windows commands finish before the next task begins." Style="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center"/><Button x:Name="RestartButton" Grid.Row="1" Grid.Column="1" Content="Restart now" Style="{StaticResource PrimaryButton}" Margin="0,0,10,0" Visibility="Collapsed"/><Button x:Name="CancelPlanButton" Grid.Row="1" Grid.Column="2" Content="Stop after current task" Style="{StaticResource SecondaryButton}"/></Grid>
+                    <Grid Grid.Row="3" Margin="0,16,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Border x:Name="RunRestartPanel" Grid.Row="0" Grid.ColumnSpan="3" Visibility="Collapsed" Background="#EEF4FF" BorderBrush="#C7D7F5" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,0,0,12"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="When the clean-up finishes, restart Windows:" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,14,0"/><ComboBox x:Name="RunRestartCombo" Grid.Column="1" MinWidth="290" FontSize="13" Padding="10,6" SelectedIndex="0"><ComboBoxItem Tag="0" Content="I will restart myself, when I am ready"/><ComboBoxItem Tag="300" Content="In 5 minutes after it finishes"/><ComboBoxItem Tag="600" Content="In 10 minutes after it finishes"/></ComboBox></Grid></Border><TextBlock Grid.Row="1" x:Name="ProgressSafetyText" Text="Long-running Windows commands finish before the next task begins." Style="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center"/><Button x:Name="RestartButton" Grid.Row="1" Grid.Column="1" Content="Restart now" Style="{StaticResource PrimaryButton}" Margin="0,0,10,0" Visibility="Collapsed"/><Button x:Name="CancelPlanButton" Grid.Row="1" Grid.Column="2" Content="Stop after current task" Style="{StaticResource SecondaryButton}"/></Grid>
                 </Grid>
 
                 <Grid x:Name="PageHistory" Visibility="Collapsed">
@@ -1148,9 +1148,9 @@ $ErrorActionPreference = 'Stop'
                     <Grid Grid.Row="3" Margin="0,20,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                         <StackPanel x:Name="RestartDelayPanel" Grid.Row="0" Margin="0,0,0,16" Visibility="Collapsed"><TextBlock Text="When should Windows restart after the clean?" FontWeight="SemiBold" Margin="0,0,0,6"/>
                             <ComboBox x:Name="RestartDelayCombo" SelectedIndex="0" FontSize="14" Padding="10,7">
-                                <ComboBoxItem Tag="0" Content="No, I will restart myself"/>
-                                <ComboBoxItem Tag="10" Content="Right away (10 seconds after it finishes)"/>
-                                <ComboBoxItem Tag="300" Content="In 5 minutes"/>
+                                <ComboBoxItem Tag="0" Content="I will restart myself, when I am ready"/>
+                                <ComboBoxItem Tag="300" Content="In 5 minutes after it finishes"/>
+                                <ComboBoxItem Tag="600" Content="In 10 minutes after it finishes"/>
                             </ComboBox>
                             <TextBlock Text="You can still restart sooner, or cancel the restart, from the progress page." Style="{StaticResource MutedText}" FontSize="12" Margin="0,6,0,0"/></StackPanel>
                         <CheckBox x:Name="ConfirmationCheck" Grid.Row="1" Content="I reviewed this plan and approve the selected changes."/><StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0"><Button x:Name="ConfirmBackButton" Content="Go back" Style="{StaticResource SecondaryButton}"/><Button x:Name="ConfirmRunButton" Content="Run selected tasks" Style="{StaticResource PrimaryButton}" Margin="10,0,0,0" IsEnabled="False"/></StackPanel></Grid>
@@ -1232,7 +1232,7 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('NavScroll','NavMoreHint','NavHeadClean','NavHeadFix','NavHeadCheck','DashMoreHint','DashShowAllButton','NavModeToggle','NavHeadUpdate','DashOtherTitle','DashOtherGrid','DashMsTools','DashMoreOptions','SoundSwitch','AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('NavScroll','NavMoreHint','NavHeadClean','NavHeadFix','NavHeadCheck','DashMoreHint','DashShowAllButton','NavModeToggle','NavHeadUpdate','DashOtherTitle','DashOtherGrid','DashMsTools','DashMoreOptions','SoundSwitch','AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','LastCleanCard','LastCleanLightBlue','LastCleanLightRed','LastCleanValue','LastCleanHint','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -1289,7 +1289,7 @@ $script:driverPanel = $null
 $script:DRAIStatus = @()
 # These only look, or only open a page for the customer to finish, so a run of
 # nothing but these never needs Windows to restart.
-$script:DRNoRestartTaskIds = @('health.chkdsk','health.drive-check','health.pc-checkup','health.ram-check','health.ram-test','health.boost-memory','health.startup-apps','health.large-files','security.checkup','cleanup.hibernate-off','cleanup.hibernate-on','ai.check','ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key','ai.remove-models','ai.adobe','ai.adobe.on','ai.zoom','ai.zoom.on',
+$script:DRNoRestartTaskIds = @('health.chkdsk','health.drive-check','health.pc-checkup','health.ram-check','health.ram-test','health.boost-memory','health.startup-apps','health.large-files','health.php-check','security.checkup','cleanup.hibernate-off','cleanup.hibernate-on','ai.check','ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key','ai.remove-models','ai.adobe','ai.adobe.on','ai.zoom','ai.zoom.on',
     'ai.gmail.on','ai.office-copilot.on','ai.edge-button.on','ai.copilot-key.on',
     'ai.copilot-app.on','ai.m365-app.on','ai.chatgpt-app.on','ai.claude-app.on',
     'ai.edge.uninstall','ai.chrome.uninstall','ai.brave.uninstall','ai.firefox.uninstall',
@@ -1382,42 +1382,48 @@ function Start-DRFadeIn {
 # Flashing red and blue warning on the Dashboard when C: is 80% full or more. A drive
 # this full slows Windows down and can make updates and saves fail.
 function Get-DRDiskWarning {
-    param([double]$Size, [double]$Free, [int]$Threshold = 80)
+    param([double]$Size, [double]$Free, [int]$Threshold = 80, [string]$Letter = 'C')
     if ($Size -le 0) { return $null }
     $usedPercent = [int][math]::Round(100 * ($Size - $Free) / $Size)
     if ($usedPercent -lt $Threshold) { return $null }
     [pscustomobject]@{
         UsedPercent = $usedPercent
-        Title       = ('Your C: drive is {0}% full' -f $usedPercent)
+        Letter      = $Letter
+        Title       = ('Your {0}: drive is {1}% full' -f $Letter, $usedPercent)
         Text        = ('Only {0} is free. Windows needs room to breathe: a drive this full runs slower, and updates and saving files can fail. Please clean it out soon.' -f (Format-Bytes $Free))
     }
 }
 
 function Get-DRDiskWarningInfo {
     param($Warning)
-    ("Your C: drive is {0}% full ({1}).`r`n`r`n" -f $Warning.UsedPercent, ($Warning.Text -replace '^Only (.+?) is free\..*$', '$1 free')) +
-    "Windows needs room to breathe. It needs free space on C: to work properly, and without it things start to go wrong. If it stays this full:`r`n`r`n" +
+    ("Your {2}: drive is {0}% full ({1}).`r`n`r`n" -f $Warning.UsedPercent, ($Warning.Text -replace '^Only (.+?) is free\..*$', '$1 free'), $Warning.Letter) +
+    "Windows needs room to breathe. A drive that is nearly full stops working properly, and without free space things start to go wrong. If it stays this full:`r`n`r`n" +
     "  - The PC gets slower, and programs can freeze or crash.`r`n" +
     "  - Windows updates can fail to install, so the PC misses security fixes.`r`n" +
     "  - YOU COULD LOSE DATA: files you are saving can fail to save or be damaged, and a crash while the drive is full can lose work you have not saved.`r`n" +
     "  - In bad cases Windows may have trouble starting.`r`n`r`n" +
-    "TO PREVENT LOSING DATA, YOU NEED TO CLEAN SOME SPACE OUT OF C: NOW. Click Yes below to open Clean my PC and clear junk files, then use Find large files, or move photos and videos to another drive. Try to keep at least 20% of the drive free."
+    ("TO PREVENT LOSING DATA, YOU NEED TO CLEAN SOME SPACE OUT OF {0}: NOW. Click" -f $Warning.Letter) +
+    " Yes below to open Clean my PC and clear junk files, then use Find large files, or move photos and videos to another drive. Try to keep at least 20% of the drive free."
 }
 
 function Show-DRDiskWarningInfo {
     if (-not $script:diskWarning) { return }
-    $answer = [Windows.MessageBox]::Show(((Get-DRDiskWarningInfo -Warning $script:diskWarning) + "`r`n`r`nOpen Clean my PC now?"), 'Why your C: drive needs space', 'YesNo', 'Warning')
+    $answer = [Windows.MessageBox]::Show(((Get-DRDiskWarningInfo -Warning $script:diskWarning) + "`r`n`r`nOpen Clean my PC now?"), ('Why your {0}: drive needs space' -f $script:diskWarning.Letter), 'YesNo', 'Warning')
     if ($answer -eq 'Yes') { Set-Page 'Cleanup' }
 }
 
 function Update-DRDiskWarning {
+    # Every fixed drive is checked; the fullest one is the one the banner names.
+    $warning = $null
     try {
-        $drive = Get-PSDrive -Name C -ErrorAction Stop
-        $warning = Get-DRDiskWarning -Size ([double]($drive.Used + $drive.Free)) -Free ([double]$drive.Free)
+        foreach ($disk in @(Get-CimInstance -ClassName Win32_LogicalDisk -Filter 'DriveType=2 OR DriveType=3' -ErrorAction Stop)) {
+            $found = Get-DRDiskWarning -Size ([double]$disk.Size) -Free ([double]$disk.FreeSpace) -Letter ([string]$disk.DeviceID).TrimEnd(':')
+            if ($found -and (-not $warning -or $found.UsedPercent -gt $warning.UsedPercent)) { $warning = $found }
+        }
     } catch { $warning = $null }
     $script:diskWarning = $warning
     if ($warning) {
-        $ui.DiskWarningTitle.Text = ('Your C: drive is {0}% full' -f $warning.UsedPercent)
+        $ui.DiskWarningTitle.Text = $warning.Title
         $ui.DiskWarning.ToolTip = $warning.Text
         $ui.DiskWarning.Visibility = 'Visible'
     } else {
@@ -1504,7 +1510,9 @@ function Test-TaskInOrderedPreset {
         # Windows rebuilds this list on its own and nothing is lost with it.
         'cleanup.muicache',
         # Only changes a Notepad setting and skips if Notepad is open.
-        'cleanup.notepad-fresh'
+        'cleanup.notepad-fresh',
+        # A quick Windows Defender scan after the clean. It only looks for threats; no files are changed by the scan itself.
+        'security.quick-scan'
     )
     # The cloud caches are safe and only ever appear for a service that is
     # installed, so a full cleanup should take them too.
@@ -1639,6 +1647,8 @@ function Apply-CleanupPreset {
                 Test-TaskInOrderedPreset -Task $task -Preset $Preset
             )
         }
+        # Speed and space only looks at the PC, so a cleanup level never unticks it.
+        foreach ($task in @($catalog | Where-Object { $_.Category -eq 'Speed' })) { $selection[$task.Id] = $true }
 
         $ui.PresetSafe.Tag = if ($Preset -eq 'Safe') { 'Active' } else { $null }
         $ui.PresetMedium.Tag = if ($Preset -eq 'Medium') { 'Active' } else { $null }
@@ -2816,6 +2826,14 @@ function Set-DRWindowsHealthCard {
     }
     $ui.HealthCheckButton.Visibility = 'Visible'
     $script:healthShown = $true
+    # The alarm: a sound and a message, once per run, when PHP here is open to PHP2Shell.
+    if ($Result.PSObject.Properties['PhpAlarm'] -and $Result.PhpAlarm -and -not (Get-Variable -Name phpAlarmShown -Scope Script -ValueOnly -ErrorAction SilentlyContinue)) {
+        $script:phpAlarmShown = $true
+        try {
+            [System.Media.SystemSounds]::Exclamation.Play()
+            [System.Windows.MessageBox]::Show($window, "A PHP program on this PC has a known security gap that has a free fix.`n`nThis is only a reminder, and nothing is wrong with your files. Update PHP to 8.2.35, 8.3.36, 8.4.27 or 8.5.12 (or newer) when you can.`n`nRun 'PHP security check' under Health to see which one.`n`nNothing was changed.", 'Security alert - PHP', 'OK', 'Warning') | Out-Null
+        } catch { }
+    }
 }
 
 function Start-Analysis {
@@ -3332,6 +3350,63 @@ function Complete-RunPlan {
 }
 
 
+function Set-DRLastCleanCard {
+    # The Dashboard's Last clean card: the newest report that ran a cleanup task.
+    # Checks and scans write reports too, but they are not a clean, so they are skipped.
+    if (-not $ui.LastCleanValue -or [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) { return }
+    $reportRoot = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Reports'
+    if (-not (Test-Path -LiteralPath $reportRoot -PathType Container)) { return }
+    foreach ($file in @(Get-ChildItem -LiteralPath $reportRoot -Filter 'Maintenance_Report_*.txt' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 60)) {
+        $ranClean = $false
+        try { $ranClean = [bool](Select-String -LiteralPath $file.FullName -Pattern '^\s*-\s+cleanup\.' -Quiet -ErrorAction Stop) } catch { }
+        if (-not $ranClean) { continue }
+        $when = $file.LastWriteTime
+        $ago = (Get-Date) - $when
+        $ui.LastCleanValue.Text = if ($when.Date -eq (Get-Date).Date) { 'Today' } elseif ($when.Date -eq (Get-Date).Date.AddDays(-1)) { 'Yesterday' } else { '{0} days ago' -f [int]$ago.TotalDays }
+        $ui.LastCleanHint.Text = $when.ToString('dddd d MMMM, h:mm tt')
+        # A week or more without a clean: the card turns red and says it is time.
+        $overdue = ((Get-Date).Date - $when.Date).TotalDays -ge 7
+        if ($ui.LastCleanCard) {
+            $ui.LastCleanCard.BorderBrush = $window.FindResource($(if ($overdue) { 'Danger' } else { 'Violet' }))
+        }
+        if ($overdue) {
+            $ui.LastCleanValue.Foreground = $window.FindResource('Danger')
+            $ui.LastCleanHint.Text = 'Time to clean. Do a Safe clean, or pick your own.'
+        } else {
+            $ui.LastCleanValue.ClearValue([Windows.Controls.TextBlock]::ForegroundProperty)
+        }
+        # The green button asks for the clean while it is overdue, and goes back after one.
+        if ($ui.SafeCleanButton) {
+            $ui.SafeCleanButton.Content = if ($overdue) { 'Cleaning time - press here' } else { 'Make my PC cleaner' }
+            # The longer words get a little less padding so the buttons beside it stay on one row.
+            $ui.SafeCleanButton.FontSize = if ($overdue) { 13 } else { 15 }
+            $ui.SafeCleanButton.Padding = if ($overdue) { [Windows.Thickness]::new(12, 9, 12, 9) } else { [Windows.Thickness]::new(20, 9, 20, 9) }
+        }
+        # Red and blue lights in the top corners, taking turns, while a clean is overdue.
+        if ($ui.LastCleanLightBlue -and $ui.LastCleanLightRed) {
+            if (-not (Get-Variable -Name DRLightOn -Scope Script -ErrorAction SilentlyContinue)) { $script:DRLightOn = $false; $script:DRLightTimer = $null }
+            $lightState = if ($overdue) { 'Visible' } else { 'Collapsed' }
+            $ui.LastCleanLightBlue.Visibility = $lightState
+            $ui.LastCleanLightRed.Visibility = $lightState
+            if ($overdue) {
+                if (-not $script:DRLightTimer) {
+                    $script:DRLightTimer = New-Object Windows.Threading.DispatcherTimer
+                    $script:DRLightTimer.Interval = [TimeSpan]::FromMilliseconds(500)
+                    $script:DRLightTimer.Add_Tick({
+                        $script:DRLightOn = -not $script:DRLightOn
+                        $ui.LastCleanLightBlue.Opacity = if ($script:DRLightOn) { 1.0 } else { 0.2 }
+                        $ui.LastCleanLightRed.Opacity = if ($script:DRLightOn) { 0.2 } else { 1.0 }
+                    })
+                }
+                $script:DRLightTimer.Start()
+            } elseif ($script:DRLightTimer) {
+                $script:DRLightTimer.Stop()
+            }
+        }
+        return
+    }
+}
+
 function Show-DashboardHistory {
     <#
         .SYNOPSIS
@@ -3341,6 +3416,7 @@ function Show-DashboardHistory {
             opens. Never throws: a Dashboard that will not draw is worse than
             one without this panel.
     #>
+    try { Set-DRLastCleanCard } catch { }
     if (-not $ui.DashboardHistoryList) { return }
     $ui.DashboardHistoryList.Children.Clear()
 
@@ -4505,7 +4581,7 @@ function Show-SafePlan {
         $button.BorderThickness = $(if ($on) { '2' } else { '1.5' })
         $button.FontWeight = $(if ($on) { 'ExtraBold' } else { 'SemiBold' })
     }
-    $planTasks = @($catalog | Where-Object { $_.Category -in @('Cleanup','Repair') -and (Test-TaskInOrderedPreset -Task $_ -Preset $Level) })
+    $planTasks = @($catalog | Where-Object { $_.Category -in @('Cleanup','Repair','Security') -and (Test-TaskInOrderedPreset -Task $_ -Preset $Level) })
     foreach ($task in $planTasks) {
         $line = New-Object Windows.Controls.StackPanel -Property @{ Margin='0,6,0,0' }
         $top = New-Object Windows.Controls.StackPanel -Property @{ Orientation='Horizontal' }
@@ -4827,7 +4903,8 @@ $ui.RestartButton.Add_Click({
         'Save all open work before restarting. Restart this PC now?',
         'Confirm restart',
         [Windows.MessageBoxButton]::YesNo,
-        [Windows.MessageBoxImage]::Warning
+        [Windows.MessageBoxImage]::Warning,
+        [Windows.MessageBoxResult]::No
     )
 
     if ($answer -ne [Windows.MessageBoxResult]::Yes) {
@@ -5581,6 +5658,7 @@ if ($NoShow) {
     }
     try { Start-DRQuietUpdateCheck } catch { }
     try { Start-DRHealthCheck } catch { }
+    try { Set-DRLastCleanCard } catch { }
     # Open tall enough that the start card and the three status cards show without scrolling,
     # but never taller than the screen.
     try {
@@ -5601,9 +5679,10 @@ if ($NoShow) {
                 Remove-ItemProperty -LiteralPath $script:DR3DKey -Name 'RestartOwedSince' -ErrorAction SilentlyContinue
                 return
             }
-            $answer = [Windows.MessageBox]::Show("Reminder: this PC has not been restarted since the last clean, and Windows may still be finishing the changes.`n`nRestart now? Save your open work first.",
-                'DRDirect PC Cleaner', [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Information)
-            if ($answer -eq [Windows.MessageBoxResult]::Yes) { Invoke-DRDirectRestartNow -DelaySeconds 10 }
+            # A reminder only. The cleaner never restarts the PC from here: Enter or Space on a
+            # Yes button was enough to restart it by accident.
+            [void][Windows.MessageBox]::Show("Reminder: this PC has not been restarted since the last clean, and Windows may still be finishing the changes.`n`nRestart it yourself when you are ready. Save your open work first. Nothing will restart by itself.",
+                'DRDirect PC Cleaner', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information)
         } catch { }
     })
     [void]$window.ShowDialog()

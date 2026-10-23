@@ -1,7 +1,7 @@
 {
-  "version": "1.4.182",
-  "notes": "On the Switch off AI page, the cards now run in a clearer order: Turn off all AI, Turn everything back on, then Uninstall all AI.",
-  "published": "2026-10-22T19:06:17.4158427-04:00",
+  "version": "1.4.183",
+  "notes": "Safer and clearer. The Cleaner now tells you if PHP on your PC needs a security update. The Last clean card shows when you last cleaned, and after a week it flashes red and blue and the green button says Cleaning time - press here. Any drive that is nearly full now gets a warning, including USB sticks and memory cards, not just C:. Safe, Medium and Advanced cleans now finish with a quick Windows virus scan. The Cleaner never restarts your PC by itself: you choose to restart yourself, or in 5 or 10 minutes.",
+  "published": "2026-10-22T23:43:09.6532434-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "5B9C5C124F3A67D3C8B5BD430C6285709979CCCAE359763C1497CE919CFA9A93",
-      "size": 389341
+      "sha256": "9C3C9ED18D8E9A245B6DD75A7F5486916E52E5D096484A5896067D43C8BCF924",
+      "size": 395747
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "D42C8ADEAD6DCE385B94B0EB3D87FB16796C4B4B558E64FDD6E1385A9DE691AD",
-      "size": 310212
+      "sha256": "510152A944688815CF573B7FC4A0973DD4F8115264352D29D53ACBE5FA90AF99",
+      "size": 315020
     },
     {
       "name": "DRDirect Updater.ps1",
