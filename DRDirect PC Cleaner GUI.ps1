@@ -1428,7 +1428,7 @@ $childPidFile = Join-Path $env:TEMP ('DRDirect_child_{0}.pid' -f $PID)
 $env:DRDIRECT_CHILD_PID_FILE = $childPidFile
 $script:restartCountdownTimer = $null
 $script:restartSecondsLeft = 0
-$script:DRScanStart = $null; $script:DRScanTask = $null; $script:DRScanGuess = 1200.0
+$script:DRToolLimit = $null; $script:DRScanStart = $null; $script:DRScanTask = $null; $script:DRScanGuess = 1200.0
 $script:restartDelaySeconds = 0
 $script:restartCountdownBaseMessage = ''
 $analysisMode = $false
@@ -3084,34 +3084,77 @@ function Set-ProgressScanLevel {
 # One job at a time, so an older PC is never asked to clean, find duplicates
 # and uninstall all at once. Returns $true (and tells the person) when
 # something else is still working; that window is brought to the front.
+# How many of the three tools (the cleaning, the Duplicate Finder, the Uninstaller) this PC can run at the same
+# time right now. It looks at the processor cores, the memory and how busy the PC is at this moment.
+function Get-DRToolLimit {
+    try {
+        $computer = Get-CimInstance -ClassName Win32_ComputerSystem -ErrorAction Stop
+        $os = Get-CimInstance -ClassName Win32_OperatingSystem -ErrorAction Stop
+        $totalGB = [double]$computer.TotalPhysicalMemory / 1GB
+        $freeGB = [double]$os.FreePhysicalMemory / 1MB
+        $cores = [int]$computer.NumberOfLogicalProcessors
+        $load = [double](@(Get-CimInstance -ClassName Win32_Processor -ErrorAction Stop | Measure-Object -Property LoadPercentage -Average).Average)
+        $limit = 1
+        if ($cores -ge 4 -and $totalGB -ge 8 -and $freeGB -ge 3 -and $load -lt 95) { $limit = 2 }
+        if ($cores -ge 8 -and $totalGB -ge 16 -and $freeGB -ge 6 -and $load -lt 85) { $limit = 3 }
+        return $limit
+    } catch { return 1 }
+}
+
 function Test-DROtherToolBusy {
     param([ValidateSet('Clean', 'Finder', 'Uninstaller')][string]$Opening)
     if ($TestMode) { return $false }
-    $what = $null; $window = $null
-    if ($Opening -ne 'Clean' -and $script:activePowerShell) {
-        $what = 'the cleaning'
-    }
-    if (-not $what -and $Opening -ne 'Finder') {
-        $window = Get-Process -Name 'powershell', 'DRDirect*' -ErrorAction SilentlyContinue |
+    $busy = New-Object System.Collections.ArrayList; $window = $null
+    if ($Opening -ne 'Clean' -and $script:activePowerShell) { [void]$busy.Add('the cleaning') }
+    if ($Opening -ne 'Finder') {
+        $finder = Get-Process -Name 'powershell', 'DRDirect*' -ErrorAction SilentlyContinue |
             Where-Object { $_.Id -ne $PID -and $_.MainWindowTitle -eq 'DRDirect Duplicate Finder' } | Select-Object -First 1
-        if ($window) { $what = 'the Duplicate Finder' }
+        if ($finder) { [void]$busy.Add('the Duplicate Finder'); $window = $finder }
     }
-    if (-not $what -and $Opening -ne 'Uninstaller') {
-        $window = Get-Process -Name 'BCUninstaller' -ErrorAction SilentlyContinue |
+    if ($Opening -ne 'Uninstaller') {
+        $uninstaller = Get-Process -Name 'BCUninstaller' -ErrorAction SilentlyContinue |
             Where-Object { $_.MainWindowHandle -ne [IntPtr]::Zero } | Select-Object -First 1
-        if ($window) { $what = 'the Uninstaller' }
+        if ($uninstaller) { [void]$busy.Add('the Uninstaller'); if (-not $window) { $window = $uninstaller } }
     }
-    if (-not $what) { return $false }
+    if ($busy.Count -eq 0) { return $false }
+    # Others are running: one more is allowed only if this PC is strong enough for that many at once.
+    $together = $busy.Count + 1
+    # The PC is analysed once per start of the Cleaner; the answer is kept until it is closed.
+    $analyzing = $null
+    if ($null -eq $script:DRToolLimit) { try {
+        $analyzing = New-Object Windows.Window
+        $analyzing.WindowStyle = 'None'; $analyzing.ResizeMode = 'NoResize'; $analyzing.SizeToContent = 'WidthAndHeight'; $analyzing.Topmost = $true
+        $analyzing.WindowStartupLocation = 'CenterScreen'; $analyzing.ShowInTaskbar = $false; $analyzing.Background = [Windows.Media.Brushes]::Transparent; $analyzing.AllowsTransparency = $true
+        $card = New-Object Windows.Controls.Border
+        $card.Background = (New-Object Windows.Media.BrushConverter).ConvertFromString('#1A2E4C'); $card.BorderBrush = (New-Object Windows.Media.BrushConverter).ConvertFromString('#5B93FF')
+        $card.BorderThickness = New-Object Windows.Thickness(2); $card.CornerRadius = New-Object Windows.CornerRadius(12); $card.Padding = New-Object Windows.Thickness(30, 22, 30, 22)
+        $words = New-Object Windows.Controls.TextBlock
+        $words.Text = 'Please wait, I am analyzing your system for better performance, to make DRDirect run better for you...'
+        $words.Foreground = [Windows.Media.Brushes]::White; $words.FontSize = 16; $words.FontWeight = 'SemiBold'; $words.TextWrapping = 'Wrap'; $words.MaxWidth = 420; $words.TextAlignment = 'Center'
+        $card.Child = $words; $analyzing.Content = $card
+        $analyzing.Show()
+        # Let it draw before the check starts, and stay up long enough to be read.
+        $analyzing.Dispatcher.Invoke([Action]{}, [Windows.Threading.DispatcherPriority]::Render)
+    } catch { $analyzing = $null } }
+    if ($null -eq $script:DRToolLimit) {
+        $script:DRToolLimit = Get-DRToolLimit
+        if ($analyzing) { try { Start-Sleep -Milliseconds 1200; $analyzing.Close() } catch { } }
+    }
+    $toolLimit = $script:DRToolLimit
+    if ($together -le $toolLimit) { return $false }
     if ($window -and (Get-Command Enter-DRSingleWindow -ErrorAction SilentlyContinue) -and ('DRSingleWindow' -as [type])) {
         try {
             if ([DRSingleWindow]::IsIconic($window.MainWindowHandle)) { [void][DRSingleWindow]::ShowWindow($window.MainWindowHandle, 9) }
             [void][DRSingleWindow]::SetForegroundWindow($window.MainWindowHandle)
         } catch { }
     }
-    [Windows.MessageBox]::Show(
-        "Please wait until $what is finished and closed." + [Environment]::NewLine + [Environment]::NewLine +
-        'Doing one thing at a time keeps your PC fast and safe.',
-        'DRDirect PC Cleaner', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information) | Out-Null
+    $nl = [Environment]::NewLine
+    $text = if ($together -ge 3) {
+        "Sorry, this PC is not strong enough to run all 3 at the same time.$nl${nl}Try 2. If that does not work, do one at a time, that will work."
+    } else {
+        "Sorry, this PC is not strong enough to run 2 at the same time right now.$nl${nl}Please wait until $($busy -join ' and ') is finished and closed."
+    }
+    [Windows.MessageBox]::Show($text, 'DRDirect PC Cleaner', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information) | Out-Null
     return $true
 }
 
@@ -3988,31 +4031,45 @@ $pollTimer.Add_Tick({
     # cannot be pressed: a second run would wipe the first one's progress.
     try {
         $busyNow = Test-DRRunBusy
-        # Defender does not report a percentage while it scans, so the bar fills by time instead, using how long the last
-        # scan of this kind took (a first scan guesses). It slows near the end and never reaches 100% until Defender is done.
-        $scanningNow = [bool]($busyNow -and $activeTaskId -in @('security.full-scan','security.quick-scan'))
-        if ($scanningNow) {
-            if ($script:DRScanTask -ne $activeTaskId -or -not $script:DRScanStart) {
-                $script:DRScanTask = $activeTaskId; $script:DRScanStart = Get-Date
-                $script:DRScanGuess = if ($activeTaskId -eq 'security.full-scan') { 1200.0 } else { 180.0 }
-                try { $lastSecs = [double](Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('Last_' + $activeTaskId) -ErrorAction Stop).('Last_' + $activeTaskId); if ($lastSecs -ge 20) { $script:DRScanGuess = $lastSecs } } catch { }
+        # A task that takes a while does not report how far it is, so the blue bar fills by time instead: the bar for the
+        # whole run is the finished tasks plus a share of the one running, from how long that task took last time (or a
+        # guess from its listed time). It slows near the end of that share and never reaches it until the task is done.
+        $curTaskId = if ($busyNow -and -not $script:analysisMode -and $activeTaskId) { [string]$activeTaskId } else { '' }
+        if ($curTaskId -ne [string]$script:DRScanTask) {
+            if ($script:DRScanTask -and $script:DRScanStart) {
+                # The task before this one ended. One that finished on its own teaches the next run how long it takes.
+                try {
+                    $taskDone = @($runEvents | Where-Object { $_.TaskId -eq $script:DRScanTask -and $_.State -eq 'Completed' }).Count -gt 0
+                    if ($taskDone) {
+                        if (-not (Test-Path -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner')) { New-Item -Path 'HKCU:\Software\DRDirect\PC Cleaner' -Force | Out-Null }
+                        Set-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('Last_' + $script:DRScanTask) -Value ([int]((Get-Date) - $script:DRScanStart).TotalSeconds) -Type DWord
+                    }
+                } catch { }
             }
-            $scanElapsed = ((Get-Date) - $script:DRScanStart).TotalSeconds
-            $scanFrac = $scanElapsed / $script:DRScanGuess
-            $scanPct = if ($scanFrac -lt 0.9) { 100 * $scanFrac } else { 90 + 9 * (1 - [Math]::Exp(-($scanFrac - 0.9) * 2)) }
+            $script:DRScanTask = $curTaskId
+            $script:DRScanStart = if ($curTaskId) { Get-Date } else { $null }
+            if ($curTaskId) {
+                $script:DRScanGuess = 60.0
+                try {
+                    $listed = [string](@($catalog | Where-Object { $_.Id -eq $curTaskId } | Select-Object -First 1).Duration)
+                    if ($listed -match '(\d+)\s*-\s*(\d+)\s*min') { $script:DRScanGuess = 30.0 * ([double]$Matches[1] + [double]$Matches[2]) }
+                    elseif ($listed -match '<\s*(\d+)\s*min') { $script:DRScanGuess = 30.0 * [double]$Matches[1] }
+                    elseif ($listed -match 'hour') { $script:DRScanGuess = 5400.0 }
+                    elseif ($listed -match '(\d+)\s*min') { $script:DRScanGuess = 60.0 * [double]$Matches[1] }
+                    $lastSecs = [double](Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('Last_' + $curTaskId) -ErrorAction Stop).('Last_' + $curTaskId)
+                    if ($lastSecs -ge 5) { $script:DRScanGuess = $lastSecs }
+                } catch { }
+            }
+        }
+        if ($curTaskId) {
+            $taskFrac = ((Get-Date) - $script:DRScanStart).TotalSeconds / [Math]::Max(5.0, $script:DRScanGuess)
+            $taskShare = if ($taskFrac -lt 0.9) { $taskFrac } else { 0.9 + 0.09 * (1 - [Math]::Exp(-($taskFrac - 0.9) * 2)) }
+            $planTotal = [Math]::Max(1, @($catalog | Where-Object { $selection[$_.Id] }).Count)
+            $planDone = [Math]::Max(0, $planTotal - $runQueue.Count - 1)
+            $planPct = [Math]::Min(99, 100.0 * ($planDone + $taskShare) / $planTotal)
             $ui.OverallProgress.IsIndeterminate = $false; $ui.RunStripBar.IsIndeterminate = $false
-            $ui.OverallProgress.Value = $scanPct; $ui.RunStripBar.Value = $scanPct
-            $ui.ProgressPercent.Text = 'About ' + [int]$scanPct + '%'
-        } elseif ($script:DRScanStart) {
-            # The scan is over. A scan that finished on its own teaches the next one how long to take.
-            try {
-                $scanDone = @($runEvents | Where-Object { $_.TaskId -eq $script:DRScanTask -and $_.State -eq 'Completed' }).Count -gt 0
-                if ($scanDone) {
-                    if (-not (Test-Path -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner')) { New-Item -Path 'HKCU:\Software\DRDirect\PC Cleaner' -Force | Out-Null }
-                    Set-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('Last_' + $script:DRScanTask) -Value ([int]((Get-Date) - $script:DRScanStart).TotalSeconds) -Type DWord
-                }
-            } catch { }
-            $script:DRScanStart = $null
+            $ui.OverallProgress.Value = $planPct; $ui.RunStripBar.Value = $planPct
+            $ui.ProgressPercent.Text = 'About ' + [int]$planPct + '%'
         }
         # The progress box: always shows where a run is up to, on every page, and takes
         # you back to the progress page when clicked.

@@ -1,7 +1,7 @@
 {
-  "version": "1.4.198",
-  "notes": "When Defender scans, the blue bar now fills up as the scan goes, with a percentage, and the Cleaner learns how long your scans take so it gets more accurate each time. When the scan ends you are asked if you want to restart now or later.",
-  "published": "2026-10-23T15:48:03.0338082-04:00",
+  "version": "1.4.199",
+  "notes": "The blue progress bar now fills up for every long task, like DISM and Windows repair, with a percentage, and it learns how long each one takes on your PC. If your PC is strong enough you can now run up to 3 tools at the same time (Cleaner, Duplicate Finder, Uninstaller); if not, the Cleaner tells you and you can run one at a time.",
+  "published": "2026-10-23T16:02:46.1113966-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "41E918B93B034C31A93FC268FC12027DC4734618FDFD4967C16D54184B900850",
-      "size": 491822
+      "sha256": "D9E1B28B67BAB0D8B64F9EC2F3D5479356C1A54F3F6A958B25B3D10DDBF92398",
+      "size": 496256
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
