@@ -1,7 +1,7 @@
 {
-  "version": "1.4.188",
-  "notes": "New Max 3D switch next to 3D look for a much deeper raised look. A soft tick plays when you point at a button while Sound is on. The restart reminder now lets you choose Yes or No. After an update the Cleaner now waits for the old window to close before opening again. The Check power and heat result now says heat can make games lag.",
-  "published": "2026-10-23T12:09:28.7758243-04:00",
+  "version": "1.4.189",
+  "notes": "Max 3D now reaches every card, the left menu and the buttons, with shaded blue edges. All letters get a small shadow when the 3D look is on.",
+  "published": "2026-10-23T12:27:09.0050829-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "48EEC76BA9D52FF1B953849D5E88D35129AD32911DA266E8B8B1AC01CC1A9C0B",
-      "size": 419125
+      "sha256": "365307E98D325DE299504C0779FF30E786D10DF060A642DDC05C28D225703F3B",
+      "size": 428669
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

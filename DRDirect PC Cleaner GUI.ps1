@@ -187,6 +187,11 @@ $ErrorActionPreference = 'Stop'
         <DropShadowEffect x:Key="DR3DShadow" Color="#0A1A4A" Direction="270" ShadowDepth="11" BlurRadius="18" Opacity="0.7"/>
         <DropShadowEffect x:Key="DR3DText" Color="Black" Direction="270" ShadowDepth="1.5" BlurRadius="2" Opacity="0.45"/>
         <DropShadowEffect x:Key="DR3DHeroText" Color="#000820" Direction="300" ShadowDepth="3.5" BlurRadius="3" Opacity="0.85"/>
+        <DropShadowEffect x:Key="DR3DCardSoft" Color="#6B82A6" BlurRadius="26" ShadowDepth="5" Direction="270" Opacity="0.22"/>
+        <LinearGradientBrush x:Key="DR3DCardFace" StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#EEF6FF" Offset="0"/><GradientStop Color="#DFEDFF" Offset="0.5"/><GradientStop Color="#CFE2FB" Offset="1"/></LinearGradientBrush>
+        <DropShadowEffect x:Key="DR3DLetter" Color="#0A1438" Direction="270" ShadowDepth="1" BlurRadius="2" Opacity="0.22"/>
+        <SolidColorBrush x:Key="DR3DSlabA" Color="#B0000814"/>
+        <SolidColorBrush x:Key="DR3DSlabB" Color="#B3000A30"/>
         <Visibility x:Key="DR3DParts">Visible</Visibility>
         <Thickness x:Key="DR3DEdgeHero">0,8,0,-8</Thickness>
         <Thickness x:Key="DR3DEdgeSmall">0,6,0,-6</Thickness>
@@ -232,8 +237,8 @@ $ErrorActionPreference = 'Stop'
             <Setter Property="CornerRadius" Value="11"/><Setter Property="Margin" Value="0,0,12,0"/>
         </Style>
 
-        <Style TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource Ink}"/></Style>
-        <Style x:Key="MutedText" TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource Muted}"/></Style>
+        <Style TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource Ink}"/><Setter Property="Effect" Value="{DynamicResource DR3DLetter}"/></Style>
+        <Style x:Key="MutedText" TargetType="TextBlock"><Setter Property="Foreground" Value="{StaticResource Muted}"/><Setter Property="Effect" Value="{DynamicResource DR3DLetter}"/></Style>
         <Style x:Key="TitleText" TargetType="TextBlock"><Setter Property="FontSize" Value="30"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Margin" Value="0,2,0,0"/></Style>
         <Style x:Key="SectionText" TargetType="TextBlock"><Setter Property="FontSize" Value="20"/><Setter Property="FontWeight" Value="SemiBold"/></Style>
 
@@ -242,7 +247,7 @@ $ErrorActionPreference = 'Stop'
             <Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="20,11"/><Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Template">
                 <Setter.Value><ControlTemplate TargetType="Button">
-                    <Grid><Border CornerRadius="9" Background="#B0000814" Margin="{DynamicResource DR3DEdgeSmall}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
+                    <Grid><Border CornerRadius="9" Background="{DynamicResource DR3DSlabA}" Margin="{DynamicResource DR3DEdgeSmall}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
                     <Border x:Name="PrimaryBorder" Background="{TemplateBinding Background}" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True" RenderTransformOrigin="0.5,0.5">
                         <Border.RenderTransform>
                             <TransformGroup>
@@ -309,7 +314,7 @@ $ErrorActionPreference = 'Stop'
         </Style>
         <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
             <Setter Property="Foreground" Value="{StaticResource Ink}"/><Setter Property="Background" Value="White"/><Setter Property="BorderThickness" Value="1"/><Setter Property="BorderBrush" Value="{StaticResource Line}"/>
-            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Grid><Border CornerRadius="9" Background="#B0000814" Margin="{DynamicResource DR3DEdgeSmall}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/><Border x:Name="SecondaryBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><Border CornerRadius="9,9,0,0" VerticalAlignment="Top" Height="14" Margin="1,1,1,0" Background="#3CFFFFFF" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/><Border CornerRadius="0,0,9,9" VerticalAlignment="Bottom" Height="3" Margin="1,0,1,1" Background="#40000000" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/></Grid><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="SecondaryBorder" Property="Background" Value="{StaticResource Hover}"/><Setter TargetName="SecondaryBorder" Property="BorderBrush" Value="#C9D5E6"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="SecondaryBorder" Property="Background" Value="#E7EEF8"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.42"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><Grid><Border CornerRadius="9" Background="{DynamicResource DR3DSlabA}" Margin="{DynamicResource DR3DEdgeSmall}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/><Border x:Name="SecondaryBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><Border CornerRadius="9,9,0,0" VerticalAlignment="Top" Height="14" Margin="1,1,1,0" Background="#3CFFFFFF" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/><Border CornerRadius="0,0,9,9" VerticalAlignment="Bottom" Height="3" Margin="1,0,1,1" Background="#40000000" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/></Grid><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="SecondaryBorder" Property="Background" Value="{StaticResource Hover}"/><Setter TargetName="SecondaryBorder" Property="BorderBrush" Value="#C9D5E6"/></Trigger><Trigger Property="IsPressed" Value="True"><Setter TargetName="SecondaryBorder" Property="Background" Value="#E7EEF8"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.42"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Setter.Value></Setter>
         </Style>
         <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
             <Setter Property="Foreground" Value="{StaticResource Danger}"/>
@@ -330,7 +335,7 @@ $ErrorActionPreference = 'Stop'
                     <Grid.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
                     <Grid.Effect><DynamicResource ResourceKey="DR3DShadow"/></Grid.Effect>
                     <!-- The darker edge underneath makes the button look raised, like a key. -->
-                    <Border CornerRadius="16" Background="#B3000A30" Margin="{DynamicResource DR3DEdgeHero}" Visibility="{DynamicResource DR3DParts}"/>
+                    <Border CornerRadius="16" Background="{DynamicResource DR3DSlabB}" Margin="{DynamicResource DR3DEdgeHero}" Visibility="{DynamicResource DR3DParts}"/>
                     <Grid x:Name="GreenFace">
                         <Grid.RenderTransform><TranslateTransform x:Name="GreenPress" Y="0"/></Grid.RenderTransform>
                         <Border x:Name="GreenBorder" Background="{TemplateBinding Background}" CornerRadius="16" BorderBrush="#E6FFFFFF" BorderThickness="1.5" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
@@ -369,7 +374,7 @@ $ErrorActionPreference = 'Stop'
                     <Grid.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
                     <Grid.Effect><DynamicResource ResourceKey="DR3DShadow"/></Grid.Effect>
                     <!-- The darker edge underneath makes the button look raised, like a key. -->
-                    <Border CornerRadius="16" Background="#B3000A30" Margin="{DynamicResource DR3DEdgeHero}" Visibility="{DynamicResource DR3DParts}"/>
+                    <Border CornerRadius="16" Background="{DynamicResource DR3DSlabB}" Margin="{DynamicResource DR3DEdgeHero}" Visibility="{DynamicResource DR3DParts}"/>
                     <Grid x:Name="GreenFace">
                         <Grid.RenderTransform><TranslateTransform x:Name="GreenPress" Y="0"/></Grid.RenderTransform>
                         <Border x:Name="GreenBorder" Background="{TemplateBinding Background}" CornerRadius="16" BorderBrush="#E6FFFFFF" BorderThickness="1.5" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
@@ -413,7 +418,7 @@ $ErrorActionPreference = 'Stop'
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
                     <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
                     <!-- 3D: a raised tile with a darker edge underneath and a shine on top -->
-                    <Border CornerRadius="9" Background="#D0000814" Margin="{DynamicResource DR3DEdgeNav}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/><Border CornerRadius="9" Background="#CC22346E" Margin="{DynamicResource DR3DEdgeNavMid}" Visibility="{DynamicResource DR3DMaxParts}" IsHitTestVisible="False"/>
+                    <Border CornerRadius="9" Background="{DynamicResource DR3DSlabA}" Margin="{DynamicResource DR3DEdgeNav}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/><Border CornerRadius="9" Background="#CC22346E" Margin="{DynamicResource DR3DEdgeNavMid}" Visibility="{DynamicResource DR3DMaxParts}" IsHitTestVisible="False"/>
                     <Border CornerRadius="9" Visibility="{DynamicResource DR3DParts}" BorderBrush="#88FFFFFF" BorderThickness="1,1,1,0" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#5272AD" Offset="0"/><GradientStop Color="#28396B" Offset="0.5"/><GradientStop Color="#111C3B" Offset="1"/></LinearGradientBrush></Border.Background></Border>
                     <Border x:Name="NavBorder" Background="{TemplateBinding Background}" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter Effect="{DynamicResource DR3DText}"/></Border>
                     <Border CornerRadius="9,9,0,0" VerticalAlignment="Top" Height="17" Margin="1,1,1,0" Background="#26FFFFFF" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/><Border CornerRadius="9,9,0,0" VerticalAlignment="Top" Height="30" Margin="1,1,1,0" Visibility="{DynamicResource DR3DMaxParts}" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#66FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background></Border><Border CornerRadius="9" Visibility="{DynamicResource DR3DMaxParts}" BorderBrush="#99000000" BorderThickness="0,0,0,6" IsHitTestVisible="False"/>
@@ -486,7 +491,7 @@ $ErrorActionPreference = 'Stop'
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
                     <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
                     <!-- 3D, like the other buttons: a darker edge underneath and a shine across the top -->
-                    <Border CornerRadius="9" Background="#B0000814" Margin="{DynamicResource DR3DEdgeSmall}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
+                    <Border CornerRadius="9" Background="{DynamicResource DR3DSlabA}" Margin="{DynamicResource DR3DEdgeSmall}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
                     <Border x:Name="NavBorder" Background="{TemplateBinding Background}" BorderBrush="#8B5CF6" BorderThickness="1" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter Effect="{DynamicResource DR3DText}"/></Border>
                     <Border CornerRadius="9" Visibility="{DynamicResource DR3DParts}" BorderBrush="#66FFFFFF" BorderThickness="1,1,1,0" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#55FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="0.5"/><GradientStop Color="#33000000" Offset="1"/></LinearGradientBrush></Border.Background></Border>
                     <Border CornerRadius="0,0,9,9" VerticalAlignment="Bottom" Height="3" Margin="1,0,1,1" Background="#55000000" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
@@ -528,7 +533,7 @@ $ErrorActionPreference = 'Stop'
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
                     <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
-                    <Border CornerRadius="12" Background="#B0000814" Margin="{DynamicResource DR3DEdgeSmall}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
+                    <Border CornerRadius="12" Background="{DynamicResource DR3DSlabA}" Margin="{DynamicResource DR3DEdgeSmall}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
                     <Border x:Name="NavBorder" CornerRadius="12" BorderBrush="#CCFFFFFF" BorderThickness="1.2" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
                         <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#4A9BFF" Offset="0"/><GradientStop Color="#1E5FD9" Offset="1"/></LinearGradientBrush></Border.Background>
                         <Grid>
@@ -554,7 +559,7 @@ $ErrorActionPreference = 'Stop'
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
                     <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
-                    <Border CornerRadius="9" Background="#B0000814" Margin="{DynamicResource DR3DEdgeSmall}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
+                    <Border CornerRadius="9" Background="{DynamicResource DR3DSlabA}" Margin="{DynamicResource DR3DEdgeSmall}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
                     <Border x:Name="NavBorder" Background="{TemplateBinding Background}" BorderBrush="#00E5FF" BorderThickness="1" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter Effect="{DynamicResource DR3DText}"/></Border>
                     <Border CornerRadius="9,9,0,0" VerticalAlignment="Top" Height="17" Margin="1,1,1,0" Background="#33FFFFFF" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
                     <Border CornerRadius="0,0,9,9" VerticalAlignment="Bottom" Height="3" Margin="1,0,1,1" Background="#55000000" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
@@ -598,7 +603,7 @@ $ErrorActionPreference = 'Stop'
             <Setter Property="Margin" Value="0,4"/><Setter Property="MinWidth" Value="124"/><Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ToggleButton">
                 <Grid>
-                <Border CornerRadius="10" Background="#B0000814" Margin="{DynamicResource DR3DEdgeSmall}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
+                <Border CornerRadius="10" Background="{DynamicResource DR3DSlabA}" Margin="{DynamicResource DR3DEdgeSmall}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
                 <Border x:Name="ChoiceBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1.5" CornerRadius="10" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True" RenderTransformOrigin="0.5,0.5">
                     <Border.RenderTransform>
                         <TransformGroup>
@@ -745,8 +750,8 @@ $ErrorActionPreference = 'Stop'
                 <Trigger Property="Tag" Value="Look"><Setter Property="Background" Value="#F5F3FF"/><Setter Property="BorderBrush" Value="#C4B5FD"/><Setter Property="Foreground" Value="#6D28D9"/></Trigger>
             </Style.Triggers>
         </Style>
-        <Style x:Key="Card" TargetType="Border"><Setter Property="Effect" Value="{DynamicResource DR3DCard}"/><Setter Property="Background"><Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#EEF6FF" Offset="0"/><GradientStop Color="#DFEDFF" Offset="0.5"/><GradientStop Color="#CFE2FB" Offset="1"/></LinearGradientBrush></Setter.Value></Setter><Setter Property="CornerRadius" Value="14"/><Setter Property="BorderBrush" Value="{StaticResource Line}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="22"/><Setter Property="SnapsToDevicePixels" Value="True"/>
-            <Setter Property="Effect"><Setter.Value><DropShadowEffect Color="#6B82A6" BlurRadius="26" ShadowDepth="5" Direction="270" Opacity="0.22"/></Setter.Value></Setter>
+        <Style x:Key="Card" TargetType="Border"><Setter Property="Effect" Value="{DynamicResource DR3DCard}"/><Setter Property="Background" Value="{DynamicResource DR3DCardFace}"/><Setter Property="CornerRadius" Value="14"/><Setter Property="BorderBrush" Value="{StaticResource Line}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="Padding" Value="22"/><Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Effect" Value="{DynamicResource DR3DCardSoft}"/>
         </Style>
         <Style x:Key="HistoryRow" TargetType="Border"><Setter Property="Background" Value="Transparent"/><Setter Property="CornerRadius" Value="10"/><Setter Property="Padding" Value="14,12"/><Setter Property="BorderThickness" Value="1"/><Setter Property="BorderBrush" Value="Transparent"/><Setter Property="Margin" Value="0,0,0,4"/><Setter Property="SnapsToDevicePixels" Value="True"/>
             <Style.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#F6F9FD"/><Setter Property="BorderBrush" Value="{StaticResource Line}"/></Trigger></Style.Triggers>
@@ -4557,17 +4562,35 @@ $script:DR3DEffects = @{
     Button = $window.Resources['DR3DButton'].psobject.BaseObject
     Card   = $window.Resources['DR3DCard'].psobject.BaseObject
     HeroText = $window.Resources['DR3DHeroText'].psobject.BaseObject
+    CardSoft = $window.Resources['DR3DCardSoft'].psobject.BaseObject
+    CardFace = $window.Resources['DR3DCardFace'].psobject.BaseObject
+    Letter   = $window.Resources['DR3DLetter'].psobject.BaseObject
+}
+# The Max 3D card face: a bright top edge that fades into a deeper blue at the bottom, so the card looks like a raised pillow.
+$script:DR3DMaxCardFace = New-Object Windows.Media.LinearGradientBrush
+$script:DR3DMaxCardFace.StartPoint = [Windows.Point]::new(0, 0); $script:DR3DMaxCardFace.EndPoint = [Windows.Point]::new(0, 1)
+foreach ($stop in @(@('#FFFFFF', 0.0), @('#F3F9FF', 0.10), @('#DCEBFF', 0.5), @('#B6D0F4', 1.0))) {
+    [void]$script:DR3DMaxCardFace.GradientStops.Add((New-Object Windows.Media.GradientStop([Windows.Media.ColorConverter]::ConvertFromString($stop[0]), [double]$stop[1])))
+}
+function New-DRSlabBrush([string]$Top, [string]$Bottom) {
+    # A slab that shades from a lighter blue where it meets the button down to a deeper blue at the bottom.
+    $brush = New-Object Windows.Media.LinearGradientBrush
+    $brush.StartPoint = [Windows.Point]::new(0, 0); $brush.EndPoint = [Windows.Point]::new(0, 1)
+    [void]$brush.GradientStops.Add((New-Object Windows.Media.GradientStop([Windows.Media.ColorConverter]::ConvertFromString($Top), [double]0)))
+    [void]$brush.GradientStops.Add((New-Object Windows.Media.GradientStop([Windows.Media.ColorConverter]::ConvertFromString($Bottom), [double]1)))
+    $brush.psobject.BaseObject
 }
 function New-DRShadow([string]$Color, [double]$Depth, [double]$Blur, [double]$Opacity, [double]$Direction = 270) {
     # The plain effect object, not the PowerShell wrapper around it: the window refuses a wrapped one.
     (New-Object Windows.Media.Effects.DropShadowEffect -Property @{ Color = [Windows.Media.ColorConverter]::ConvertFromString($Color); ShadowDepth = $Depth; BlurRadius = $Blur; Opacity = $Opacity; Direction = $Direction }).psobject.BaseObject
 }
 $script:DR3DMaxEffects = @{
-    Shadow   = New-DRShadow '#030A26' 36 42 0.9
+    Shadow   = New-DRShadow '#2147A8' 30 40 0.55
     Text     = New-DRShadow '#000000' 4 4 0.75
-    Button   = New-DRShadow '#030A26' 28 36 0.85
-    Card     = New-DRShadow '#0A1438' 26 6 1.0
+    Button   = New-DRShadow '#2147A8' 24 32 0.6
+    Card     = New-DRShadow '#3A63C4' 18 0 1.0
     HeroText = New-DRShadow '#000820' 11 5 1.0 300
+    Letter   = New-DRShadow '#0A1438' 2 3 0.32
 }
 function Set-DR3DButtons {
     param([bool]$On, [bool]$Max = $false)
@@ -4579,22 +4602,35 @@ function Set-DR3DButtons {
         $window.Resources['DR3DButton'] = $set.Button
         $window.Resources['DR3DCard'] = $set.Card
         $window.Resources['DR3DHeroText'] = $set.HeroText
-        $window.Resources['DR3DEdgeHero'] = $(if ($Max) { [Windows.Thickness]::new(0, 26, 0, -26) } else { [Windows.Thickness]::new(0, 8, 0, -8) })
-        $window.Resources['DR3DEdgeSmall'] = $(if ($Max) { [Windows.Thickness]::new(0, 20, 0, -20) } else { [Windows.Thickness]::new(0, 6, 0, -6) })
-        $window.Resources['DR3DEdgeNav'] = $(if ($Max) { [Windows.Thickness]::new(0, 15, 0, -15) } else { [Windows.Thickness]::new(0, 4, 0, -4) })
-        $window.Resources['DR3DLip'] = $(if ($Max) { [Windows.Thickness]::new(0, 0, 0, 15) } else { [Windows.Thickness]::new(0, 0, 0, 4) })
+        # A little shadow under every letter, a touch deeper in Max 3D.
+        $window.Resources['DR3DLetter'] = $set.Letter
+        # The cards keep their soft shadow in the normal look and get a thick solid slab in Max 3D.
+        $window.Resources['DR3DCardSoft'] = $(if ($Max) { $script:DR3DMaxEffects.Card } else { $script:DR3DEffects.CardSoft })
+        $window.Resources['DR3DCardFace'] = $(if ($Max) { $script:DR3DMaxCardFace.psobject.BaseObject } else { $script:DR3DEffects.CardFace.psobject.BaseObject })
+        $window.Resources['DR3DEdgeHero'] = $(if ($Max) { [Windows.Thickness]::new(0, 14, 0, -14) } else { [Windows.Thickness]::new(0, 8, 0, -8) })
+        $window.Resources['DR3DEdgeSmall'] = $(if ($Max) { [Windows.Thickness]::new(0, 11, 0, -11) } else { [Windows.Thickness]::new(0, 6, 0, -6) })
+        $window.Resources['DR3DEdgeNav'] = $(if ($Max) { [Windows.Thickness]::new(0, 9, 0, -9) } else { [Windows.Thickness]::new(0, 4, 0, -4) })
+        $window.Resources['DR3DLip'] = $(if ($Max) { [Windows.Thickness]::new(0, 0, 0, 7) } else { [Windows.Thickness]::new(0, 0, 0, 4) })
         $window.Resources['DR3DParts'] = [Windows.Visibility]::Visible
         $window.Resources['DR3DMaxParts'] = $(if ($Max) { [Windows.Visibility]::Visible } else { [Windows.Visibility]::Collapsed })
-        $window.Resources['DR3DEdgeNavMid'] = $(if ($Max) { [Windows.Thickness]::new(0, 8, 0, -8) } else { [Windows.Thickness]::new(0, 2, 0, -2) })
-        $window.Resources['DR3DNavMargin'] = $(if ($Max) { [Windows.Thickness]::new(10, 4, 10, 22) } else { [Windows.Thickness]::new(10, 3, 10, 8) })
+        # Max 3D slabs are a rich blue, never black.
+        $window.Resources['DR3DSlabA'] = $(if ($Max) { New-DRSlabBrush '#4D79D8' '#1A3688' } else { [Windows.Media.SolidColorBrush]::new([Windows.Media.ColorConverter]::ConvertFromString('#B0000814')) })
+        $window.Resources['DR3DSlabB'] = $(if ($Max) { New-DRSlabBrush '#4F82E2' '#17358F' } else { [Windows.Media.SolidColorBrush]::new([Windows.Media.ColorConverter]::ConvertFromString('#B3000A30')) })
+        $window.Resources['DR3DEdgeNavMid'] = $(if ($Max) { [Windows.Thickness]::new(0, 5, 0, -5) } else { [Windows.Thickness]::new(0, 2, 0, -2) })
+        $window.Resources['DR3DNavMargin'] = $(if ($Max) { [Windows.Thickness]::new(10, 4, 10, 16) } else { [Windows.Thickness]::new(10, 3, 10, 8) })
     } else {
         $window.Resources['DR3DShadow'] = $null
         $window.Resources['DR3DText'] = $null
         $window.Resources['DR3DButton'] = $null
         $window.Resources['DR3DCard'] = $null
         $window.Resources['DR3DHeroText'] = $null
+        $window.Resources['DR3DLetter'] = $null
+        $window.Resources['DR3DCardSoft'] = $script:DR3DEffects.CardSoft
+        $window.Resources['DR3DCardFace'] = $script:DR3DEffects.CardFace.psobject.BaseObject
         $window.Resources['DR3DParts'] = [Windows.Visibility]::Collapsed
         $window.Resources['DR3DMaxParts'] = [Windows.Visibility]::Collapsed
+        $window.Resources['DR3DSlabA'] = [Windows.Media.SolidColorBrush]::new([Windows.Media.ColorConverter]::ConvertFromString('#B0000814'))
+        $window.Resources['DR3DSlabB'] = [Windows.Media.SolidColorBrush]::new([Windows.Media.ColorConverter]::ConvertFromString('#B3000A30'))
         $window.Resources['DR3DNavMargin'] = [Windows.Thickness]::new(10, 3, 10, 8)
     }
 }
