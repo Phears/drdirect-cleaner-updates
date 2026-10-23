@@ -1,7 +1,7 @@
 {
-  "version": "1.4.183",
-  "notes": "Safer and clearer. The Cleaner now tells you if PHP on your PC needs a security update. The Last clean card shows when you last cleaned, and after a week it flashes red and blue and the green button says Cleaning time - press here. Any drive that is nearly full now gets a warning, including USB sticks and memory cards, not just C:. Safe, Medium and Advanced cleans now finish with a quick Windows virus scan. The Cleaner never restarts your PC by itself: you choose to restart yourself, or in 5 or 10 minutes.",
-  "published": "2026-10-22T23:43:09.6532434-04:00",
+  "version": "1.4.184",
+  "notes": "The Clean my PC page now keeps its level box in view while you scroll, with Check all and Check off buttons and the day each level was last done. The Last clean card also shows your last quick and full scan. A friendly \"Yabba Dabba Doo!\" plays when a clean finishes. The 3D look now starts switched off until you turn it on.",
+  "published": "2026-10-23T11:11:58.4533465-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "9C3C9ED18D8E9A245B6DD75A7F5486916E52E5D096484A5896067D43C8BCF924",
-      "size": 395747
+      "sha256": "99E535B3C20AAA3266A09C514035A6FC801F2006C07749B543801D790984532D",
+      "size": 408280
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

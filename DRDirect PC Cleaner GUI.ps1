@@ -355,6 +355,45 @@ $ErrorActionPreference = 'Stop'
                 </ControlTemplate.Triggers></ControlTemplate></Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="GlossyChoiceButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}"><Setter Property="Effect" Value="{x:Null}"/><Setter Property="Background"><Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#4FC3FF" Offset="0"/><GradientStop Color="#1E6FE8" Offset="1"/></LinearGradientBrush></Setter.Value></Setter>
+            <Setter Property="Foreground" Value="White"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="FontSize" Value="13"/><Setter Property="Padding" Value="16,7"/><Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+                <Grid x:Name="GreenRoot" RenderTransformOrigin="0.5,0.5">
+                    <Grid.RenderTransform><ScaleTransform ScaleX="1" ScaleY="1"/></Grid.RenderTransform>
+                    <Grid.Effect><DynamicResource ResourceKey="DR3DShadow"/></Grid.Effect>
+                    <!-- The darker edge underneath makes the button look raised, like a key. -->
+                    <Border CornerRadius="16" Background="#B3000A30" Margin="0,8,0,-8" Visibility="{DynamicResource DR3DParts}"/>
+                    <Grid x:Name="GreenFace">
+                        <Grid.RenderTransform><TranslateTransform x:Name="GreenPress" Y="0"/></Grid.RenderTransform>
+                        <Border x:Name="GreenBorder" Background="{TemplateBinding Background}" CornerRadius="16" BorderBrush="#E6FFFFFF" BorderThickness="1.5" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                            <Grid>
+                                <Border CornerRadius="14,14,30,30" VerticalAlignment="Top" Margin="2,-5,2,0" Height="16" IsHitTestVisible="False">
+                                    <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#99FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background>
+                                </Border>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <ContentPresenter.Effect><DynamicResource ResourceKey="DR3DText"/></ContentPresenter.Effect>
+                                </ContentPresenter>
+                            </Grid>
+                        </Border>
+                        <Border CornerRadius="16" IsHitTestVisible="False" BorderThickness="0,0,0,4" BorderBrush="#55000000" Visibility="{DynamicResource DR3DParts}"/>
+                    </Grid>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsPressed" Value="True"><Setter TargetName="GreenFace" Property="Margin" Value="0,3,0,-3"/></Trigger>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Trigger.EnterActions><BeginStoryboard><Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="GreenRoot" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1.1" Duration="0:0:0.45"><DoubleAnimation.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="2" Springiness="4"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                            <DoubleAnimation Storyboard.TargetName="GreenRoot" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1.1" Duration="0:0:0.45"><DoubleAnimation.EasingFunction><ElasticEase EasingMode="EaseOut" Oscillations="2" Springiness="4"/></DoubleAnimation.EasingFunction></DoubleAnimation>
+                        </Storyboard></BeginStoryboard></Trigger.EnterActions>
+                        <Trigger.ExitActions><BeginStoryboard><Storyboard>
+                            <DoubleAnimation Storyboard.TargetName="GreenRoot" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.2"/>
+                            <DoubleAnimation Storyboard.TargetName="GreenRoot" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.2"/>
+                        </Storyboard></BeginStoryboard></Trigger.ExitActions>
+                    </Trigger>
+                    <Trigger Property="Tag" Value="Active"><Setter TargetName="GreenBorder" Property="BorderBrush" Value="#FFF176"/><Setter TargetName="GreenBorder" Property="BorderThickness" Value="3.5"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger>
+                </ControlTemplate.Triggers></ControlTemplate></Setter.Value>
+            </Setter>
+        </Style>
         <Style x:Key="NavButton" TargetType="Button">
             <Setter Property="Foreground" Value="#E6EEFA"/><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Left"/><Setter Property="Padding" Value="18,12"/><Setter Property="Margin" Value="10,3,10,8"/><Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontSize" Value="15.5"/>
@@ -935,7 +974,7 @@ $ErrorActionPreference = 'Stop'
 <Border x:Name="UpdateBanner" Visibility="Collapsed" Background="#12C25B" CornerRadius="12" Padding="20,14" Margin="0,0,0,16"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal" VerticalAlignment="Center"><TextBlock Text="&#10004;" Foreground="White" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,12,0"/><TextBlock x:Name="UpdateBannerText" Text="There is a new update" Foreground="White" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"/></StackPanel><Button x:Name="UpdateBannerButton" Grid.Column="1" Content="See what is new and update" Style="{StaticResource HeroButton}" Foreground="#0B7A3B" Margin="16,0,0,0"/></Grid></Border>
 <Border Style="{StaticResource Card}" Effect="{DynamicResource DR3DShadow}" Padding="34" Margin="0,0,0,18" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Border Grid.RowSpan="2" Margin="-34" CornerRadius="14" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}" BorderThickness="3,3,3,9" BorderBrush="#99FFFFFF"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#66FFFFFF" Offset="0"/><GradientStop Color="#14FFFFFF" Offset="0.30"/><GradientStop Color="#00000000" Offset="0.55"/><GradientStop Color="#99000820" Offset="1"/></LinearGradientBrush></Border.Background></Border><StackPanel HorizontalAlignment="Center"><TextBlock Text="START HERE" Effect="{DynamicResource DR3DHeroText}" HorizontalAlignment="Center" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold"/><Grid HorizontalAlignment="Center" Margin="0,8,6,14"><TextBlock Text="Make my PC cleaner" Foreground="#0A1D78" FontSize="32" FontWeight="ExtraBold" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"><TextBlock.RenderTransform><TranslateTransform X="6" Y="6"/></TextBlock.RenderTransform><TextBlock.Effect><BlurEffect Radius="4"/></TextBlock.Effect></TextBlock><TextBlock Text="Make my PC cleaner" Foreground="#0A1D78" FontSize="32" FontWeight="ExtraBold" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"><TextBlock.RenderTransform><TranslateTransform X="4" Y="4"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="Make my PC cleaner" Foreground="#1A35A8" FontSize="32" FontWeight="ExtraBold" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"><TextBlock.RenderTransform><TranslateTransform X="3" Y="3"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="Make my PC cleaner" Foreground="#2447B8" FontSize="32" FontWeight="ExtraBold" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"><TextBlock.RenderTransform><TranslateTransform X="2" Y="2"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="Make my PC cleaner" Foreground="#3A5FD0" FontSize="32" FontWeight="ExtraBold" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"><TextBlock.RenderTransform><TranslateTransform X="1" Y="1"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="Make my PC cleaner" FontSize="32" FontWeight="ExtraBold"><TextBlock.Foreground><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#F4F8FF" Offset="0.48"/><GradientStop Color="#BFD4FF" Offset="0.52"/><GradientStop Color="#FFFFFF" Offset="1"/></LinearGradientBrush></TextBlock.Foreground></TextBlock></Grid><TextBlock Text="One click. We only do the safe things, and we ask you before anything starts." Effect="{DynamicResource DR3DHeroText}" Foreground="#C9D9FF" FontSize="16" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Center" TextAlignment="Center"/><WrapPanel Orientation="Horizontal" Margin="0,24,0,0" HorizontalAlignment="Center"><Button x:Name="SafeCleanButton" Content="Make my PC cleaner" Style="{StaticResource HeroGreenButton}" FontSize="15" FontWeight="Bold" Padding="20,9" Margin="0,0,10,10"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#5BE584" Offset="0"/><GradientStop Color="#13A64A" Offset="1"/></LinearGradientBrush></Button.Background></Button><Button x:Name="SafePreviewButton" Content="Show me first" Style="{StaticResource HeroGreenButton}" Padding="18,9" Margin="0,0,10,10"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#0E5A2D" Offset="0"/><GradientStop Color="#02240F" Offset="1"/></LinearGradientBrush></Button.Background></Button><Button x:Name="HeroUninstallButton" Style="{StaticResource HeroGreenButton}" Margin="0,0,10,10" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><StackPanel Orientation="Horizontal"><TextBlock Text="⌫" FontSize="14" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock Text="DRDirect Uninstaller Program" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button></WrapPanel><TextBlock Text="✓  Settings changes can be undone.   ✓  Your files and passwords are never touched." Effect="{DynamicResource DR3DHeroText}" Foreground="White" FontSize="13.5" FontWeight="SemiBold" Margin="0,20,0,0" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel><StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,10,0,0"><CheckBox x:Name="SoundSwitch" Style="{StaticResource DRSwitch}" Effect="{DynamicResource DR3DHeroText}" Content="Sound" Margin="0,0,30,0" VerticalAlignment="Center" ToolTip="Play a soft chime when a clean finishes"/><CheckBox x:Name="Buttons3DSwitch" Style="{StaticResource DRSwitch}" Effect="{DynamicResource DR3DHeroText}" Content="3D look" VerticalAlignment="Center" ToolTip="Turn the raised 3D look of the Cleaner on or off"/></StackPanel><Button x:Name="HeroUpdateButton" Content="Check for updates" Style="{StaticResource HeroGreenButton}" Grid.Row="1" Margin="0,10,0,0" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="18,9" ToolTip="Look for a newer version of the Cleaner"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#D2700F" Offset="0"/><GradientStop Color="#8F3800" Offset="1"/></LinearGradientBrush></Button.Background></Button></Grid></Border>
 <UniformGrid Columns="3" Margin="0,0,0,22">
-                            <Border x:Name="LastCleanCard" Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Violet}" BorderThickness="5,1,1,1"><Grid><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource VioletSoft}"><TextBlock Text="◷" Foreground="{StaticResource Violet}" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="LAST CLEAN" Foreground="{StaticResource Violet}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="LastCleanValue" Text="Not yet" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock x:Name="LastCleanHint" Text="Shows here after your first clean" Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap"/></StackPanel><Ellipse x:Name="LastCleanLightBlue" Width="14" Height="14" Fill="#1E90FF" Margin="-12,-12,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed"><Ellipse.Effect><DropShadowEffect Color="#1E90FF" BlurRadius="14" ShadowDepth="0" Opacity="0.9"/></Ellipse.Effect></Ellipse><Ellipse x:Name="LastCleanLightRed" Width="14" Height="14" Fill="#E02424" Margin="0,-12,-12,0" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed"><Ellipse.Effect><DropShadowEffect Color="#E02424" BlurRadius="14" ShadowDepth="0" Opacity="0.9"/></Ellipse.Effect></Ellipse></Grid></Border>
+                            <Border x:Name="LastCleanCard" Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Violet}" BorderThickness="5,1,1,1"><Grid><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource VioletSoft}"><TextBlock Text="◷" Foreground="{StaticResource Violet}" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="LAST CLEAN" Foreground="{StaticResource Violet}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="LastCleanValue" Text="Not yet" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock x:Name="LastCleanHint" Text="Shows here after your first clean" Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap"/><TextBlock x:Name="LastCleanQuickScan" Style="{StaticResource MutedText}" FontSize="12" Margin="0,10,0,0" TextWrapping="Wrap" Visibility="Collapsed"/><TextBlock x:Name="LastCleanFullScan" Style="{StaticResource MutedText}" FontSize="12" Margin="0,2,0,0" TextWrapping="Wrap" Visibility="Collapsed"/></StackPanel><Ellipse x:Name="LastCleanLightBlue" Width="14" Height="14" Fill="#1E90FF" Margin="-12,-12,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed"><Ellipse.Effect><DropShadowEffect Color="#1E90FF" BlurRadius="14" ShadowDepth="0" Opacity="0.9"/></Ellipse.Effect></Ellipse><Ellipse x:Name="LastCleanLightRed" Width="14" Height="14" Fill="#E02424" Margin="0,-12,-12,0" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed"><Ellipse.Effect><DropShadowEffect Color="#E02424" BlurRadius="14" ShadowDepth="0" Opacity="0.9"/></Ellipse.Effect></Ellipse></Grid></Border>
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Teal}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource TealSoft}"><TextBlock Text="▰" Foreground="{StaticResource Teal}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="FREE SPACE" Foreground="{StaticResource Teal}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="FreeSpaceText" Text="Checking…" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="On your main drive" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
                             <Border x:Name="HealthCard" Style="{StaticResource Card}" BorderBrush="{StaticResource Amber}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border x:Name="HealthIconBox" Style="{StaticResource StatIcon}" Background="{StaticResource AmberSoft}"><TextBlock x:Name="HealthIcon" Text="⬡" Foreground="{StaticResource Amber}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock x:Name="HealthLabel" Text="WINDOWS HEALTH" Foreground="{StaticResource Amber}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="WindowsStatusText" Text="Checking..." FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock x:Name="WindowsStatusHint" Text="Takes a few seconds. Nothing is changed." Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap"/><Button x:Name="HealthCheckButton" Content="↻  Check again" Cursor="Hand" HorizontalAlignment="Left" Margin="0,10,0,0" Visibility="Collapsed" ToolTip="Look again, for example after fixing something. Nothing is changed."><Button.Template><ControlTemplate TargetType="Button"><TextBlock x:Name="LinkText" Text="{TemplateBinding Content}" Foreground="#2563EB" FontSize="13" FontWeight="SemiBold" Background="Transparent"/><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="LinkText" Property="TextDecorations" Value="Underline"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template></Button></StackPanel></Border>
                         </UniformGrid>
@@ -972,30 +1011,24 @@ $ErrorActionPreference = 'Stop'
 
                 <Grid x:Name="PageTasks" Visibility="Collapsed">
                     <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-                    <!-- The whole page scrolls, not just the list: on a short screen the level buttons
-                         would otherwise leave the task list room for barely one row. -->
-                    <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto"><StackPanel>
-                    <Grid Margin="0,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="TaskIntro" Text="Select exactly what you want to run. Nothing starts until you review and confirm the plan." Style="{StaticResource MutedText}" TextWrapping="Wrap"/><Border Grid.Column="1" Background="{StaticResource BlueSoft}" CornerRadius="14" Padding="12,6"><TextBlock x:Name="SelectionSummary" Text="0 selected" Foreground="{StaticResource Blue}" FontSize="12"/></Border></Grid>
-                    <Border x:Name="CleanupPresetPanel" Style="{StaticResource Card}" Padding="16" Margin="0,0,0,14" Visibility="Visible">
+                    <!-- The cleanup level box stays at the top; the intro and the task list scroll under it. -->
+                    <Grid Grid.Row="0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+                    <Border x:Name="CleanupPresetPanel" Grid.Row="0" Style="{StaticResource Card}" Padding="16" Margin="0,0,0,14" Visibility="Visible">
                         <StackPanel>
-                            <StackPanel Orientation="Horizontal"><TextBlock Text="Choose cleanup level" FontSize="16" FontWeight="SemiBold"/><Border Background="#E8F0FF" CornerRadius="10" Padding="8,3" Margin="10,0,0,0"><TextBlock Text="ORDERED PRESETS" Foreground="#2563EB" FontSize="11" FontWeight="SemiBold"/></Border></StackPanel>
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal"><TextBlock Text="Choose cleanup level" FontSize="16" FontWeight="SemiBold"/><Border Background="#E8F0FF" CornerRadius="10" Padding="8,3" Margin="10,0,0,0"><TextBlock Text="ORDERED PRESETS" Foreground="#2563EB" FontSize="11" FontWeight="SemiBold"/></Border></StackPanel><Border Grid.Column="1" Background="#F4F7FF" BorderBrush="#C7D5F5" BorderThickness="1" CornerRadius="10" Padding="8,4" VerticalAlignment="Center"><StackPanel Orientation="Horizontal"><Button x:Name="CleanCheckAllButton" Content="Check all" Style="{StaticResource GlossyChoiceButton}" Padding="14,5" FontSize="12" Margin="0,0,8,4" ToolTip="Tick every item below, except the cookie item that signs you out"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFD54A" Offset="0"/><GradientStop Color="#F59E0B" Offset="1"/></LinearGradientBrush></Button.Background></Button><Button x:Name="CleanCheckOffButton" Content="Check off" Style="{StaticResource GlossyChoiceButton}" Padding="14,5" FontSize="12" Margin="0,0,0,4" ToolTip="Untick every item below"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFD54A" Offset="0"/><GradientStop Color="#F59E0B" Offset="1"/></LinearGradientBrush></Button.Background></Button></StackPanel></Border></Grid>
                             <TextBlock Text="Safe = regular cleanup. Medium = full cleanup. Advanced = full cleanup plus Windows repair." Style="{StaticResource MutedText}" FontSize="12" Margin="0,4,0,12"/>
                             <UniformGrid Columns="3">
-                                <Button x:Name="PresetSafe" Style="{StaticResource PresetChoiceButton}" BorderBrush="{StaticResource Success}" Background="#EDF8F3">
-                                    <TextBlock Text="SAFE SCAN" Foreground="{StaticResource Success}" FontSize="15" FontWeight="Bold"/>
-                                </Button>
-                                <Button x:Name="PresetMedium" Style="{StaticResource PresetChoiceButton}" BorderBrush="{StaticResource Blue}" Background="#EEF4FF">
-                                    <TextBlock Text="MEDIUM SCAN" Foreground="{StaticResource Blue}" FontSize="15" FontWeight="Bold"/>
-                                </Button>
-                                <Button x:Name="PresetAdvanced" Style="{StaticResource PresetChoiceButton}" BorderBrush="{StaticResource Danger}" Background="#FFF1F1" Margin="0">
-                                    <TextBlock Text="ADVANCED SCAN" Foreground="{StaticResource Danger}" FontSize="15" FontWeight="Bold"/>
-                                </Button>
+                                <StackPanel><TextBlock x:Name="PresetSafeDate" HorizontalAlignment="Center" Style="{StaticResource MutedText}" FontSize="12" Margin="0,0,0,4"/><Button x:Name="PresetSafe" Style="{StaticResource GlossyChoiceButton}" Padding="16,12" Margin="0,0,10,8"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#5BE584" Offset="0"/><GradientStop Color="#13A64A" Offset="1"/></LinearGradientBrush></Button.Background><TextBlock Text="SAFE SCAN" Foreground="White" FontSize="15" FontWeight="Bold"/></Button></StackPanel>
+                                <StackPanel><TextBlock x:Name="PresetMediumDate" HorizontalAlignment="Center" Style="{StaticResource MutedText}" FontSize="12" Margin="0,0,0,4"/><Button x:Name="PresetMedium" Style="{StaticResource GlossyChoiceButton}" Padding="16,12" Margin="0,0,10,8"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#4FC3FF" Offset="0"/><GradientStop Color="#1E6FE8" Offset="1"/></LinearGradientBrush></Button.Background><TextBlock Text="MEDIUM SCAN" Foreground="White" FontSize="15" FontWeight="Bold"/></Button></StackPanel>
+                                <StackPanel><TextBlock x:Name="PresetAdvancedDate" HorizontalAlignment="Center" Style="{StaticResource MutedText}" FontSize="12" Margin="0,0,0,4"/><Button x:Name="PresetAdvanced" Style="{StaticResource GlossyChoiceButton}" Padding="16,12" Margin="0,0,0,8"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FF8A80" Offset="0"/><GradientStop Color="#D32020" Offset="1"/></LinearGradientBrush></Button.Background><TextBlock Text="ADVANCED SCAN" Foreground="White" FontSize="15" FontWeight="Bold"/></Button></StackPanel>
                             </UniformGrid>
                             <TextBlock x:Name="PresetDescription" Text="Choose a level, or select individual tasks below." Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap" Margin="0,10,0,0"/>
                         </StackPanel>
                     </Border>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto"><StackPanel>
+                    <Grid Margin="0,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock x:Name="TaskIntro" Text="Select exactly what you want to run. Nothing starts until you review and confirm the plan." Style="{StaticResource MutedText}" TextWrapping="Wrap"/><Border Grid.Column="1" Background="{StaticResource BlueSoft}" CornerRadius="14" Padding="12,6"><TextBlock x:Name="SelectionSummary" Text="0 selected" Foreground="{StaticResource Blue}" FontSize="12"/></Border></Grid>
                     <StackPanel x:Name="TaskList"/>
-                    </StackPanel></ScrollViewer>
+                    </StackPanel></ScrollViewer></Grid>
                     <Grid Grid.Row="1" Margin="0,16,0,0"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="Destructive actions always require final confirmation." Style="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center"/><Button x:Name="ReviewButton" Grid.Column="1" Content="Review selected plan" Style="{StaticResource PrimaryButton}" IsEnabled="False"/></Grid>
                 </Grid>
 
@@ -1232,7 +1265,7 @@ try {
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('NavScroll','NavMoreHint','NavHeadClean','NavHeadFix','NavHeadCheck','DashMoreHint','DashShowAllButton','NavModeToggle','NavHeadUpdate','DashOtherTitle','DashOtherGrid','DashMsTools','DashMoreOptions','SoundSwitch','AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','LastCleanCard','LastCleanLightBlue','LastCleanLightRed','LastCleanValue','LastCleanHint','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('NavScroll','NavMoreHint','NavHeadClean','NavHeadFix','NavHeadCheck','DashMoreHint','DashShowAllButton','NavModeToggle','NavHeadUpdate','DashOtherTitle','DashOtherGrid','DashMsTools','DashMoreOptions','SoundSwitch','AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','LastCleanCard','LastCleanLightBlue','LastCleanLightRed','LastCleanValue','LastCleanHint','LastCleanQuickScan','LastCleanFullScan','CleanCheckAllButton','CleanCheckOffButton','PresetSafeDate','PresetMediumDate','PresetAdvancedDate','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -2517,6 +2550,46 @@ $ui.AISearchText.Add_TextChanged({
     try { Show-TaskCategory 'AI' } finally { $script:DRAISearchRefresh = $false }
 })
 
+foreach ($bulkName in 'CleanCheckAllButton','CleanCheckOffButton') {
+    $bulkButton = $ui[$bulkName]
+    if (-not $bulkButton) { continue }
+    $bulkButton.Tag = if ($bulkName -eq 'CleanCheckAllButton') { 'On' } else { 'Off' }
+    $bulkButton.Add_Click({
+        $on = ([string]$this.Tag -eq 'On')
+        # Check all leaves the cookie item (it signs you out) alone; Check off clears everything on the page.
+        foreach ($task in @($catalog | Where-Object { $_.Category -eq 'Cleanup' -and ((-not $on) -or [string]$_.Risk -ne 'SignOut') })) { $selection[$task.Id] = $on }
+        if ($script:currentCategory -eq 'Cleanup') { Show-TaskCategory -Category 'Cleanup' } else { Update-SelectionSummary }
+    })
+}
+
+function Set-DRLevelDates {
+    # Above Safe, Medium and Advanced: when that level was last done. The reports do not say which level was
+    # picked, so a level counts as done when a report's task list holds every item that level ticks. A Medium
+    # clean therefore also counts as a Safe one, because Medium includes everything Safe does.
+    if (-not $ui.PresetSafeDate -or [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) { return }
+    $reportRoot = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Reports'
+    $need = @{}
+    foreach ($level in 'Safe','Medium','Advanced') {
+        $need[$level] = @($catalog | Where-Object { [string]$_.Risk -ne 'SignOut' -and $_.Category -in @('Cleanup','Repair') -and (Test-TaskInOrderedPreset -Task $_ -Preset $level) } | ForEach-Object { [string]$_.Id })
+    }
+    $found = @{}
+    if (Test-Path -LiteralPath $reportRoot -PathType Container) {
+        foreach ($file in @(Get-ChildItem -LiteralPath $reportRoot -Filter 'Maintenance_Report_*.txt' -File -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 80)) {
+            if ($found.Count -ge 3) { break }
+            $ran = @()
+            try { $ran = @(Select-String -LiteralPath $file.FullName -Pattern '^\s+-\s+([a-z]+\.[a-z0-9.-]+)\s*$' -ErrorAction Stop | ForEach-Object { $_.Matches[0].Groups[1].Value }) } catch { continue }
+            foreach ($level in 'Safe','Medium','Advanced') {
+                if ($found.ContainsKey($level) -or -not $need[$level].Count) { continue }
+                if (@($need[$level] | Where-Object { $ran -notcontains $_ }).Count -eq 0) { $found[$level] = $file.LastWriteTime }
+            }
+        }
+    }
+    foreach ($level in 'Safe','Medium','Advanced') {
+        $when = $found[$level]
+        $ui["Preset${level}Date"].Text = if (-not $when) { 'Not done yet' } else { 'Done ' + $when.ToString('dddd d MMMM') }
+    }
+}
+
 function Update-SelectionSummary {
     $selected = @($catalog | Where-Object { $selection[$_.Id] })
     $total = @($selected).Count
@@ -3350,6 +3423,49 @@ function Complete-RunPlan {
 }
 
 
+$script:DRScanLinesAsync = $null
+function Set-DRScanLines {
+    # The Last clean card also says when Windows Defender last did a quick scan and a full scan.
+    # Defender keeps both dates itself, so scans the Cleaner started and the daily scheduled one both count.
+    # Reading them takes about a second, so it happens in the background and the card fills in when it is done.
+    if (-not $ui.LastCleanQuickScan -or -not $ui.LastCleanFullScan) { return }
+    if ($script:DRScanLinesAsync -and -not $script:DRScanLinesAsync.IsCompleted) { return }
+    $script:DRScanLinesPS = [powershell]::Create()
+    [void]$script:DRScanLinesPS.AddScript({
+        try { $m = Get-MpComputerStatus -ErrorAction Stop; [pscustomobject]@{ Ok = $true; Quick = $m.QuickScanEndTime; Full = $m.FullScanEndTime } }
+        catch { [pscustomobject]@{ Ok = $false } }
+    })
+    $script:DRScanLinesAsync = $script:DRScanLinesPS.BeginInvoke()
+    $scanTimer = New-Object Windows.Threading.DispatcherTimer
+    $scanTimer.Interval = [TimeSpan]::FromMilliseconds(400)
+    $scanTimer.Add_Tick({
+        if (-not $script:DRScanLinesAsync.IsCompleted) { return }
+        $this.Stop()
+        try {
+            $result = @($script:DRScanLinesPS.EndInvoke($script:DRScanLinesAsync))[0]
+            if ($result -and $result.Ok) {
+                $say = {
+                    param($label, $when)
+                    # Defender reports a scan that never ran as a date long ago, so anything before 2000 means never.
+                    if (-not $when -or $when.Year -lt 2000) { return "$label never" }
+                    $day = if ($when.Date -eq (Get-Date).Date) { 'today' } elseif ($when.Date -eq (Get-Date).Date.AddDays(-1)) { 'yesterday' } else { $when.ToString('d MMMM') }
+                    "$label $day"
+                }
+                $ui.LastCleanQuickScan.Text = & $say 'Quick scan:' $result.Quick
+                $fullText = & $say 'Full scan:' $result.Full
+                $ui.LastCleanFullScan.Text = $fullText
+                # A full scan that never ran is the one thing worth pointing out, so it turns red.
+                if ($fullText -like '*never') { $ui.LastCleanFullScan.Foreground = $window.FindResource('Danger') }
+                else { $ui.LastCleanFullScan.ClearValue([Windows.Controls.TextBlock]::ForegroundProperty) }
+                $ui.LastCleanQuickScan.Visibility = 'Visible'
+                $ui.LastCleanFullScan.Visibility = 'Visible'
+            }
+        } catch { }
+        finally { try { $script:DRScanLinesPS.Dispose() } catch { } }
+    })
+    $scanTimer.Start()
+}
+
 function Set-DRLastCleanCard {
     # The Dashboard's Last clean card: the newest report that ran a cleanup task.
     # Checks and scans write reports too, but they are not a clean, so they are skipped.
@@ -3417,6 +3533,8 @@ function Show-DashboardHistory {
             one without this panel.
     #>
     try { Set-DRLastCleanCard } catch { }
+    try { Set-DRScanLines } catch { }
+    try { Set-DRLevelDates } catch { }
     if (-not $ui.DashboardHistoryList) { return }
     $ui.DashboardHistoryList.Children.Clear()
 
@@ -4424,7 +4542,8 @@ function Set-DR3DButtons {
         $window.Resources['DR3DParts'] = [Windows.Visibility]::Collapsed
     }
 }
-$dr3dOn = $true
+# The first time the Cleaner opens the 3D look is off. The person turns it on with the switch, and the choice is remembered.
+$dr3dOn = $false
 try { $v = Get-ItemProperty -LiteralPath $script:DR3DKey -Name 'Buttons3D' -ErrorAction Stop; $dr3dOn = [int]$v.Buttons3D -ne 0 } catch { }
 Set-DR3DButtons -On $dr3dOn
 $ui.Buttons3DSwitch.IsChecked = $dr3dOn
@@ -5659,6 +5778,8 @@ if ($NoShow) {
     try { Start-DRQuietUpdateCheck } catch { }
     try { Start-DRHealthCheck } catch { }
     try { Set-DRLastCleanCard } catch { }
+    try { Set-DRScanLines } catch { }
+    try { Set-DRLevelDates } catch { }
     # Open tall enough that the start card and the three status cards show without scrolling,
     # but never taller than the screen.
     try {
