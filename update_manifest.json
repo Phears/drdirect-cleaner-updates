@@ -1,7 +1,7 @@
 {
-  "version": "1.4.190",
-  "notes": "After an update, the Cleaner now makes sure the old window is gone before it opens the new one, so it can no longer just stay on screen.",
-  "published": "2026-10-23T12:30:55.1150371-04:00",
+  "version": "1.4.191",
+  "notes": "The Max 3D switch now only appears after you turn the 3D look on, so the Cleaner always starts plain and flat on a new PC.",
+  "published": "2026-10-23T12:42:32.5988429-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "8C92E730B1A40E725C38EF18BD88876684ABE1DF29B519936AA99878267F81E4",
-      "size": 429841
+      "sha256": "0734AC476D54128790AE6A69C6CDF1573CA2BAC5E4252D7253CF75E881E04B83",
+      "size": 430169
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

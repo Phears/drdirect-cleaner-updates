@@ -4644,6 +4644,9 @@ if (-not $dr3dOn) { $dr3dMax = $false }
 Set-DR3DButtons -On $dr3dOn -Max $dr3dMax
 $ui.Buttons3DSwitch.IsChecked = $dr3dOn
 $ui.Max3DSwitch.IsChecked = $dr3dMax
+# Max 3D is only offered once the 3D look is on, so a first start shows just the plain look and its one switch.
+function Update-DRMaxSwitchVisibility { $ui.Max3DSwitch.Visibility = $(if ([bool]$ui.Buttons3DSwitch.IsChecked) { 'Visible' } else { 'Collapsed' }) }
+Update-DRMaxSwitchVisibility
 function Save-DR3DChoice {
     if ($TestMode) { return }
     try {
@@ -4656,6 +4659,7 @@ $ui.Buttons3DSwitch.Add_Click({
     # Turning the 3D look off also turns Max 3D off, since Max is only a deeper version of it.
     if (-not [bool]$ui.Buttons3DSwitch.IsChecked) { $ui.Max3DSwitch.IsChecked = $false }
     Set-DR3DButtons -On ([bool]$ui.Buttons3DSwitch.IsChecked) -Max ([bool]$ui.Max3DSwitch.IsChecked)
+    Update-DRMaxSwitchVisibility
     Save-DR3DChoice
 })
 $ui.Max3DSwitch.Add_Click({
