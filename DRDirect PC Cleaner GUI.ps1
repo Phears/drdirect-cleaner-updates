@@ -4744,15 +4744,17 @@ $script:DRSoundOn = $true
 try { $v = Get-ItemProperty -LiteralPath $script:DR3DKey -Name 'FinishSound' -ErrorAction Stop; $script:DRSoundOn = [int]$v.FinishSound -ne 0 } catch { }
 $ui.SoundSwitch.IsChecked = $script:DRSoundOn
 
-# A very small tick when the pointer touches a button, so the person hears that it is a button. It is made
-# here (a few thousandths of a second of a soft tone), and the Sound switch turns it off with the other sounds.
+# A short, soft, smooth note when the pointer touches a button, so the person hears that it is a button. It is made
+# here, and the Sound switch turns it off with the other sounds.
 try {
-    $tickRate = 22050; $tickCount = [int]($tickRate * 0.045)
+    # A soft rising glide (about a seventh of a second) with a slow fade in and out, so it sounds smooth, not sharp.
+    $tickRate = 22050; $tickCount = [int]($tickRate * 0.09)
     $tickSamples = New-Object 'int16[]' $tickCount
     for ($i = 0; $i -lt $tickCount; $i++) {
-        $t = $i / $tickRate
-        $envelope = [math]::Min(1.0, $i / 60.0) * [math]::Exp(-9.0 * $i / $tickCount)
-        $tickSamples[$i] = [int16](5200 * $envelope * ([math]::Sin(2 * [math]::PI * 1400 * $t) + 0.4 * [math]::Sin(2 * [math]::PI * 2800 * $t)))
+        $t = $i / $tickRate; $p = $i / $tickCount
+        # One soft note with a little bass under it, short, with a rounded swell in and out so there is no click or edge.
+        $envelope = [math]::Pow([math]::Sin([math]::PI * $p), 2)
+        $tickSamples[$i] = [int16](3200 * $envelope * ([math]::Sin(2 * [math]::PI * 330 * $t) + 0.8 * [math]::Sin(2 * [math]::PI * 165 * $t)))
     }
     $tickBytes = New-Object 'byte[]' ($tickCount * 2)
     [Buffer]::BlockCopy($tickSamples, 0, $tickBytes, 0, $tickBytes.Length)
@@ -4771,7 +4773,7 @@ try {
         try {
             if (-not $script:DRSoundOn -or -not $sender.IsEnabled) { return }
             $now = [datetime]::UtcNow
-            if (($now - $script:DRHoverLast).TotalMilliseconds -lt 70) { return }
+            if (($now - $script:DRHoverLast).TotalMilliseconds -lt 110) { return }
             $script:DRHoverLast = $now
             $script:DRHoverSound.Play()
         } catch { }

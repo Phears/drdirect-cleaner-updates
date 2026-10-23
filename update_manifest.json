@@ -1,7 +1,7 @@
 {
-  "version": "1.4.193",
-  "notes": "A friendly Please read first note from DRDirect appears for the first week. If you say No to the restart reminder, it asks again after 2 days, until the PC has been restarted.",
-  "published": "2026-10-23T13:50:49.5822645-04:00",
+  "version": "1.4.194",
+  "notes": "The sound when your mouse moves over a button is now short, soft and smooth instead of a sharp tick.",
+  "published": "2026-10-23T14:41:34.8600295-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "24BC1D0A3850B15E1E33378DC62AD9D5EFD10E6E0DF9F7C187F6570969117C16",
-      "size": 434042
+      "sha256": "CF57B9A7656E3EE84B70250A6D4B12C4F3A74B044A96B385621A2F7749C816FC",
+      "size": 434242
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
