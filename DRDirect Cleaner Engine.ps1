@@ -1556,11 +1556,28 @@ function Get-DRStartupEntries {
         @{ Path='HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run'; Scope='All users' },
         @{ Path='HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run'; Scope='All users' }
     )
+    # Windows Settings > Apps > Startup switches a program off by flagging it here, not by removing it.
+    $approvedRoot = 'Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\'
+    $approvedPaths = @{
+        'HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' = ('HKCU:\' + $approvedRoot + 'Run')
+        'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run' = ('HKLM:\' + $approvedRoot + 'Run')
+        'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Run' = ('HKLM:\' + $approvedRoot + 'Run32')
+        'This user' = ('HKCU:\' + $approvedRoot + 'StartupFolder')
+        'All users' = ('HKLM:\' + $approvedRoot + 'StartupFolder')
+    }
+    $isSwitchedOff = {
+        param([string]$ApprovedPath, [string]$Name)
+        $approved = Get-Item -LiteralPath $ApprovedPath -ErrorAction SilentlyContinue
+        if (-not $approved) { return $false }
+        $flag = $approved.GetValue($Name)
+        return ($flag -is [byte[]] -and $flag.Length -gt 0 -and (($flag[0] -band 1) -eq 1))
+    }
     foreach ($key in $keys) {
         $item = Get-Item -LiteralPath $key.Path -ErrorAction SilentlyContinue
         if (-not $item) { continue }
         foreach ($name in $item.GetValueNames()) {
             if (-not $name) { continue }
+            if (& $isSwitchedOff $approvedPaths[$key.Path] $name) { continue }
             $entries.Add([pscustomobject]@{ Name=$name; Command=[string]$item.GetValue($name); Scope=$key.Scope })
         }
     }
@@ -1570,6 +1587,7 @@ function Get-DRStartupEntries {
     )
     foreach ($folder in $folders) {
         foreach ($file in @(Get-ChildItem -LiteralPath $folder.Path -File -Force -ErrorAction SilentlyContinue | Where-Object { $_.Name -ne 'desktop.ini' })) {
+            if (& $isSwitchedOff $approvedPaths[$folder.Scope] $file.Name) { continue }
             $entries.Add([pscustomobject]@{ Name=$file.BaseName; Command=$file.FullName; Scope=$folder.Scope })
         }
     }

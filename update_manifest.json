@@ -1,7 +1,7 @@
 {
-  "version": "1.4.208",
-  "notes": "The Power and heat check now also tells you about a program that keeps crashing or a Windows update that keeps failing, and what to do about it.",
-  "published": "2026-10-24T13:58:10.2605380-04:00",
+  "version": "1.4.209",
+  "notes": "The PC checkup now counts only the programs that really start with Windows. Programs you switched off in Windows Settings are no longer counted, so you no longer get a false 'many startup programs' warning.",
+  "published": "2026-10-24T19:19:28.0592798-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "D5A4F764F8D79AFBF398E5512D8E7BC1B8E884746C309702A3473C3E720240EA",
-      "size": 324462
+      "sha256": "A39E6F84EBC293179491F871DD0DCFAA5D240937497B6EFDA1C32583CDA3EDF5",
+      "size": 325663
     },
     {
       "name": "DRDirect Updater.ps1",
