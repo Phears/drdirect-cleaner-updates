@@ -3659,11 +3659,14 @@ function Start-DRCleanButtonBounce {
     $hop = New-Object Windows.Media.Animation.DoubleAnimationUsingKeyFrames
     $hop.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
     $hop.Duration = [Windows.Duration]::new([TimeSpan]::FromMilliseconds(1300))
+    # Whole pixels only: the 3D shadow turns blurry if the button sits between pixels.
     $up = New-Object Windows.Media.Animation.QuadraticEase; $up.EasingMode = 'EaseOut'
     $down = New-Object Windows.Media.Animation.BounceEase; $down.Bounces = 2; $down.Bounciness = 3; $down.EasingMode = 'EaseOut'
-    [void]$hop.KeyFrames.Add([Windows.Media.Animation.EasingDoubleKeyFrame]::new(0, [Windows.Media.Animation.KeyTime]::FromTimeSpan([TimeSpan]::Zero)))
-    [void]$hop.KeyFrames.Add([Windows.Media.Animation.EasingDoubleKeyFrame]::new(-10, [Windows.Media.Animation.KeyTime]::FromTimeSpan([TimeSpan]::FromMilliseconds(250)), $up))
-    [void]$hop.KeyFrames.Add([Windows.Media.Animation.EasingDoubleKeyFrame]::new(0, [Windows.Media.Animation.KeyTime]::FromTimeSpan([TimeSpan]::FromMilliseconds(800)), $down))
+    for ($ms = 0; $ms -le 800; $ms += 16) {
+        $y = if ($ms -le 250) { -10 * $up.Ease($ms / 250) } else { -10 + 10 * $down.Ease(($ms - 250) / 550) }
+        [void]$hop.KeyFrames.Add([Windows.Media.Animation.DiscreteDoubleKeyFrame]::new([math]::Round($y), [Windows.Media.Animation.KeyTime]::FromTimeSpan([TimeSpan]::FromMilliseconds($ms))))
+    }
+    [void]$hop.KeyFrames.Add([Windows.Media.Animation.DiscreteDoubleKeyFrame]::new(0, [Windows.Media.Animation.KeyTime]::FromTimeSpan([TimeSpan]::FromMilliseconds(816))))
     $move.BeginAnimation([Windows.Media.TranslateTransform]::YProperty, $hop)
     $script:DRBounceOn = $true
 }

@@ -1,7 +1,7 @@
 {
-  "version": "1.4.202",
-  "notes": "You can choose Right away again for restarting Windows after a clean.",
-  "published": "2026-10-24T12:59:57.4545984-04:00",
+  "version": "1.4.203",
+  "notes": "The bouncing clean button now stays sharp and clear in 3D.",
+  "published": "2026-10-24T13:27:39.0480632-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "3227B2ABE75F157B5C28F06E1D859234050D003E95799482B5840EE2913CBCBD",
-      "size": 504718
+      "sha256": "E0C05D84CBC941A41867DAE4DB865AB1C46D6F49C8BCF07CA43C7AB9B5DDD855",
+      "size": 504826
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
