@@ -1,7 +1,7 @@
 {
-  "version": "1.4.201",
-  "notes": "When it is time to clean, the green button now bounces so it is easy to spot. It stops as soon as you press it.",
-  "published": "2026-10-24T12:56:17.4150611-04:00",
+  "version": "1.4.202",
+  "notes": "You can choose Right away again for restarting Windows after a clean.",
+  "published": "2026-10-24T12:59:57.4545984-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B52E9D0BCE889AD6DA85DAA7ECAFA20ECC86B725E08886EBBB2C29FE86D88142",
-      "size": 504532
+      "sha256": "3227B2ABE75F157B5C28F06E1D859234050D003E95799482B5840EE2913CBCBD",
+      "size": 504718
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
