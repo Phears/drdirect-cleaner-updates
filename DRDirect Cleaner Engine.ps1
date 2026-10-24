@@ -1479,12 +1479,58 @@ function Invoke-DRPowerHeatCheck {
         $lines.Add('What to do: clean the dust out of the fans, and keep the vents clear.')
     }
 
+    $needsTech = $problem
+
+    # Programs that keep crashing or freezing (Application Error 1000, Application Hang 1002).
+    # One crash now and then is normal, so only a program that did it 3 times or more is shown.
+    try {
+        $appEvents = @(Get-WinEvent -FilterHashtable @{ LogName = 'Application'; Id = 1000, 1002; StartTime = $since } -MaxEvents 500 -ErrorAction Stop |
+                       Where-Object { $_.ProviderName -in 'Application Error', 'Application Hang' })
+        $byApp = @{}
+        foreach ($ev in $appEvents) {
+            $name = ''
+            try { $name = [string](([xml]$ev.ToXml()).Event.EventData.Data | Select-Object -First 1 | ForEach-Object { if ($_ -is [string]) { $_ } else { $_.'#text' } }) } catch { }
+            if ([string]::IsNullOrWhiteSpace($name)) { continue }
+            $name = [IO.Path]::GetFileNameWithoutExtension($name)
+            $byApp[$name] = 1 + $(if ($byApp.ContainsKey($name)) { $byApp[$name] } else { 0 })
+        }
+        foreach ($entry in @($byApp.GetEnumerator() | Where-Object { $_.Value -ge 3 } | Sort-Object Value -Descending | Select-Object -First 5)) {
+            $problem = $true
+            $lines.Add(('The program "{0}" crashed or froze {1} times in the last 30 days.' -f $entry.Key, $entry.Value))
+            $lines.Add('What to do: update that program, or uninstall it and install it again.')
+        }
+    } catch { }
+
+    # Windows updates that failed and have not installed since (WindowsUpdateClient 20 = failed, 19 = installed).
+    try {
+        $wu = @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; ProviderName = 'Microsoft-Windows-WindowsUpdateClient'; Id = 19, 20; StartTime = $since } -MaxEvents 500 -ErrorAction Stop)
+        $titleOf = {
+            param($ev)
+            try { [string](([xml]$ev.ToXml()).Event.EventData.Data | Where-Object { $_.Name -eq 'updateTitle' } | Select-Object -First 1 -ExpandProperty '#text') } catch { '' }
+        }
+        $installed = @{}
+        foreach ($ev in @($wu | Where-Object { $_.Id -eq 19 })) { $t = & $titleOf $ev; if ($t) { $installed[$t] = $ev.TimeCreated } }
+        $stillFailed = @{}
+        foreach ($ev in @($wu | Where-Object { $_.Id -eq 20 })) {
+            $t = & $titleOf $ev
+            if (-not $t) { continue }
+            if ($installed.ContainsKey($t) -and $installed[$t] -gt $ev.TimeCreated) { continue }
+            $stillFailed[$t] = $true
+        }
+        if ($stillFailed.Count) {
+            $problem = $true
+            $lines.Add(('{0} Windows update(s) failed to install and have not installed since:' -f $stillFailed.Count))
+            foreach ($t in @($stillFailed.Keys | Select-Object -First 5)) { $lines.Add(('  - {0}' -f $t)) }
+            $lines.Add('What to do: run "Fix Windows" (Windows Update repair), then restart and check for updates again.')
+        }
+    } catch { }
+
     # Serious (the Cleaner shows red and blue lights): repeated sudden power loss, a very hot reading, or the processor
     # held back by heat again and again. Anything milder is a yellow warning.
     $serious = ($powerLoss -ge 3) -or ($null -ne $hottest -and $hottest -ge 90) -or ($slowed -ge 30)
     if (-not $problem) {
-        $lines.Add('No overheating, no sudden shut-offs and no hardware problems in the last 30 days. Nothing to worry about.')
-    } else {
+        $lines.Add('No overheating, no sudden shut-offs, no hardware problems, no programs crashing again and again, and no failed Windows updates in the last 30 days. Nothing to worry about.')
+    } elseif ($needsTech) {
         $lines.Add('These problems should be checked by a technician.')
     }
     $headline = if ($serious) { 'Power and heat: Please check this soon' } elseif ($problem) { 'Power and heat: Something to check' } else { 'Power and heat: All good' }

@@ -1,7 +1,7 @@
 {
-  "version": "1.4.207",
-  "notes": "The Power and heat check is now easy to read. It says All good when nothing is wrong, and only shows a problem when it really finds one, with what to do.",
-  "published": "2026-10-24T13:54:44.9762471-04:00",
+  "version": "1.4.208",
+  "notes": "The Power and heat check now also tells you about a program that keeps crashing or a Windows update that keeps failing, and what to do about it.",
+  "published": "2026-10-24T13:58:10.2605380-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "12B8A2E936BED704845427C54651B4676B1A1DB15B17077476A41421A09FBDFA",
-      "size": 321474
+      "sha256": "D5A4F764F8D79AFBF398E5512D8E7BC1B8E884746C309702A3473C3E720240EA",
+      "size": 324462
     },
     {
       "name": "DRDirect Updater.ps1",
