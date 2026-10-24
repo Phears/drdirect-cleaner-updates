@@ -1421,17 +1421,11 @@ function Invoke-DRPowerHeatCheck {
     # Windows cannot measure a power supply or dust. This looks for the signs they leave behind:
     # sudden shutdowns, hardware errors, a hot processor, and the processor slowing itself down.
 
+    # Only what was really found is shown, in calm words, each with one thing to do.
+    # When nothing is found the whole result is one reassuring line.
     $lines = New-Object System.Collections.Generic.List[string]
     $problem = $false
     $since = (Get-Date).AddDays(-30)
-
-    # The processor itself: which one it is, how busy it is, and how fast it is running against its top speed.
-    try {
-        $cpu = @(Get-CimInstance Win32_Processor -ErrorAction Stop)[0]
-        $load = $cpu.LoadPercentage
-        $lines.Add(('Processor: {0} ({1} cores, {2} threads).' -f (([string]$cpu.Name) -replace '\s+', ' ').Trim(), $cpu.NumberOfCores, $cpu.NumberOfLogicalProcessors))
-        if ($cpu.MaxClockSpeed) { $lines.Add(('Speed now {0:N2} GHz of up to {1:N2} GHz, busy {2}% right now.' -f ($cpu.CurrentClockSpeed / 1000), ($cpu.MaxClockSpeed / 1000), $load)) }
-    } catch { }
 
     # Sudden power loss or hard resets: Kernel-Power event 41 with no crash code means the PC lost power.
     $powerLoss = 0; $crashes = 0
@@ -1442,18 +1436,16 @@ function Invoke-DRPowerHeatCheck {
             if ($code -eq 0) { $powerLoss++ } else { $crashes++ }
         }
     } catch { }
-    if ($powerLoss -eq 1) {
-        # Once is usually the power button held down, an outage or a frozen PC restarted - not a fault.
-        $lines.Add('The PC was turned off suddenly once in the last 30 days, for example by holding the power button or a power cut. Once is normal and nothing to worry about.')
-    } elseif ($powerLoss -gt 1) {
+    # Once is usually the power button held down, a power cut or a frozen PC restarted - not a fault.
+    if ($powerLoss -gt 1) {
         $problem = $true
-        $lines.Add(('The PC lost power or was reset suddenly {0} time(s) in the last 30 days. If you did not do it yourself, the power supply, the power cable or the power socket may be at fault. Heat can also cause it.' -f $powerLoss))
-    } else {
-        $lines.Add('No sudden power loss in the last 30 days.')
+        $lines.Add(('Your PC turned off by itself {0} times in the last 30 days.' -f $powerLoss))
+        $lines.Add('What to do: make sure the power cable is pushed in firmly at both ends. If it keeps happening, the power supply may need checking.')
     }
     if ($crashes -gt 0) {
         $problem = $true
-        $lines.Add(('Windows crashed and restarted {0} time(s) in the last 30 days. Crashes can come from heat, failing memory or a weak power supply.' -f $crashes))
+        $lines.Add(('Windows stopped and restarted on its own {0} time(s) in the last 30 days.' -f $crashes))
+        $lines.Add('What to do: run "Check my RAM" and "Fix Windows". If it keeps happening, have the PC looked at.')
     }
 
     # Hardware errors Windows logged (not only memory ones).
@@ -1461,9 +1453,8 @@ function Invoke-DRPowerHeatCheck {
     try { $hardwareErrors = @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; ProviderName = 'Microsoft-Windows-WHEA-Logger'; StartTime = $since } -MaxEvents 200 -ErrorAction Stop).Count } catch { }
     if ($hardwareErrors -gt 0) {
         $problem = $true
-        $lines.Add(('Windows recorded {0} hardware error(s) in the last 30 days. Repeated ones point to the processor, memory, a drive or the power supply.' -f $hardwareErrors))
-    } else {
-        $lines.Add('No hardware errors recorded in the last 30 days.')
+        $lines.Add(('Windows noted {0} hardware hiccup(s) in the last 30 days.' -f $hardwareErrors))
+        $lines.Add('What to do: run "Check my RAM" and "Check my drives". If they keep coming back, have the PC looked at.')
     }
 
     # Temperature, when the motherboard shares it with Windows.
@@ -1473,43 +1464,30 @@ function Invoke-DRPowerHeatCheck {
         $values = @($zones | ForEach-Object { [math]::Round(([double]$_.CurrentTemperature / 10) - 273.15, 0) } | Where-Object { $_ -gt 0 -and $_ -lt 150 })
         if ($values.Count) { $hottest = ($values | Measure-Object -Maximum).Maximum }
     } catch { }
-    if ($null -ne $hottest) {
-        $lines.Add(('Temperature reported by the motherboard right now: {0} C.' -f $hottest))
-        if ($hottest -ge 85) {
-            $problem = $true
-            $lines.Add('That is hot. Dust in the fans and heatsinks is the usual cause. Switch the PC off, and blow the dust out with compressed air.')
-        }
-    } else {
-        $lines.Add('This PC does not share its temperature with Windows, so it cannot be read here. A free tool such as HWiNFO can show it.')
+    if ($null -ne $hottest -and $hottest -ge 85) {
+        $problem = $true
+        $lines.Add(('Your PC is running hot right now ({0} C).' -f $hottest))
+        $lines.Add('What to do: switch the PC off and blow the dust out of the fans with compressed air.')
     }
 
-    # Fan speed is rarely shared with Windows.
-    $fans = @()
-    try { $fans = @(Get-CimInstance -ClassName Win32_Fan -ErrorAction Stop) } catch { }
-    if ($fans.Count) { $lines.Add(('Windows lists {0} fan(s), but it does not report how fast they turn.' -f $fans.Count)) }
-    else { $lines.Add('This PC does not share fan speed with Windows. If the fans are loud, or a fan has stopped, look inside the case or use a tool such as HWiNFO.') }
-
-    # Windows logs it when the processor is held back by power or heat limits.
+    # Windows logs it when the processor is held back by power or heat limits. A few times is normal.
     $slowed = 0
     try { $slowed = @(Get-WinEvent -FilterHashtable @{ LogName = 'System'; ProviderName = 'Microsoft-Windows-Kernel-Processor-Power'; Id = 37; StartTime = $since } -MaxEvents 200 -ErrorAction Stop).Count } catch { }
     if ($slowed -ge 10) {
         $problem = $true
-        $lines.Add(('Windows held the processor back {0} time(s) in the last 30 days because of power or heat limits. That is a sign of dust or a cooling problem.' -f $slowed))
-    } elseif ($slowed -gt 0) {
-        $lines.Add(('Windows held the processor back {0} time(s) in the last 30 days. A few times is normal.' -f $slowed))
-    } else {
-        $lines.Add('The processor was not held back by heat or power limits in the last 30 days.')
+        $lines.Add(('Your PC got too warm and slowed itself down {0} times in the last 30 days.' -f $slowed))
+        $lines.Add('What to do: clean the dust out of the fans, and keep the vents clear.')
     }
 
-    if ($problem) { $lines.Add('If these signs keep coming back, clean the dust from the fans and check the power supply. This check only points to a likely cause; it cannot prove it.') }
-    $lines.Add('Games lagging? Heat is a possible cause: when the processor or graphics card gets too hot, it slows itself down to cool off, and games stutter.')
-    $lines.Add('Nothing was changed on this PC.')
-
     # Serious (the Cleaner shows red and blue lights): repeated sudden power loss, a very hot reading, or the processor
-    # held back by heat or power limits again and again. Anything milder is a yellow warning.
+    # held back by heat again and again. Anything milder is a yellow warning.
     $serious = ($powerLoss -ge 3) -or ($null -ne $hottest -and $hottest -ge 90) -or ($slowed -ge 30)
-    if ($serious) { $lines.Add('This is serious. Switch the PC off and let it cool, clean the dust from the fans and heatsinks, and have the power supply checked before using it hard again.') }
-    $headline = if ($serious) { 'Power and heat: SERIOUS PROBLEM' } elseif ($problem) { 'Power and heat: SIGNS OF A PROBLEM' } else { 'Power and heat: NO PROBLEMS FOUND' }
+    if (-not $problem) {
+        $lines.Add('No overheating, no sudden shut-offs and no hardware problems in the last 30 days. Nothing to worry about.')
+    } else {
+        $lines.Add('These problems should be checked by a technician.')
+    }
+    $headline = if ($serious) { 'Power and heat: Please check this soon' } elseif ($problem) { 'Power and heat: Something to check' } else { 'Power and heat: All good' }
     $state = if ($problem) { 'Warning' } else { 'Information' }
     New-DREvent -TaskId $TaskId -State $state -Message ("{0}`r`n  {1}" -f $headline, ($lines -join "`r`n  "))
 }

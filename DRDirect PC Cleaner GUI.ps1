@@ -2894,7 +2894,7 @@ function New-DRResultCard {
     $parts = @($Message -split "\r?\n" | ForEach-Object { $_.TrimEnd() })
     $head = $parts[0].Trim()
     $body = (@($parts | Select-Object -Skip 1 | ForEach-Object { $_.Trim() } | Where-Object { $_ }) -join "`n")
-    $good = ($State -eq 'Information') -and ($head -match 'NO PROBLEMS FOUND|great health')
+    $good = ($State -eq 'Information') -and ($head -match 'NO PROBLEMS FOUND|great health|All good')
     $bad = ($State -eq 'Warning')
     if ($good) { $fill = '#E4F6EE'; $edge = '#8FD3B4'; $ink = '#0E8A5F'; $mark = [string][char]0x2714 + '  ' }
     elseif ($bad) { $fill = '#FFF4E3'; $edge = '#F0C98C'; $ink = '#A86412'; $mark = [string][char]0x26A0 + '  ' }
@@ -2916,7 +2916,7 @@ function Set-ProgressRowState {
     $navFor = @{ 'health.drive-check' = @('NavHealth', ([string][char]0x25B0 + '   Check my drives')); 'health.ram-check' = @('NavMemory', ([string][char]0x25A6 + '   Check my RAM')); 'health.power-heat-check' = @('NavPowerHeat', ([string][char]0x26A1 + '   Check power and heat')) }
     if ($navFor.ContainsKey($TaskId)) {
         if ($State -eq 'Started') { $script:DRCheckWarned[$TaskId] = $false; $script:DRCheckSevere[$TaskId] = $false }
-        if ($Message -match 'SERIOUS PROBLEM') { $script:DRCheckSevere[$TaskId] = $true }
+        if ($Message -match 'SERIOUS PROBLEM|Please check this soon') { $script:DRCheckSevere[$TaskId] = $true }
         if ($State -in @('Warning','Failed')) { $script:DRCheckWarned[$TaskId] = $true }
         if ($State -in @('Completed','Failed')) {
             $attention = $false

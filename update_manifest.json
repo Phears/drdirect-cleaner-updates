@@ -1,7 +1,7 @@
 {
-  "version": "1.4.206",
-  "notes": "The Power and heat check no longer warns about a single sudden power-off, like holding the power button or a power cut. It only warns if it keeps happening.",
-  "published": "2026-10-24T13:39:37.3285381-04:00",
+  "version": "1.4.207",
+  "notes": "The Power and heat check is now easy to read. It says All good when nothing is wrong, and only shows a problem when it really finds one, with what to do.",
+  "published": "2026-10-24T13:54:44.9762471-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "65C52D9ECF2DC768C91BC6F8218DC54B61CF0CDA51D97D02A7FB666F52D26A20",
-      "size": 504835
+      "sha256": "5FE46CB196B37AA7DB18D7CABE63C02695344D06BF9A3267F77EEBEED986B8EE",
+      "size": 504867
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "ACDEE390FE89AA50F20D5EC8DF8431A5556231D8DF3A32BA55912B58DEBE0426",
-      "size": 323466
+      "sha256": "12B8A2E936BED704845427C54651B4676B1A1DB15B17077476A41421A09FBDFA",
+      "size": 321474
     },
     {
       "name": "DRDirect Updater.ps1",
