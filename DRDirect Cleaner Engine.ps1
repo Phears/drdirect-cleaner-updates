@@ -1605,7 +1605,7 @@ function Invoke-DRStartupReport {
         New-DREvent -TaskId $TaskId -State Information -Message 'No programs are set to start with Windows from the usual places. Nothing was changed.'
         return
     }
-    $lines = foreach ($entry in ($entries | Sort-Object Name)) { ("{0}  ({1})`r`n    {2}" -f $entry.Name, $entry.Scope, $entry.Command) }
+    $lines = foreach ($entry in ($entries | Sort-Object Name)) { $entry.Name }
     New-DREvent -TaskId $TaskId -State Information -Message ("{0} program(s) start with Windows:`r`n  {1}" -f $entries.Count, ($lines -join "`r`n  "))
     if ($entries.Count -ge 12) {
         New-DREvent -TaskId $TaskId -State Warning -Message 'That is a lot of startup programs and can slow sign-in. Turn the ones you do not need off in Windows Settings > Apps > Startup. Nothing was changed.'

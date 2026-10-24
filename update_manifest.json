@@ -1,7 +1,7 @@
 {
-  "version": "1.4.209",
-  "notes": "The PC checkup now counts only the programs that really start with Windows. Programs you switched off in Windows Settings are no longer counted, so you no longer get a false 'many startup programs' warning.",
-  "published": "2026-10-24T19:19:28.0592798-04:00",
+  "version": "1.4.210",
+  "notes": "The list of programs that start with Windows is now easy to read: it shows just the program names.",
+  "published": "2026-10-24T19:31:33.1779315-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "A39E6F84EBC293179491F871DD0DCFAA5D240937497B6EFDA1C32583CDA3EDF5",
-      "size": 325663
+      "sha256": "039F38035C9E68CB4A2E478EE458B2F7BFFDEA7C58D48A68BF3C186FBD085A2C",
+      "size": 325604
     },
     {
       "name": "DRDirect Updater.ps1",
