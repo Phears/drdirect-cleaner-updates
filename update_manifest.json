@@ -1,7 +1,7 @@
 {
-  "version": "1.4.203",
-  "notes": "The bouncing clean button now stays sharp and clear in 3D.",
-  "published": "2026-10-24T13:27:39.0480632-04:00",
+  "version": "1.4.204",
+  "notes": "The lines in the App Updater window are now bright green.",
+  "published": "2026-10-24T13:30:24.6772693-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "E0C05D84CBC941A41867DAE4DB865AB1C46D6F49C8BCF07CA43C7AB9B5DDD855",
-      "size": 504826
+      "sha256": "51A37D21D53721E904CAB6875C5E7CF8D8E1623AA9A9109D7D31DD32FF72F0EF",
+      "size": 504846
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

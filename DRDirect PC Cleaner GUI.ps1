@@ -4423,7 +4423,7 @@ for ($f = 0; $f -lt $frames; $f++) {
     Write-Host ''
     if (-not $NoAnim) { Start-Sleep -Milliseconds 40 }
 }
-Write-Host (Rainbow ('═' * $bannerWidth))
+Write-Host (RGB 0 255 80 ('═' * $bannerWidth))
 Write-Host ''
 
 if (-not (Get-Command winget -ErrorAction SilentlyContinue)) {
@@ -4522,7 +4522,7 @@ $wingetExe = (Get-Command winget).Source
 $start = Get-Date; $i = 0
 foreach ($p in $pkgs) {
     $i++
-    Write-Host (Rainbow ('-' * 90))
+    Write-Host (RGB 0 255 80 ('-' * 90))
     Write-Host (RGB 255 230 0 "⚡ [$i/$($pkgs.Count)] $($p.Name)") -NoNewline
     Write-Host (RGB 150 150 255 "  [$($p.Id)]  (timeout ${TimeoutMinutes}m)")
 
@@ -4582,13 +4582,13 @@ foreach ($p in $pkgs) {
 # ---- 3. summary -------------------------------------------------------------
 $secs = [int]((Get-Date) - $start).TotalSeconds
 Write-Host ''
-Write-Host (Rainbow ('═' * $bannerWidth))
+Write-Host (RGB 0 255 80 ('═' * $bannerWidth))
 Write-Host (RGB 80 255 120 "🎉 Done in ${secs}s") -NoNewline
 Write-Host (RGB 255 230 0 "   ✅ $($ok.Count) upgraded") -NoNewline
 if ($fail.Count -eq 0) { Write-Host (RGB 80 255 120 "   ✅ no problems") }
 else { Write-Host (RGB 255 60 90 "   💥 $($fail.Count) problems") }
 foreach ($f in $fail) { Write-Host (RGB 255 60 90 "   - $f") }
-Write-Host (Rainbow ('=' * 90))
+Write-Host (RGB 0 255 80 ('=' * 90))
 Write-Host ''
 Read-Host 'Press Enter to close' | Out-Null
 
