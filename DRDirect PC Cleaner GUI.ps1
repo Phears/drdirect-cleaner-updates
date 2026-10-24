@@ -4415,9 +4415,9 @@ $frames = if ($NoAnim) { 1 } else { 24 }
 for ($f = 0; $f -lt $frames; $f++) {
     if ($f -gt 0) { try { [Console]::SetCursorPosition(0, 0) } catch {} }
     Write-Host ''
-    # The D.R.Direct APP Updater letters are solid bright green; only the tagline (last line, bold) keeps the rainbow.
+    # The D.R.Direct APP Updater letters are solid bright green; the tagline (last line, bold) is bright blue.
     foreach ($line in $banner) {
-        if ($line -like '*K E E P I N G*') { Write-Host ("$ESC[1m" + (Rainbow $line ($f * 3))) }
+        if ($line -like '*K E E P I N G*') { Write-Host ("$ESC[1m" + (RGB 0 160 255 $line)) }
         else { Write-Host (RGB 0 255 0 $line) }
     }
     Write-Host ''

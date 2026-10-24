@@ -1,7 +1,7 @@
 {
-  "version": "1.4.204",
-  "notes": "The lines in the App Updater window are now bright green.",
-  "published": "2026-10-24T13:30:24.6772693-04:00",
+  "version": "1.4.205",
+  "notes": "The KEEPING YOUR APPS FRESH line in the App Updater is now bright blue.",
+  "published": "2026-10-24T13:31:43.6456105-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "51A37D21D53721E904CAB6875C5E7CF8D8E1623AA9A9109D7D31DD32FF72F0EF",
-      "size": 504846
+      "sha256": "65C52D9ECF2DC768C91BC6F8218DC54B61CF0CDA51D97D02A7FB666F52D26A20",
+      "size": 504835
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
