@@ -1803,34 +1803,8 @@ function Get-DRHardwareInventory {
     $makeAndModel = (('{0} {1}' -f $maker, $model).Trim())
     if ($makeAndModel) {
         # With no usable model the board name is the only thing a customer can look up.
-        if (-not $model) {
-            $boardInfo = @(Get-DRCimValue 'Win32_BaseBoard') | Select-Object -First 1
-            $boardName = Get-DRDiskProperty $boardInfo 'Product'
-            if ($boardName -and $boardName -notmatch $placeholder) {
-                $makeAndModel = '{0} {1} (motherboard model - this PC does not report a separate system model)' -f $maker, $boardName.Trim()
-            } else {
-                $makeAndModel = '{0} - no model name reported, see the motherboard below' -f $maker
-            }
-        }
+        if (-not $model) { $makeAndModel = '{0} - no model name reported, see the motherboard below' -f $maker }
         $items.Add((New-DRHardwareItem 'This PC' 'Make and model' $makeAndModel))
-    }
-
-    # Serial and product number, as printed on the sticker. Builders leave these as placeholder text.
-    $idPlaceholder = '^\s*(0|None|Unknown|Not Specified|Not Applicable|N/A|SKU|SKU Number|Serial Number|Default string|System Serial Number|To Be Filled By O\.E\.M\.)\s*$'
-    $idBios = @(Get-DRCimValue 'Win32_BIOS') | Select-Object -First 1
-    $idBoard = @(Get-DRCimValue 'Win32_BaseBoard') | Select-Object -First 1
-    $serial = [string](Get-DRDiskProperty $idBios 'SerialNumber')
-    if (-not $serial -or $serial -match $idPlaceholder) { $serial = [string](Get-DRDiskProperty $idBoard 'SerialNumber') }
-    if ($serial -and $serial -notmatch $idPlaceholder) {
-        $items.Add((New-DRHardwareItem 'This PC' 'Serial number' $serial.Trim()))
-    }
-    $sku = [string](Get-DRDiskProperty $system 'SystemSKUNumber')
-    if ($sku -and $sku -notmatch $idPlaceholder) {
-        $items.Add((New-DRHardwareItem 'This PC' 'Product number' $sku.Trim() 'Also called SKU or part number. Manufacturers ask for it with the serial number.'))
-    }
-    $family = [string](Get-DRDiskProperty $system 'SystemFamily')
-    if ($family -and $family -notmatch $idPlaceholder -and $family -notmatch $placeholder) {
-        $items.Add((New-DRHardwareItem 'This PC' 'Product family' $family.Trim()))
     }
 
     $os = @(Get-DRCimValue 'Win32_OperatingSystem') | Select-Object -First 1

@@ -1,7 +1,7 @@
 {
-  "version": "1.4.200",
-  "notes": "About my PC now shows your PC's serial number and product number, the ones printed on the sticker, so you can give them to support. PCs built from parts that report no model now show the motherboard name instead of nothing.",
-  "published": "2026-10-23T17:01:04.4067935-04:00",
+  "version": "1.4.201",
+  "notes": "When it is time to clean, the green button now bounces so it is easy to spot. It stops as soon as you press it.",
+  "published": "2026-10-24T12:56:17.4150611-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "E0ECA87114D619E29CD4190E4EE1E750CEC35BE950753BCD0E12BD6BA77486E6",
-      "size": 496284
+      "sha256": "B52E9D0BCE889AD6DA85DAA7ECAFA20ECC86B725E08886EBBB2C29FE86D88142",
+      "size": 504532
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "D4D22CE09574339D6F802C8FB5D4C5670B79C5496EAB280107752E4098325821",
-      "size": 324882
+      "sha256": "9F8060B498212B0757325572A637CBB3826469B2AEF0FDFCDAF8096EAAC9ECDE",
+      "size": 323147
     },
     {
       "name": "DRDirect Updater.ps1",

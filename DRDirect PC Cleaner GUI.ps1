@@ -1262,14 +1262,14 @@ try {
     $logoBmp.StreamSource = New-Object System.IO.MemoryStream (,[Convert]::FromBase64String($logoB64))
     $logoBmp.EndInit()
     $logoBmp.Freeze()
-    foreach ($logoSpec in @(@('SidebarLogo', 86), @('TitleLogo', 38))) {
+    foreach ($logoSpec in @(@('SidebarLogo', 58), @('TitleLogo', 30))) {
         $logoBox = $window.FindName($logoSpec[0])
         if ($logoBox) {
             $logoBox.Child = $null
-            $logoBox.CornerRadius = New-Object System.Windows.CornerRadius([double]($logoSpec[1] * 0.19))
+            $logoBox.CornerRadius = New-Object System.Windows.CornerRadius(0)
             $logoBox.Width = $logoSpec[1]; $logoBox.Height = $logoSpec[1]
             $logoBox.Background = New-Object System.Windows.Media.ImageBrush($logoBmp)
-            if ($logoSpec[0] -eq 'TitleLogo') { $logoBox.Margin = New-Object System.Windows.Thickness(12,1,10,1) }
+            if ($logoSpec[0] -eq 'TitleLogo') { $logoBox.Margin = New-Object System.Windows.Thickness(12,5,10,5) }
         }
     }
 } catch { }
@@ -3647,6 +3647,36 @@ function Set-DRScanLines {
     $scanTimer.Start()
 }
 
+function Start-DRCleanButtonBounce {
+    # A small hop every second or so on the green button while a clean is overdue.
+    $btn = $ui.SafeCleanButton
+    if (-not $btn) { return }
+    $on = Get-Variable -Name DRBounceOn -Scope Script -ErrorAction SilentlyContinue
+    if ($on -and $on.Value) { return }
+    $move = New-Object Windows.Media.TranslateTransform
+    $btn.RenderTransform = $move
+    $hop = New-Object Windows.Media.Animation.DoubleAnimationUsingKeyFrames
+    $hop.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
+    $hop.Duration = [Windows.Duration]::new([TimeSpan]::FromMilliseconds(1300))
+    $up = New-Object Windows.Media.Animation.QuadraticEase; $up.EasingMode = 'EaseOut'
+    $down = New-Object Windows.Media.Animation.BounceEase; $down.Bounces = 2; $down.Bounciness = 3; $down.EasingMode = 'EaseOut'
+    [void]$hop.KeyFrames.Add([Windows.Media.Animation.EasingDoubleKeyFrame]::new(0, [Windows.Media.Animation.KeyTime]::FromTimeSpan([TimeSpan]::Zero)))
+    [void]$hop.KeyFrames.Add([Windows.Media.Animation.EasingDoubleKeyFrame]::new(-10, [Windows.Media.Animation.KeyTime]::FromTimeSpan([TimeSpan]::FromMilliseconds(250)), $up))
+    [void]$hop.KeyFrames.Add([Windows.Media.Animation.EasingDoubleKeyFrame]::new(0, [Windows.Media.Animation.KeyTime]::FromTimeSpan([TimeSpan]::FromMilliseconds(800)), $down))
+    $move.BeginAnimation([Windows.Media.TranslateTransform]::YProperty, $hop)
+    $script:DRBounceOn = $true
+}
+
+function Stop-DRCleanButtonBounce {
+    $btn = $ui.SafeCleanButton
+    if (-not $btn) { return }
+    if ($btn.RenderTransform -is [Windows.Media.TranslateTransform]) {
+        $btn.RenderTransform.BeginAnimation([Windows.Media.TranslateTransform]::YProperty, $null)
+        $btn.RenderTransform.Y = 0
+    }
+    $script:DRBounceOn = $false
+}
+
 function Set-DRLastCleanCard {
     # The Dashboard's Last clean card: the newest report that ran a cleanup task.
     # Checks and scans write reports too, but they are not a clean, so they are skipped.
@@ -3678,6 +3708,8 @@ function Set-DRLastCleanCard {
             # The longer words get a little less padding so the buttons beside it stay on one row.
             $ui.SafeCleanButton.FontSize = if ($overdue) { 13 } else { 15 }
             $ui.SafeCleanButton.Padding = if ($overdue) { [Windows.Thickness]::new(12, 9, 12, 9) } else { [Windows.Thickness]::new(20, 9, 20, 9) }
+            # While overdue it bounces to catch the eye, until it is pressed.
+            if ($overdue) { Start-DRCleanButtonBounce } else { Stop-DRCleanButtonBounce }
         }
         # Red and blue lights in the top corners, taking turns, while a clean is overdue.
         if ($ui.LastCleanLightBlue -and $ui.LastCleanLightRed) {
@@ -5127,7 +5159,7 @@ function Show-SafePlan {
         } catch { }
     }
 }
-foreach ($name in 'SafeCleanButton','SafePreviewButton') { if ($ui[$name]) { $ui[$name].Add_Click({ Invoke-DRSafeClean }) } }
+foreach ($name in 'SafeCleanButton','SafePreviewButton') { if ($ui[$name]) { $ui[$name].Add_Click({ Stop-DRCleanButtonBounce; Invoke-DRSafeClean }) } }
 if ($ui.SafePlanRunButton) { $ui.SafePlanRunButton.Add_Click({ Invoke-DRLevelClean }) }
 if ($ui.SafeLevelSafeButton) { $ui.SafeLevelSafeButton.Add_Click({ Show-SafePlan -Level 'Safe' -Animate }) }
 if ($ui.SafeLevelMediumButton) { $ui.SafeLevelMediumButton.Add_Click({ Show-SafePlan -Level 'Medium' -Animate }) }
