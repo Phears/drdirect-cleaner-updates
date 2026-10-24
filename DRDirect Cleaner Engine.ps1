@@ -1442,7 +1442,10 @@ function Invoke-DRPowerHeatCheck {
             if ($code -eq 0) { $powerLoss++ } else { $crashes++ }
         }
     } catch { }
-    if ($powerLoss -gt 0) {
+    if ($powerLoss -eq 1) {
+        # Once is usually the power button held down, an outage or a frozen PC restarted - not a fault.
+        $lines.Add('The PC was turned off suddenly once in the last 30 days, for example by holding the power button or a power cut. Once is normal and nothing to worry about.')
+    } elseif ($powerLoss -gt 1) {
         $problem = $true
         $lines.Add(('The PC lost power or was reset suddenly {0} time(s) in the last 30 days. If you did not do it yourself, the power supply, the power cable or the power socket may be at fault. Heat can also cause it.' -f $powerLoss))
     } else {

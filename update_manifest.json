@@ -1,7 +1,7 @@
 {
-  "version": "1.4.205",
-  "notes": "The KEEPING YOUR APPS FRESH line in the App Updater is now bright blue.",
-  "published": "2026-10-24T13:31:43.6456105-04:00",
+  "version": "1.4.206",
+  "notes": "The Power and heat check no longer warns about a single sudden power-off, like holding the power button or a power cut. It only warns if it keeps happening.",
+  "published": "2026-10-24T13:39:37.3285381-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "9F8060B498212B0757325572A637CBB3826469B2AEF0FDFCDAF8096EAAC9ECDE",
-      "size": 323147
+      "sha256": "ACDEE390FE89AA50F20D5EC8DF8431A5556231D8DF3A32BA55912B58DEBE0426",
+      "size": 323466
     },
     {
       "name": "DRDirect Updater.ps1",
