@@ -1608,6 +1608,8 @@ function Test-TaskInOrderedPreset {
         'cleanup.browser-cache',
         'cleanup.recycle-bin',
         'cleanup.hidden-recycle-folders',
+        # Wipes only free space after the Recycle Bin is emptied, so nothing kept is touched.
+        'cleanup.ssd-shred',
         'cleanup.prefetch',
         'cleanup.wu-download-cache',
         'cleanup.old-update-backups',

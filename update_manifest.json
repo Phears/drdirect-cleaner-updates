@@ -1,7 +1,7 @@
 {
-  "version": "1.4.209",
-  "notes": "Emptying the Recycle Bin now also shreds it on SSD and NVMe drives, so deleted files cannot be brought back.",
-  "published": "2026-10-24T20:31:28.8566051-04:00",
+  "version": "1.4.210",
+  "notes": "Shredding deleted files on SSD and NVMe drives is now its own item, Shred deleted files, so you can choose to use it or not. It is ticked in the Safe clean.",
+  "published": "2026-10-24T20:45:04.0908296-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "5FE46CB196B37AA7DB18D7CABE63C02695344D06BF9A3267F77EEBEED986B8EE",
-      "size": 504867
+      "sha256": "8CF44B33716738EB05E5D1A46C0EA09E140002B6582202A55BD785E8B522B47F",
+      "size": 504992
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "5A834015D49499B306FC9A396CB289B23C4022D2D9E6491305BA5C0A374F5D17",
-      "size": 327299
+      "sha256": "D237D7C1E5E4661E7A9E29A07244B05EE49CA71717A46F987B4CD09BE0E09B8A",
+      "size": 328118
     },
     {
       "name": "DRDirect Updater.ps1",

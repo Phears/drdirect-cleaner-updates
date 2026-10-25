@@ -143,6 +143,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='cleanup.browser-cache'; Category='Cleanup'; Name='Browser caches'; Description='Clears cache files while preserving passwords, bookmarks, cookies, and active sessions.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$false; DefaultSelected=$true; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.recycle-bin'; Category='Cleanup'; Name='Recycle Bin'; Description='Permanently removes Recycle Bin contents from available fixed drives.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.hidden-recycle-folders'; Category='Cleanup'; Name='Hidden Recycle Bin folders'; Description='Removes hidden $Recycle.Bin folders from fixed drives so Windows can rebuild them.'; Risk='Advanced'; Duration='< 5 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.ssd-shred'; Category='Cleanup'; Name='Shred deleted files (SSD and NVMe)'; Description='After the Recycle Bin is emptied, wipes the free space on SSD and NVMe drives so deleted files cannot be brought back, even with recovery programs. Files you still have are not touched. Hard drives are skipped.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.cookies'; Category='Cleanup'; Name='Cookies and website storage'; Description='Clears cookies and site storage. This can sign you out of websites and webmail.'; Risk='SignOut'; Duration='1-5 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.prefetch'; Category='Cleanup'; Name='Windows Prefetch'; Description='Clears the Prefetch cache. Windows rebuilds it and app launches may initially be slower.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.wu-download-cache'; Category='Cleanup'; Name='Windows Update download cache'; Description='Clears already-installed update installers cached under SoftwareDistribution\Download. Windows re-downloads only what it needs next time.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
@@ -769,6 +770,9 @@ function Get-DRAnalysis {
                 }
                 'cleanup.recycle-bin' {
                     $detail = 'Size is calculated by Windows during cleanup'
+                }
+                'cleanup.ssd-shred' {
+                    $detail = 'Wipes free space on SSD and NVMe drives; files you keep are not touched'
                 }
                 'cleanup.wu-download-cache' {
                     $path = if ($TestRoot) { $TestRoot } else { Join-Path $env:WINDIR 'SoftwareDistribution\Download' }
@@ -4205,7 +4209,11 @@ function Invoke-DRTask {
             }
             'cleanup.recycle-bin' {
                 if ($TestRoot) { Clear-DRFolderContents -FolderPath $TestRoot -TaskId $TaskId -TestRoot $TestRoot | Out-Null }
-                else { Clear-RecycleBin -Force -ErrorAction Stop; Invoke-DRSsdShred -TaskId $TaskId }
+                else { Clear-RecycleBin -Force -ErrorAction Stop }
+            }
+            'cleanup.ssd-shred' {
+                if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: no drive was shredded.' }
+                else { Invoke-DRSsdShred -TaskId $TaskId }
             }
             'cleanup.hidden-recycle-folders' {
                 if ($TestRoot) { Clear-DRFolderContents -FolderPath $TestRoot -TaskId $TaskId -TestRoot $TestRoot | Out-Null }
@@ -4254,7 +4262,6 @@ function Invoke-DRTask {
                             throw "Windows would not let go of $recyclePath. Close File Explorer windows and run it again."
                         }
                     }
-                    Invoke-DRSsdShred -TaskId $TaskId
                 }
             }
             'cleanup.disk-cleanup' {
