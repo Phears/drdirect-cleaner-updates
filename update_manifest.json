@@ -1,7 +1,7 @@
 {
-  "version": "1.4.220",
-  "notes": "Check power and heat no longer shows a false warning about a failed Microsoft Store app update.",
-  "published": "2026-10-25T17:29:01.5462928-04:00",
+  "version": "1.4.221",
+  "notes": "The soft sound when you move over a button is now quieter and gentler.",
+  "published": "2026-10-25T17:54:19.9395681-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "6FA394BF336830EEA8D8E5DC83E6CB65BCF2B1BEDA6C15549B29BABCF7343D54",
+      "sha256": "4768FB7A39367A8204495CA357506DC7CF34E437809729BCF233467C9F88BD7E",
       "size": 1182583
     },
     {

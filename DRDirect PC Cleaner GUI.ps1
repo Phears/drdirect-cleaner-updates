@@ -5066,7 +5066,7 @@ try {
         $t = $i / $tickRate; $p = $i / $tickCount
         # One soft note with a little bass under it, short, with a rounded swell in and out so there is no click or edge.
         $envelope = [math]::Pow([math]::Sin([math]::PI * $p), 2)
-        $tickSamples[$i] = [int16](3200 * $envelope * ([math]::Sin(2 * [math]::PI * 330 * $t) + 0.8 * [math]::Sin(2 * [math]::PI * 165 * $t)))
+        $tickSamples[$i] = [int16](1000 * $envelope * ([math]::Sin(2 * [math]::PI * 330 * $t) + 0.8 * [math]::Sin(2 * [math]::PI * 165 * $t)))
     }
     $tickBytes = New-Object 'byte[]' ($tickCount * 2)
     [Buffer]::BlockCopy($tickSamples, 0, $tickBytes, 0, $tickBytes.Length)
