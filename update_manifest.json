@@ -1,7 +1,7 @@
 {
-  "version": "1.4.215",
-  "notes": "A small maintenance update.",
-  "published": "2026-10-24T21:32:02.0395052-04:00",
+  "version": "1.4.216",
+  "notes": "All four switches now fit on one line.",
+  "published": "2026-10-24T21:39:35.7822775-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "0CC5A2CEA63C3CC33043680C5EDE3AFF124D7890030B15A45E7CBFD55D0C0F61",
+      "sha256": "E2C7A0B6CF257C9283488F29D0929D150874F378D03D478829D9C08EDBD5E771",
       "size": 1181499
     },
     {
