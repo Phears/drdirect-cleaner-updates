@@ -1,7 +1,7 @@
 {
-  "version": "1.4.210",
+  "version": "1.4.211",
   "notes": "Shredding deleted files on SSD and NVMe drives is now its own item, Shred deleted files, so you can choose to use it or not. It is ticked in the Safe clean.",
-  "published": "2026-10-24T20:45:04.0908296-04:00",
+  "published": "2026-10-24T20:47:24.5198535-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
