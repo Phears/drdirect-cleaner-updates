@@ -1,7 +1,7 @@
 {
-  "version": "1.4.212",
-  "notes": "A new fun switch, Crazy Nutty 3D, next to Max 3D. Try it!",
-  "published": "2026-10-24T21:14:44.9056021-04:00",
+  "version": "1.4.213",
+  "notes": "The Crazy Nutty 3D switch now shows its full name.",
+  "published": "2026-10-24T21:16:50.7174530-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F23F549215C5EB15EC4B731D18E4347E6BD8978EEC4F6507C4DBC48D324963AD",
-      "size": 506146
+      "sha256": "3BFE060F550F3C8DEB2992E4FA9D2D8E18333CC379A84BEECB3F2779A08642A2",
+      "size": 506164
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
