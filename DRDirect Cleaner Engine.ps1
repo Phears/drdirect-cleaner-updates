@@ -3936,6 +3936,36 @@ function Clear-DRRegistryValues {
     }
 }
 
+function Invoke-DRSsdShred {
+    <#
+        .SYNOPSIS
+            After the Recycle Bin is emptied, tells every SSD / NVMe drive to wipe its
+            free space now (TRIM), so the deleted files cannot be brought back.
+        .DESCRIPTION
+            Writing over a file does not reliably reach the same cells on an SSD, so
+            TRIM is the real shred there. Hard drives are left alone. Only free space
+            is touched; no file that still exists is changed.
+    #>
+    param([string]$TaskId)
+    $done = @()
+    try {
+        $ssd = @(Get-PhysicalDisk -ErrorAction Stop | Where-Object { $_.MediaType -eq 'SSD' -or $_.BusType -eq 'NVMe' } | ForEach-Object { [string]$_.DeviceId })
+        foreach ($part in @(Get-Partition -ErrorAction Stop | Where-Object { $_.DriveLetter -and $ssd -contains [string]$_.DiskNumber })) {
+            $letter = [string]$part.DriveLetter
+            try {
+                Optimize-Volume -DriveLetter $letter -ReTrim -ErrorAction Stop | Out-Null
+                $done += "$letter`:"
+            } catch {
+                New-DREvent -TaskId $TaskId -State Warning -Message ("Could not shred the free space on {0}: {1}" -f $letter, $_.Exception.Message)
+            }
+        }
+    } catch {
+        New-DREvent -TaskId $TaskId -State Warning -Message ("Could not list the SSD drives: {0}" -f $_.Exception.Message)
+        return
+    }
+    if ($done.Count) { New-DREvent -TaskId $TaskId -State Information -Message ("Shredded for good on SSD drive(s) {0}. Deleted files there cannot be brought back." -f ($done -join ', ')) }
+}
+
 function Initialize-DRAppHive {
     # Store apps keep their settings in a private registry file (settings.dat).
     # RegLoadAppKey opens it for this process only and needs no admin rights.
@@ -4175,7 +4205,7 @@ function Invoke-DRTask {
             }
             'cleanup.recycle-bin' {
                 if ($TestRoot) { Clear-DRFolderContents -FolderPath $TestRoot -TaskId $TaskId -TestRoot $TestRoot | Out-Null }
-                else { Clear-RecycleBin -Force -ErrorAction Stop }
+                else { Clear-RecycleBin -Force -ErrorAction Stop; Invoke-DRSsdShred -TaskId $TaskId }
             }
             'cleanup.hidden-recycle-folders' {
                 if ($TestRoot) { Clear-DRFolderContents -FolderPath $TestRoot -TaskId $TaskId -TestRoot $TestRoot | Out-Null }
@@ -4224,6 +4254,7 @@ function Invoke-DRTask {
                             throw "Windows would not let go of $recyclePath. Close File Explorer windows and run it again."
                         }
                     }
+                    Invoke-DRSsdShred -TaskId $TaskId
                 }
             }
             'cleanup.disk-cleanup' {

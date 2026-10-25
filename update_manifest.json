@@ -1,7 +1,7 @@
 {
-  "version": "1.4.210",
-  "notes": "The list of programs that start with Windows is now easy to read: it shows just the program names.",
-  "published": "2026-10-24T19:31:33.1779315-04:00",
+  "version": "1.4.209",
+  "notes": "Emptying the Recycle Bin now also shreds it on SSD and NVMe drives, so deleted files cannot be brought back.",
+  "published": "2026-10-24T20:31:28.8566051-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "039F38035C9E68CB4A2E478EE458B2F7BFFDEA7C58D48A68BF3C186FBD085A2C",
-      "size": 325604
+      "sha256": "5A834015D49499B306FC9A396CB289B23C4022D2D9E6491305BA5C0A374F5D17",
+      "size": 327299
     },
     {
       "name": "DRDirect Updater.ps1",
