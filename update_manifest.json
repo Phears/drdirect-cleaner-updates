@@ -1,7 +1,7 @@
 {
-  "version": "1.4.219",
-  "notes": "The Check my drives, Check my RAM and Check power and heat buttons no longer ask you to restart. They only ask again once a check is 14 days old and shows a red dot.",
-  "published": "2026-10-25T17:23:59.1769352-04:00",
+  "version": "1.4.220",
+  "notes": "Check power and heat no longer shows a false warning about a failed Microsoft Store app update.",
+  "published": "2026-10-25T17:29:01.5462928-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "D237D7C1E5E4661E7A9E29A07244B05EE49CA71717A46F987B4CD09BE0E09B8A",
-      "size": 328118
+      "sha256": "C534B73A6B5F886E8A14AB1D8460B582C878B552AEC8C4F87183CEE468F8361A",
+      "size": 328383
     },
     {
       "name": "DRDirect Updater.ps1",

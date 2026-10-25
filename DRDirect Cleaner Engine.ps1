@@ -1518,6 +1518,9 @@ function Invoke-DRPowerHeatCheck {
         foreach ($ev in @($wu | Where-Object { $_.Id -eq 20 })) {
             $t = & $titleOf $ev
             if (-not $t) { continue }
+            # Microsoft Store apps (named by a 12-character Store ID) update through the Store, not Windows Update,
+            # so Fix Windows cannot clear them and a failed try is no sign of a problem.
+            if ($t -match '^[0-9A-Z]{12}-') { continue }
             if ($installed.ContainsKey($t) -and $installed[$t] -gt $ev.TimeCreated) { continue }
             $stillFailed[$t] = $true
         }
