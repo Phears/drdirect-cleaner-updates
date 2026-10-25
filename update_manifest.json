@@ -1,7 +1,7 @@
 {
-  "version": "1.4.221",
-  "notes": "The soft sound when you move over a button is now quieter and gentler.",
-  "published": "2026-10-25T17:54:19.9395681-04:00",
+  "version": "1.4.222",
+  "notes": "Small polish and fixes.",
+  "published": "2026-10-25T19:30:28.4932212-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "4768FB7A39367A8204495CA357506DC7CF34E437809729BCF233467C9F88BD7E",
-      "size": 1182583
+      "sha256": "673945E27E9047F573E249B8098127B2BC0E2ACF7766F3A043843A8FA2B37AD5",
+      "size": 1176159
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

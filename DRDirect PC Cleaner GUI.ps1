@@ -3682,10 +3682,10 @@ function Show-DRBebeSurprise {
             $hash = -join ($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($id)) | ForEach-Object { $_.ToString('x2') })
             if ($hash -ne '9d9fa84a3d0ff4a8b4a02c5b210c06dec09f0cdb637d92dcf3ddbe7be4b2178e') { return }
             $shown = 0
-            try { $shown = [int](Get-ItemProperty -LiteralPath $key -Name 'BebeShown' -ErrorAction Stop).BebeShown } catch { }
+            try { $shown = [int](Get-ItemProperty -LiteralPath $key -Name 'BebeShown2' -ErrorAction Stop).BebeShown2 } catch { }
             if ($shown -ge 3) { return }
             if (-not (Test-Path -LiteralPath $key)) { New-Item -Path $key -Force | Out-Null }
-            Set-ItemProperty -LiteralPath $key -Name 'BebeShown' -Value ($shown + 1) -Type DWord
+            Set-ItemProperty -LiteralPath $key -Name 'BebeShown2' -Value ($shown + 1) -Type DWord
         }
 
         # Real recordings from Pixabay, free to use: the baby cries ("Baby Crying" by DRAGON-STUDIO),
