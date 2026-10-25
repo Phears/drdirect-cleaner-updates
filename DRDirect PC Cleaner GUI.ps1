@@ -1406,6 +1406,8 @@ $script:DRNavLightTimer = $null
 $script:DRNavLightOn = $false
 $script:DRNavState = @{}
 $script:DRSavedSelection = $null
+$script:DRRunTaskIds = @()
+$script:DRRunCheckWasDue = $false
 $script:DRWasBusy = $false
 $script:DRFinishedUnseen = $false
 $script:DRAISearchRefresh = $false
@@ -2823,10 +2825,10 @@ function Set-DRNavCheckMark {
 
 # How long a check result stays valid. After this the menu item goes back to the red
 # dot, as a reminder to check again.
-$script:DRCheckValidDays = 7
+$script:DRCheckValidDays = 14
 # A check can be run any time. Within 7 days it shows its tick (or warning); from 7 to 30 days a small green dot says it
 # passed but a week has gone by; after 30 days, or if it was never run, a big red dot says it needs checking.
-$script:DRCheckDueDays = 30
+$script:DRCheckDueDays = 14
 $script:DRCheckMarks = @{
     'health.drive-check' = @{ Nav = 'NavHealth'; Label = ([string][char]0x25B0 + '   Check my drives') }
     'health.ram-check'   = @{ Nav = 'NavMemory'; Label = ([string][char]0x25A6 + '   Check my RAM') }
@@ -3193,6 +3195,18 @@ function Start-RunPlan {
     $changing = @($catalog | Where-Object { $selection[$_.Id] -and $_.Category -in @('Cleanup','Repair','Hibernate','AI') -and $_.Risk -ne 'Guided' -and $_.Id -notin @('ai.check','repair.restore-point') })
     if ($changing.Count -and (@($catalog | Where-Object Id -eq 'safety.restore-point').Count) -and -not $selection['repair.restore-point'] -and (Test-DRAdministrator)) { $selection['safety.restore-point'] = $true }
     $selected = @($catalog | Where-Object { $selection[$_.Id] })
+    # Remember what this run really does: a one-click check puts the person's earlier ticks back while it
+    # finishes, and those must not make the check ask for a restart.
+    $script:DRRunTaskIds = @($selected | ForEach-Object { [string]$_.Id })
+    # A Check button that shows a red dot (not checked for 14 days, or never) asks for a restart once its check
+    # is done. One that still shows its green tick never does.
+    $script:DRRunCheckWasDue = $false
+    try {
+        $savedChecks = Read-DRCheckStatus
+        foreach ($checkId in @($script:DRRunTaskIds | Where-Object { $script:DRCheckMarks.ContainsKey($_) })) {
+            if (-not $savedChecks.ContainsKey($checkId) -or ((Get-Date) - $savedChecks[$checkId].Date).TotalDays -gt $script:DRCheckValidDays) { $script:DRRunCheckWasDue = $true }
+        }
+    } catch { }
     $runQueue.Clear(); foreach ($task in $selected) { $runQueue.Enqueue($task.Id) }
     if (Test-Path -LiteralPath $script:childPidFile) { Remove-Item -LiteralPath $script:childPidFile -Force -ErrorAction SilentlyContinue }
     $runEvents.Clear(); $runStartedAt = Get-Date; $cancelAfterTask = $false
@@ -3414,7 +3428,7 @@ function Complete-RunPlan {
     Update-DRDiskWarning
     [string[]]$selectedIds = @(
         $catalog |
-            Where-Object { $selection[$_.Id] } |
+            Where-Object { $script:DRRunTaskIds -contains $_.Id } |
             ForEach-Object { [string]$_.Id }
     )
 
@@ -3547,7 +3561,7 @@ function Complete-RunPlan {
     # starts the 90-second automatic restart countdown.
     if ($ui.CleaningAnimation) { $ui.CleaningAnimation.Visibility='Collapsed' }
     if (-not $cancelAfterTask) { Invoke-DRCleanReveal -TaskCount $selectedIds.Count -ChecksOnly:([bool]$onlyChecks) }
-    $needsRestart = (-not $cancelAfterTask) -and (@($selectedIds | Where-Object { $script:DRNoRestartTaskIds -notcontains $_ }).Count -gt 0)
+    $needsRestart = (-not $cancelAfterTask) -and ((@($selectedIds | Where-Object { $script:DRNoRestartTaskIds -notcontains $_ }).Count -gt 0) -or $script:DRRunCheckWasDue)
 
     $ui.RestartButton.Visibility = if ($needsRestart) {
         'Visible'

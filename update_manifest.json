@@ -1,7 +1,7 @@
 {
-  "version": "1.4.218",
-  "notes": "All four switches now sit on one line.",
-  "published": "2026-10-24T21:44:15.9990730-04:00",
+  "version": "1.4.219",
+  "notes": "The Check my drives, Check my RAM and Check power and heat buttons no longer ask you to restart. They only ask again once a check is 14 days old and shows a red dot.",
+  "published": "2026-10-25T17:23:59.1769352-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "183A3512260612D4D38BE18F488B939C355A4EAC7CF7F90FBFA4FE36D302964D",
-      "size": 1181624
+      "sha256": "6FA394BF336830EEA8D8E5DC83E6CB65BCF2B1BEDA6C15549B29BABCF7343D54",
+      "size": 1182583
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
