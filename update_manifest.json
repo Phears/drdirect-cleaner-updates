@@ -1,7 +1,7 @@
 {
-  "version": "1.4.213",
-  "notes": "The Crazy Nutty 3D switch now shows its full name.",
-  "published": "2026-10-24T21:16:50.7174530-04:00",
+  "version": "1.4.214",
+  "notes": "A small maintenance update.",
+  "published": "2026-10-24T21:29:08.0864854-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "3BFE060F550F3C8DEB2992E4FA9D2D8E18333CC379A84BEECB3F2779A08642A2",
-      "size": 506164
+      "sha256": "F6CF2369B9BD3732D7166DDAE1028AE59857DCD7EE55B8558513BA09918F9506",
+      "size": 708902
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
