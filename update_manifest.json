@@ -1,7 +1,7 @@
 {
-  "version": "1.4.211",
-  "notes": "Shredding deleted files on SSD and NVMe drives is now its own item, Shred deleted files, so you can choose to use it or not. It is ticked in the Safe clean.",
-  "published": "2026-10-24T20:47:24.5198535-04:00",
+  "version": "1.4.212",
+  "notes": "A new fun switch, Crazy Nutty 3D, next to Max 3D. Try it!",
+  "published": "2026-10-24T21:14:44.9056021-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "8CF44B33716738EB05E5D1A46C0EA09E140002B6582202A55BD785E8B522B47F",
-      "size": 504992
+      "sha256": "F23F549215C5EB15EC4B731D18E4347E6BD8978EEC4F6507C4DBC48D324963AD",
+      "size": 506146
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
