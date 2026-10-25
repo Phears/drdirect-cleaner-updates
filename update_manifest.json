@@ -1,7 +1,7 @@
 {
-  "version": "1.4.217",
+  "version": "1.4.218",
   "notes": "All four switches now sit on one line.",
-  "published": "2026-10-24T21:42:35.9341299-04:00",
+  "published": "2026-10-24T21:44:15.9990730-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "4EF3D4A8F029EBD33F819A1DFF91DE916C0FA05AC97A8C81652EBC27747360F1",
-      "size": 1181640
+      "sha256": "183A3512260612D4D38BE18F488B939C355A4EAC7CF7F90FBFA4FE36D302964D",
+      "size": 1181624
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
