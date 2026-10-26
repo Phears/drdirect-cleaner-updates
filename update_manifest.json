@@ -1,7 +1,7 @@
 {
-  "version": "1.4.225",
-  "notes": "The winget update check no longer tries to update PowerShell 7 when your copy is already as new as the version winget offers.",
-  "published": "2026-10-26T00:19:49.8487272-04:00",
+  "version": "1.4.226",
+  "notes": "After every clean, the Cleaner now checks that your Windows firewall, Microsoft Defender protection and Windows Update are on, and switches back on any that were off. The Cleaner window also waits to close while the Uninstaller or Duplicate Finder is still open, so closing it early no longer causes an error.",
+  "published": "2026-10-26T13:35:51.6071030-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "978A79D124A8065579EC39F28F281D6BF4318E20D3912EFDBD87517741820F3A",
-      "size": 1184126
+      "sha256": "9B6C1502828B2D68152308633A37347CB37CF7056A059CB5660D1DE05A4169C9",
+      "size": 1186027
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -20,8 +20,8 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "C037E09A3723CF4E6CD6389A0A2218391C63194ECDCAC772CA1D2314BC6C1376",
-      "size": 58727
+      "sha256": "BC078333D356107335A0289D594E228D0598CFD0C26404ED4BC839ACE0EB368E",
+      "size": 59049
     },
     {
       "name": "DRDirect Activation.ps1",
@@ -45,5 +45,6 @@
     }
   ],
   "blocked": [],
-  "blockedHard": []
+  "blockedHard": [],
+  "jokes": []
 }

@@ -1320,6 +1320,25 @@ try {
     }
 } catch { }
 $window.Add_Closing({
+    param($closingSender, $closingArgs)
+    # Closing the Cleaner while the Uninstaller or the Duplicate Finder is open caused an error, so the X waits
+    # until they are closed. An update restart (DRForceClose) and the test mode are the only ways around it.
+    if (-not $script:DRForceClose -and -not $TestMode) {
+        try {
+            $openTools = New-Object System.Collections.ArrayList
+            $finderOpen = Get-Process -Name 'powershell', 'DRDirect*' -ErrorAction SilentlyContinue |
+                Where-Object { $_.Id -ne $PID -and $_.MainWindowTitle -eq 'DRDirect Duplicate Finder' } | Select-Object -First 1
+            if ($finderOpen) { [void]$openTools.Add('the Duplicate Finder') }
+            $uninstallerOpen = Get-Process -Name 'BCUninstaller' -ErrorAction SilentlyContinue |
+                Where-Object { $_.MainWindowHandle -ne [IntPtr]::Zero } | Select-Object -First 1
+            if ($uninstallerOpen) { [void]$openTools.Add('the Uninstaller') }
+            if ($openTools.Count) {
+                $closingArgs.Cancel = $true
+                [void][Windows.MessageBox]::Show(('Close {0} first, then you can close the Cleaner.' -f ($openTools -join ' and ')), 'DRDirect PC Cleaner', 'OK', 'Information')
+                return
+            }
+        } catch { }
+    }
     try {
         $b = if ($window.WindowState -eq [Windows.WindowState]::Normal) { New-Object Windows.Rect($window.Left, $window.Top, $window.Width, $window.Height) } else { $window.RestoreBounds }
         if ($b.Width -lt 300 -or $b.Height -lt 300) { return }
@@ -3426,6 +3445,15 @@ function Write-DRSafeRunReport {
 function Complete-RunPlan {
     # The run may have freed space, so the C: warning is checked again straight away.
     Update-DRDiskWarning
+    # After any run, Windows protection (firewall, Defender real-time, Windows Update) is checked and switched
+    # back on if something left it off. Another antivirus or firewall in charge, or a policy, is left alone.
+    if (-not $TestRoot -and (Test-DRAdministrator)) {
+        try {
+            foreach ($securityEvent in @(Repair-DRSecurityProtection -TaskId 'security.after-clean')) {
+                if ($securityEvent -and $securityEvent.State) { $runEvents.Add($securityEvent) }
+            }
+        } catch { }
+    }
     [string[]]$selectedIds = @(
         $catalog |
             Where-Object { $script:DRRunTaskIds -contains $_.Id } |
@@ -6042,6 +6070,7 @@ function Complete-DRUpdateInstall {
                 $encodedReopen = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($reopen))
                 Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden `
                     -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-EncodedCommand', $encodedReopen
+                $script:DRForceClose = $true
                 $window.Close()
                 return
             } catch { }   # could not restart it - fall through to the normal message
