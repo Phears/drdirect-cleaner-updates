@@ -1,7 +1,7 @@
 {
-  "version": "1.4.224",
-  "notes": "Uninstaller: the Forced uninstaller now takes the program's own folder along with its leftovers, offers to close it if it is still running, and finds the game and program shortcuts left behind. The search box shows only programs that match every word, and has a Search button.",
-  "published": "2026-10-26T00:05:38.8430625-04:00",
+  "version": "1.4.225",
+  "notes": "The winget update check no longer tries to update PowerShell 7 when your copy is already as new as the version winget offers.",
+  "published": "2026-10-26T00:19:49.8487272-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "664C2965C8DFD8AD90D56F7D42E44A447FCEEA793340420B1E8109A211F10D80",
-      "size": 1182586
+      "sha256": "978A79D124A8065579EC39F28F281D6BF4318E20D3912EFDBD87517741820F3A",
+      "size": 1184126
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

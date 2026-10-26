@@ -4597,23 +4597,47 @@ $listArgs = @('upgrade', '--accept-source-agreements')
 if ($IncludeUnknown) { $listArgs += '--include-unknown' }
 $raw = (& winget @listArgs 2>&1 | Out-String) -split "`r?`n"
 
-$pkgs = @(); $idCol = -1; $verCol = -1; $inTable = $false
+$pkgs = @(); $idCol = -1; $verCol = -1; $availCol = -1; $srcCol = -1; $inTable = $false
 foreach ($l in $raw) {
     $l = ($l -split "`r")[-1]                       # drop spinner prefixes
     if ($l -match '^Name\s+Id\s+Version') {
         if ($pkgs.Count -gt 0) { break }            # 2nd table = needs explicit targeting
-        $idCol = $l.IndexOf('Id'); $verCol = $l.IndexOf('Version'); $inTable = $false; continue
+        $idCol = $l.IndexOf('Id'); $verCol = $l.IndexOf('Version'); $inTable = $false
+        $availCol = $l.IndexOf('Available'); $srcCol = $l.IndexOf('Source')
+        continue
     }
     if ($idCol -ge 0 -and $l -match '^-{5,}') { $inTable = $true; continue }
     if ($inTable) {
         if ($l -match 'upgrades? available' -or $l.Trim() -eq '') { $inTable = $false; continue }
         if ($l.Length -gt $verCol) {
+            $offered = ''
+            if ($availCol -gt $verCol -and $l.Length -gt $availCol) {
+                $end = if ($srcCol -gt $availCol -and $l.Length -ge $srcCol) { $srcCol } else { $l.Length }
+                $offered = $l.Substring($availCol, $end - $availCol).Trim()
+            }
             $pkgs += [pscustomobject]@{
-                Name = $l.Substring(0, $idCol).Trim()
-                Id   = $l.Substring($idCol, $verCol - $idCol).Trim()
+                Name      = $l.Substring(0, $idCol).Trim()
+                Id        = $l.Substring($idCol, $verCol - $idCol).Trim()
+                Available = $offered
             }
         }
     }
+}
+
+# Windows Update or an installer can put a newer PowerShell 7 on this PC than winget has on record, and winget
+# then offers a version that is already here. Compare with the copy that is really installed and leave it be.
+foreach ($ps7 in @($pkgs | Where-Object { $_.Id -eq 'Microsoft.PowerShell' -and $_.Available })) {
+    try {
+        $pwshExe = Join-Path $env:ProgramFiles 'PowerShell\7\pwsh.exe'
+        if (-not (Test-Path -LiteralPath $pwshExe)) { $pwshExe = (Get-Command pwsh.exe -ErrorAction Stop).Source }
+        $toVersion = { param($t) $n = @(($t -replace '[^0-9.].*$', '') -split '\.') + '0', '0', '0', '0'; [version]($n[0..3] -join '.') }
+        $have = & $toVersion (Get-Item -LiteralPath $pwshExe).VersionInfo.ProductVersion
+        $offer = & $toVersion $ps7.Available
+        if ($have -ge $offer) {
+            Write-Host (RGB 150 150 255 "⏭️  $($ps7.Name) - version $have is already installed, winget just has not caught up")
+            $pkgs = @($pkgs | Where-Object { $_.Id -ne 'Microsoft.PowerShell' })
+        }
+    } catch { }
 }
 
 # Apps left out on purpose (Warp updates itself and its download stalls).
