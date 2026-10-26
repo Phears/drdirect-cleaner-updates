@@ -1,7 +1,7 @@
 {
-  "version": "1.4.223",
-  "notes": "Uninstaller: the search box now shows only programs that match every word you type, and has a Search button. The Forced uninstaller also finds the game shortcuts left on your desktop and Start menu.",
-  "published": "2026-10-25T23:55:06.9175362-04:00",
+  "version": "1.4.224",
+  "notes": "Uninstaller: the Forced uninstaller now takes the program's own folder along with its leftovers, offers to close it if it is still running, and finds the game and program shortcuts left behind. The search box shows only programs that match every word, and has a Search button.",
+  "published": "2026-10-26T00:05:38.8430625-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "1250563A2BF102A1B5FB9375F782CD8B3D7D5B4ADBA2B55708236D175B0E1A1F",
-      "size": 10418662
+      "sha256": "BC5F92D96B7642BA7CB9C4C08F742B213C4C49B09B15E68E119E5E6219BDEE79",
+      "size": 10419581
     }
   ],
   "blocked": [],
