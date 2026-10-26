@@ -1,7 +1,7 @@
 {
-  "version": "1.4.222",
-  "notes": "Small polish and fixes.",
-  "published": "2026-10-25T19:30:28.4932212-04:00",
+  "version": "1.4.223",
+  "notes": "Uninstaller: the search box now shows only programs that match every word you type, and has a Search button. The Forced uninstaller also finds the game shortcuts left on your desktop and Start menu.",
+  "published": "2026-10-25T23:55:06.9175362-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "673945E27E9047F573E249B8098127B2BC0E2ACF7766F3A043843A8FA2B37AD5",
-      "size": 1176159
+      "sha256": "664C2965C8DFD8AD90D56F7D42E44A447FCEEA793340420B1E8109A211F10D80",
+      "size": 1182586
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "AE791A81EAD022F43121CC5EFDB9A07A1C30A0BE3173F877E4E8AF001EAC2B98",
-      "size": 10416129
+      "sha256": "1250563A2BF102A1B5FB9375F782CD8B3D7D5B4ADBA2B55708236D175B0E1A1F",
+      "size": 10418662
     }
   ],
   "blocked": [],
