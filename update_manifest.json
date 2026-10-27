@@ -1,7 +1,7 @@
 {
-  "version": "1.4.240",
+  "version": "1.4.241",
   "notes": "A small tidy-up to the side panel.",
-  "published": "2026-10-27T14:21:54.4848071-04:00",
+  "published": "2026-10-27T14:31:48.6440151-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "CF40729E622A1D5B17E15AC9C806F6A5B8C2CBAAA1D3E84A86660033C250F535",
-      "size": 1195926
+      "sha256": "4E3835BFC5AD2DA1D97B70F77C2CBBD5E4852E2CB1C92CC34F25796052B5232D",
+      "size": 1195946
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

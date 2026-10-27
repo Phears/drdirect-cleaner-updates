@@ -5489,10 +5489,10 @@ function Show-DROwnerMenu {
     $panel = New-Object Windows.Controls.StackPanel
     $panel.Margin = '20'
     $items = @(
-        @{ Text = 'Performance Monitor  -  live line graphs';                 Args = '' },
-        @{ Text = 'Resource Monitor  -  what is slowing the PC down';         Args = '/res' },
-        @{ Text = 'Reliability Monitor  -  day-by-day crash chart';           Args = '/rel' },
-        @{ Text = 'Health report  -  60-second check, warnings at the top';   Args = '/report' }
+        @{ Text = '1.  Performance Monitor  -  live line graphs';                 Args = '' },
+        @{ Text = '2.  Resource Monitor  -  what is slowing the PC down';         Args = '/res' },
+        @{ Text = '3.  Reliability Monitor  -  day-by-day crash chart';           Args = '/rel' },
+        @{ Text = '4.  Health report  -  60-second check, warnings at the top';   Args = '/report' }
     )
     foreach ($item in $items) {
         $button = New-Object Windows.Controls.Button
@@ -5511,7 +5511,7 @@ function Show-DROwnerMenu {
         [void]$panel.Children.Add($button)
     }
     $reset = New-Object Windows.Controls.Button
-    $reset.Content = 'Reset Reliability Monitor...'
+    $reset.Content = '5.  Reset Reliability Monitor...'
     $reset.Padding = '14,8'
     $reset.Margin = '0,10,0,0'
     $reset.HorizontalContentAlignment = 'Left'
