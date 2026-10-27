@@ -5383,8 +5383,8 @@ function Show-DRNote {
     [void][Windows.MessageBox]::Show($text, 'Please read first', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information)
 }
 # Owner-only: clears the crash history Reliability Monitor draws. Only a salted hash of the password is kept here.
-$script:DRResetSalt = 'T27/WQb3JKL9k4RbnQWliQ=='
-$script:DRResetHash = '6uK9tVTjCVe8U9cqpGnK0BmHU3x4R5PlKxW/pA/Oc4k='
+$script:DRResetSalt = 'o5F1HnVq6QUnWzFqqdt8Tw=='
+$script:DRResetHash = 'CQ/huvF5lvUnuzR+MkndGWi/5pcDlAXqO7IvL3cnf08='
 function Test-DRResetPassword {
     param([string]$Password)
     if ([string]::IsNullOrEmpty($Password)) { return $false }
