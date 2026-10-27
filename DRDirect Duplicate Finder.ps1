@@ -2892,7 +2892,23 @@ public static class DRBackToCleaner {
         if ($cleaner -ne [IntPtr]::Zero) {
             if ([DRBackToCleaner]::IsIconic($cleaner)) { [void][DRBackToCleaner]::ShowWindow($cleaner, 9) }
             [void][DRBackToCleaner]::SetForegroundWindow($cleaner)
-            $win.WindowState = [System.Windows.WindowState]::Minimized
+            try { [System.Windows.Window]::GetWindow($ui.BtnBack).WindowState = [System.Windows.WindowState]::Minimized } catch { }
+            return
+        }
+    } catch {
+        [System.Windows.MessageBox]::Show("Could not switch to the Cleaner: $($_.Exception.Message)",
+            'DRDirect Duplicate Finder', 'OK', 'Information') | Out-Null
+        return
+    }
+    # The Cleaner is closed: start it again from where the Cleaner last said it lives.
+    try {
+        $cleanerExe = [string](Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name 'CleanerExe' -ErrorAction Stop).CleanerExe
+        if ($cleanerExe -and (Test-Path -LiteralPath $cleanerExe -PathType Leaf)) {
+            # A PyInstaller copy started from inside another one takes itself for its child and fails its parent check.
+            $env:PYINSTALLER_RESET_ENVIRONMENT = '1'
+            # Through Explorer, so the Cleaner asks for administrator rights itself rather than inheriting this window's.
+            Start-Process -FilePath 'explorer.exe' -ArgumentList $cleanerExe | Out-Null
+            $ui.LblSummary.Text = 'Opening the Cleaner...'
             return
         }
     } catch { }

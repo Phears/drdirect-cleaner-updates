@@ -1,17 +1,17 @@
 {
-  "version": "1.4.229",
-  "notes": "The Back to the Cleaner button in the Duplicate Finder now finds the Cleaner's window more reliably, even when the Cleaner is running as administrator.",
-  "published": "2026-10-26T20:52:48.9520433-04:00",
+  "version": "1.4.230",
+  "notes": "In the Duplicate Finder, the Back to the Cleaner button now opens the Cleaner again if you had closed it.",
+  "published": "2026-10-26T21:02:11.0691197-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "29477533D1599662BF753C5BF9FF7C005699E114B21EE59DCA10B7D6385ABAFC",
-      "size": 166426
+      "sha256": "C3C06622EC15EA072A79FCB695569F647E36FF027F31AD494C4375C193C6F469",
+      "size": 167512
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "9B6C1502828B2D68152308633A37347CB37CF7056A059CB5660D1DE05A4169C9",
-      "size": 1186027
+      "sha256": "C14BD534E79873E0094BB2E444B8396BDA24A969437C8EAAB2A1EAC342954F52",
+      "size": 1186555
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

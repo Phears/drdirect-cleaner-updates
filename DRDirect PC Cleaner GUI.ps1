@@ -5791,6 +5791,15 @@ $ui.OpenDuplicatesButton.Add_Click({
         $ui.DuplicateStatus.Text = 'Opening the Duplicate Finder so you can enter its code.'
     }
 
+    # The Finder's Back to the Cleaner button starts the Cleaner again if it was closed, so it needs to know where it is.
+    try {
+        $cleanerExe = Get-DRCleanerLauncherPath
+        if ($cleanerExe) {
+            if (-not (Test-Path -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner')) { New-Item -Path 'HKCU:\Software\DRDirect\PC Cleaner' -Force | Out-Null }
+            Set-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name 'CleanerExe' -Value ([string]$cleanerExe)
+        }
+    } catch { }
+
     # Its own build first: it checks its own licence and needs no flags from here.
     $finderExe = Resolve-DRDuplicateFinderExe
     if ($finderExe) {
