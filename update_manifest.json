@@ -1,7 +1,7 @@
 {
   "version": "1.4.244",
-  "notes": "A small tidy-up to the side panel.",
-  "published": "2026-10-27T14:49:09.5554621-04:00",
+  "notes": "The Cleaner's taskbar icon now shows a badge and flashes when a new version is waiting.",
+  "published": "2026-10-27T18:42:32.3341709-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F5DB0D5D6E1424DB76FAA030AE66894E54D2348982A87669F0C53C9AFCF5E362",
-      "size": 1195946
+      "sha256": "5651EDCF0C3D84259E691AF38C90F54682A79F2D9E7E8A2E8CB7DDAF8CBEEE45",
+      "size": 1198532
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

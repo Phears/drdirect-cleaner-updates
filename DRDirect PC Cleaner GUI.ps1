@@ -5180,6 +5180,45 @@ $ui.SoundSwitch.Add_Click({
     }
 })
 
+# The taskbar icon gets an orange badge and flashes until the window is opened, so a waiting update shows even when the Cleaner is behind other windows.
+if (-not ('DRTaskbarFlash' -as [type])) {
+    Add-Type -TypeDefinition @"
+using System; using System.Runtime.InteropServices;
+public static class DRTaskbarFlash {
+    [StructLayout(LayoutKind.Sequential)] public struct FLASHWINFO { public uint cbSize; public IntPtr hwnd; public uint dwFlags; public uint uCount; public uint dwTimeout; }
+    [DllImport("user32.dll")] public static extern bool FlashWindowEx(ref FLASHWINFO pwfi);
+    public static void Flash(IntPtr hwnd) {
+        FLASHWINFO info = new FLASHWINFO();
+        info.cbSize = (uint)Marshal.SizeOf(typeof(FLASHWINFO));
+        info.hwnd = hwnd; info.dwFlags = 2 | 12; info.uCount = uint.MaxValue; info.dwTimeout = 0;
+        FlashWindowEx(ref info);
+    }
+}
+"@
+}
+function Set-DRTaskbarUpdateBadge {
+    param([bool]$On)
+    try {
+        if (-not $window.TaskbarItemInfo) { $window.TaskbarItemInfo = New-Object Windows.Shell.TaskbarItemInfo }
+        if (-not $On) { $window.TaskbarItemInfo.Overlay = $null; $window.TaskbarItemInfo.Description = ''; return }
+        $visual = New-Object Windows.Media.DrawingVisual
+        $dc = $visual.RenderOpen()
+        $fill = New-Object Windows.Media.SolidColorBrush ([Windows.Media.ColorConverter]::ConvertFromString('#FF8A00'))
+        $dc.DrawEllipse($fill, (New-Object Windows.Media.Pen ([Windows.Media.Brushes]::White), 2), (New-Object Windows.Point 16, 16), 14, 14)
+        $face = New-Object Windows.Media.Typeface 'Segoe UI'
+        $mark = New-Object Windows.Media.FormattedText '!', ([Globalization.CultureInfo]::InvariantCulture), ([Windows.FlowDirection]::LeftToRight), $face, 22, ([Windows.Media.Brushes]::White), 1.0
+        $mark.SetFontWeight([Windows.FontWeights]::Bold)
+        $dc.DrawText($mark, (New-Object Windows.Point (16 - $mark.Width / 2), (16 - $mark.Height / 2)))
+        $dc.Close()
+        $bitmap = New-Object Windows.Media.Imaging.RenderTargetBitmap 32, 32, 96, 96, ([Windows.Media.PixelFormats]::Pbgra32)
+        $bitmap.Render($visual)
+        $bitmap.Freeze()
+        $window.TaskbarItemInfo.Overlay = $bitmap
+        $window.TaskbarItemInfo.Description = 'A new version of DRDirect PC Cleaner is ready'
+        $handle = (New-Object Windows.Interop.WindowInteropHelper($window)).Handle
+        if ($handle -ne [IntPtr]::Zero) { [DRTaskbarFlash]::Flash($handle) }
+    } catch { }
+}
 # A waiting update must be impossible to miss: both update buttons flash
 # green and yellow, pulse in size and glow until it is installed.
 $script:DRUpdateFlashOn = $false
@@ -5188,6 +5227,7 @@ function Start-DRUpdateFlash {
     if ($script:DRUpdateFlashOn) { return }
     $script:DRUpdateFlashOn = $true
     $script:DRUpdateFlashSaved = @{}
+    Set-DRTaskbarUpdateBadge $true
     foreach ($button in @($ui.HeroUpdateButton, $ui.CheckUpdatesButton)) {
         $script:DRUpdateFlashSaved[$button.Name] = @{ Content = $button.Content; Background = $button.Background }
         $button.Content = [string][char]0x2605 + '  NEW UPDATE  ' + [string][char]0x2605
@@ -5217,6 +5257,7 @@ function Start-DRUpdateFlash {
 function Stop-DRUpdateFlash {
     if (-not $script:DRUpdateFlashOn) { return }
     $script:DRUpdateFlashOn = $false
+    Set-DRTaskbarUpdateBadge $false
     foreach ($button in @($ui.HeroUpdateButton, $ui.CheckUpdatesButton)) {
         $saved = $script:DRUpdateFlashSaved[$button.Name]
         $button.RenderTransform = $null
