@@ -5466,7 +5466,7 @@ $ui.ResetReliabilityButton.Add_Click({
     $sure = [Windows.MessageBox]::Show("This wipes the crash reports and Windows event logs on THIS PC, so Reliability Monitor starts again with a clean chart.`n`nIt cannot be undone. Files, programs, passwords and logins are not touched.`n`nClear it now?", 'Reset Reliability Monitor', [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Warning)
     if ($sure -ne [Windows.MessageBoxResult]::Yes) { return }
     try {
-        $failed = Clear-DRReliabilityHistory
+        $failed = @(Clear-DRReliabilityHistory)
         $msg = if ($failed.Count) { 'Could not clear: ' + ($failed -join ', ') + '.' } else { 'Done. Restart the PC, then open Reliability Monitor again. The chart can take up to 24 hours to redraw.' }
     } catch { $msg = "Stopped: $($_.Exception.Message)" }
     [void][Windows.MessageBox]::Show($msg, 'Reset Reliability Monitor', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information)
