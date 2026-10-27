@@ -1570,16 +1570,26 @@ $xaml = @'
           <ColumnDefinition Width="Auto"/>
           <ColumnDefinition Width="Auto"/>
         </Grid.ColumnDefinitions>
-        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-          <TextBlock x:Name="LblSummary" Text="Ready." FontWeight="Bold" FontSize="17" Foreground="#1D2939"
-                     RenderTransformOrigin="0,0.5">
+        <Grid Grid.Column="0" VerticalAlignment="Center">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" MinWidth="170"/>
+            <ColumnDefinition Width="Auto"/>
+          </Grid.ColumnDefinitions>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <TextBlock x:Name="LblSummary" Grid.Row="0" Grid.Column="0" Text="Ready." FontWeight="Bold" FontSize="17"
+                     Foreground="#1D2939" VerticalAlignment="Center" RenderTransformOrigin="0,0.5">
             <TextBlock.RenderTransform>
               <ScaleTransform x:Name="SummaryScale" ScaleX="1" ScaleY="1"/>
             </TextBlock.RenderTransform>
           </TextBlock>
-          <ProgressBar x:Name="Bar" Height="6" Margin="0,8,16,0" Visibility="Collapsed"
-                       Foreground="#2563EB" Background="#E3E8F0" BorderThickness="0"/>
-        </StackPanel>
+          <Button x:Name="BtnBack" Grid.Row="0" Grid.Column="1" Content="&#x25C0;  Back to the Cleaner"
+                  Style="{StaticResource GhostBtn}" Margin="10,0,0,0" VerticalAlignment="Center"/>
+          <ProgressBar x:Name="Bar" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Height="6" Margin="0,8,16,0"
+                       Visibility="Collapsed" Foreground="#2563EB" Background="#E3E8F0" BorderThickness="0"/>
+        </Grid>
         <Border Grid.Column="1" x:Name="AckBox" Background="#FEF3E2" BorderBrush="#F0C88A" BorderThickness="1"
                 CornerRadius="6" Padding="12,8" Margin="0,0,12,0" VerticalAlignment="Center"
                 Visibility="Collapsed">
@@ -1664,7 +1674,7 @@ try {
 
 $ui = @{}
 foreach ($n in 'TxtFolder', 'BtnBrowse', 'BtnScan', 'BtnCancel', 'BtnUpdate', 'BtnActivate', 'SummaryScale', 'ChkSub', 'CmbMin', 'GroupList',
-    'VersionText', 'EmptyState', 'EmptyTitle', 'EmptyHint', 'StatStrip', 'StatSets', 'StatFiles', 'StatSpace', 'ScanDone', 'ScanDoneScale', 'ScanDoneTick', 'ScanDoneSub', 'ScanBusy', 'SweepSpin', 'ScanBusyHint', 'LblSummary', 'Bar', 'BtnNone', 'BtnDelete', 'Scroller',
+    'VersionText', 'EmptyState', 'EmptyTitle', 'EmptyHint', 'StatStrip', 'StatSets', 'StatFiles', 'StatSpace', 'ScanDone', 'ScanDoneScale', 'ScanDoneTick', 'ScanDoneSub', 'ScanBusy', 'SweepSpin', 'ScanBusyHint', 'LblSummary', 'Bar', 'BtnBack', 'BtnNone', 'BtnDelete', 'Scroller',
     'TrialBadge', 'TrialBadgeText', 'AckBox', 'ChkAck', 'ChkCloudICloud', 'ChkCloudGoogle', 'ChkCloudOneDrive', 'ChkCloudDropbox', 'ChkCloudMega', 'LblCloudHint', 'DrivePanel', 'ChipAll', 'ChipPic', 'ChipVid', 'ChipAud', 'ChipDoc',
     'ChipArc', 'LblChips', 'CloudNote', 'CloudNoteText', 'SavedPanel', 'SavedBig', 'SavedSub', 'SavedSession', 'SavedShift', 'TickPop') {
     $ui[$n] = $win.FindName($n)
@@ -2840,6 +2850,34 @@ function Update-DRActivateLook {
         }
     } catch { }
 }
+
+$ui.BtnBack.Add_Click({
+    # Brings the Cleaner's window forward, then steps aside (its Open Duplicate Finder button brings this one back).
+    try {
+        if (-not ('DRBackToCleaner' -as [type])) {
+            Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class DRBackToCleaner {
+    [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr window, int command);
+    [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr window);
+    [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr window);
+}
+'@
+        }
+        $cleaner = @(Get-Process -ErrorAction SilentlyContinue |
+            Where-Object { $_.Id -ne $PID -and $_.MainWindowTitle -eq 'DRDirect PC Cleaner' -and $_.MainWindowHandle -ne [IntPtr]::Zero }) |
+            Select-Object -First 1
+        if ($cleaner) {
+            if ([DRBackToCleaner]::IsIconic($cleaner.MainWindowHandle)) { [void][DRBackToCleaner]::ShowWindow($cleaner.MainWindowHandle, 9) }
+            [void][DRBackToCleaner]::SetForegroundWindow($cleaner.MainWindowHandle)
+            $win.WindowState = [System.Windows.WindowState]::Minimized
+            return
+        }
+    } catch { }
+    [System.Windows.MessageBox]::Show('The DRDirect Cleaner is not open. Open it from its shortcut.',
+        'DRDirect Duplicate Finder', 'OK', 'Information') | Out-Null
+})
 
 $ui.BtnActivate.Add_Click({
     # Always available, so a code can be handed over before anything expires.

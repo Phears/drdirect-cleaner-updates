@@ -1,12 +1,12 @@
 {
-  "version": "1.4.227",
-  "notes": "The Uninstaller's filter panel can now be dragged wider by hand. Going back to the Cleaner from the Uninstaller no longer ends in a 'Security validation failure' error.",
-  "published": "2026-10-26T20:44:38.8781875-04:00",
+  "version": "1.4.228",
+  "notes": "The Duplicate Finder now has a Back to the Cleaner button at the bottom, so you can return to the Cleaner with one click.",
+  "published": "2026-10-26T20:50:17.2069197-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "3AAAF10918062C7D85BEAA2603FAF6EF05C694A48C5099A20F758B0FE3FAE311",
-      "size": 163244
+      "sha256": "EA0D0D94D07442AA95C2502368C53EB6C06635950C46D053102FD2FE61035DFE",
+      "size": 165314
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
