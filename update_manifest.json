@@ -1,12 +1,12 @@
 {
-  "version": "1.4.232",
-  "notes": "In the DRDirect Uninstaller, the Search and Filtering column can now be made wider by dragging the strip on its right edge.",
-  "published": "2026-10-26T21:15:07.2410531-04:00",
+  "version": "1.4.233",
+  "notes": "The Duplicate Finder and the Uninstaller now show the DRDirect logo and the version number, the same as the Cleaner.",
+  "published": "2026-10-26T21:22:39.2626592-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "C3C06622EC15EA072A79FCB695569F647E36FF027F31AD494C4375C193C6F469",
-      "size": 167512
+      "sha256": "937CAC6EE959E850C6E42E483C7719542A0C7BEA1CEF16D0840620AA3E68EBAC",
+      "size": 218537
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "40CDEEEB676786EA2B920B99084E2F1F0B33FFDF6FDD20D8251466C472E61F6A",
-      "size": 10420295
+      "sha256": "4F7A2A647A64C291E0888689DEA16C2F239713030B19AA5AED8CCAB39EFBA158",
+      "size": 10458711
     }
   ],
   "blocked": [],
