@@ -1,7 +1,7 @@
 {
-  "version": "1.4.236",
-  "notes": "The owner can now clear a PC's crash history from a new Reset Reliability Monitor button. It asks for a password first, so it stays out of customers' hands.",
-  "published": "2026-10-27T13:45:52.5415810-04:00",
+  "version": "1.4.237",
+  "notes": "Fixes 1.4.236, which could not open. The owner-only Reset Reliability Monitor button is included.",
+  "published": "2026-10-27T13:51:39.5475263-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B72A2DFFAC3651A676A8C2B51A7EEDA1323A71898686EEF82873B6DFF68A5D15",
-      "size": 1191824
+      "sha256": "06FE893E2CCF7B41B7EA18C8A36473AEA1E95CD05CAFE6D15510F850E564F867",
+      "size": 1191916
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
