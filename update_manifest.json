@@ -1,7 +1,7 @@
 {
-  "version": "1.4.244",
+  "version": "1.4.245",
   "notes": "The Cleaner's taskbar icon now shows a badge and flashes when a new version is waiting.",
-  "published": "2026-10-27T18:42:32.3341709-04:00",
+  "published": "2026-10-27T18:43:04.9473048-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
