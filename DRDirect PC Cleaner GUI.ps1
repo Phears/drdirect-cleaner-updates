@@ -6767,9 +6767,13 @@ $notify.ContextMenuStrip = $menu
 $notify.Add_MouseClick({ param($s, $e) if ($e.Button -eq 'Left') { Open-Cleaner } })
 $notify.Add_BalloonTipClicked({ Open-Cleaner })
 
+# The network check is every 30 minutes; the installed version is re-read every minute, so the yellow
+# mark clears soon after an update is installed.
+$script:OfferedVersion = $null
+$script:Ticks = 0
 function Update-Tray {
     $installed = Get-InstalledVersion
-    $offered = Get-OfferedVersion
+    $offered = $script:OfferedVersion
     if ($installed -and $offered -and $offered -gt $installed) {
         $notify.Icon = $markedIcon
         $notify.Text = "DRDirect PC Cleaner: update ready ($offered)"
@@ -6787,8 +6791,12 @@ function Update-Tray {
 $timer = New-Object Windows.Forms.Timer
 $timer.Interval = 5000
 $timer.Add_Tick({
-    $timer.Interval = 30 * 60 * 1000
-    try { Update-Tray } catch { }
+    $timer.Interval = 60 * 1000
+    try {
+        if ($script:Ticks % 30 -eq 0) { $script:OfferedVersion = Get-OfferedVersion }
+        $script:Ticks++
+        Update-Tray
+    } catch { }
 })
 $timer.Start()
 

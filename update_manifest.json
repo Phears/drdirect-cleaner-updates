@@ -1,7 +1,7 @@
 {
-  "version": "1.4.248",
-  "notes": "The Cleaner can now put a small icon by the clock that turns yellow when a new version is ready. It asks you once, and you can turn it off any time.",
-  "published": "2026-10-27T19:08:33.4480846-04:00",
+  "version": "1.4.249",
+  "notes": "The update icon by the clock now clears itself shortly after you install an update.",
+  "published": "2026-10-27T19:15:59.0880785-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "91BEC9D9C818B7DA30073C2A77BB2A10486473E6F0427E160CE005508301C1A0",
-      "size": 1206141
+      "sha256": "1008572ECABF74F9D7FB3C61B8237C833603D7E4A89AEE03599B96A71CBEDD44",
+      "size": 1206470
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
