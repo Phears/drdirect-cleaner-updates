@@ -1,7 +1,7 @@
 {
-  "version": "1.4.233",
-  "notes": "The Duplicate Finder and the Uninstaller now show the DRDirect logo and the version number, the same as the Cleaner.",
-  "published": "2026-10-26T21:22:39.2626592-04:00",
+  "version": "1.4.234",
+  "notes": "The DRDirect logo now shows in the Uninstaller next to the version number.",
+  "published": "2026-10-26T21:26:32.1507882-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "4F7A2A647A64C291E0888689DEA16C2F239713030B19AA5AED8CCAB39EFBA158",
-      "size": 10458711
+      "sha256": "5CCCEAF7602452940D57754659D3433CA5120532B510B81E4946C4E036A7F40A",
+      "size": 10458638
     }
   ],
   "blocked": [],
