@@ -1,7 +1,7 @@
 {
-  "version": "1.4.230",
-  "notes": "In the Duplicate Finder, the Back to the Cleaner button now opens the Cleaner again if you had closed it.",
-  "published": "2026-10-26T21:02:11.0691197-04:00",
+  "version": "1.4.231",
+  "notes": "In the DRDirect Uninstaller, the Search and Filtering column can now be made wider by dragging the strip on its right edge.",
+  "published": "2026-10-26T21:09:25.9472640-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "2DE40507D8807495B7894D14AC6A14036A9E73224EDEDD641B2CD81AE1F53D9F",
-      "size": 10419945
+      "sha256": "F72F35ED76FF4AF2F45AD865105AE47860FDB8DF5B746EB2848872C29CC294BC",
+      "size": 10419980
     }
   ],
   "blocked": [],
