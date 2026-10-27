@@ -977,7 +977,7 @@ $ErrorActionPreference = 'Stop'
                 </StackPanel>
                 </ScrollViewer>
                 <Border x:Name="NavMoreHint" Grid.Row="1" Visibility="Collapsed" VerticalAlignment="Bottom" Height="64" Cursor="Hand" ToolTip="Scroll down for more tools"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#0015253D" Offset="0"/><GradientStop Color="#F015253D" Offset="0.62"/><GradientStop Color="#FF15253D" Offset="1"/></LinearGradientBrush></Border.Background><TextBlock Text="▼   More tools below" Foreground="#FFC04D" FontSize="14" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,8"/></Border>
-                <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="RunStrip" Visibility="Collapsed" Background="#12306B" BorderBrush="#2E6DEB" BorderThickness="1" CornerRadius="9" Padding="12,10" Margin="0,0,0,12" Cursor="Hand" ToolTip="Click to go to the progress page"><StackPanel><TextBlock x:Name="RunStripTitle" Text="Working..." Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock x:Name="RunStripDetail" Text="" Foreground="#B9C9DD" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,2,0,6"/><ProgressBar x:Name="RunStripBar" Height="6" Minimum="0" Maximum="100" Value="0" Foreground="#2BE37A" Background="#2A3F66" BorderThickness="0"/></StackPanel></Border><Border x:Name="ResetReliabilityButton" Height="12" CornerRadius="6" Margin="0,0,0,12" HorizontalAlignment="Stretch" BorderBrush="#7FD4FF" BorderThickness="1"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#3DB8FF" Offset="0"/><GradientStop Color="#0A8CFF" Offset="1"/></LinearGradientBrush></Border.Background></Border><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
+                <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="RunStrip" Visibility="Collapsed" Background="#12306B" BorderBrush="#2E6DEB" BorderThickness="1" CornerRadius="9" Padding="12,10" Margin="0,0,0,12" Cursor="Hand" ToolTip="Click to go to the progress page"><StackPanel><TextBlock x:Name="RunStripTitle" Text="Working..." Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock x:Name="RunStripDetail" Text="" Foreground="#B9C9DD" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,2,0,6"/><ProgressBar x:Name="RunStripBar" Height="6" Minimum="0" Maximum="100" Value="0" Foreground="#2BE37A" Background="#2A3F66" BorderThickness="0"/></StackPanel></Border><Border x:Name="ResetReliabilityButton" Visibility="Collapsed" Height="12" CornerRadius="6" Margin="0,0,0,12" HorizontalAlignment="Stretch" BorderBrush="#7FD4FF" BorderThickness="1"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#3DB8FF" Offset="0"/><GradientStop Color="#0A8CFF" Offset="1"/></LinearGradientBrush></Border.Background></Border><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
             </Grid>
         </Border>
 
@@ -5395,12 +5395,24 @@ function Test-DRResetPassword {
     for ($i = 0; $i -lt 32; $i++) { $diff = $diff -bor ($given[$i] -bxor $expected[$i]) }
     return ($diff -eq 0)
 }
+# The owner's windows are left out of screen sharing, screenshots and recordings, so a customer watching a remote session does not see them.
+if (-not ('DRCapture' -as [type])) {
+    Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public static class DRCapture { [DllImport("user32.dll")] public static extern bool SetWindowDisplayAffinity(IntPtr hwnd, uint affinity); }'
+}
+function Set-DRNoCapture {
+    param($TargetWindow)
+    try {
+        $handle = (New-Object Windows.Interop.WindowInteropHelper($TargetWindow)).EnsureHandle()
+        [void][DRCapture]::SetWindowDisplayAffinity($handle, 0x11)
+    } catch { }
+}
 function Read-DRResetPassword {
     $dialog = New-Object Windows.Window
     $dialog.Title = 'Owner password'
     $dialog.SizeToContent = 'WidthAndHeight'
     $dialog.WindowStartupLocation = 'CenterOwner'
     $dialog.ResizeMode = 'NoResize'
+    Set-DRNoCapture $dialog
     try { $dialog.Owner = $window } catch { }
     $panel = New-Object Windows.Controls.StackPanel
     $panel.Margin = '20'
@@ -5472,6 +5484,7 @@ function Show-DROwnerMenu {
     $menu.SizeToContent = 'WidthAndHeight'
     $menu.WindowStartupLocation = 'CenterOwner'
     $menu.ResizeMode = 'NoResize'
+    Set-DRNoCapture $menu
     try { $menu.Owner = $window } catch { }
     $panel = New-Object Windows.Controls.StackPanel
     $panel.Margin = '20'
@@ -5507,7 +5520,7 @@ function Show-DROwnerMenu {
     $menu.Content = $panel
     [void]$menu.ShowDialog()
 }
-$ui.ResetReliabilityButton.Add_MouseLeftButtonUp({
+function Invoke-DROwnerEntry {
     $typed = Read-DRResetPassword
     if ($null -eq $typed) { return }
     if (-not (Test-DRResetPassword $typed)) {
@@ -5515,7 +5528,31 @@ $ui.ResetReliabilityButton.Add_MouseLeftButtonUp({
         return
     }
     Show-DROwnerMenu
+}
+# Anywhere else: clicking the version text five times in a row opens the password box.
+$script:DROwnerClicks = 0
+$script:DROwnerFirstClick = [datetime]::MinValue
+$ui.VersionText.Add_MouseLeftButtonUp({
+    $now = Get-Date
+    if (($now - $script:DROwnerFirstClick).TotalSeconds -gt 4) { $script:DROwnerFirstClick = $now; $script:DROwnerClicks = 0 }
+    $script:DROwnerClicks++
+    if ($script:DROwnerClicks -lt 5) { return }
+    $script:DROwnerClicks = 0
+    Invoke-DROwnerEntry
 })
+# The blue strip shows only on the owner's own PCs (matched by hashed PC ID, never the ID itself); everywhere else the five clicks are the way in.
+$script:DROwnerPcHashes = @('5CA7C38401F6CC2DB76FC1AA3C26895A2E789A7421CB495C7169FC37E0BC2709', '97E60D52D0832D37D20CA488269FB7470875FB4167859A78D4243C245666B2CB')
+function Test-DROwnerPc {
+    try {
+        foreach ($id in @(Get-DRThisPcBlockIds)) {
+            $hash = ([Security.Cryptography.SHA256]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes([string]$id)) | ForEach-Object { $_.ToString('X2') }) -join ''
+            if ($script:DROwnerPcHashes -contains $hash) { return $true }
+        }
+    } catch { }
+    return $false
+}
+if (Test-DROwnerPc) { $ui.ResetReliabilityButton.Visibility = 'Visible' }
+$ui.ResetReliabilityButton.Add_MouseLeftButtonUp({ Invoke-DROwnerEntry })
 $ui.DashNoteButton.Add_Click({ Show-DRNote })
 $ui.NavNoteButton.Add_Click({ Show-DRNote })
 # The note is only there for the first week the Cleaner is used. After that people know about it, so both buttons go away.
