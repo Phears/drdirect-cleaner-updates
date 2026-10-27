@@ -977,7 +977,7 @@ $ErrorActionPreference = 'Stop'
                 </StackPanel>
                 </ScrollViewer>
                 <Border x:Name="NavMoreHint" Grid.Row="1" Visibility="Collapsed" VerticalAlignment="Bottom" Height="64" Cursor="Hand" ToolTip="Scroll down for more tools"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#0015253D" Offset="0"/><GradientStop Color="#F015253D" Offset="0.62"/><GradientStop Color="#FF15253D" Offset="1"/></LinearGradientBrush></Border.Background><TextBlock Text="▼   More tools below" Foreground="#FFC04D" FontSize="14" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,8"/></Border>
-                <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="RunStrip" Visibility="Collapsed" Background="#12306B" BorderBrush="#2E6DEB" BorderThickness="1" CornerRadius="9" Padding="12,10" Margin="0,0,0,12" Cursor="Hand" ToolTip="Click to go to the progress page"><StackPanel><TextBlock x:Name="RunStripTitle" Text="Working..." Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock x:Name="RunStripDetail" Text="" Foreground="#B9C9DD" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,2,0,6"/><ProgressBar x:Name="RunStripBar" Height="6" Minimum="0" Maximum="100" Value="0" Foreground="#2BE37A" Background="#2A3F66" BorderThickness="0"/></StackPanel></Border><Button x:Name="ResetReliabilityButton" Content="Reset Reliability Monitor" Style="{StaticResource SecondaryButton}" FontSize="12" Padding="10,6" Margin="0,0,0,12" HorizontalAlignment="Stretch" ToolTip="Owner only - clears the crash history. Needs a password."/><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
+                <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="RunStrip" Visibility="Collapsed" Background="#12306B" BorderBrush="#2E6DEB" BorderThickness="1" CornerRadius="9" Padding="12,10" Margin="0,0,0,12" Cursor="Hand" ToolTip="Click to go to the progress page"><StackPanel><TextBlock x:Name="RunStripTitle" Text="Working..." Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock x:Name="RunStripDetail" Text="" Foreground="#B9C9DD" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,2,0,6"/><ProgressBar x:Name="RunStripBar" Height="6" Minimum="0" Maximum="100" Value="0" Foreground="#2BE37A" Background="#2A3F66" BorderThickness="0"/></StackPanel></Border><Button x:Name="ResetReliabilityButton" Content="Reset Reliability Monitor" Style="{StaticResource SecondaryButton}" FontSize="12" Padding="10,6" Margin="0,0,0,12" HorizontalAlignment="Stretch" ToolTip="Owner only - clears the crash history. Needs a password."/> CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
             </Grid>
         </Border>
 
@@ -1320,6 +1320,25 @@ try {
     }
 } catch { }
 $window.Add_Closing({
+    param($closingSender, $closingArgs)
+    # Closing the Cleaner while the Uninstaller or the Duplicate Finder is open caused an error, so the X waits
+    # until they are closed. An update restart (DRForceClose) and the test mode are the only ways around it.
+    if (-not $script:DRForceClose -and -not $TestMode) {
+        try {
+            $openTools = New-Object System.Collections.ArrayList
+            $finderOpen = Get-Process -Name 'powershell', 'DRDirect*' -ErrorAction SilentlyContinue |
+                Where-Object { $_.Id -ne $PID -and $_.MainWindowTitle -eq 'DRDirect Duplicate Finder' } | Select-Object -First 1
+            if ($finderOpen) { [void]$openTools.Add('the Duplicate Finder') }
+            $uninstallerOpen = Get-Process -Name 'BCUninstaller' -ErrorAction SilentlyContinue |
+                Where-Object { $_.MainWindowHandle -ne [IntPtr]::Zero } | Select-Object -First 1
+            if ($uninstallerOpen) { [void]$openTools.Add('the Uninstaller') }
+            if ($openTools.Count) {
+                $closingArgs.Cancel = $true
+                [void][Windows.MessageBox]::Show(('Close {0} first, then you can close the Cleaner.' -f ($openTools -join ' and ')), 'DRDirect PC Cleaner', 'OK', 'Information')
+                return
+            }
+        } catch { }
+    }
     try {
         $b = if ($window.WindowState -eq [Windows.WindowState]::Normal) { New-Object Windows.Rect($window.Left, $window.Top, $window.Width, $window.Height) } else { $window.RestoreBounds }
         if ($b.Width -lt 300 -or $b.Height -lt 300) { return }
@@ -3426,6 +3445,15 @@ function Write-DRSafeRunReport {
 function Complete-RunPlan {
     # The run may have freed space, so the C: warning is checked again straight away.
     Update-DRDiskWarning
+    # After any run, Windows protection (firewall, Defender real-time, Windows Update) is checked and switched
+    # back on if something left it off. Another antivirus or firewall in charge, or a policy, is left alone.
+    if (-not $TestRoot -and (Test-DRAdministrator)) {
+        try {
+            foreach ($securityEvent in @(Repair-DRSecurityProtection -TaskId 'security.after-clean')) {
+                if ($securityEvent -and $securityEvent.State) { $runEvents.Add($securityEvent) }
+            }
+        } catch { }
+    }
     [string[]]$selectedIds = @(
         $catalog |
             Where-Object { $script:DRRunTaskIds -contains $_.Id } |
@@ -5443,7 +5471,7 @@ $ui.ResetReliabilityButton.Add_Click({
     } catch { $msg = "Stopped: $($_.Exception.Message)" }
     [void][Windows.MessageBox]::Show($msg, 'Reset Reliability Monitor', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information)
 })
-$ui.DashNoteButton.Add_Click({ Show-DRNote })
+
 $ui.NavNoteButton.Add_Click({ Show-DRNote })
 # The note is only there for the first week the Cleaner is used. After that people know about it, so both buttons go away.
 $script:DRNoteFirstSeen = $null
@@ -5852,6 +5880,15 @@ $ui.OpenDuplicatesButton.Add_Click({
         $ui.DuplicateStatus.Text = 'Opening the Duplicate Finder so you can enter its code.'
     }
 
+    # The Finder's Back to the Cleaner button starts the Cleaner again if it was closed, so it needs to know where it is.
+    try {
+        $cleanerExe = Get-DRCleanerLauncherPath
+        if ($cleanerExe) {
+            if (-not (Test-Path -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner')) { New-Item -Path 'HKCU:\Software\DRDirect\PC Cleaner' -Force | Out-Null }
+            Set-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name 'CleanerExe' -Value ([string]$cleanerExe)
+        }
+    } catch { }
+
     # Its own build first: it checks its own licence and needs no flags from here.
     $finderExe = Resolve-DRDuplicateFinderExe
     if ($finderExe) {
@@ -6131,6 +6168,7 @@ function Complete-DRUpdateInstall {
                 $encodedReopen = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($reopen))
                 Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden `
                     -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-EncodedCommand', $encodedReopen
+                $script:DRForceClose = $true
                 $window.Close()
                 return
             } catch { }   # could not restart it - fall through to the normal message
