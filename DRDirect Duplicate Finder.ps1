@@ -2858,19 +2858,40 @@ $ui.BtnBack.Add_Click({
             Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 public static class DRBackToCleaner {
+    private delegate bool EnumProc(IntPtr window, IntPtr lParam);
+    [DllImport("user32.dll")] private static extern bool EnumWindows(EnumProc callback, IntPtr lParam);
+    [DllImport("user32.dll")] private static extern bool IsWindowVisible(IntPtr window);
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetWindowText(IntPtr window, StringBuilder text, int max);
+    [DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
     [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr window, int command);
     [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr window);
     [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr window);
+
+    // The Cleaner's main window is found by its exact title, whatever its rights; a minimised one counts too.
+    public static IntPtr Find(string title, uint ownProcess) {
+        IntPtr found = IntPtr.Zero;
+        EnumWindows(delegate (IntPtr window, IntPtr lParam) {
+            if (!IsWindowVisible(window)) return true;
+            StringBuilder text = new StringBuilder(256);
+            GetWindowText(window, text, text.Capacity);
+            if (text.ToString() != title) return true;
+            uint processId;
+            GetWindowThreadProcessId(window, out processId);
+            if (processId == ownProcess) return true;
+            found = window;
+            return false;
+        }, IntPtr.Zero);
+        return found;
+    }
 }
 '@
         }
-        $cleaner = @(Get-Process -ErrorAction SilentlyContinue |
-            Where-Object { $_.Id -ne $PID -and $_.MainWindowTitle -eq 'DRDirect PC Cleaner' -and $_.MainWindowHandle -ne [IntPtr]::Zero }) |
-            Select-Object -First 1
-        if ($cleaner) {
-            if ([DRBackToCleaner]::IsIconic($cleaner.MainWindowHandle)) { [void][DRBackToCleaner]::ShowWindow($cleaner.MainWindowHandle, 9) }
-            [void][DRBackToCleaner]::SetForegroundWindow($cleaner.MainWindowHandle)
+        $cleaner = [DRBackToCleaner]::Find('DRDirect PC Cleaner', [uint32]$PID)
+        if ($cleaner -ne [IntPtr]::Zero) {
+            if ([DRBackToCleaner]::IsIconic($cleaner)) { [void][DRBackToCleaner]::ShowWindow($cleaner, 9) }
+            [void][DRBackToCleaner]::SetForegroundWindow($cleaner)
             $win.WindowState = [System.Windows.WindowState]::Minimized
             return
         }

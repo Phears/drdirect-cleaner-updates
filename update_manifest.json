@@ -1,12 +1,12 @@
 {
-  "version": "1.4.228",
-  "notes": "The Duplicate Finder now has a Back to the Cleaner button at the bottom, so you can return to the Cleaner with one click.",
-  "published": "2026-10-26T20:50:17.2069197-04:00",
+  "version": "1.4.229",
+  "notes": "The Back to the Cleaner button in the Duplicate Finder now finds the Cleaner's window more reliably, even when the Cleaner is running as administrator.",
+  "published": "2026-10-26T20:52:48.9520433-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "EA0D0D94D07442AA95C2502368C53EB6C06635950C46D053102FD2FE61035DFE",
-      "size": 165314
+      "sha256": "29477533D1599662BF753C5BF9FF7C005699E114B21EE59DCA10B7D6385ABAFC",
+      "size": 166426
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
