@@ -977,7 +977,7 @@ $ErrorActionPreference = 'Stop'
                 </StackPanel>
                 </ScrollViewer>
                 <Border x:Name="NavMoreHint" Grid.Row="1" Visibility="Collapsed" VerticalAlignment="Bottom" Height="64" Cursor="Hand" ToolTip="Scroll down for more tools"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#0015253D" Offset="0"/><GradientStop Color="#F015253D" Offset="0.62"/><GradientStop Color="#FF15253D" Offset="1"/></LinearGradientBrush></Border.Background><TextBlock Text="▼   More tools below" Foreground="#FFC04D" FontSize="14" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,8"/></Border>
-                <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="RunStrip" Visibility="Collapsed" Background="#12306B" BorderBrush="#2E6DEB" BorderThickness="1" CornerRadius="9" Padding="12,10" Margin="0,0,0,12" Cursor="Hand" ToolTip="Click to go to the progress page"><StackPanel><TextBlock x:Name="RunStripTitle" Text="Working..." Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock x:Name="RunStripDetail" Text="" Foreground="#B9C9DD" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,2,0,6"/><ProgressBar x:Name="RunStripBar" Height="6" Minimum="0" Maximum="100" Value="0" Foreground="#2BE37A" Background="#2A3F66" BorderThickness="0"/></StackPanel></Border><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
+                <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="RunStrip" Visibility="Collapsed" Background="#12306B" BorderBrush="#2E6DEB" BorderThickness="1" CornerRadius="9" Padding="12,10" Margin="0,0,0,12" Cursor="Hand" ToolTip="Click to go to the progress page"><StackPanel><TextBlock x:Name="RunStripTitle" Text="Working..." Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock x:Name="RunStripDetail" Text="" Foreground="#B9C9DD" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,2,0,6"/><ProgressBar x:Name="RunStripBar" Height="6" Minimum="0" Maximum="100" Value="0" Foreground="#2BE37A" Background="#2A3F66" BorderThickness="0"/></StackPanel></Border><Button x:Name="ResetReliabilityButton" Content="Reset Reliability Monitor" Style="{StaticResource SecondaryButton}" FontSize="12" Padding="10,6" Margin="0,0,0,12" HorizontalAlignment="Stretch" ToolTip="Owner only - clears the crash history. Needs a password."/><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
             </Grid>
         </Border>
 
@@ -1320,25 +1320,6 @@ try {
     }
 } catch { }
 $window.Add_Closing({
-    param($closingSender, $closingArgs)
-    # Closing the Cleaner while the Uninstaller or the Duplicate Finder is open caused an error, so the X waits
-    # until they are closed. An update restart (DRForceClose) and the test mode are the only ways around it.
-    if (-not $script:DRForceClose -and -not $TestMode) {
-        try {
-            $openTools = New-Object System.Collections.ArrayList
-            $finderOpen = Get-Process -Name 'powershell', 'DRDirect*' -ErrorAction SilentlyContinue |
-                Where-Object { $_.Id -ne $PID -and $_.MainWindowTitle -eq 'DRDirect Duplicate Finder' } | Select-Object -First 1
-            if ($finderOpen) { [void]$openTools.Add('the Duplicate Finder') }
-            $uninstallerOpen = Get-Process -Name 'BCUninstaller' -ErrorAction SilentlyContinue |
-                Where-Object { $_.MainWindowHandle -ne [IntPtr]::Zero } | Select-Object -First 1
-            if ($uninstallerOpen) { [void]$openTools.Add('the Uninstaller') }
-            if ($openTools.Count) {
-                $closingArgs.Cancel = $true
-                [void][Windows.MessageBox]::Show(('Close {0} first, then you can close the Cleaner.' -f ($openTools -join ' and ')), 'DRDirect PC Cleaner', 'OK', 'Information')
-                return
-            }
-        } catch { }
-    }
     try {
         $b = if ($window.WindowState -eq [Windows.WindowState]::Normal) { New-Object Windows.Rect($window.Left, $window.Top, $window.Width, $window.Height) } else { $window.RestoreBounds }
         if ($b.Width -lt 300 -or $b.Height -lt 300) { return }
@@ -1354,7 +1335,7 @@ $window.Add_Closing({
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('NavScroll','NavMoreHint','NavHeadClean','NavHeadFix','NavHeadCheck','DashMoreHint','DashShowAllButton','NavModeToggle','NavHeadUpdate','DashOtherTitle','DashOtherGrid','DashMsTools','SmartAppControlButton','NavSmartApp','NavFullScan','DashMoreOptions','SoundSwitch','Max3DSwitch','CrazyNuttySwitch','DashNoteButton','NavNoteButton','AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavPowerHeat','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','LastCleanCard','LastCleanLightBlue','LastCleanLightRed','LastCleanValue','LastCleanHint','LastCleanQuickScan','LastCleanFullScan','CleanCheckAllButton','CleanCheckOffButton','PresetSafeDate','PresetMediumDate','PresetAdvancedDate','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('NavScroll','NavMoreHint','NavHeadClean','NavHeadFix','NavHeadCheck','DashMoreHint','DashShowAllButton','NavModeToggle','NavHeadUpdate','DashOtherTitle','DashOtherGrid','DashMsTools','SmartAppControlButton','NavSmartApp','NavFullScan','DashMoreOptions','SoundSwitch','Max3DSwitch','CrazyNuttySwitch','DashNoteButton','NavNoteButton','ResetReliabilityButton','AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavPowerHeat','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','LastCleanCard','LastCleanLightBlue','LastCleanLightRed','LastCleanValue','LastCleanHint','LastCleanQuickScan','LastCleanFullScan','CleanCheckAllButton','CleanCheckOffButton','PresetSafeDate','PresetMediumDate','PresetAdvancedDate','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -3445,15 +3426,6 @@ function Write-DRSafeRunReport {
 function Complete-RunPlan {
     # The run may have freed space, so the C: warning is checked again straight away.
     Update-DRDiskWarning
-    # After any run, Windows protection (firewall, Defender real-time, Windows Update) is checked and switched
-    # back on if something left it off. Another antivirus or firewall in charge, or a policy, is left alone.
-    if (-not $TestRoot -and (Test-DRAdministrator)) {
-        try {
-            foreach ($securityEvent in @(Repair-DRSecurityProtection -TaskId 'security.after-clean')) {
-                if ($securityEvent -and $securityEvent.State) { $runEvents.Add($securityEvent) }
-            }
-        } catch { }
-    }
     [string[]]$selectedIds = @(
         $catalog |
             Where-Object { $script:DRRunTaskIds -contains $_.Id } |
@@ -5382,6 +5354,95 @@ function Show-DRNote {
     ) -join [Environment]::NewLine
     [void][Windows.MessageBox]::Show($text, 'Please read first', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information)
 }
+# Owner-only: clears the crash history Reliability Monitor draws. Only a salted hash of the password is kept here.
+$script:DRResetSalt = 'T27/WQb3JKL9k4RbnQWliQ=='
+$script:DRResetHash = '6uK9tVTjCVe8U9cqpGnK0BmHU3x4R5PlKxW/pA/Oc4k='
+function Test-DRResetPassword {
+    param([string]$Password)
+    if ([string]::IsNullOrEmpty($Password)) { return $false }
+    $derive = New-Object Security.Cryptography.Rfc2898DeriveBytes($Password, [Convert]::FromBase64String($script:DRResetSalt), 100000)
+    $given = $derive.GetBytes(32)
+    $expected = [Convert]::FromBase64String($script:DRResetHash)
+    $diff = 0
+    for ($i = 0; $i -lt 32; $i++) { $diff = $diff -bor ($given[$i] -bxor $expected[$i]) }
+    return ($diff -eq 0)
+}
+function Read-DRResetPassword {
+    $dialog = New-Object Windows.Window
+    $dialog.Title = 'Owner password'
+    $dialog.SizeToContent = 'WidthAndHeight'
+    $dialog.WindowStartupLocation = 'CenterOwner'
+    $dialog.ResizeMode = 'NoResize'
+    try { $dialog.Owner = $window } catch { }
+    $panel = New-Object Windows.Controls.StackPanel
+    $panel.Margin = '20'
+    $label = New-Object Windows.Controls.TextBlock
+    $label.Text = 'Enter the owner password to reset Reliability Monitor:'
+    $label.Margin = '0,0,0,10'
+    $box = New-Object Windows.Controls.PasswordBox
+    $box.MinWidth = 280
+    $box.Margin = '0,0,0,14'
+    $ok = New-Object Windows.Controls.Button
+    $ok.Content = 'OK'
+    $ok.IsDefault = $true
+    $ok.Padding = '18,5'
+    $ok.HorizontalAlignment = 'Right'
+    $ok.Add_Click({ $dialog.DialogResult = $true })
+    [void]$panel.Children.Add($label); [void]$panel.Children.Add($box); [void]$panel.Children.Add($ok)
+    $dialog.Content = $panel
+    $dialog.Add_ContentRendered({ $box.Focus() | Out-Null })
+    if ($dialog.ShowDialog()) { return $box.Password }
+    return $null
+}
+function Clear-DRReliabilityHistory {
+    # Every path hangs off these folders; stop if any is missing.
+    foreach ($name in 'ProgramData','SystemDrive','SystemRoot') {
+        if (-not [Environment]::GetEnvironmentVariable($name)) { throw "$name is not set - nothing was deleted." }
+    }
+    $werRoots = @(
+        (Join-Path $env:ProgramData 'Microsoft\Windows\WER'),
+        (Join-Path $env:SystemRoot 'System32\config\systemprofile\AppData\Local\Microsoft\Windows\WER')
+    )
+    foreach ($profile in (Get-ChildItem -LiteralPath (Join-Path $env:SystemDrive 'Users') -Directory -ErrorAction SilentlyContinue)) {
+        $werRoots += (Join-Path $profile.FullName 'AppData\Local\Microsoft\Windows\WER')
+    }
+    try { Stop-Service -Name WerSvc -Force -ErrorAction Stop } catch { }
+    foreach ($root in $werRoots) {
+        foreach ($sub in 'ReportArchive','ReportQueue') {
+            $folder = Join-Path $root $sub
+            if (-not (Test-Path -LiteralPath $folder -PathType Container)) { continue }
+            # Only the report folders inside a WER folder are emptied, never the folder itself.
+            if ((Split-Path -Leaf (Split-Path -Parent $folder)) -ne 'WER') { continue }
+            Get-ChildItem -LiteralPath $folder -Force -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+    $failed = @()
+    foreach ($log in 'Application','System','Setup') {
+        & wevtutil.exe cl $log 2>$null
+        if ($LASTEXITCODE -ne 0) { $failed += $log }
+    }
+    foreach ($log in @(& wevtutil.exe el | Where-Object { $_ -match 'Reliab' })) { & wevtutil.exe cl $log 2>$null }
+    return $failed
+}
+$ui.ResetReliabilityButton.Add_Click({
+    $typed = Read-DRResetPassword
+    if ($null -eq $typed) { return }
+    if (-not (Test-DRResetPassword $typed)) {
+        [void][Windows.MessageBox]::Show('That password is not right.', 'Reset Reliability Monitor', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Warning)
+        return
+    }
+    if (-not (Test-DRAdministrator)) {
+        [void][Windows.MessageBox]::Show('Open the Cleaner as administrator first - clearing the logs needs it.', 'Reset Reliability Monitor', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information)
+        return
+    }
+    $sure = [Windows.MessageBox]::Show("This wipes the crash reports and Windows event logs on THIS PC, so Reliability Monitor starts again with a clean chart.`n`nIt cannot be undone. Files, programs, passwords and logins are not touched.`n`nClear it now?", 'Reset Reliability Monitor', [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Warning)
+    if ($sure -ne [Windows.MessageBoxResult]::Yes) { return }
+    try {
+        $failed = Clear-DRReliabilityHistory
+        $msg = if ($failed.Count) { 'Could not clear: ' + ($failed -join ', ') + '.' } else { 'Done. Restart the PC, then open Reliability Monitor again. The chart can take up to 24 hours to redraw.' }
+    } catch { $msg = "Stopped: $($_.Exception.Message)" }
+    [void][Windows.MessageBox]::Show($msg, 'Reset Reliability Monitor', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information)
+})
 $ui.DashNoteButton.Add_Click({ Show-DRNote })
 $ui.NavNoteButton.Add_Click({ Show-DRNote })
 # The note is only there for the first week the Cleaner is used. After that people know about it, so both buttons go away.
@@ -5791,15 +5852,6 @@ $ui.OpenDuplicatesButton.Add_Click({
         $ui.DuplicateStatus.Text = 'Opening the Duplicate Finder so you can enter its code.'
     }
 
-    # The Finder's Back to the Cleaner button starts the Cleaner again if it was closed, so it needs to know where it is.
-    try {
-        $cleanerExe = Get-DRCleanerLauncherPath
-        if ($cleanerExe) {
-            if (-not (Test-Path -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner')) { New-Item -Path 'HKCU:\Software\DRDirect\PC Cleaner' -Force | Out-Null }
-            Set-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name 'CleanerExe' -Value ([string]$cleanerExe)
-        }
-    } catch { }
-
     # Its own build first: it checks its own licence and needs no flags from here.
     $finderExe = Resolve-DRDuplicateFinderExe
     if ($finderExe) {
@@ -6079,7 +6131,6 @@ function Complete-DRUpdateInstall {
                 $encodedReopen = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($reopen))
                 Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden `
                     -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-EncodedCommand', $encodedReopen
-                $script:DRForceClose = $true
                 $window.Close()
                 return
             } catch { }   # could not restart it - fall through to the normal message

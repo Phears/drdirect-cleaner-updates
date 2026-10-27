@@ -233,10 +233,6 @@ function Get-DRBlockManifest {
         An unsigned or unreadable list blocks nobody, so a dead network or a
         tampered file can never lock a customer out.
     #>
-    # Asked for several times while the Cleaner starts; one look is enough.
-    if ((Get-Variable -Name DRBlockManifestSeen -Scope Script -ErrorAction SilentlyContinue) -and $script:DRBlockManifestSeen) {
-        return $script:DRBlockManifestSeen
-    }
     $previous = $script:DRManifestTimeout
     $script:DRManifestTimeout = 5
     try { $manifest = Get-DRUpdateManifest } finally { $script:DRManifestTimeout = $previous }
@@ -255,7 +251,6 @@ function Get-DRBlockManifest {
             }
         } catch { }
     }
-    if ($manifest) { $script:DRBlockManifestSeen = $manifest }
     return $manifest
 }
 

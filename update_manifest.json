@@ -1,7 +1,7 @@
 {
-  "version": "1.4.234",
-  "notes": "The DRDirect logo now shows in the Uninstaller next to the version number.",
-  "published": "2026-10-26T21:26:32.1507882-04:00",
+  "version": "1.4.235",
+  "notes": "The owner can now clear a PC's crash history from a new Reset Reliability Monitor button. It asks for a password first, so it stays out of customers' hands.",
+  "published": "2026-10-27T13:45:11.4923252-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "C14BD534E79873E0094BB2E444B8396BDA24A969437C8EAAB2A1EAC342954F52",
-      "size": 1186555
+      "sha256": "BAC84079B2ADF244E8D55985FC28C68EE0CC19DB4A565E8E7311271D3A7830F0",
+      "size": 1189487
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -20,8 +20,8 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "BC078333D356107335A0289D594E228D0598CFD0C26404ED4BC839ACE0EB368E",
-      "size": 59049
+      "sha256": "C037E09A3723CF4E6CD6389A0A2218391C63194ECDCAC772CA1D2314BC6C1376",
+      "size": 58727
     },
     {
       "name": "DRDirect Activation.ps1",
@@ -45,6 +45,5 @@
     }
   ],
   "blocked": [],
-  "blockedHard": [],
-  "jokes": []
+  "blockedHard": []
 }
