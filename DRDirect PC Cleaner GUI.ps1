@@ -6695,6 +6695,143 @@ if ($NoShow) {
             }
         } catch { }
     })
+# The update icon by the clock. A closed program cannot mark its own taskbar icon, so a small helper
+# (offered once, switched off from its own right-click menu) sits in the tray and turns yellow when a
+# newer version is waiting. The helper's script is kept here so every update can refresh it.
+$script:DRTrayScriptText = @'
+# A small tray icon for DRDirect PC Cleaner. It sits by the clock, turns yellow when a newer
+# version is waiting, and opens the Cleaner when clicked. It only reads the version number;
+# nothing is downloaded or installed from here.
+param([string]$SimulateOffered)
+
+Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+$ErrorActionPreference = 'Stop'
+
+$mutex = New-Object Threading.Mutex($false, 'Local\DRDirectCleanerTray')
+if (-not $mutex.WaitOne(0)) { return }
+
+$root = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner'
+$exe = Join-Path $env:ProgramFiles 'DRDirect PC Cleaner\DRDirect PC Cleaner.exe'
+$installedFile = Join-Path $root 'Scripts\installed.json'
+$stateFile = Join-Path $root 'tray_last.txt'
+
+# The Cleaner's own icon, plus a copy with a yellow mark for "update ready".
+$baseIcon = if (Test-Path -LiteralPath $exe) { [Drawing.Icon]::ExtractAssociatedIcon($exe) } else { [Drawing.SystemIcons]::Application }
+$baseBitmap = New-Object Drawing.Bitmap 32, 32
+$graphics = [Drawing.Graphics]::FromImage($baseBitmap)
+$graphics.InterpolationMode = 'HighQualityBicubic'
+$graphics.DrawImage($baseIcon.ToBitmap(), 0, 0, 32, 32)
+$graphics.Dispose()
+$markBitmap = $baseBitmap.Clone()
+$graphics = [Drawing.Graphics]::FromImage($markBitmap)
+$graphics.SmoothingMode = 'AntiAlias'
+$graphics.FillEllipse([Drawing.Brushes]::Gold, 15, 15, 16, 16)
+$graphics.DrawEllipse((New-Object Drawing.Pen ([Drawing.Color]::FromArgb(60, 40, 0)), 2), 15, 15, 16, 16)
+$graphics.Dispose()
+$normalIcon = [Drawing.Icon]::FromHandle($baseBitmap.GetHicon())
+$markedIcon = [Drawing.Icon]::FromHandle($markBitmap.GetHicon())
+
+function Get-OfferedVersion {
+    if ($SimulateOffered) { return [version]$SimulateOffered }
+    try {
+        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+        $response = Invoke-WebRequest -UseBasicParsing -TimeoutSec 20 `
+            -Uri 'https://api.github.com/repos/Phears/drdirect-cleaner-updates/contents/update_manifest.json?ref=main' `
+            -Headers @{ Accept = 'application/vnd.github.raw'; 'User-Agent' = 'DRDirect-Tray' }
+        $text = if ($response.Content -is [byte[]]) { [Text.Encoding]::UTF8.GetString([byte[]]$response.Content) } else { [string]$response.Content }
+        return [version](([string]($text.TrimStart([char]0xFEFF) | ConvertFrom-Json).version).Trim())
+    } catch { return $null }
+}
+
+function Get-InstalledVersion {
+    try { return [version]([string](Get-Content -LiteralPath $installedFile -Raw | ConvertFrom-Json).version) } catch { return $null }
+}
+
+$notify = New-Object Windows.Forms.NotifyIcon
+$notify.Icon = $normalIcon
+$notify.Text = 'DRDirect PC Cleaner'
+$notify.Visible = $true
+
+function Open-Cleaner { try { Start-Process -FilePath $exe } catch { } }
+
+$menu = New-Object Windows.Forms.ContextMenuStrip
+[void]$menu.Items.Add('Open DRDirect PC Cleaner', $null, { Open-Cleaner })
+[void]$menu.Items.Add('Close this icon', $null, { $notify.Visible = $false; [Windows.Forms.Application]::Exit() })
+[void]$menu.Items.Add('Stop starting with Windows', $null, {
+    try { Remove-Item -LiteralPath (Join-Path ([Environment]::GetFolderPath('Startup')) 'DRDirect Tray.lnk') -Force -ErrorAction SilentlyContinue } catch { }
+    try { Set-Content -LiteralPath (Join-Path $root 'tray_choice.txt') -Value 'no' -Encoding ASCII } catch { }
+    $notify.Visible = $false
+    [Windows.Forms.Application]::Exit()
+})
+$notify.ContextMenuStrip = $menu
+$notify.Add_MouseClick({ param($s, $e) if ($e.Button -eq 'Left') { Open-Cleaner } })
+$notify.Add_BalloonTipClicked({ Open-Cleaner })
+
+function Update-Tray {
+    $installed = Get-InstalledVersion
+    $offered = Get-OfferedVersion
+    if ($installed -and $offered -and $offered -gt $installed) {
+        $notify.Icon = $markedIcon
+        $notify.Text = "DRDirect PC Cleaner: update ready ($offered)"
+        $last = if (Test-Path -LiteralPath $stateFile) { (Get-Content -LiteralPath $stateFile -Raw).Trim() } else { '' }
+        if ($last -ne $offered.ToString()) {
+            $notify.ShowBalloonTip(10000, 'DRDirect PC Cleaner', "Version $offered is ready. Click here, then press Check for updates.", [Windows.Forms.ToolTipIcon]::Info)
+            if (-not $SimulateOffered) { Set-Content -LiteralPath $stateFile -Value $offered.ToString() -Encoding ASCII }
+        }
+    } else {
+        $notify.Icon = $normalIcon
+        $notify.Text = 'DRDirect PC Cleaner'
+    }
+}
+
+$timer = New-Object Windows.Forms.Timer
+$timer.Interval = 5000
+$timer.Add_Tick({
+    $timer.Interval = 30 * 60 * 1000
+    try { Update-Tray } catch { }
+})
+$timer.Start()
+
+[Windows.Forms.Application]::Run()
+$notify.Dispose()
+'@
+function Install-DRTrayHelper {
+    $root = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner'
+    New-Item -ItemType Directory -Path $root -Force | Out-Null
+    $scriptPath = Join-Path $root 'DRDirect Tray.ps1'
+    $text = $script:DRTrayScriptText.Replace("`r`n", "`n").Replace("`n", "`r`n")
+    $current = if (Test-Path -LiteralPath $scriptPath -PathType Leaf) { [IO.File]::ReadAllText($scriptPath).TrimStart([char]0xFEFF) } else { $null }
+    if ($current -ne $text) { [IO.File]::WriteAllText($scriptPath, $text, [Text.UTF8Encoding]::new($true)) }
+    $shortcutPath = Join-Path ([Environment]::GetFolderPath('Startup')) 'DRDirect Tray.lnk'
+    $shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut($shortcutPath)
+    $shortcut.TargetPath = 'powershell.exe'
+    $shortcut.Arguments = '-NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File "' + $scriptPath + '"'
+    $shortcut.WindowStyle = 7
+    $shortcut.Description = 'DRDirect PC Cleaner update icon'
+    $shortcut.Save()
+    Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-WindowStyle', 'Hidden', '-File', ('"' + $scriptPath + '"'))
+}
+function Invoke-DRTrayOffer {
+    $root = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner'
+    $choiceFile = Join-Path $root 'tray_choice.txt'
+    $choice = if (Test-Path -LiteralPath $choiceFile -PathType Leaf) { (Get-Content -LiteralPath $choiceFile -Raw).Trim() } else { '' }
+    if ($choice -eq 'no') { return }
+    if ($choice -eq 'yes') { Install-DRTrayHelper; return }
+    $answer = [Windows.MessageBox]::Show("Show a small DRDirect icon by the clock that turns yellow when a new version of the Cleaner is ready?`n`nIt starts with Windows and only checks the version number. You can switch it off any time from its right-click menu.", 'DRDirect PC Cleaner', [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question, [Windows.MessageBoxResult]::No)
+    New-Item -ItemType Directory -Path $root -Force | Out-Null
+    if ($answer -eq [Windows.MessageBoxResult]::Yes) {
+        Set-Content -LiteralPath $choiceFile -Value 'yes' -Encoding ASCII
+        Install-DRTrayHelper
+    } else {
+        Set-Content -LiteralPath $choiceFile -Value 'no' -Encoding ASCII
+    }
+}
+$script:DRTrayOffered = $false
+$window.Add_ContentRendered({
+    if ($script:DRTrayOffered -or $TestMode) { return }
+    $script:DRTrayOffered = $true
+    try { Invoke-DRTrayOffer } catch { }
+})
     # A family joke on one PC only (see Show-DRBebeSurprise); every other PC skips straight past it.
     Show-DRBebeSurprise
     [void]$window.ShowDialog()
