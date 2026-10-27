@@ -1,7 +1,7 @@
 {
-  "version": "1.4.226",
-  "notes": "After every clean, the Cleaner now checks that your Windows firewall, Microsoft Defender protection and Windows Update are on, and switches back on any that were off. The Cleaner window also waits to close while the Uninstaller or Duplicate Finder is still open, so closing it early no longer causes an error.",
-  "published": "2026-10-26T13:35:51.6071030-04:00",
+  "version": "1.4.227",
+  "notes": "The Uninstaller's filter panel can now be dragged wider by hand. Going back to the Cleaner from the Uninstaller no longer ends in a 'Security validation failure' error.",
+  "published": "2026-10-26T20:44:38.8781875-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "BC5F92D96B7642BA7CB9C4C08F742B213C4C49B09B15E68E119E5E6219BDEE79",
-      "size": 10419581
+      "sha256": "2DE40507D8807495B7894D14AC6A14036A9E73224EDEDD641B2CD81AE1F53D9F",
+      "size": 10419945
     }
   ],
   "blocked": [],
