@@ -977,7 +977,7 @@ $ErrorActionPreference = 'Stop'
                 </StackPanel>
                 </ScrollViewer>
                 <Border x:Name="NavMoreHint" Grid.Row="1" Visibility="Collapsed" VerticalAlignment="Bottom" Height="64" Cursor="Hand" ToolTip="Scroll down for more tools"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#0015253D" Offset="0"/><GradientStop Color="#F015253D" Offset="0.62"/><GradientStop Color="#FF15253D" Offset="1"/></LinearGradientBrush></Border.Background><TextBlock Text="▼   More tools below" Foreground="#FFC04D" FontSize="14" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,0,8"/></Border>
-                <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="RunStrip" Visibility="Collapsed" Background="#12306B" BorderBrush="#2E6DEB" BorderThickness="1" CornerRadius="9" Padding="12,10" Margin="0,0,0,12" Cursor="Hand" ToolTip="Click to go to the progress page"><StackPanel><TextBlock x:Name="RunStripTitle" Text="Working..." Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock x:Name="RunStripDetail" Text="" Foreground="#B9C9DD" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,2,0,6"/><ProgressBar x:Name="RunStripBar" Height="6" Minimum="0" Maximum="100" Value="0" Foreground="#2BE37A" Background="#2A3F66" BorderThickness="0"/></StackPanel></Border><Button x:Name="ResetReliabilityButton" Content="Reset Reliability Monitor" Style="{StaticResource SecondaryButton}" FontSize="12" Padding="10,6" Margin="0,0,0,12" HorizontalAlignment="Stretch" ToolTip="Owner only - clears the crash history. Needs a password."/><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
+                <StackPanel Grid.Row="2" Margin="16,14,16,24"><Border x:Name="RunStrip" Visibility="Collapsed" Background="#12306B" BorderBrush="#2E6DEB" BorderThickness="1" CornerRadius="9" Padding="12,10" Margin="0,0,0,12" Cursor="Hand" ToolTip="Click to go to the progress page"><StackPanel><TextBlock x:Name="RunStripTitle" Text="Working..." Foreground="White" FontWeight="SemiBold" FontSize="13"/><TextBlock x:Name="RunStripDetail" Text="" Foreground="#B9C9DD" FontSize="11" TextTrimming="CharacterEllipsis" Margin="0,2,0,6"/><ProgressBar x:Name="RunStripBar" Height="6" Minimum="0" Maximum="100" Value="0" Foreground="#2BE37A" Background="#2A3F66" BorderThickness="0"/></StackPanel></Border><Border x:Name="ResetReliabilityButton" Height="12" CornerRadius="6" Margin="0,0,0,12" HorizontalAlignment="Stretch" BorderBrush="#7FD4FF" BorderThickness="1"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#3DB8FF" Offset="0"/><GradientStop Color="#0A8CFF" Offset="1"/></LinearGradientBrush></Border.Background></Border><Border x:Name="ActivateWrap" Margin="0,0,0,14" CornerRadius="8" Background="#1E4FA8" BorderBrush="#7FB0FF" BorderThickness="1" Padding="8,10" HorizontalAlignment="Stretch" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><ScaleTransform x:Name="ActivateScale" ScaleX="1" ScaleY="1"/></Border.RenderTransform><StackPanel><TextBlock x:Name="TrialCountdown" Text="" HorizontalAlignment="Center" Foreground="#D7E6FF" FontSize="12" FontWeight="SemiBold" Margin="0,0,0,6" Visibility="Collapsed"/><Button x:Name="ActivateButton" Content="&#128273;  Activate this product" HorizontalAlignment="Center" Background="Transparent" BorderThickness="0" Cursor="Hand" Foreground="White" FontSize="14" FontWeight="Bold" Padding="0"/></StackPanel></Border><TextBlock x:Name="AdminStatus" Foreground="#9FB0C9" FontSize="12"/></StackPanel>
             </Grid>
         </Border>
 
@@ -5405,7 +5405,7 @@ function Read-DRResetPassword {
     $panel = New-Object Windows.Controls.StackPanel
     $panel.Margin = '20'
     $label = New-Object Windows.Controls.TextBlock
-    $label.Text = 'Enter the owner password to reset Reliability Monitor:'
+    $label.Text = 'Enter the owner password:'
     $label.Margin = '0,0,0,10'
     $box = New-Object Windows.Controls.PasswordBox
     $box.MinWidth = 280
@@ -5452,13 +5452,7 @@ function Clear-DRReliabilityHistory {
     foreach ($log in @(& wevtutil.exe el | Where-Object { $_ -match 'Reliab' })) { & wevtutil.exe cl $log 2>$null }
     return $failed
 }
-$ui.ResetReliabilityButton.Add_Click({
-    $typed = Read-DRResetPassword
-    if ($null -eq $typed) { return }
-    if (-not (Test-DRResetPassword $typed)) {
-        [void][Windows.MessageBox]::Show('That password is not right.', 'Reset Reliability Monitor', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Warning)
-        return
-    }
+function Invoke-DRReliabilityReset {
     if (-not (Test-DRAdministrator)) {
         [void][Windows.MessageBox]::Show('Open the Cleaner as administrator first - clearing the logs needs it.', 'Reset Reliability Monitor', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information)
         return
@@ -5470,6 +5464,57 @@ $ui.ResetReliabilityButton.Add_Click({
         $msg = if ($failed.Count) { 'Could not clear: ' + ($failed -join ', ') + '.' } else { 'Done. Restart the PC, then open Reliability Monitor again. The chart can take up to 24 hours to redraw.' }
     } catch { $msg = "Stopped: $($_.Exception.Message)" }
     [void][Windows.MessageBox]::Show($msg, 'Reset Reliability Monitor', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information)
+}
+# The owner's menu, shown only after the password: the Windows monitors used when helping a customer, and the reset.
+function Show-DROwnerMenu {
+    $menu = New-Object Windows.Window
+    $menu.Title = 'Owner tools'
+    $menu.SizeToContent = 'WidthAndHeight'
+    $menu.WindowStartupLocation = 'CenterOwner'
+    $menu.ResizeMode = 'NoResize'
+    try { $menu.Owner = $window } catch { }
+    $panel = New-Object Windows.Controls.StackPanel
+    $panel.Margin = '20'
+    $items = @(
+        @{ Text = 'Performance Monitor  -  live line graphs';                 Args = '' },
+        @{ Text = 'Resource Monitor  -  what is slowing the PC down';         Args = '/res' },
+        @{ Text = 'Reliability Monitor  -  day-by-day crash chart';           Args = '/rel' },
+        @{ Text = 'Health report  -  60-second check, warnings at the top';   Args = '/report' }
+    )
+    foreach ($item in $items) {
+        $button = New-Object Windows.Controls.Button
+        $button.Content = $item.Text
+        $button.Tag = $item.Args
+        $button.Padding = '14,8'
+        $button.Margin = '0,0,0,8'
+        $button.HorizontalContentAlignment = 'Left'
+        $button.MinWidth = 380
+        $button.Add_Click({
+            param($sender, $e)
+            try {
+                if ([string]::IsNullOrEmpty([string]$sender.Tag)) { Start-Process -FilePath 'perfmon.exe' } else { Start-Process -FilePath 'perfmon.exe' -ArgumentList ([string]$sender.Tag) }
+            } catch { }
+        })
+        [void]$panel.Children.Add($button)
+    }
+    $reset = New-Object Windows.Controls.Button
+    $reset.Content = 'Reset Reliability Monitor...'
+    $reset.Padding = '14,8'
+    $reset.Margin = '0,10,0,0'
+    $reset.HorizontalContentAlignment = 'Left'
+    $reset.Add_Click({ Invoke-DRReliabilityReset })
+    [void]$panel.Children.Add($reset)
+    $menu.Content = $panel
+    [void]$menu.ShowDialog()
+}
+$ui.ResetReliabilityButton.Add_MouseLeftButtonUp({
+    $typed = Read-DRResetPassword
+    if ($null -eq $typed) { return }
+    if (-not (Test-DRResetPassword $typed)) {
+        [void][Windows.MessageBox]::Show('That password is not right.', 'Owner tools', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Warning)
+        return
+    }
+    Show-DROwnerMenu
 })
 $ui.DashNoteButton.Add_Click({ Show-DRNote })
 $ui.NavNoteButton.Add_Click({ Show-DRNote })
