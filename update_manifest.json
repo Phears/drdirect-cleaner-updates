@@ -1,7 +1,7 @@
 {
-  "version": "1.4.251",
-  "notes": "Fixes the update icon by the clock: clicking it now opens the Cleaner instead of showing an error, and it no longer misses a waiting update after a failed check.",
-  "published": "2026-10-27T21:45:31.0424372-04:00",
+  "version": "1.4.252",
+  "notes": "A small tidy-up to the side panel.",
+  "published": "2026-10-27T22:16:00.5225014-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "E02E6D58916B6C91E42CF4DA3E28A2E68AC53EB525446BAF5BF090051588B604",
-      "size": 1208510
+      "sha256": "E3D4876FAC9AFF67F0901E8715F3BC102F54E574A29BE3DEE13D9B6A8F29AF8B",
+      "size": 1208463
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
