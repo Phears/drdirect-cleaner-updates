@@ -1,7 +1,7 @@
 {
-  "version": "1.4.255",
-  "notes": "The Smart App Control and Microsoft PC Manager buttons now sit side by side.",
-  "published": "2026-10-27T23:40:26.5100478-04:00",
+  "version": "1.4.256",
+  "notes": "The Uninstaller now plays a chime when it finishes, including after the leftovers are removed, while the Sound switch in the Cleaner is on.",
+  "published": "2026-10-28T01:03:18.1826762-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "5CCCEAF7602452940D57754659D3433CA5120532B510B81E4946C4E036A7F40A",
-      "size": 10458638
+      "sha256": "05762BD3D862EE0B9B43CB5D1AEDB2EFC55CEEC684D5A1581AC5F0A8C1725145",
+      "size": 10459051
     }
   ],
   "blocked": [],
