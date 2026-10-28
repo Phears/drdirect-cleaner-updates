@@ -5436,7 +5436,7 @@ function Test-DRResetPassword {
     for ($i = 0; $i -lt 32; $i++) { $diff = $diff -bor ($given[$i] -bxor $expected[$i]) }
     return ($diff -eq 0)
 }
-# The owner's windows are left out of screen sharing, screenshots and recordings, so a customer watching a remote session does not see them.
+# The owner's windows show normally in remote sessions, so the person working remotely can see and use them.
 if (-not ('DRCapture' -as [type])) {
     Add-Type -TypeDefinition 'using System; using System.Runtime.InteropServices; public static class DRCapture { [DllImport("user32.dll")] public static extern bool SetWindowDisplayAffinity(IntPtr hwnd, uint affinity); }'
 }
@@ -5444,7 +5444,7 @@ function Set-DRNoCapture {
     param($TargetWindow)
     try {
         $handle = (New-Object Windows.Interop.WindowInteropHelper($TargetWindow)).EnsureHandle()
-        [void][DRCapture]::SetWindowDisplayAffinity($handle, 0x11)
+        [void][DRCapture]::SetWindowDisplayAffinity($handle, 0)
     } catch { }
 }
 function Read-DRResetPassword {
