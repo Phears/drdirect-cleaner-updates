@@ -1,7 +1,7 @@
 {
-  "version": "1.4.250",
-  "notes": "The Cookies row in Clean my PC now also erases your browsing history, saved searches and open-tab records, in every browser. It signs you out of websites, keeps saved passwords and bookmarks, and asks you to close your browsers first.",
-  "published": "2026-10-27T21:32:23.1122195-04:00",
+  "version": "1.4.251",
+  "notes": "Fixes the update icon by the clock: clicking it now opens the Cleaner instead of showing an error, and it no longer misses a waiting update after a failed check.",
+  "published": "2026-10-27T21:45:31.0424372-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "574614808C20F6D1C016D4153FC7E7164A31A536205185A3A5BEACAEF430F6E4",
-      "size": 1206676
+      "sha256": "E02E6D58916B6C91E42CF4DA3E28A2E68AC53EB525446BAF5BF090051588B604",
+      "size": 1208510
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

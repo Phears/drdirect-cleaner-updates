@@ -6714,6 +6714,18 @@ $root = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner'
 $exe = Join-Path $env:ProgramFiles 'DRDirect PC Cleaner\DRDirect PC Cleaner.exe'
 $installedFile = Join-Path $root 'Scripts\installed.json'
 $stateFile = Join-Path $root 'tray_last.txt'
+$logFile = Join-Path $root 'tray_log.txt'
+$script:LastLogged = ''
+function Write-TrayLog {
+    param([string]$Text)
+    # Only changes are written, and the file is kept short.
+    if ($Text -eq $script:LastLogged) { return }
+    $script:LastLogged = $Text
+    try {
+        if ((Test-Path -LiteralPath $logFile) -and (Get-Item -LiteralPath $logFile).Length -gt 50KB) { Remove-Item -LiteralPath $logFile -Force }
+        Add-Content -LiteralPath $logFile -Value ("{0}  {1}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Text)
+    } catch { }
+}
 
 # The Cleaner's own icon, plus a copy with a yellow mark for "update ready".
 $baseIcon = if (Test-Path -LiteralPath $exe) { [Drawing.Icon]::ExtractAssociatedIcon($exe) } else { [Drawing.SystemIcons]::Application }
@@ -6752,7 +6764,20 @@ $notify.Icon = $normalIcon
 $notify.Text = 'DRDirect PC Cleaner'
 $notify.Visible = $true
 
-function Open-Cleaner { try { Start-Process -FilePath $exe } catch { } }
+# The Cleaner's launcher refuses to start when it inherits another PyInstaller program's markers
+# (this helper may have been started by the Cleaner), so it is asked to treat this as a fresh start.
+# The Cleaner needs administrator rights, so it is started the normal way and Windows shows its usual box.
+$script:LastOpened = [datetime]::MinValue
+function Open-Cleaner {
+    # A double-click sends two clicks; open it once.
+    if (((Get-Date) - $script:LastOpened).TotalSeconds -lt 4) { return }
+    $script:LastOpened = Get-Date
+    try {
+        [Environment]::SetEnvironmentVariable('PYINSTALLER_RESET_ENVIRONMENT', '1', 'Process')
+        Start-Process -FilePath $exe -WorkingDirectory (Split-Path -Parent $exe)
+    } catch { }
+    finally { [Environment]::SetEnvironmentVariable('PYINSTALLER_RESET_ENVIRONMENT', $null, 'Process') }
+}
 
 $menu = New-Object Windows.Forms.ContextMenuStrip
 [void]$menu.Items.Add('Open DRDirect PC Cleaner', $null, { Open-Cleaner })
@@ -6774,6 +6799,7 @@ $script:Ticks = 0
 function Update-Tray {
     $installed = Get-InstalledVersion
     $offered = $script:OfferedVersion
+    Write-TrayLog ("installed=$installed offered=$offered")
     if ($installed -and $offered -and $offered -gt $installed) {
         $notify.Icon = $markedIcon
         $notify.Text = "DRDirect PC Cleaner: update ready ($offered)"
@@ -6793,7 +6819,13 @@ $timer.Interval = 5000
 $timer.Add_Tick({
     $timer.Interval = 60 * 1000
     try {
-        if ($script:Ticks % 30 -eq 0) { $script:OfferedVersion = Get-OfferedVersion }
+        # Ask every 30 minutes, or every 5 minutes until a first answer arrives. A failed check (no network,
+        # or GitHub's hourly limit) never throws away the last good answer.
+        if ($script:Ticks % 30 -eq 0 -or ($null -eq $script:OfferedVersion -and $script:Ticks % 5 -eq 0)) {
+            $answer = Get-OfferedVersion
+            if ($answer) { $script:OfferedVersion = $answer }
+            else { Write-TrayLog 'version check failed (no network or GitHub limit); keeping the last answer' }
+        }
         $script:Ticks++
         Update-Tray
     } catch { }
