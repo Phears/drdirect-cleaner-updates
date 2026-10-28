@@ -1,7 +1,7 @@
 {
-  "version": "1.4.253",
-  "notes": "A small tidy-up to the side panel.",
-  "published": "2026-10-27T22:23:49.0552225-04:00",
+  "version": "1.4.254",
+  "notes": "The word security in the Check my security button is now bright green.",
+  "published": "2026-10-27T23:17:13.5361472-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "5453EE90460A70DF9E0E26C23241DCDAF5CF7CA6D92020C0F6D4A2FDF961203C",
-      "size": 1208428
+      "sha256": "0D6CC2F4A76500EB568F3F9971FD4B3FBF48BD4FD24D9C271065586DA77C1A7D",
+      "size": 1208607
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
