@@ -144,7 +144,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='cleanup.recycle-bin'; Category='Cleanup'; Name='Recycle Bin'; Description='Permanently removes Recycle Bin contents from available fixed drives.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.hidden-recycle-folders'; Category='Cleanup'; Name='Hidden Recycle Bin folders'; Description='Removes hidden $Recycle.Bin folders from fixed drives so Windows can rebuild them.'; Risk='Advanced'; Duration='< 5 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.ssd-shred'; Category='Cleanup'; Name='Shred deleted files (SSD and NVMe)'; Description='After the Recycle Bin is emptied, wipes the free space on SSD and NVMe drives so deleted files cannot be brought back, even with recovery programs. Files you still have are not touched. Hard drives are skipped.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='cleanup.cookies'; Category='Cleanup'; Name='Cookies and website storage'; Description='Clears cookies and site storage. This can sign you out of websites and webmail.'; Risk='SignOut'; Duration='1-5 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='cleanup.cookies'; Category='Cleanup'; Name='Cookies and website traces'; Description='Erases every trace of the websites you have visited, in every browser: history, cookies, site data, saved searches, open-tab records and caches. Then it wipes the free space so nothing can be brought back. Saved passwords and bookmarks stay. You will be signed out of every website.'; Risk='SignOut'; Duration='1-10 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.prefetch'; Category='Cleanup'; Name='Windows Prefetch'; Description='Clears the Prefetch cache. Windows rebuilds it and app launches may initially be slower.'; Risk='Advanced'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.wu-download-cache'; Category='Cleanup'; Name='Windows Update download cache'; Description='Clears already-installed update installers cached under SoftwareDistribution\Download. Windows re-downloads only what it needs next time.'; Risk='Safe'; Duration='1-5 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='cleanup.old-update-backups'; Category='Cleanup'; Name='Old Windows Update backup folders'; Description='Removes SoftwareDistribution.old and catroot2.old, copies left behind by an earlier Windows Update fix. Windows no longer uses them. The Windows Update folders in use are never touched.'; Risk='Safe'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$true; Destructive=$true ; Interruptible=$false ; CloudService=$null }
@@ -759,9 +759,9 @@ function Get-DRAnalysis {
                     $detail = 'Cache and logs only; synced files are not touched'
                 }
                 'cleanup.cookies' {
-                    $matches = @(if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRCookiePatterns)) })
+                    $matches = @(if ($TestRoot) { @(Get-Item -LiteralPath $TestRoot) } else { @(Get-DRPatternMatches (Get-DRWebTracePatterns)) })
                     foreach ($match in $matches) { $bytes += Get-DRPathSize $match.FullName; $items++ }
-                    $detail = 'May sign you out of websites and webmail'
+                    $detail = 'Erases history, cookies and site data in every browser; passwords and bookmarks stay; signs you out'
                 }
                 'cleanup.prefetch' {
                     $path = if ($TestRoot) { $TestRoot } else { Join-Path $env:WINDIR 'Prefetch' }
@@ -4155,6 +4155,114 @@ public static extern int sqlite3_close(IntPtr db);
     }
 }
 
+function Get-DRWebTracePatterns {
+    <#
+        .SYNOPSIS
+            Every trace of the websites visited, in every browser.
+        .DESCRIPTION
+            History, cookies and site data, caches, saved searches and the record of
+            open tabs. Saved passwords (Login Data), bookmarks and extensions are never
+            listed here, so they are never touched.
+    #>
+    $files = @('History', 'History-journal', 'Visited Links', 'Favicons', 'Favicons-journal', 'Top Sites', 'Top Sites-journal',
+               'Shortcuts', 'Shortcuts-journal', 'Network Action Predictor', 'Network Action Predictor-journal', 'Media History',
+               'Reporting and NEL', 'Current Session', 'Current Tabs', 'Last Session', 'Last Tabs')
+    $roots = @(
+        "$env:LOCALAPPDATA\Google\Chrome\User Data\*",
+        "$env:LOCALAPPDATA\Microsoft\Edge\User Data\*",
+        "$env:LOCALAPPDATA\BraveSoftware\Brave-Browser\User Data\*",
+        "$env:LOCALAPPDATA\Vivaldi\User Data\*",
+        "$env:LOCALAPPDATA\Chromium\User Data\*",
+        "$env:APPDATA\Opera Software\Opera Stable"
+    )
+    $patterns = New-Object System.Collections.Generic.List[string]
+    foreach ($root in $roots) {
+        foreach ($name in $files) { $patterns.Add("$root\$name") }
+        $patterns.Add("$root\Sessions")
+    }
+    foreach ($pattern in (@(Get-DRCookiePatterns) + @(Get-DRBrowserCachePatterns))) { $patterns.Add($pattern) }
+    foreach ($name in 'cookies.sqlite', 'cookies.sqlite-wal', 'formhistory.sqlite', 'formhistory.sqlite-wal', 'sessionstore.jsonlz4', 'sessionstore-backups') {
+        $patterns.Add("$env:APPDATA\Mozilla\Firefox\Profiles\*\$name")
+    }
+    return @($patterns | Select-Object -Unique)
+}
+
+function Invoke-DRSqliteSql {
+    <# Runs one or more SQL statements on a SQLite file with the SQLite built into Windows. True when it ran without error. #>
+    param([string]$Path, [string]$Sql)
+    if (-not ('DRDirect.WinSqlite' -as [type])) {
+        $definition = @(
+            '[DllImport("winsqlite3.dll", CharSet = CharSet.Unicode)]',
+            'public static extern int sqlite3_open16(string filename, out IntPtr db);',
+            '[DllImport("winsqlite3.dll")]',
+            'public static extern int sqlite3_busy_timeout(IntPtr db, int ms);',
+            '[DllImport("winsqlite3.dll")]',
+            'public static extern int sqlite3_exec(IntPtr db, byte[] sql, IntPtr callback, IntPtr arg, out IntPtr errmsg);',
+            '[DllImport("winsqlite3.dll")]',
+            'public static extern int sqlite3_close(IntPtr db);'
+        ) -join [Environment]::NewLine
+        Add-Type -Namespace DRDirect -Name WinSqlite -MemberDefinition $definition
+    }
+    $db = [IntPtr]::Zero
+    if ([DRDirect.WinSqlite]::sqlite3_open16($Path, [ref]$db) -ne 0) {
+        if ($db -ne [IntPtr]::Zero) { [void][DRDirect.WinSqlite]::sqlite3_close($db) }
+        return $false
+    }
+    try {
+        [void][DRDirect.WinSqlite]::sqlite3_busy_timeout($db, 2000)
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes($Sql + "`0")
+        $err = [IntPtr]::Zero
+        return ([DRDirect.WinSqlite]::sqlite3_exec($db, $bytes, [IntPtr]::Zero, [IntPtr]::Zero, [ref]$err) -eq 0)
+    } finally {
+        [void][DRDirect.WinSqlite]::sqlite3_close($db)
+    }
+}
+
+function Clear-DRWebTraces {
+    <#
+        .SYNOPSIS
+            Erases every trace of the websites visited, then shreds the free space.
+        .DESCRIPTION
+            Does nothing while a browser is open (its files are in use), and says which
+            to close. Saved passwords and bookmarks are kept. Firefox keeps its
+            bookmarks in the same file as its history, so there the history rows are
+            deleted and the bookmarks stay.
+    #>
+    param([string]$TaskId)
+    $browsers = [ordered]@{ chrome = 'Google Chrome'; msedge = 'Microsoft Edge'; brave = 'Brave'; vivaldi = 'Vivaldi'; opera = 'Opera'; firefox = 'Firefox'; chromium = 'Chromium' }
+    $open = @($browsers.Keys | Where-Object { Get-Process -Name $_ -ErrorAction SilentlyContinue } | ForEach-Object { $browsers[$_] })
+    if ($open.Count) {
+        New-DREvent -TaskId $TaskId -State Warning -Message ('Close ' + ($open -join ', ') + ' first, then run this again. Nothing was erased.')
+        return
+    }
+    $found = @(Get-DRPatternMatches (Get-DRWebTracePatterns))
+    $removed = 0; $skipped = 0; $index = 0
+    foreach ($item in $found) {
+        $index++
+        $allowed = Get-DRAllowedRootForPath $item.FullName
+        if (-not $allowed) { $skipped++; continue }
+        try { Remove-DRSafeItem -LiteralPath $item.FullName -AllowedRoot $allowed | Out-Null; $removed++ }
+        catch { $skipped++ }
+        New-DREvent -TaskId $TaskId -State Progress -Message ('Erased website trace {0} of {1}.' -f $index, $found.Count) -Percent ([int](80 * $index / [Math]::Max(1, $found.Count)))
+    }
+    # Firefox: history and bookmarks share places.sqlite, so only the history rows go.
+    $firefoxRoot = Join-Path $env:APPDATA 'Mozilla\Firefox\Profiles'
+    if (Test-Path -LiteralPath $firefoxRoot -PathType Container) {
+        foreach ($profile in @(Get-ChildItem -LiteralPath $firefoxRoot -Directory -Force -ErrorAction SilentlyContinue)) {
+            $places = Join-Path $profile.FullName 'places.sqlite'
+            if (-not (Test-Path -LiteralPath $places -PathType Leaf) -or -not (Test-DRSqliteFile $places)) { continue }
+            $sql = 'DELETE FROM moz_historyvisits; DELETE FROM moz_inputhistory; DELETE FROM moz_places WHERE foreign_count = 0;'
+            if (Invoke-DRSqliteSql $places $sql) { [void](Invoke-DRSqliteVacuum $places); $removed++ } else { $skipped++ }
+        }
+    }
+    try { Clear-DnsClientCache -ErrorAction Stop } catch { }
+    New-DREvent -TaskId $TaskId -State Information -Message ('Erased {0} website trace item(s){1}. Saved passwords and bookmarks were kept.' -f $removed, $(if ($skipped) { ", $skipped could not be erased" } else { '' }))
+    # Shred the free space so what was erased cannot be brought back.
+    $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+    if ($isAdmin) { Invoke-DRSsdShred -TaskId $TaskId }
+    else { New-DREvent -TaskId $TaskId -State Warning -Message 'Open the Cleaner as administrator and tick "Shred deleted files" to wipe the free space too.' }
+}
+
 function Invoke-DRTask {
     [CmdletBinding()]
     param(
@@ -4197,7 +4305,8 @@ function Invoke-DRTask {
                 }
             }
             'cleanup.cookies' {
-                $matches = @(if ($TestRoot) { @(Get-ChildItem -LiteralPath $TestRoot -Force -ErrorAction SilentlyContinue) } else { @(Get-DRPatternMatches (Get-DRCookiePatterns)) })
+                if (-not $TestRoot) { Clear-DRWebTraces -TaskId $TaskId; break }
+                $matches = @(Get-ChildItem -LiteralPath $TestRoot -Force -ErrorAction SilentlyContinue)
                 $index = 0
                 foreach ($match in $matches) {
                     $index++

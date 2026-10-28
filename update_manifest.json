@@ -1,7 +1,7 @@
 {
-  "version": "1.4.249",
-  "notes": "The update icon by the clock now clears itself shortly after you install an update.",
-  "published": "2026-10-27T19:15:59.0880785-04:00",
+  "version": "1.4.250",
+  "notes": "The Cookies row in Clean my PC now also erases your browsing history, saved searches and open-tab records, in every browser. It signs you out of websites, keeps saved passwords and bookmarks, and asks you to close your browsers first.",
+  "published": "2026-10-27T21:32:23.1122195-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "1008572ECABF74F9D7FB3C61B8237C833603D7E4A89AEE03599B96A71CBEDD44",
-      "size": 1206470
+      "sha256": "574614808C20F6D1C016D4153FC7E7164A31A536205185A3A5BEACAEF430F6E4",
+      "size": 1206676
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "C534B73A6B5F886E8A14AB1D8460B582C878B552AEC8C4F87183CEE468F8361A",
-      "size": 328383
+      "sha256": "98BA14A56476EF3686A35D770B59AE58C5D0EDB59D0971CDD7362725582A818B",
+      "size": 335133
     },
     {
       "name": "DRDirect Updater.ps1",

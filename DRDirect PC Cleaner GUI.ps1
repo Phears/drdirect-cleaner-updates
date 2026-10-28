@@ -2425,7 +2425,7 @@ function New-TaskRow {
     }
 
     if ($isLoud) {
-        $caution = 'Clearing cookies helps protect your privacy by removing trackers and saved sign-ins. Before you tick it, make sure you know all your email addresses and passwords, and keep them in a safe place. You may have to sign in again. Only tick it if you are sure and ready to do so. DRDirect is not responsible for any sign-in or password you cannot get back.'
+        $caution = 'This erases every trace of the websites you have visited, in every browser, and then wipes the free space so it cannot be recovered. It removes your history, cookies, site data, saved searches and the record of open tabs. You will be signed out of every website, so make sure you know all your email addresses and passwords first. Close your browsers before you run it. Saved passwords and bookmarks are kept. This cannot be undone. Only tick it if you are sure and ready to do so. DRDirect is not responsible for any sign-in or password you cannot get back.'
         $cautionText = New-Object Windows.Controls.TextBlock -Property @{
             Text = $caution
             Foreground = '#96500A'
