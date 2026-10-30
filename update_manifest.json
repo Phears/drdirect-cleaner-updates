@@ -1,7 +1,7 @@
 {
-  "version": "1.4.278",
-  "notes": "The thin blue line in the left menu now sits in the middle of the empty space, below the Please read first button.",
-  "published": "2026-10-30T01:46:15.1065915-04:00",
+  "version": "1.4.279",
+  "notes": "The thin blue line in the left menu now stays a little above the bottom, so it never touches the Activate button.",
+  "published": "2026-10-30T01:50:26.4259324-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "BFA9E521A95B605A77E1A6D4DC5F877486BB98087CA5B7B01C92C4D7372967DA",
-      "size": 1331035
+      "sha256": "B6A77AF50A131E9D22A616AAA9B5DBBB790E3E1624E6B45C978956ADA5F3A17F",
+      "size": 1331092
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
