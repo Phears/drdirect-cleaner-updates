@@ -1,7 +1,7 @@
 {
-  "version": "1.4.276",
-  "notes": "The thin blue line in the left menu now sits higher up, right under the Please read first button.",
-  "published": "2026-10-30T01:39:46.9545223-04:00",
+  "version": "1.4.277",
+  "notes": "Updates no longer fail with a 403 Forbidden message when you check for updates several times in an hour. The Cleaner now has a second way to get them.",
+  "published": "2026-10-30T01:42:40.8046505-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -20,8 +20,8 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "BC078333D356107335A0289D594E228D0598CFD0C26404ED4BC839ACE0EB368E",
-      "size": 59049
+      "sha256": "B12949BAA8A44F424C647E41CD708CCAE9978328B3C221497984A8994995F13D",
+      "size": 60280
     },
     {
       "name": "DRDirect Activation.ps1",

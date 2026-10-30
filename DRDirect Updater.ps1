@@ -26,6 +26,35 @@ $script:DRUpdateRef = '?ref=main'
 $script:DRManifestTimeout = 15
 $script:DRUpdateHeaders = @{ Accept = 'application/vnd.github.raw'; 'User-Agent' = 'DRDirect-Updater'; 'Cache-Control' = 'no-cache' }
 
+# GitHub's API lets an address make only 60 unsigned requests an hour. A PC that
+# checks and downloads a few times in a row gets "(403) Forbidden" until the
+# hour turns over. The raw mirror has no such limit, so it is the second try. It
+# can lag a few minutes behind a release, which is safe: the manifest is signed
+# and every file is checked against the manifest's SHA-256, so stale or mixed
+# copies are refused, never installed.
+$script:DRUpdateMirror = 'https://raw.githubusercontent.com/Phears/drdirect-cleaner-updates/main'
+
+function Invoke-DRFeedWeb {
+    param(
+        [Parameter(Mandatory)] [string]$Name,
+        [string]$OutFile,
+        [int]$TimeoutSec = 15
+    )
+    $escaped = [uri]::EscapeDataString($Name)
+    $args1 = @{ Uri = "$script:DRUpdateFeed/$escaped$script:DRUpdateRef"; Headers = $script:DRUpdateHeaders; UseBasicParsing = $true; TimeoutSec = $TimeoutSec }
+    if ($OutFile) { $args1.OutFile = $OutFile }
+    try { return (Invoke-WebRequest @args1) }
+    catch {
+        $status = 0
+        try { $status = [int]$_.Exception.Response.StatusCode } catch { }
+        if ($status -ne 403 -and $status -ne 429) { throw }
+        if ($OutFile -and (Test-Path -LiteralPath $OutFile)) { Remove-Item -LiteralPath $OutFile -Force -ErrorAction SilentlyContinue }
+        $args2 = @{ Uri = "$script:DRUpdateMirror/$escaped"; Headers = @{ 'User-Agent' = 'DRDirect-Updater'; 'Cache-Control' = 'no-cache' }; UseBasicParsing = $true; TimeoutSec = $TimeoutSec }
+        if ($OutFile) { $args2.OutFile = $OutFile }
+        return (Invoke-WebRequest @args2)
+    }
+}
+
 # Scripts the feed is allowed to replace. Anything else in a manifest is
 # ignored, so a bad or tampered manifest cannot drop new files onto the PC.
 $script:DRUpdatableFiles = @(
@@ -171,8 +200,7 @@ function Get-DRUpdateManifest {
 
         # No credentials: the feed is public precisely so nothing has to be
         # embedded in the exe, where any recipient could extract it.
-        $response = Invoke-WebRequest -Uri "$script:DRUpdateFeed/update_manifest.json$script:DRUpdateRef" -Headers $script:DRUpdateHeaders `
-            -UseBasicParsing -TimeoutSec $script:DRManifestTimeout
+        $response = Invoke-DRFeedWeb -Name 'update_manifest.json' -TimeoutSec $script:DRManifestTimeout
 
         # Verify before parsing. The signature covers the exact bytes the feed
         # served, so it has to be taken from those bytes and not from anything
@@ -180,8 +208,7 @@ function Get-DRUpdateManifest {
         $raw = if ($response.Content -is [byte[]]) { [byte[]]$response.Content }
                else { [System.Text.Encoding]::UTF8.GetBytes([string]$response.Content) }
 
-        $sigResponse = Invoke-WebRequest -Uri "$script:DRUpdateFeed/update_manifest.sig$script:DRUpdateRef" -Headers $script:DRUpdateHeaders `
-            -UseBasicParsing -TimeoutSec $script:DRManifestTimeout
+        $sigResponse = Invoke-DRFeedWeb -Name 'update_manifest.sig' -TimeoutSec $script:DRManifestTimeout
         $sigText = if ($sigResponse.Content -is [byte[]]) {
             [System.Text.Encoding]::UTF8.GetString([byte[]]$sigResponse.Content)
         } else { [string]$sigResponse.Content }
@@ -458,7 +485,7 @@ function Install-DRUpdate {
             while ($true) {
                 $attempt++
                 try {
-                    Invoke-WebRequest -Uri $url -Headers $script:DRUpdateHeaders -OutFile $temp -UseBasicParsing -TimeoutSec 120
+                    Invoke-DRFeedWeb -Name $file.name -OutFile $temp -TimeoutSec 120 | Out-Null
                     break
                 } catch {
                     if ($attempt -ge 3) { throw }
@@ -585,8 +612,7 @@ function Update-DRUninstallerFromFeed {
             while ($true) {
                 $attempt++
                 try {
-                    Invoke-WebRequest -Uri "$script:DRUpdateFeed/$([uri]::EscapeDataString($package))$script:DRUpdateRef" `
-                        -Headers $script:DRUpdateHeaders -OutFile $temp -UseBasicParsing -TimeoutSec 120
+                    Invoke-DRFeedWeb -Name $package -OutFile $temp -TimeoutSec 120 | Out-Null
                     break
                 } catch {
                     if ($attempt -ge 3) { throw }
