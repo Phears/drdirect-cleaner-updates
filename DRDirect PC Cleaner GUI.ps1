@@ -3093,7 +3093,9 @@ function Set-ProgressScanLevel {
 
     # The bar in the bottom-left box takes the colour of the scan: bright green, bright blue, bright red.
     try {
-        $barInk = switch ($Preset) { 'Safe' { '#00FF66' } 'Medium' { '#00B3FF' } 'Advanced' { '#FF1744' } default { '#2BE37A' } }
+        # Ticking one more task (Check my security, say) makes the plan "Custom"; the bar still follows the scan button that was pressed.
+        $barLevel = if ($Preset -in @('Safe','Medium','Advanced')) { $Preset } elseif ($script:cleanupLevel -in @('Safe','Medium','Advanced')) { $script:cleanupLevel } else { $Preset }
+        $barInk = switch ($barLevel) { 'Safe' { '#00FF66' } 'Medium' { '#00B3FF' } 'Advanced' { '#FF1744' } default { '#2BE37A' } }
         $ui.RunStripBar.Foreground = (New-Object Windows.Media.BrushConverter).ConvertFromString($barInk)
     } catch { }
 

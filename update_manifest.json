@@ -1,7 +1,7 @@
 {
-  "version": "1.4.299",
-  "notes": "\"Check my security\" is now \"Check my security and privacy\", with a new shield and lock logo, because that page also covers privacy settings like typing data, ads and telemetry.",
-  "published": "2026-10-30T03:46:19.1966617-04:00",
+  "version": "1.4.300",
+  "notes": "The progress bar in the left menu now keeps the colour of the scan you chose (red for Advanced) even when you tick extra tasks such as Check my security and privacy.",
+  "published": "2026-10-30T04:01:56.8015445-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "154F1100C8B983A06D83498B10A8D4ABCA5A8D23F46C3694D8C5992E2A657DDE",
-      "size": 662718
+      "sha256": "22C06D70BC462F9296A44FAD9673774A326322EC67F20EC320EB83CD0EF32074",
+      "size": 663043
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
