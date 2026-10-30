@@ -4294,12 +4294,12 @@ $pollTimer.Add_Tick({
             }
         }
         if ($script:currentCategory -eq 'Progress') { $script:DRFinishedUnseen = $false }
-        if ($busyNow -and $script:currentCategory -ne 'Progress') {
+        if ($busyNow) {
             $ui.RunStrip.Visibility = 'Visible'
             $ui.RunStripTitle.Text = 'Working... ' + $ui.ProgressPercent.Text
             $ui.RunStripDetail.Text = [string]$ui.ProgressMessage.Text
             $ui.RunStripBar.Value = [double]$ui.OverallProgress.Value
-            $ui.RunStripHint.Visibility = 'Visible'
+            $ui.RunStripHint.Visibility = if ($script:currentCategory -eq 'Progress') { 'Collapsed' } else { 'Visible' }
             # Cleaning jobs in the same run get their own line, so a long repair doesn't hide them.
             $cleanIds = @($catalog | Where-Object { $selection[$_.Id] -and $_.Category -eq 'Cleanup' } | ForEach-Object { [string]$_.Id })
             if ($cleanIds.Count -gt 0) {
