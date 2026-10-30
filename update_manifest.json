@@ -1,7 +1,7 @@
 {
-  "version": "1.4.269",
-  "notes": "The finish animation after a cleaning works again, and the sweeping brooms now stop when the cleaning is done.",
-  "published": "2026-10-30T01:21:42.2451558-04:00",
+  "version": "1.4.270",
+  "notes": "The progress bar in the bottom-left box is now much thicker, so it is easier to see how far your cleaning has got.",
+  "published": "2026-10-30T01:24:24.4306152-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "E7F118DE03ED5346EAB4825962865E25FC9750333E925DA16CDD2607594C4994",
-      "size": 1329938
+      "sha256": "EDA51FA0EFAF934465916F74FDC913F24CC346E8943AAF6098F00782FF07792E",
+      "size": 1329939
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
