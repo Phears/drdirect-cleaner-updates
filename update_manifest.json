@@ -1,7 +1,7 @@
 {
-  "version": "1.4.267",
-  "notes": "The icons on the left menu are now lined up in one neat column at the right edge, all the same size.",
-  "published": "2026-10-30T00:45:54.3746862-04:00",
+  "version": "1.4.268",
+  "notes": "The progress box in the bottom-left corner now also shows your cleaning jobs and says Click here to see it working. Its bar is bright green for a Safe cleaning, bright blue for Medium and bright red for Advanced.",
+  "published": "2026-10-30T01:17:28.7558802-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "4205789BA698A7454463A56F2ECF67FBF844BC642DC330FF7C7CA9856AFE4961",
-      "size": 1334905
+      "sha256": "3FC2FE395096717A80C34168ACC1F417EA8A4AF055829AD1F89FB3F514415FF4",
+      "size": 1329935
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "AEC170CCAB0DC0AAA106BEC653E717C9E7CBF5583338F0128EA65873D3E2DBAE",
-      "size": 10460964
+      "sha256": "EFC1D47C772D4CDB68A5F014BF0D1B129520ACC3DD1271803172764B27F8AB1F",
+      "size": 10462778
     }
   ],
   "blocked": [],
