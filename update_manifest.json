@@ -1,7 +1,7 @@
 {
-  "version": "1.4.263",
-  "notes": "The Uninstaller shows the new home button on Back to the Cleaner again.",
-  "published": "2026-10-30T00:26:50.4361380-04:00",
+  "version": "1.4.264",
+  "notes": "New 3D Max brooms that sweep all the time: green on Safe, blue on Medium and two red ones on Advanced, also shown in the cleaning banner while a scan runs.",
+  "published": "2026-10-30T00:35:46.0432852-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "57997856EDD0C6A4DC5007FFB9987D690AE631FDCF24D88650290C29A8DBC153",
-      "size": 1237921
+      "sha256": "63935E0655F959FAC6A51FC99C03405E10062CAD112DA2744DE4D51D86A802B6",
+      "size": 1255558
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
