@@ -1,7 +1,7 @@
 {
-  "version": "1.4.264",
-  "notes": "New 3D Max brooms that sweep all the time: green on Safe, blue on Medium and two red ones on Advanced, also shown in the cleaning banner while a scan runs.",
-  "published": "2026-10-30T00:35:46.0432852-04:00",
+  "version": "1.4.265",
+  "notes": "The brooms now kick up a little dust that floats upward while they sweep.",
+  "published": "2026-10-30T00:37:49.8519066-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "63935E0655F959FAC6A51FC99C03405E10062CAD112DA2744DE4D51D86A802B6",
-      "size": 1255558
+      "sha256": "F98DED380F58860C8E1C45C65A0DDDC15CCC1054619D782C89332B05189CB5B8",
+      "size": 1303348
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
