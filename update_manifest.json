@@ -1,7 +1,7 @@
 {
-  "version": "1.4.284",
-  "notes": "The blue line in the left menu now looks like a glossy 3D tube with a soft glow.",
-  "published": "2026-10-30T01:59:17.6194808-04:00",
+  "version": "1.4.285",
+  "notes": "The big progress bar now moves while your cleaning is working: a shine sweeps across it and it glows.",
+  "published": "2026-10-30T02:02:05.8212550-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "D7D80B4EA15CF703158AA6F02C0D09E0EC89DD71B8AC3D3866C621942D750CE8",
-      "size": 1331607
+      "sha256": "038D1773496601CCB5799B34E8E82A4D0112D1227FA53C662611DE21EC00F165",
+      "size": 1332665
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
