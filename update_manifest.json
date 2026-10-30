@@ -1,7 +1,7 @@
 {
-  "version": "1.4.286",
-  "notes": "Fixes the Update failed message when you check for updates. The Cleaner now installs updates properly again, and opens normally.",
-  "published": "2026-10-30T02:10:07.6598099-04:00",
+  "version": "1.4.287",
+  "notes": "The big progress bar shown while your cleaning runs is now slimmer, so it fits the left menu better.",
+  "published": "2026-10-30T02:13:28.1490508-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "09D6BC6F6DC934E4A173B6C9241A4AAB40A522DBD5E3BBDFE2BE0C91009C4849",
+      "sha256": "FC048E6495A53C46ACB1E1E5E8A25693BFDA18599623AF853C2F89FD12234ECB",
       "size": 1332245
     },
     {
