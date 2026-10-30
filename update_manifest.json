@@ -1,7 +1,7 @@
 {
-  "version": "1.4.266",
-  "notes": "The dust the brooms kick up is much bigger now, so you can see it floating up while they sweep.",
-  "published": "2026-10-30T00:40:45.9462847-04:00",
+  "version": "1.4.267",
+  "notes": "The icons on the left menu are now lined up in one neat column at the right edge, all the same size.",
+  "published": "2026-10-30T00:45:54.3746862-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "5DCAF7FE19633407AECB2EA6F07D30F9E5F3FB54156E93130A3CD1974368E5AE",
-      "size": 1334857
+      "sha256": "4205789BA698A7454463A56F2ECF67FBF844BC642DC330FF7C7CA9856AFE4961",
+      "size": 1334905
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
