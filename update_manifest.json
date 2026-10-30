@@ -1,7 +1,7 @@
 {
-  "version": "1.4.303",
-  "notes": "The plan list now has \"More above\" and \"More below\" buttons to scroll a page at a time, and the side menu has a \"Back to the top\" button to match \"More tools below\".",
-  "published": "2026-10-30T12:28:52.8916000-04:00",
+  "version": "1.4.304",
+  "notes": "The Dashboard and the long lists now have \"More above\" and \"More below\" buttons, so you can scroll a page at a time.",
+  "published": "2026-10-30T12:39:45.1488793-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B22A4FD477B145A6448644E5CB595BA1B24883631C5AD5687630B14FD21324A4",
-      "size": 669346
+      "sha256": "26F9C3D7739441D7A14927F71A59D12D3E762C27ACBC6B9728D3161067169E24",
+      "size": 672338
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

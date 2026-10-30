@@ -5152,6 +5152,49 @@ $ui.NavScroll.Add_ScrollChanged({
 $ui.NavMoreHint.Add_MouseLeftButtonUp({ $ui.NavScroll.ScrollToVerticalOffset($ui.NavScroll.ScrollableHeight) })
 $ui.NavScroll.Add_ScrollChanged({ $ui.NavMoreUp.Visibility = if ($ui.NavScroll.VerticalOffset -gt 4) { 'Visible' } else { 'Collapsed' } })
 $ui.NavMoreUp.Add_MouseLeftButtonUp({ $ui.NavScroll.ScrollToVerticalOffset(0) })
+
+# "More above" / "More below" pills for the other pages that scroll (the Dashboard and the long lists), the same as the plan list has.
+function Add-DRScrollPills {
+    param($Scroller)
+    if (-not $Scroller) { return }
+    $parent = [Windows.LogicalTreeHelper]::GetParent($Scroller)
+    if ($parent -isnot [Windows.Controls.Grid]) { return }
+    $ns = 'xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"'
+    $make = {
+        param([string]$Text, [string]$Vertical, [string]$Tip)
+        [Windows.Markup.XamlReader]::Parse(("<Border $ns Visibility=""Collapsed"" VerticalAlignment=""$Vertical"" HorizontalAlignment=""Center"" Margin=""0,8,0,8"" Padding=""22,7"" CornerRadius=""16"" Cursor=""Hand"" ToolTip=""$Tip"" Panel.ZIndex=""50"">" +
+            '<Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#5B9BFF" Offset="0"/><GradientStop Color="#1F5FE0" Offset="1"/></LinearGradientBrush></Border.Background>' +
+            '<Border.Effect><DropShadowEffect Color="#0A1A4A" BlurRadius="10" ShadowDepth="3" Direction="270" Opacity="0.55"/></Border.Effect>' +
+            "<TextBlock Text=""$Text"" Foreground=""White"" FontSize=""14"" FontWeight=""Bold""/></Border>"))
+    }
+    $up = & $make ([string][char]0x25B2 + '   More above') 'Top' 'Scroll up'
+    $down = & $make ([string][char]0x25BC + '   More below') 'Bottom' 'Scroll down'
+    foreach ($pill in @($up, $down)) {
+        [Windows.Controls.Grid]::SetRow($pill, [Windows.Controls.Grid]::GetRow($Scroller))
+        [Windows.Controls.Grid]::SetColumn($pill, [Windows.Controls.Grid]::GetColumn($Scroller))
+        [Windows.Controls.Grid]::SetRowSpan($pill, [Windows.Controls.Grid]::GetRowSpan($Scroller))
+        [Windows.Controls.Grid]::SetColumnSpan($pill, [Windows.Controls.Grid]::GetColumnSpan($Scroller))
+        [void]$parent.Children.Add($pill)
+    }
+    $update = {
+        $shown = $Scroller.IsVisible
+        $up.Visibility = if ($shown -and $Scroller.VerticalOffset -gt 4) { 'Visible' } else { 'Collapsed' }
+        $down.Visibility = if ($shown -and $Scroller.ScrollableHeight -gt 4 -and $Scroller.VerticalOffset -lt ($Scroller.ScrollableHeight - 4)) { 'Visible' } else { 'Collapsed' }
+    }.GetNewClosure()
+    $Scroller.Add_ScrollChanged($update)
+    $Scroller.Add_IsVisibleChanged($update)
+    $Scroller.Add_SizeChanged($update)
+    & $update
+    $up.Add_MouseLeftButtonUp({ $Scroller.ScrollToVerticalOffset([Math]::Max(0, $Scroller.VerticalOffset - ($Scroller.ViewportHeight * 0.85))) }.GetNewClosure())
+    $down.Add_MouseLeftButtonUp({ $Scroller.ScrollToVerticalOffset([Math]::Min($Scroller.ScrollableHeight, $Scroller.VerticalOffset + ($Scroller.ViewportHeight * 0.85))) }.GetNewClosure())
+}
+try {
+    Add-DRScrollPills $ui.PageDashboard
+    foreach ($listName in 'HardwareList', 'ProgressList') {
+        $listBox = $window.FindName($listName)
+        if ($listBox) { Add-DRScrollPills ([Windows.LogicalTreeHelper]::GetParent($listBox)) }
+    }
+} catch { }
 # The plan list gets the same pills: one page up or down at a time
 $ui.PlanScroll.Add_ScrollChanged({
     $sv = $ui.PlanScroll
