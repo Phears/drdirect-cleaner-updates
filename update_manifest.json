@@ -1,7 +1,7 @@
 {
-  "version": "1.4.295",
-  "notes": "On the Switch On or Off AI button, the note (you choose) is now centred under the name.",
-  "published": "2026-10-30T02:31:51.1684158-04:00",
+  "version": "1.4.296",
+  "notes": "The brooms and their dust now move only while a cleaning is running, and only on the scan that is cleaning: Safe, Medium or Advanced.",
+  "published": "2026-10-30T02:38:25.1915581-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "98894A2E700B20A8689A876B29E3D3234C4B0E86C74F6FAC27CAB0A84F362F68",
-      "size": 1332932
+      "sha256": "1ACBA0B9EFE30CD5EE1A5501A0FA11604AE122700FFA11388377BB4C95A3CC5F",
+      "size": 1334562
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
