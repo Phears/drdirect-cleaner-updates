@@ -1,7 +1,7 @@
 {
-  "version": "1.4.294",
-  "notes": "The Switch off AI button is now called Switch On or Off AI, because you can choose either way.",
-  "published": "2026-10-30T02:30:42.0629759-04:00",
+  "version": "1.4.295",
+  "notes": "On the Switch On or Off AI button, the note (you choose) is now centred under the name.",
+  "published": "2026-10-30T02:31:51.1684158-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "EA4581823A0811EF849EB7592F8172992B651F1CECAB94F4B98684E1C464DD83",
-      "size": 1332931
+      "sha256": "98894A2E700B20A8689A876B29E3D3234C4B0E86C74F6FAC27CAB0A84F362F68",
+      "size": 1332932
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
