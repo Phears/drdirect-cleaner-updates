@@ -1,7 +1,7 @@
 {
-  "version": "1.4.257",
-  "notes": "The Crazy Nutty 3D switch has been removed from the dashboard.",
-  "published": "2026-10-28T01:07:03.1542421-04:00",
+  "version": "1.4.258",
+  "notes": "While Clean my PC is working, a little broom now sweeps beside its button so you can see your PC is being cleaned.",
+  "published": "2026-10-29T23:35:36.9872313-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "720FAF4F948DDA2A458C7E0C2F4A7777026A330593F40E90460D5F6B3812C10B",
-      "size": 1208750
+      "sha256": "B1E7E978E424AC785E476CC390D67BF218ADC90A7BD434DC840F9BE36EDA222A",
+      "size": 1209831
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -45,5 +45,6 @@
     }
   ],
   "blocked": [],
-  "blockedHard": []
+  "blockedHard": [],
+  "jokes": []
 }
