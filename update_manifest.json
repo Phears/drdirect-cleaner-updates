@@ -1,17 +1,17 @@
 {
-  "version": "1.4.260",
-  "notes": "New 3D brooms: each scan button has its own broom (two on Advanced Scan) that sweeps while your PC is being cleaned, the Clean my PC button and cleaning banner have a lively broom, and Switch off AI has a new robot picture.",
-  "published": "2026-10-30T00:01:06.0782785-04:00",
+  "version": "1.4.261",
+  "notes": "New 3D look: Dashboard, Show all tools, Fix Windows and Cleaning history have shiny new pictures, and Back to the Cleaner now has a home button in the Duplicate Finder and the Uninstaller.",
+  "published": "2026-10-30T00:20:45.1979587-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "937CAC6EE959E850C6E42E483C7719542A0C7BEA1CEF16D0840620AA3E68EBAC",
-      "size": 218537
+      "sha256": "B90B05E8AA7E7DFD743E831F93364CE6C9E3E6C1C3CEEA7CD98D157720315BEA",
+      "size": 221262
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "68FB8FF0233FAAE4F0E9AF1AC994093966991DFA0837887E3B623E3C9815C57D",
-      "size": 1228133
+      "sha256": "4DFF0F02CB415001C1A8DC1A39FD3455175726C76DF350ACF53863CA8DB30489",
+      "size": 1237795
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "05762BD3D862EE0B9B43CB5D1AEDB2EFC55CEEC684D5A1581AC5F0A8C1725145",
-      "size": 10459051
+      "sha256": "AEC170CCAB0DC0AAA106BEC653E717C9E7CBF5583338F0128EA65873D3E2DBAE",
+      "size": 10460964
     }
   ],
   "blocked": [],
