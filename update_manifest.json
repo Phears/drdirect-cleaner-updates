@@ -1,7 +1,7 @@
 {
-  "version": "1.4.289",
-  "notes": "On the Clean my PC button, the note (3 choices) now sits on its own line in raised 3D letters, so the broom no longer covers it.",
-  "published": "2026-10-30T02:21:39.1816319-04:00",
+  "version": "1.4.290",
+  "notes": "On the Clean my PC button, the note (3 choices) is now a soft light blue.",
+  "published": "2026-10-30T02:24:01.3097505-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "D48F086D52E00C961C8D7250B3DCA0705D2C7901FF95BB58E167E428AC2850F3",
+      "sha256": "73B68DC6F8BB504CFCE175E9A2D25E0B152E4AB2D94FEF92656159DDF5600CE2",
       "size": 1332598
     },
     {
