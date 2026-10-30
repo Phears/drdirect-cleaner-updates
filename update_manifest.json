@@ -1,7 +1,7 @@
 {
-  "version": "1.4.310",
-  "notes": "Click How long will it take? and Clean my PC opens with the time for each scan flashing above its button.",
-  "published": "2026-10-30T18:20:47.7397111-04:00",
+  "version": "1.4.311",
+  "notes": "The yellow time button on the Dashboard now explains itself better.",
+  "published": "2026-10-30T18:23:26.9702599-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "7D171780BCA1E9CA2113DD13739F7BAA969959AA3D5C17B4F6B56D75634515F2",
-      "size": 1372802
+      "sha256": "4FBDD83A0BE38D969EB020578E21B7D8696A032E50EC2428AC5FB7040BBAE330",
+      "size": 1372947
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
