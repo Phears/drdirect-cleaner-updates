@@ -1,7 +1,7 @@
 {
-  "version": "1.4.277",
-  "notes": "Updates no longer fail with a 403 Forbidden message when you check for updates several times in an hour. The Cleaner now has a second way to get them.",
-  "published": "2026-10-30T01:42:40.8046505-04:00",
+  "version": "1.4.278",
+  "notes": "The thin blue line in the left menu now sits in the middle of the empty space, below the Please read first button.",
+  "published": "2026-10-30T01:46:15.1065915-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "9F317B715B9509BC96D4B4AB8600C0CDCCA0DAA55BE72F17E53E27C4CDE7EAB2",
-      "size": 1331033
+      "sha256": "BFA9E521A95B605A77E1A6D4DC5F877486BB98087CA5B7B01C92C4D7372967DA",
+      "size": 1331035
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
