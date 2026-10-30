@@ -1,7 +1,7 @@
 {
-  "version": "1.4.283",
-  "notes": "The blue line in the left menu now sits a little lower, just above the Activate button.",
-  "published": "2026-10-30T01:57:35.6482482-04:00",
+  "version": "1.4.284",
+  "notes": "The blue line in the left menu now looks like a glossy 3D tube with a soft glow.",
+  "published": "2026-10-30T01:59:17.6194808-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "5A680AA16BF0E2DE3DB103F050B5ECC532D0FFCE7C80FA3E7595FD66AA7E2501",
-      "size": 1331091
+      "sha256": "D7D80B4EA15CF703158AA6F02C0D09E0EC89DD71B8AC3D3866C621942D750CE8",
+      "size": 1331607
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
