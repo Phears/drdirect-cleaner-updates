@@ -1,7 +1,7 @@
 {
-  "version": "1.4.296",
-  "notes": "The brooms and their dust now move only while a cleaning is running, and only on the scan that is cleaning: Safe, Medium or Advanced.",
-  "published": "2026-10-30T02:38:25.1915581-04:00",
+  "version": "1.4.297",
+  "notes": "The \"Please read first\" note now has a kind reminder to write down your e-mail addresses and passwords and keep them in a safe place.",
+  "published": "2026-10-30T03:28:41.8444114-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "1ACBA0B9EFE30CD5EE1A5501A0FA11604AE122700FFA11388377BB4C95A3CC5F",
-      "size": 1334562
+      "sha256": "44DFB4D429745BA20E8BE8E198A9322CB1D41D6A39B3EB3DDFF31736A1B0A09D",
+      "size": 1336046
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

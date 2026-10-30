@@ -5474,9 +5474,44 @@ function Show-DRNote {
         '',
         'So if a PC still crawls after a clean, it is nobody''s fault. It may simply be ready to retire to a quiet life on a shelf, with a gold watch and a farewell cake. Give it a good send-off, and when the new one arrives, I will keep that one running nicely too.',
         '',
+        'A kind and respectful request: if possible, please write down the e-mail address and password you use for every website or service you sign up with, and keep them in a safe place. Recovering a lost account is not always possible. This is important. Thank you.',
+        '',
         '- DRDirect'
     ) -join [Environment]::NewLine
-    [void][Windows.MessageBox]::Show($text, 'Please read first', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information)
+    # A plain message box draws emoji in white, so the thumbs up is a coloured Segoe icon glyph in our own small window.
+    $win = New-Object Windows.Window
+    $win.Title = 'Please read first'
+    $win.SizeToContent = 'WidthAndHeight'
+    $win.MaxWidth = 560
+    $win.ResizeMode = 'NoResize'
+    $win.WindowStartupLocation = 'CenterScreen'
+    $win.Topmost = $true
+    $panel = New-Object Windows.Controls.StackPanel
+    $panel.Margin = '24,20,24,16'
+    $body = New-Object Windows.Controls.TextBlock
+    $body.Text = $text
+    $body.TextWrapping = 'Wrap'
+    $body.FontSize = 14
+    $panel.Children.Add($body) | Out-Null
+    $thumb = New-Object Windows.Controls.TextBlock
+    $thumb.Text = [string][char]0xE8E1
+    $thumb.FontFamily = New-Object Windows.Media.FontFamily('Segoe Fluent Icons, Segoe MDL2 Assets')
+    $thumb.FontSize = 34
+    $thumb.Foreground = [Windows.Media.Brushes]::DarkOrange
+    $thumb.HorizontalAlignment = 'Left'
+    $thumb.Margin = '0,8,0,0'
+    $panel.Children.Add($thumb) | Out-Null
+    $ok = New-Object Windows.Controls.Button
+    $ok.Content = 'OK'
+    $ok.Width = 90
+    $ok.Padding = '0,5,0,5'
+    $ok.HorizontalAlignment = 'Right'
+    $ok.Margin = '0,8,0,0'
+    $ok.IsDefault = $true
+    $ok.IsCancel = $true
+    $panel.Children.Add($ok) | Out-Null
+    $win.Content = $panel
+    [void]$win.ShowDialog()
 }
 # Owner-only: clears the crash history Reliability Monitor draws. Only a salted hash of the password is kept here.
 $script:DRResetSalt = 'jzY6qABxSZRWhKhIaB+DCQ=='
