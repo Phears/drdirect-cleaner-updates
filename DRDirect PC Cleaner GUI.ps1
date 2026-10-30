@@ -5775,14 +5775,21 @@ function Show-SafePlan {
 }
 if ($ui.EstimateTimeButton) {
     $ui.EstimateTimeButton.Add_Click({
+        # Work out the times, open Clean my PC, and make each time flash above its scan button.
         $window.Cursor = [Windows.Input.Cursors]::Wait
-        try { $est = Update-DRLevelEstimates } finally { $window.Cursor = $null }
-        $msg = "About how long each scan takes on this PC:`r`n`r`n" +
-            ("    Safe scan:          about {0}`r`n" -f (Format-DRApproxTime -Seconds $est['Safe'])) +
-            ("    Medium scan:     about {0}`r`n" -f (Format-DRApproxTime -Seconds $est['Medium'])) +
-            ("    Advanced scan:  about {0}`r`n`r`n" -f (Format-DRApproxTime -Seconds $est['Advanced'])) +
-            "These are estimates. Every PC is different, and they get more exact after each clean.`r`n`r`nThe times also show above each scan button on Clean my PC. Open it now?"
-        if ([Windows.MessageBox]::Show($window, $msg, 'How long will it take?', 'YesNo', 'Information') -eq 'Yes') { Set-Page 'Cleanup' }
+        try { [void](Update-DRLevelEstimates) } finally { $window.Cursor = $null }
+        Set-Page 'Cleanup'
+        foreach ($level in 'Safe','Medium','Advanced') {
+            $label = $ui["Preset${level}Date"]
+            if (-not $label) { continue }
+            $label.FontWeight = 'Bold'
+            $label.FontSize = 14
+            $label.Foreground = [Windows.Media.SolidColorBrush]::new([Windows.Media.ColorConverter]::ConvertFromString('#0057D9'))
+            $flash = New-Object Windows.Media.Animation.DoubleAnimation(1.0, 0.15, [TimeSpan]::FromMilliseconds(450))
+            $flash.AutoReverse = $true
+            $flash.RepeatBehavior = New-Object Windows.Media.Animation.RepeatBehavior(8)
+            $label.BeginAnimation([Windows.UIElement]::OpacityProperty, $flash)
+        }
     })
 }
 foreach ($name in 'SafeCleanButton','SafePreviewButton') { if ($ui[$name]) { $ui[$name].Add_Click({ Stop-DRCleanButtonBounce; Invoke-DRSafeClean }) } }

@@ -1,7 +1,7 @@
 {
-  "version": "1.4.309",
-  "notes": "New yellow button on the Dashboard: How long will it take? It shows about how long a Safe, Medium and Advanced scan would take on your PC.",
-  "published": "2026-10-30T17:45:07.2473348-04:00",
+  "version": "1.4.310",
+  "notes": "Click How long will it take? and Clean my PC opens with the time for each scan flashing above its button.",
+  "published": "2026-10-30T18:20:47.7397111-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "01416D0E74270EBF8BFD822FCC0E502E47D90F0A1BA7FA858CCDE1CA526DBBFD",
-      "size": 1372685
+      "sha256": "7D171780BCA1E9CA2113DD13739F7BAA969959AA3D5C17B4F6B56D75634515F2",
+      "size": 1372802
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
