@@ -1,7 +1,7 @@
 {
-  "version": "1.4.302",
-  "notes": "After an Advanced scan your PC can now shut itself down: the review step offers \"Shut down my PC when it finishes\", with a 60 second countdown you can cancel.",
-  "published": "2026-10-30T12:20:31.3449705-04:00",
+  "version": "1.4.303",
+  "notes": "The plan list now has \"More above\" and \"More below\" buttons to scroll a page at a time, and the side menu has a \"Back to the top\" button to match \"More tools below\".",
+  "published": "2026-10-30T12:28:52.8916000-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "615370FE014E8C23EDCD6F4A54523B3B49366A84F3A4EFE414DE018A06E5F33F",
-      "size": 666392
+      "sha256": "B22A4FD477B145A6448644E5CB595BA1B24883631C5AD5687630B14FD21324A4",
+      "size": 669346
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
