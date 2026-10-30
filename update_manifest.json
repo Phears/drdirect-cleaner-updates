@@ -1,7 +1,7 @@
 {
-  "version": "1.4.301",
-  "notes": "The brooms and dust on the scan buttons now sweep again while a cleaning runs, even when you tick extra tasks such as Check my security and privacy.",
-  "published": "2026-10-30T04:02:57.9067674-04:00",
+  "version": "1.4.268",
+  "notes": "After an Advanced scan your PC can now shut itself down: the review step offers \"Shut down my PC when it finishes\", with a 60 second countdown you can cancel. Also fixed the clean-finished celebration that was being skipped.",
+  "published": "2026-10-30T12:19:34.7468114-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B3FE07DFA607F01FFB156F072CE9FD86B08BA1EA8143B86D2D7711D560935CF6",
-      "size": 663260
+      "sha256": "CA5D40E59A474FCE004A079CEAE00C9FB8BA8B6B67A8C82B8525D4D9E09C0F18",
+      "size": 1338060
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
