@@ -1,7 +1,7 @@
 {
-  "version": "1.4.292",
-  "notes": "The Switch off AI button now says (you choose what to keep), so you know you stay in control.",
-  "published": "2026-10-30T02:27:37.5229636-04:00",
+  "version": "1.4.293",
+  "notes": "The note on the Switch off AI button is shorter, so the robot picture no longer covers it.",
+  "published": "2026-10-30T02:29:01.0887145-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "D4F01DD224DC8C0C667E0DAD61B639F9946C5512A6951FB5F5DDA32081C41AB7",
-      "size": 1332938
+      "sha256": "160611D850EB80C8F3BEC89634ED41E1241625363C41A1ECD6B7DDE6FBB7880E",
+      "size": 1332925
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
