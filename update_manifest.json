@@ -1,7 +1,7 @@
 {
-  "version": "1.4.259",
-  "notes": "The Clean my PC button now shows a bright broom so it is easier to spot.",
-  "published": "2026-10-29T23:40:49.9245052-04:00",
+  "version": "1.4.260",
+  "notes": "New 3D brooms: each scan button has its own broom (two on Advanced Scan) that sweeps while your PC is being cleaned, the Clean my PC button and cleaning banner have a lively broom, and Switch off AI has a new robot picture.",
+  "published": "2026-10-30T00:01:06.0782785-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "C96F2FDF4028092EFE8CC5C3C7F728AEEAFF8ADD4CDEA67AD87187E8920C1154",
-      "size": 1209137
+      "sha256": "68FB8FF0233FAAE4F0E9AF1AC994093966991DFA0837887E3B623E3C9815C57D",
+      "size": 1228133
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
