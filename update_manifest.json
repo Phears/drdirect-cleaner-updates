@@ -1,7 +1,7 @@
 {
-  "version": "1.4.268",
-  "notes": "The progress box in the bottom-left corner now also shows your cleaning jobs and says Click here to see it working. Its bar is bright green for a Safe cleaning, bright blue for Medium and bright red for Advanced.",
-  "published": "2026-10-30T01:17:28.7558802-04:00",
+  "version": "1.4.269",
+  "notes": "The finish animation after a cleaning works again, and the sweeping brooms now stop when the cleaning is done.",
+  "published": "2026-10-30T01:21:42.2451558-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "3FC2FE395096717A80C34168ACC1F417EA8A4AF055829AD1F89FB3F514415FF4",
-      "size": 1329935
+      "sha256": "E7F118DE03ED5346EAB4825962865E25FC9750333E925DA16CDD2607594C4994",
+      "size": 1329938
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

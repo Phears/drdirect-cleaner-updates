@@ -3262,7 +3262,8 @@ function Start-RunPlan {
     Set-Variable -Name cancelAfterTask -Value $false -Scope Script
     $ui.ProgressList.Children.Clear(); foreach ($task in $selected) { $ui.ProgressList.Children.Add((New-ProgressRow $task)) | Out-Null }
     if ($ui.CleaningAnimation) { $ui.CleaningAnimation.Visibility='Visible' }
-    Set-DRScanBroomsAlive $true    if ($ui.CleanDone) { $ui.CleanDone.Visibility='Collapsed' }
+    Set-DRScanBroomsAlive $true
+    if ($ui.CleanDone) { $ui.CleanDone.Visibility='Collapsed' }
     if ($ui.ProgressList) {
         $ui.ProgressList.BeginAnimation([Windows.UIElement]::OpacityProperty, $null)
         $ui.ProgressList.Opacity = 1
@@ -3617,7 +3618,8 @@ function Complete-RunPlan {
     # Every completed Safe, Medium, or Advanced plan asks about restart and
     # starts the 90-second automatic restart countdown.
     if ($ui.CleaningAnimation) { $ui.CleaningAnimation.Visibility='Collapsed' }
-    Set-DRScanBroomsAlive $true    if (-not $cancelAfterTask) { Invoke-DRCleanReveal -TaskCount $selectedIds.Count -ChecksOnly:([bool]$onlyChecks) }
+    Set-DRScanBroomsAlive $false
+    if (-not $cancelAfterTask) { Invoke-DRCleanReveal -TaskCount $selectedIds.Count -ChecksOnly:([bool]$onlyChecks) }
     $needsRestart = (-not $cancelAfterTask) -and ((@($selectedIds | Where-Object { $script:DRNoRestartTaskIds -notcontains $_ }).Count -gt 0) -or $script:DRRunCheckWasDue)
 
     $ui.RestartButton.Visibility = if ($needsRestart) {
