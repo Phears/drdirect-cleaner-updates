@@ -1,7 +1,7 @@
 {
-  "version": "1.4.265",
-  "notes": "The brooms now kick up a little dust that floats upward while they sweep.",
-  "published": "2026-10-30T00:37:49.8519066-04:00",
+  "version": "1.4.266",
+  "notes": "The dust the brooms kick up is much bigger now, so you can see it floating up while they sweep.",
+  "published": "2026-10-30T00:40:45.9462847-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F98DED380F58860C8E1C45C65A0DDDC15CCC1054619D782C89332B05189CB5B8",
-      "size": 1303348
+      "sha256": "5DCAF7FE19633407AECB2EA6F07D30F9E5F3FB54156E93130A3CD1974368E5AE",
+      "size": 1334857
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
