@@ -1,7 +1,7 @@
 {
-  "version": "1.4.314",
-  "notes": "The yellow time button now sits neatly inside the Dashboard box.",
-  "published": "2026-10-30T19:05:15.5971383-04:00",
+  "version": "1.4.315",
+  "notes": "The Dashboard looks cleaner: the title now has its own space below the yellow time button.",
+  "published": "2026-10-30T19:07:31.4296287-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "5B34FB6ACAAB5A2376F4473D37F7DC1DC8E01BCB0E8EC2B889368FF09996988A",
-      "size": 1376334
+      "sha256": "E0B01E54CB53162623BA20C9A930B0BCB94234A5D9E116B33AA7F50E28610288",
+      "size": 1376352
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
