@@ -1,7 +1,7 @@
 {
-  "version": "1.4.258",
-  "notes": "While Clean my PC is working, a little broom now sweeps beside its button so you can see your PC is being cleaned.",
-  "published": "2026-10-29T23:35:36.9872313-04:00",
+  "version": "1.4.259",
+  "notes": "The Clean my PC button now shows a bright broom so it is easier to spot.",
+  "published": "2026-10-29T23:40:49.9245052-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B1E7E978E424AC785E476CC390D67BF218ADC90A7BD434DC840F9BE36EDA222A",
-      "size": 1209831
+      "sha256": "C96F2FDF4028092EFE8CC5C3C7F728AEEAFF8ADD4CDEA67AD87187E8920C1154",
+      "size": 1209137
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
