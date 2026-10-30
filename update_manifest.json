@@ -1,7 +1,7 @@
 {
-  "version": "1.4.287",
-  "notes": "The big progress bar shown while your cleaning runs is now slimmer, so it fits the left menu better.",
-  "published": "2026-10-30T02:13:28.1490508-04:00",
+  "version": "1.4.288",
+  "notes": "The Clean my PC button now says (3 choices), so you know you can pick Safe, Medium or Advanced inside.",
+  "published": "2026-10-30T02:20:22.0587807-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "FC048E6495A53C46ACB1E1E5E8A25693BFDA18599623AF853C2F89FD12234ECB",
-      "size": 1332245
+      "sha256": "2A92C605045FC2605059ADD489D512C1C2BC5949A850078F5299E7EB53037394",
+      "size": 1332303
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
