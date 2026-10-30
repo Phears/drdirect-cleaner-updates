@@ -1453,6 +1453,7 @@ $cleanupPreset = 'Custom'
 # The level the person last chose. Unticking a box drops the preset to Custom,
 # but it must not reveal cookie cleanup on a Safe or Medium sweep.
 $cleanupLevel = 'Custom'
+$runScanLevel = ''
 $renderedCleanupFilter = $null
 # TITLE BAR + BIGGER LOGO v1.4: custom dark-blue title bar and larger sidebar logo
 $applyingCleanupPreset = $false
@@ -3087,14 +3088,21 @@ function Set-DRBannerBrooms {
     } catch { }
 }
 
+# Ticking one more task (Check my security, say) makes the plan "Custom"; the colours, brooms and dust still follow the scan button that was pressed.
+function Get-DRRunScanLevel {
+    param([string]$Preset)
+    if ($Preset -in @('Safe','Medium','Advanced')) { return $Preset }
+    if ($script:cleanupLevel -in @('Safe','Medium','Advanced')) { return $script:cleanupLevel }
+    return $Preset
+}
+
 function Set-ProgressScanLevel {
     param([string]$Preset)
-    Set-DRBannerBrooms -Preset $Preset
+    $barLevel = Get-DRRunScanLevel -Preset $Preset
+    Set-DRBannerBrooms -Preset $barLevel
 
     # The bar in the bottom-left box takes the colour of the scan: bright green, bright blue, bright red.
     try {
-        # Ticking one more task (Check my security, say) makes the plan "Custom"; the bar still follows the scan button that was pressed.
-        $barLevel = if ($Preset -in @('Safe','Medium','Advanced')) { $Preset } elseif ($script:cleanupLevel -in @('Safe','Medium','Advanced')) { $script:cleanupLevel } else { $Preset }
         $barInk = switch ($barLevel) { 'Safe' { '#00FF66' } 'Medium' { '#00B3FF' } 'Advanced' { '#FF1744' } default { '#2BE37A' } }
         $ui.RunStripBar.Foreground = (New-Object Windows.Media.BrushConverter).ConvertFromString($barInk)
     } catch { }
@@ -3266,7 +3274,8 @@ function Start-RunPlan {
     Set-Variable -Name cancelAfterTask -Value $false -Scope Script
     $ui.ProgressList.Children.Clear(); foreach ($task in $selected) { $ui.ProgressList.Children.Add((New-ProgressRow $task)) | Out-Null }
     if ($ui.CleaningAnimation) { $ui.CleaningAnimation.Visibility='Visible' }
-    Set-DRScanBroomsAlive $true -Preset $script:cleanupPreset
+    $script:runScanLevel = Get-DRRunScanLevel -Preset $script:cleanupPreset
+    Set-DRScanBroomsAlive $true -Preset $script:runScanLevel
     if ($ui.CleanDone) { $ui.CleanDone.Visibility='Collapsed' }
     if ($ui.ProgressList) {
         $ui.ProgressList.BeginAnimation([Windows.UIElement]::OpacityProperty, $null)
@@ -4199,9 +4208,9 @@ $pollTimer.Add_Tick({
         }
         if ($script:currentCategory -eq 'Progress') { $script:DRFinishedUnseen = $false }
         # The dust on the Clean my PC broom only drifts while a Safe, Medium or Advanced cleaning is running.
-        $dustWanted = if ($busyNow -and ($script:cleanupPreset -in @('Safe','Medium','Advanced'))) { 'Visible' } else { 'Collapsed' }
+        $dustWanted = if ($busyNow -and ($script:runScanLevel -in @('Safe','Medium','Advanced'))) { 'Visible' } else { 'Collapsed' }
         if ($ui.NavCleanDust.Visibility -ne $dustWanted) { $ui.NavCleanDust.Visibility = $dustWanted }
-        $scanDustOn = if ($busyNow) { switch ($script:cleanupPreset) { 'Safe' { @('ScanDustSafe') } 'Medium' { @('ScanDustMedium') } 'Advanced' { @('ScanDustAdvanced','ScanDustAdvanced2') } default { @() } } } else { @() }
+        $scanDustOn = if ($busyNow) { switch ($script:runScanLevel) { 'Safe' { @('ScanDustSafe') } 'Medium' { @('ScanDustMedium') } 'Advanced' { @('ScanDustAdvanced','ScanDustAdvanced2') } default { @() } } } else { @() }
         foreach ($dustName in 'ScanDustSafe','ScanDustMedium','ScanDustAdvanced','ScanDustAdvanced2') {
             $dustVis = if ($scanDustOn -contains $dustName) { 'Visible' } else { 'Collapsed' }
             if ($ui[$dustName].Visibility -ne $dustVis) { $ui[$dustName].Visibility = $dustVis }
