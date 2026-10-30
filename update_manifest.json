@@ -1,7 +1,7 @@
 {
-  "version": "1.4.311",
-  "notes": "The yellow time button on the Dashboard now explains itself better.",
-  "published": "2026-10-30T18:23:26.9702599-04:00",
+  "version": "1.4.312",
+  "notes": "The yellow time button is now smaller and easier to read.",
+  "published": "2026-10-30T18:51:05.6467074-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "4FBDD83A0BE38D969EB020578E21B7D8696A032E50EC2428AC5FB7040BBAE330",
-      "size": 1372947
+      "sha256": "96BD512B2DF2D75D68E4400993CD8C0099B84067326B3ACEAA23F34F03DC2B3F",
+      "size": 1373009
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
