@@ -928,22 +928,56 @@ $ErrorActionPreference = 'Stop'
                 <!-- Scrolls on short screens (small laptops), so the last menu items never hide behind the Activate button -->
                 <ScrollViewer x:Name="NavScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
                 <ScrollViewer.Resources>
+                    <!-- The side menu's scroll bar: slim thumb, with an up and a down arrow button at its ends like the other scroll bars -->
                     <Style TargetType="ScrollBar">
-                        <Setter Property="Width" Value="6"/>
-                        <Setter Property="MinWidth" Value="6"/>
-                        <Setter Property="Margin" Value="0,0,4,0"/>
+                        <Setter Property="Width" Value="22"/>
+                        <Setter Property="MinWidth" Value="22"/>
+                        <Setter Property="Margin" Value="0,0,2,0"/>
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="ScrollBar">
-                                    <Track x:Name="PART_Track" IsDirectionReversed="True">
-                                        <Track.Thumb>
-                                            <Thumb>
-                                                <Thumb.Template>
-                                                    <ControlTemplate TargetType="Thumb"><Border CornerRadius="3" Background="#4A6284"/></ControlTemplate>
-                                                </Thumb.Template>
-                                            </Thumb>
-                                        </Track.Thumb>
-                                    </Track>
+                                    <Grid SnapsToDevicePixels="True">
+                                        <Grid.RowDefinitions><RowDefinition Height="22"/><RowDefinition Height="*"/><RowDefinition Height="22"/></Grid.RowDefinitions>
+                                        <RepeatButton Grid.Row="0" Command="ScrollBar.LineUpCommand" Focusable="False" Cursor="Hand" ToolTip="Scroll up">
+                                            <RepeatButton.Template>
+                                                <ControlTemplate TargetType="RepeatButton">
+                                                    <Border Margin="1" CornerRadius="6" BorderBrush="#9CC4FF" BorderThickness="1">
+                                                        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#6FA8FF" Offset="0"/><GradientStop Color="#1F5FE0" Offset="1"/></LinearGradientBrush></Border.Background>
+                                                        <Path Data="M0,5 L5,0 L10,5 Z" Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </RepeatButton.Template>
+                                        </RepeatButton>
+                                        <Track x:Name="PART_Track" Grid.Row="1" IsDirectionReversed="True">
+                                            <Track.DecreaseRepeatButton>
+                                                <RepeatButton Command="ScrollBar.PageUpCommand" Focusable="False">
+                                                    <RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></RepeatButton.Template>
+                                                </RepeatButton>
+                                            </Track.DecreaseRepeatButton>
+                                            <Track.Thumb>
+                                                <Thumb>
+                                                    <Thumb.Template>
+                                                        <ControlTemplate TargetType="Thumb"><Border Margin="7,2" CornerRadius="4" Background="#4A6284"/></ControlTemplate>
+                                                    </Thumb.Template>
+                                                </Thumb>
+                                            </Track.Thumb>
+                                            <Track.IncreaseRepeatButton>
+                                                <RepeatButton Command="ScrollBar.PageDownCommand" Focusable="False">
+                                                    <RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></RepeatButton.Template>
+                                                </RepeatButton>
+                                            </Track.IncreaseRepeatButton>
+                                        </Track>
+                                        <RepeatButton Grid.Row="2" Command="ScrollBar.LineDownCommand" Focusable="False" Cursor="Hand" ToolTip="Scroll down">
+                                            <RepeatButton.Template>
+                                                <ControlTemplate TargetType="RepeatButton">
+                                                    <Border Margin="1" CornerRadius="6" BorderBrush="#9CC4FF" BorderThickness="1">
+                                                        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#6FA8FF" Offset="0"/><GradientStop Color="#1F5FE0" Offset="1"/></LinearGradientBrush></Border.Background>
+                                                        <Path Data="M0,0 L5,5 L10,0 Z" Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </RepeatButton.Template>
+                                        </RepeatButton>
+                                    </Grid>
                                 </ControlTemplate>
                             </Setter.Value>
                         </Setter>

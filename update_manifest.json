@@ -1,7 +1,7 @@
 {
-  "version": "1.4.304",
-  "notes": "The Dashboard and the long lists now have \"More above\" and \"More below\" buttons, so you can scroll a page at a time.",
-  "published": "2026-10-30T12:39:45.1488793-04:00",
+  "version": "1.4.305",
+  "notes": "The left menu scroll bar now has an up and a down arrow button at its ends, like the other scroll bars.",
+  "published": "2026-10-30T13:05:47.1488084-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "26F9C3D7739441D7A14927F71A59D12D3E762C27ACBC6B9728D3161067169E24",
-      "size": 672338
+      "sha256": "A4B6460FDD56163C376CD0F91C4FF3BC6752DBB6CB13295A3526E794AC42A8C8",
+      "size": 676098
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
