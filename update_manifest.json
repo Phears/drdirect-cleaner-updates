@@ -1,7 +1,7 @@
 {
-  "version": "1.4.315",
-  "notes": "The Dashboard looks cleaner: the title now has its own space below the yellow time button.",
-  "published": "2026-10-30T19:07:31.4296287-04:00",
+  "version": "1.4.316",
+  "notes": "The yellow How long to clean? button now sits right above START HERE, which bounces to show you where to click.",
+  "published": "2026-10-30T19:10:50.3307107-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "E0B01E54CB53162623BA20C9A930B0BCB94234A5D9E116B33AA7F50E28610288",
-      "size": 1376352
+      "sha256": "302B41CF415A4A94F85195C498F5AA370ACBA320B35BB52FE5873D6E4058B6F1",
+      "size": 1377253
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
