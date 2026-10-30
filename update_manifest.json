@@ -1,7 +1,7 @@
 {
-  "version": "1.4.288",
-  "notes": "The Clean my PC button now says (3 choices), so you know you can pick Safe, Medium or Advanced inside.",
-  "published": "2026-10-30T02:20:22.0587807-04:00",
+  "version": "1.4.289",
+  "notes": "On the Clean my PC button, the note (3 choices) now sits on its own line in raised 3D letters, so the broom no longer covers it.",
+  "published": "2026-10-30T02:21:39.1816319-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "2A92C605045FC2605059ADD489D512C1C2BC5949A850078F5299E7EB53037394",
-      "size": 1332303
+      "sha256": "D48F086D52E00C961C8D7250B3DCA0705D2C7901FF95BB58E167E428AC2850F3",
+      "size": 1332598
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
