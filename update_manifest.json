@@ -1,7 +1,7 @@
 {
-  "version": "1.4.285",
-  "notes": "The big progress bar now moves while your cleaning is working: a shine sweeps across it and it glows.",
-  "published": "2026-10-30T02:02:05.8212550-04:00",
+  "version": "1.4.286",
+  "notes": "Fixes the Update failed message when you check for updates. The Cleaner now installs updates properly again, and opens normally.",
+  "published": "2026-10-30T02:10:07.6598099-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "038D1773496601CCB5799B34E8E82A4D0112D1227FA53C662611DE21EC00F165",
-      "size": 1332665
+      "sha256": "09D6BC6F6DC934E4A173B6C9241A4AAB40A522DBD5E3BBDFE2BE0C91009C4849",
+      "size": 1332245
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
