@@ -1,7 +1,7 @@
 {
-  "version": "1.4.275",
-  "notes": "While a cleaning runs, the big glowing progress bar now also shows on the Maintenance progress page, bright green for Safe, bright blue for Medium and bright red for Advanced.",
-  "published": "2026-10-30T01:37:22.7696882-04:00",
+  "version": "1.4.276",
+  "notes": "The thin blue line in the left menu now sits higher up, right under the Please read first button.",
+  "published": "2026-10-30T01:39:46.9545223-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F3A3D90B1A9F9EB37EF065B3F31886C4DE10B7C06D4A525A9AEC7387FCD3195F",
-      "size": 1331032
+      "sha256": "9F317B715B9509BC96D4B4AB8600C0CDCCA0DAA55BE72F17E53E27C4CDE7EAB2",
+      "size": 1331033
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
