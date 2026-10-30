@@ -1,7 +1,7 @@
 {
-  "version": "1.4.279",
-  "notes": "The thin blue line in the left menu now stays a little above the bottom, so it never touches the Activate button.",
-  "published": "2026-10-30T01:50:26.4259324-04:00",
+  "version": "1.4.280",
+  "notes": "The Activate this product button is back at the bottom of the left menu, where it belongs.",
+  "published": "2026-10-30T01:52:58.9522162-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B6A77AF50A131E9D22A616AAA9B5DBBB790E3E1624E6B45C978956ADA5F3A17F",
+      "sha256": "DA3B9D9B72E82BA5312E2410D13BD56DEB1DEFF021F7E794B3976CCA6C3108D4",
       "size": 1331092
     },
     {
