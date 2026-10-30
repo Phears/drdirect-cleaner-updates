@@ -1,7 +1,7 @@
 {
-  "version": "1.4.307",
-  "notes": "Scrolling is now smooth, and the scroll bars on the pages have the same blue up and down arrow buttons as the left menu.",
-  "published": "2026-10-30T13:14:33.0791663-04:00",
+  "version": "1.4.308",
+  "notes": "The program list in the Uninstaller now has the same blue up and down arrow buttons as the Cleaner.",
+  "published": "2026-10-30T13:25:22.1528908-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "EFC1D47C772D4CDB68A5F014BF0D1B129520ACC3DD1271803172764B27F8AB1F",
-      "size": 10462778
+      "sha256": "DC7C4EEBECAFA208892F379629D788F2AFEDBF9603913221B26629CB494AFD24",
+      "size": 10465397
     }
   ],
   "blocked": [],
