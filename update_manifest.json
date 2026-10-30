@@ -1,7 +1,7 @@
 {
-  "version": "1.4.306",
-  "notes": "The down arrow at the bottom of the left menu scroll bar now stays visible, like the up arrow does.",
-  "published": "2026-10-30T13:09:11.3224938-04:00",
+  "version": "1.4.307",
+  "notes": "Scrolling is now smooth, and the scroll bars on the pages have the same blue up and down arrow buttons as the left menu.",
+  "published": "2026-10-30T13:14:33.0791663-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "1CB24417ABB87059ABA6C49D87BF174E80219FD998332ED90BFEBD86C0A678D7",
-      "size": 676116
+      "sha256": "0CF4B30495FF46B7E8342BDC5C792DB5953F94098DE5871EC2A2C4F9AC05EDDA",
+      "size": 684799
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

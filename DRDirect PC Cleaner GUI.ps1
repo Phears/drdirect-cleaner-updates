@@ -888,6 +888,63 @@ $ErrorActionPreference = 'Stop'
                 </Setter.Value>
             </Setter>
         </Style>
+    <!-- Every scroll bar on the pages gets the same up and down arrow buttons as the side menu (the side menu keeps its own dark one). -->
+    <Style TargetType="ScrollBar">
+        <Style.Triggers>
+            <Trigger Property="Orientation" Value="Vertical">
+                <Setter Property="Width" Value="22"/>
+                <Setter Property="MinWidth" Value="22"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ScrollBar">
+                            <Grid Background="#E1EAF8" SnapsToDevicePixels="True">
+                                <Grid.RowDefinitions><RowDefinition Height="22"/><RowDefinition Height="*"/><RowDefinition Height="22"/></Grid.RowDefinitions>
+                                <RepeatButton Grid.Row="0" Command="ScrollBar.LineUpCommand" Focusable="False" Cursor="Hand" ToolTip="Scroll up">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+                                            <Border Margin="1" CornerRadius="6" BorderBrush="#9CC4FF" BorderThickness="1">
+                                                <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#6FA8FF" Offset="0"/><GradientStop Color="#1F5FE0" Offset="1"/></LinearGradientBrush></Border.Background>
+                                                <Path Data="M0,5 L5,0 L10,5 Z" Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                                <Track x:Name="PART_Track" Grid.Row="1" IsDirectionReversed="True">
+                                    <Track.DecreaseRepeatButton>
+                                        <RepeatButton Command="ScrollBar.PageUpCommand" Focusable="False">
+                                            <RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></RepeatButton.Template>
+                                        </RepeatButton>
+                                    </Track.DecreaseRepeatButton>
+                                    <Track.Thumb>
+                                        <Thumb>
+                                            <Thumb.Template>
+                                                <ControlTemplate TargetType="Thumb"><Border Margin="6,2" CornerRadius="5" Background="#7FA3D9"/></ControlTemplate>
+                                            </Thumb.Template>
+                                        </Thumb>
+                                    </Track.Thumb>
+                                    <Track.IncreaseRepeatButton>
+                                        <RepeatButton Command="ScrollBar.PageDownCommand" Focusable="False">
+                                            <RepeatButton.Template><ControlTemplate TargetType="RepeatButton"><Border Background="Transparent"/></ControlTemplate></RepeatButton.Template>
+                                        </RepeatButton>
+                                    </Track.IncreaseRepeatButton>
+                                </Track>
+                                <RepeatButton Grid.Row="2" Command="ScrollBar.LineDownCommand" Focusable="False" Cursor="Hand" ToolTip="Scroll down">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+                                            <Border Margin="1" CornerRadius="6" BorderBrush="#9CC4FF" BorderThickness="1">
+                                                <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#6FA8FF" Offset="0"/><GradientStop Color="#1F5FE0" Offset="1"/></LinearGradientBrush></Border.Background>
+                                                <Path Data="M0,0 L5,5 L10,0 Z" Fill="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
     </Window.Resources>
 
     <Grid>
@@ -5227,6 +5284,86 @@ try {
     foreach ($listName in 'HardwareList', 'ProgressList') {
         $listBox = $window.FindName($listName)
         if ($listBox) { Add-DRScrollPills ([Windows.LogicalTreeHelper]::GetParent($listBox)) }
+    }
+} catch { }
+
+# Smooth scrolling: the mouse wheel and the arrow buttons glide to the new spot instead of jumping.
+$script:DRSmoothScrollCode = @'
+using System;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+namespace DRDirect {
+public static class SmoothScroll {
+    public static readonly DependencyProperty OffsetProperty = DependencyProperty.RegisterAttached("Offset", typeof(double), typeof(SmoothScroll), new PropertyMetadata(0.0, OnOffsetChanged));
+    public static double GetOffset(DependencyObject d) { return (double)d.GetValue(OffsetProperty); }
+    public static void SetOffset(DependencyObject d, double v) { d.SetValue(OffsetProperty, v); }
+    static void OnOffsetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+        ScrollViewer sv = d as ScrollViewer;
+        if (sv != null) sv.ScrollToVerticalOffset((double)e.NewValue);
+    }
+    class State { public double Target; public bool Active; }
+    static ScrollViewer OwnerOf(DependencyObject node) {
+        while (node != null) {
+            ScrollViewer found = node as ScrollViewer;
+            if (found != null) return found;
+            if (node is Visual || node is System.Windows.Media.Media3D.Visual3D) node = VisualTreeHelper.GetParent(node);
+            else node = LogicalTreeHelper.GetParent(node);
+        }
+        return null;
+    }
+    public static void Attach(ScrollViewer sv) {
+        State st = new State();
+        Action<double> go = delegate(double delta) {
+            double current = sv.VerticalOffset;
+            if (!st.Active) st.Target = current;
+            double target = Math.Max(0, Math.Min(sv.ScrollableHeight, st.Target + delta));
+            st.Target = target;
+            st.Active = true;
+            DoubleAnimation anim = new DoubleAnimation(current, target, TimeSpan.FromMilliseconds(260));
+            CubicEase ease = new CubicEase();
+            ease.EasingMode = EasingMode.EaseOut;
+            anim.EasingFunction = ease;
+            anim.Completed += delegate { st.Active = false; };
+            sv.BeginAnimation(OffsetProperty, anim);
+        };
+        sv.PreviewMouseWheel += delegate(object s, MouseWheelEventArgs e) {
+            if (sv.ScrollableHeight <= 0) return;
+            DependencyObject source = e.OriginalSource as DependencyObject;
+            ScrollViewer owner = OwnerOf(source);
+            if (owner != null && !object.ReferenceEquals(owner, sv)) return;
+            e.Handled = true;
+            go(-e.Delta * 0.9);
+        };
+        sv.AddHandler(CommandManager.PreviewExecutedEvent, new ExecutedRoutedEventHandler(delegate(object s, ExecutedRoutedEventArgs e) {
+            double amount;
+            if (e.Command == ScrollBar.LineUpCommand) amount = -70;
+            else if (e.Command == ScrollBar.LineDownCommand) amount = 70;
+            else if (e.Command == ScrollBar.PageUpCommand) amount = -sv.ViewportHeight * 0.85;
+            else if (e.Command == ScrollBar.PageDownCommand) amount = sv.ViewportHeight * 0.85;
+            else return;
+            e.Handled = true;
+            go(amount);
+        }));
+    }
+}
+}
+'@
+try {
+    if (-not ('DRDirect.SmoothScroll' -as [type])) {
+        Add-Type -ReferencedAssemblies 'PresentationFramework', 'PresentationCore', 'WindowsBase', 'System.Xaml' -TypeDefinition $script:DRSmoothScrollCode -ErrorAction Stop
+    }
+    $smoothScrollers = New-Object System.Collections.Generic.List[object]
+    foreach ($scrollerName in 'NavScroll', 'PageDashboard', 'PlanScroll') { $smoothScrollers.Add($window.FindName($scrollerName)) }
+    foreach ($listName in 'HardwareList', 'ProgressList', 'ConfirmList') {
+        $listBox = $window.FindName($listName)
+        if ($listBox) { $smoothScrollers.Add([Windows.LogicalTreeHelper]::GetParent($listBox)) }
+    }
+    foreach ($scroller in $smoothScrollers) {
+        if ($scroller -is [Windows.Controls.ScrollViewer]) { [DRDirect.SmoothScroll]::Attach($scroller) }
     }
 } catch { }
 # The plan list gets the same pills: one page up or down at a time
