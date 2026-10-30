@@ -1,7 +1,7 @@
 {
-  "version": "1.4.262",
-  "notes": "Fixed the Show fewer tools button: the little gears no longer cover the words.",
-  "published": "2026-10-30T00:23:31.6041774-04:00",
+  "version": "1.4.263",
+  "notes": "The Uninstaller shows the new home button on Back to the Cleaner again.",
+  "published": "2026-10-30T00:26:50.4361380-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "05762BD3D862EE0B9B43CB5D1AEDB2EFC55CEEC684D5A1581AC5F0A8C1725145",
-      "size": 10459051
+      "sha256": "AEC170CCAB0DC0AAA106BEC653E717C9E7CBF5583338F0128EA65873D3E2DBAE",
+      "size": 10460964
     }
   ],
   "blocked": [],
