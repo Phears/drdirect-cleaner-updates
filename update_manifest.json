@@ -1,7 +1,7 @@
 {
-  "version": "1.4.317",
-  "notes": "Two green arrows next to START HERE point to the How long to clean? button. You can click START HERE too.",
-  "published": "2026-10-30T19:11:45.4640533-04:00",
+  "version": "1.4.318",
+  "notes": "While a scan runs, the broom next to Clean my PC turns green for Safe, blue for Medium and red for Advanced.",
+  "published": "2026-10-30T19:42:41.7140842-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "C8412C9EDB64E6DDF6E413886EE1B1DE04BCBCD915EFCB5E83C17187A993DDDB",
-      "size": 1378320
+      "sha256": "90DA8142A7D9957BCD2E594F2102B9F40FA887B43EBF46FC97459E38FB1A5189",
+      "size": 1380142
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
