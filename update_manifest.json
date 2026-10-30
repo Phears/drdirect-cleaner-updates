@@ -1,7 +1,7 @@
 {
-  "version": "1.4.272",
-  "notes": "The progress bar in the bottom-left box is now bigger again, so it is very easy to see how far your cleaning has got.",
-  "published": "2026-10-30T01:26:38.4879931-04:00",
+  "version": "1.4.273",
+  "notes": "The progress bar in the bottom-left box is now much bigger, so you can see how far your cleaning has got from across the room.",
+  "published": "2026-10-30T01:28:07.3244134-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "1BEB44BB686473D8381A86D27211A851F9CB501FBC56F9FB3E92A088C3BC58F1",
+      "sha256": "C3F7A3D3DF8598DB888AB3F0A9D060166185996A39851DAADD962127DB091FA0",
       "size": 1329939
     },
     {
