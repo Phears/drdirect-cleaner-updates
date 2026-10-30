@@ -1,7 +1,7 @@
 {
-  "version": "1.4.291",
-  "notes": "On the Clean my PC button, the note (3 choices) is now a paler blue.",
-  "published": "2026-10-30T02:25:09.3420229-04:00",
+  "version": "1.4.292",
+  "notes": "The Switch off AI button now says (you choose what to keep), so you know you stay in control.",
+  "published": "2026-10-30T02:27:37.5229636-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "42FCFAF4887D1801C99AA217BD5B3C68F42B037257A963096B942EBD87E48176",
-      "size": 1332598
+      "sha256": "D4F01DD224DC8C0C667E0DAD61B639F9946C5512A6951FB5F5DDA32081C41AB7",
+      "size": 1332938
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
