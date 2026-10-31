@@ -1,7 +1,7 @@
 {
-  "version": "1.4.320",
-  "notes": "The how-long-to-clean times now take your drive into account (hard drive, SSD, NVMe SSD or eMMC) and say which one your PC has. Check my drives now also tests how fast each drive is, including drives in a dock.",
-  "published": "2026-10-31T19:49:47.8211901-04:00",
+  "version": "1.4.321",
+  "notes": "Check my drives now shows a drive in a USB dock as a docked drive, so it is clear the name is the dock and the drive inside is a hard drive.",
+  "published": "2026-10-31T19:55:13.1424117-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "B5FCE372206AADB38BAF6A90A43DF54EF69716E3A2674A740DFE0A8646ECEB84",
-      "size": 337652
+      "sha256": "2883ABBC83C56FE18EF8E436F166DF9168B44D89202924A39E853D993262E91D",
+      "size": 338034
     },
     {
       "name": "DRDirect Updater.ps1",

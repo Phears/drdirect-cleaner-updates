@@ -1232,8 +1232,10 @@ function Invoke-DRDriveHealth {
         $driveSerious = $false
         $lines = New-Object System.Collections.Generic.List[string]
         if ($sizeBytes) { $lines.Add(('Size: {0:N0} GB' -f ($sizeBytes / 1GB))) }
-        if ($media) { $lines.Add(('Type: {0}' -f $media)) }
         $bus = Get-DRDiskProperty $disk 'BusType'
+        # A USB drive is a dock or external case: Windows names the dock's bridge chip, not the drive inside.
+        if ($bus -eq 'USB') { $name = $name -replace '^(\S+:(?:, \S+:)*)\s+\((.*)\)$', '$1  (Docked drive - $2)'; if ($name -notmatch 'Docked drive') { $name = 'Docked drive  -  ' + $name } }
+        if ($media) { $lines.Add($(if ($bus -eq 'USB') { 'Type: {0} in a USB dock or case' -f $media } else { 'Type: {0}' -f $media })) }
         if ($bus) { $lines.Add(('Connection: {0}' -f $bus)) }
         # Speed test: one drive letter on this drive gets a short temporary file. Works for docked drives too.
         $testLetter = ([string]$letters -split ',' | ForEach-Object { $_.Trim().TrimEnd(':') } | Where-Object { $_ } | Select-Object -First 1)
