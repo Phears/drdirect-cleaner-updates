@@ -1,7 +1,7 @@
 {
-  "version": "1.4.319",
-  "notes": "The How long to clean button now says Test how long it takes to clean your PC, and is wider so the words fit.",
-  "published": "2026-10-31T19:35:07.9331988-04:00",
+  "version": "1.4.320",
+  "notes": "The how-long-to-clean times now take your drive into account (hard drive, SSD, NVMe SSD or eMMC) and say which one your PC has. Check my drives now also tests how fast each drive is, including drives in a dock.",
+  "published": "2026-10-31T19:49:47.8211901-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "DA92C0E21D2CB104E8E65AA9F3AB4035F19598E38E79471C4A5F637224098ACC",
-      "size": 1372830
+      "sha256": "CDDCEC609701C7A7E09B8A6E438BD6B9277BA45C67B642B237BC7A1A5CFCE691",
+      "size": 1374081
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "98BA14A56476EF3686A35D770B59AE58C5D0EDB59D0971CDD7362725582A818B",
-      "size": 335133
+      "sha256": "B5FCE372206AADB38BAF6A90A43DF54EF69716E3A2674A740DFE0A8646ECEB84",
+      "size": 337652
     },
     {
       "name": "DRDirect Updater.ps1",

@@ -1176,6 +1176,33 @@ function Get-DRWindowsHealth {
     [pscustomobject]@{ TaskId = $null; State = $null; HealthCheck = $true; Problems = @($problems); PhpAlarm = $phpAlarm }
 }
 
+function Get-DRDriveWriteSpeed {
+    # About 1.5 seconds of writing to one temporary file at the top of a drive, then that one file is
+    # deleted. Returns MB per second, or $null when the drive cannot be written to or is too full.
+    param([string]$Letter)
+    if ($Letter -notmatch '^[A-Za-z]$') { return $null }
+    $root = '{0}:\' -f $Letter.ToUpperInvariant()
+    $file = Join-Path $root ('DRDirect-speedtest-{0}.tmp' -f $PID)
+    try {
+        $info = New-Object IO.DriveInfo($root)
+        if (-not $info.IsReady -or $info.AvailableFreeSpace -lt 1GB) { return $null }
+        $block = New-Object byte[] (4MB)
+        (New-Object Random).NextBytes($block)
+        $watch = [Diagnostics.Stopwatch]::StartNew()
+        $written = 0
+        $fs = New-Object IO.FileStream($file, [IO.FileMode]::Create, [IO.FileAccess]::Write, [IO.FileShare]::None, [int]4MB, [IO.FileOptions]::WriteThrough)
+        try {
+            while ($watch.Elapsed.TotalSeconds -lt 1.5 -and $written -lt 256MB) { $fs.Write($block, 0, $block.Length); $written += $block.Length }
+            $fs.Flush($true)
+        } finally { $fs.Dispose() }
+        return [int](($written / 1MB) / [Math]::Max(0.05, $watch.Elapsed.TotalSeconds))
+    } catch { return $null }
+    finally {
+        # Only the exact file made above is removed, and only when it sits directly in the drive's top folder.
+        try { if ([IO.Path]::GetDirectoryName($file) -eq $root -and (Split-Path -Leaf $file) -like 'DRDirect-speedtest-*.tmp') { [IO.File]::Delete($file) } } catch { }
+    }
+}
+
 function Invoke-DRDriveHealth {
     param([string]$TaskId, [string]$TestRoot)
     # This check only reads, so it runs for real even in test mode.
@@ -1208,6 +1235,19 @@ function Invoke-DRDriveHealth {
         if ($media) { $lines.Add(('Type: {0}' -f $media)) }
         $bus = Get-DRDiskProperty $disk 'BusType'
         if ($bus) { $lines.Add(('Connection: {0}' -f $bus)) }
+        # Speed test: one drive letter on this drive gets a short temporary file. Works for docked drives too.
+        $testLetter = ([string]$letters -split ',' | ForEach-Object { $_.Trim().TrimEnd(':') } | Where-Object { $_ } | Select-Object -First 1)
+        if ($testLetter) {
+            $speed = Get-DRDriveWriteSpeed -Letter $testLetter
+            if ($null -ne $speed) {
+                $kind = if ($speed -ge 800) { 'NVMe SSD speed' } elseif ($speed -ge 250) { 'SSD speed' } elseif ($speed -ge 80) { 'normal hard drive speed' } else { 'slow (old hard drive, eMMC or USB)' }
+                $lines.Add(('Speed test: about {0:N0} MB/s writing ({1}).' -f $speed, $kind))
+            } else {
+                $lines.Add(('Speed test: not possible on {0}: (full, locked or read-only).' -f $testLetter))
+            }
+        } else {
+            $lines.Add('Speed test: this drive has no drive letter, so it was skipped.')
+        }
         # A RAID set gets its own labelled box. Windows sees only the controller's combined drive, so the
         # real disks behind it are checked with the RAID controller's own program, not here.
         if ($bus -eq 'RAID') {

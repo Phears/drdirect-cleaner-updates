@@ -2878,9 +2878,29 @@ function Get-DRPcSpeedFactor {
             $fs.Flush($true)
         } finally { $fs.Dispose() }
         $mbps = ($written / 1MB) / [Math]::Max(0.05, $watch.Elapsed.TotalSeconds)
-        if ($mbps -ge 800) { return 0.6 } elseif ($mbps -ge 250) { return 0.85 } elseif ($mbps -ge 80) { return 1.2 } else { return 2.0 }
+        $factor = if ($mbps -ge 800) { 0.6 } elseif ($mbps -ge 250) { 0.85 } elseif ($mbps -ge 80) { 1.2 } else { 2.0 }
+        # The kind of drive sets a floor: a spinning hard drive or eMMC is never guessed as fast as an SSD.
+        $floor = switch (Get-DRSystemDriveType) { 'HDD' { 2.0 } 'eMMC' { 1.5 } 'SSD' { 0.85 } 'NVMe SSD' { 0.6 } default { 0.0 } }
+        return [Math]::Max($factor, $floor)
     } catch { return 1.0 }
     finally { try { [IO.File]::Delete($file) } catch { } }
+}
+
+function Get-DRSystemDriveType {
+    # What kind of drive Windows is on: NVMe SSD, SSD, eMMC or HDD. Read only; $null when Windows will not say.
+    try {
+        $letter = ([string]$env:SystemDrive).TrimEnd(':')
+        $disk = Get-Partition -DriveLetter $letter -ErrorAction Stop | Get-Disk -ErrorAction Stop | Select-Object -First 1
+        $physical = Get-PhysicalDisk -ErrorAction Stop | Where-Object { [string]$_.DeviceId -eq [string]$disk.Number } | Select-Object -First 1
+        if (-not $physical) { return $null }
+        $bus = [string]$physical.BusType
+        $media = [string]$physical.MediaType
+        if ($bus -eq 'NVMe') { return 'NVMe SSD' }
+        if ($bus -in @('SD','MMC','SDIO')) { return 'eMMC' }
+        if ($media -eq 'HDD') { return 'HDD' }
+        if ($media -eq 'SSD') { return 'SSD' }
+    } catch { }
+    return $null
 }
 
 function Format-DRApproxTime {
@@ -2944,6 +2964,8 @@ function Set-DRLevelDates {
         $ui["Preset${level}Date"].Text = if (-not $when) { 'Not done yet' } else { 'Done ' + $when.ToString('dddd d MMMM') }
         if ((Get-Variable -Name DRLevelEstimate -Scope Script -ErrorAction SilentlyContinue) -and $script:DRLevelEstimate) {
             $ui["Preset${level}Date"].Text += "`n" + [char]0x23F1 + ' About ' + (Format-DRApproxTime -Seconds $script:DRLevelEstimate[$level])
+            $driveType = Get-DRSystemDriveType
+            if ($driveType) { $ui["Preset${level}Date"].Text += ' on ' + $driveType }
             $ui["Preset${level}Date"].TextAlignment = 'Center'
         }
     }
