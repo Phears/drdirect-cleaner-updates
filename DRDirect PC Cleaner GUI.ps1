@@ -3215,7 +3215,14 @@ function New-DRResultCard {
     else { $fill = '#F3F6FB'; $edge = '#D9E1EE'; $ink = '#344054'; $mark = '' }
     $box = New-Object Windows.Controls.Border -Property @{ Background=$fill; BorderBrush=$edge; BorderThickness='1'; CornerRadius='10'; Padding='16,12'; Margin='0,10,0,0' }
     $stack = New-Object Windows.Controls.StackPanel
-    $title = New-Object Windows.Controls.TextBlock -Property @{ Text=($mark + $head); Foreground=$ink; FontSize=$(if ($good -or $bad) { 17 } else { 14 }); FontWeight='SemiBold'; TextWrapping='Wrap' }
+    $title = New-Object Windows.Controls.TextBlock -Property @{ Foreground=$ink; FontSize=$(if ($good -or $bad) { 17 } else { 14 }); FontWeight='SemiBold'; TextWrapping='Wrap' }
+    if ($head -match '^(\S+:\s+)(\(.*\))(:\s.*)$') {
+        # A drive's card: the drive and its size, in brackets, stand out in blue.
+        $blue = [Windows.Media.SolidColorBrush]::new([Windows.Media.ColorConverter]::ConvertFromString('#0057D9'))
+        [void]$title.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text=($mark + $Matches[1]) }))
+        [void]$title.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text=$Matches[2]; Foreground=$blue }))
+        [void]$title.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text=$Matches[3] }))
+    } else { $title.Text = ($mark + $head) }
     [void]$stack.Children.Add($title)
     if ($body) {
         [void]$stack.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$body; Foreground='#475467'; FontSize=13; TextWrapping='Wrap'; Margin='0,6,0,0'; LineHeight=20 }))

@@ -1,7 +1,7 @@
 {
-  "version": "1.4.330",
-  "notes": "Check my drives now shows NVMe drives as fully as hard drives: how long they have run, how many times they were switched on, how much was written and read, and power cuts.",
-  "published": "2026-10-31T20:28:10.4969540-04:00",
+  "version": "1.4.331",
+  "notes": "On Check my drives, each drive's name and size now stand out in blue at the top of its card.",
+  "published": "2026-10-31T20:31:21.5032215-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "4FE0CC30538131D0AB07EE2942448C38E92D9F426F7D2CB4B4FB476CC627C863",
-      "size": 1374087
+      "sha256": "14BF25FF61BD60DB227367FEA04F39FE5B999A10A2492AA00D55ECC23C39E572",
+      "size": 1374691
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
