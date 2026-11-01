@@ -1,7 +1,7 @@
 {
-  "version": "1.4.354",
-  "notes": "The SAFE SCAN, MEDIUM SCAN and ADVANCED SCAN badge in the plan review is wider.",
-  "published": "2026-10-31T21:35:55.3931150-04:00",
+  "version": "1.4.355",
+  "notes": "The SAFE, MEDIUM or ADVANCED SCAN badge in the plan review now shows how long it will take on your PC.",
+  "published": "2026-10-31T21:37:30.5171608-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "A728A433F75DA804EC7C3842872D6EE02103109983D58527A59E8A9E8D6A7667",
-      "size": 1380148
+      "sha256": "DF0A589520632720120FB08C8A69220C367F2D6F9675CFB9BD21A99A1D95CFF4",
+      "size": 1381577
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

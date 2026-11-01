@@ -3062,7 +3062,21 @@ function Show-Confirmation {
                 if ($levelIds.Count -and (@($levelIds) -join '|') -eq ($chosenIds -join '|')) {
                     $top = switch ($lv) { 'Safe' { '#7BE8A8' } 'Medium' { '#4FC3FF' } default { '#FF8A80' } }
                     $bottom = switch ($lv) { 'Safe' { '#1FA860' } 'Medium' { '#1E6FE8' } default { '#D32020' } }
-                    $ui.ConfirmLevelBadge.Content = $lv.ToUpperInvariant() + ' SCAN'
+                    # The time sits under the name, as on the three level buttons: "About 14 min on NVMe SSD".
+                    $estimateLine = $null
+                    try {
+                        $have = Get-Variable -Name DRLevelEstimate -Scope Script -ErrorAction SilentlyContinue
+                        if (-not ($have -and $script:DRLevelEstimate)) { [void](Update-DRLevelEstimates) }
+                        if ($script:DRLevelEstimate -and $script:DRLevelEstimate.ContainsKey($lv)) {
+                            $estimateLine = [string][char]0x23F1 + ' About ' + (Format-DRApproxTime -Seconds $script:DRLevelEstimate[$lv])
+                            $kind = Get-DRSystemDriveType
+                            if ($kind) { $estimateLine += ' on ' + $kind }
+                        }
+                    } catch { $estimateLine = $null }
+                    $badgeText = New-Object Windows.Controls.StackPanel
+                    [void]$badgeText.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = ($lv.ToUpperInvariant() + ' SCAN'); Foreground = [Windows.Media.Brushes]::White; HorizontalAlignment = 'Center' }))
+                    if ($estimateLine) { [void]$badgeText.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = $estimateLine; Foreground = [Windows.Media.Brushes]::White; FontSize = 14; FontWeight = 'SemiBold'; HorizontalAlignment = 'Center'; Margin = '0,2,0,0' })) }
+                    $ui.ConfirmLevelBadge.Content = $badgeText
                     $ui.ConfirmLevelBadge.Background = New-Object Windows.Media.LinearGradientBrush ([Windows.Media.ColorConverter]::ConvertFromString($top)), ([Windows.Media.ColorConverter]::ConvertFromString($bottom)), 90
                     $ui.ConfirmLevelBadge.Visibility = 'Visible'
                     break
@@ -7140,7 +7154,7 @@ if ($NoShow) {
     foreach ($lv in 'Safe','Medium','Advanced') {
         Apply-CleanupPreset -Preset $lv
         Show-Confirmation
-        if ($ui.ConfirmLevelBadge.Visibility -ne 'Visible' -or [string]$ui.ConfirmLevelBadge.Content -ne ($lv.ToUpperInvariant() + ' SCAN')) { throw "GUI smoke test: the plan review badge did not show $lv SCAN." }
+        if ($ui.ConfirmLevelBadge.Visibility -ne 'Visible' -or [string]$ui.ConfirmLevelBadge.Content.Children[0].Text -ne ($lv.ToUpperInvariant() + ' SCAN')) { throw "GUI smoke test: the plan review badge did not show $lv SCAN." }
         $ui.ConfirmOverlay.Visibility = 'Collapsed'
     }
     Set-Page 'AI'
