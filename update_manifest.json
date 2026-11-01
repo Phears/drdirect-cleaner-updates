@@ -1,7 +1,7 @@
 {
-  "version": "1.4.364",
-  "notes": "Small tidy-up: a hidden support control no longer shows on your screen.",
-  "published": "2026-11-01T09:11:59.1486965-05:00",
+  "version": "1.4.365",
+  "notes": "Small tidy-up to a hidden support control.",
+  "published": "2026-11-01T09:26:54.3484619-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B69DFF5600BAB26369A1AD549D162B509B64A6AC87F4D23FC9DBE72FF4D12B3D",
-      "size": 1407523
+      "sha256": "C357545EA6482EDC9F2DB2129D3CB2ECAF02ED41EB135CC8D1FD0DADD693B2D4",
+      "size": 1408695
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

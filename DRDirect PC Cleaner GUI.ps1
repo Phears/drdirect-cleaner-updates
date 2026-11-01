@@ -1080,7 +1080,7 @@ $ErrorActionPreference = 'Stop'
 
         <Grid Grid.Column="1" Margin="34,26,34,28">
             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
-            <Grid Grid.Row="0" Margin="0,0,0,20"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal"><StackPanel><TextBlock x:Name="PageEyebrow" Text="THIS PC" Style="{StaticResource MutedText}" FontSize="11" FontWeight="SemiBold"/><TextBlock x:Name="PageTitle" Text="Dashboard" Style="{StaticResource TitleText}"/></StackPanel><Border x:Name="AISearchBox" Visibility="Collapsed" Width="300" Height="40" CornerRadius="20" Background="White" BorderBrush="#7C3AED" BorderThickness="2" Margin="28,8,0,0" VerticalAlignment="Center"><Grid><TextBlock Text="🔍" FontSize="14" Margin="14,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#7C3AED"/><TextBlock x:Name="AISearchHint" Text="Search AI items (Copilot, Edge...)" Margin="40,0,12,0" VerticalAlignment="Center" Foreground="#98A2B3" FontSize="13" IsHitTestVisible="False"/><TextBox x:Name="AISearchText" Background="Transparent" BorderThickness="0" Margin="38,0,12,0" VerticalContentAlignment="Center" FontSize="13" Foreground="#101828"/></Grid></Border><Border x:Name="DiskWarning" Visibility="Collapsed" Cursor="Hand" MinWidth="560" CornerRadius="24" Background="#FFF1F2" BorderThickness="3" Padding="20,10" Margin="28,6,0,0" VerticalAlignment="Center"><Border.BorderBrush><SolidColorBrush Color="#E5384A"/></Border.BorderBrush><Border.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><ColorAnimation Storyboard.TargetProperty="BorderBrush.Color" From="#E5384A" To="#1E90FF" Duration="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Border.Triggers><StackPanel Orientation="Horizontal"><Ellipse Width="28" Height="28" Fill="#E5384A" Stroke="White" StrokeThickness="3" Margin="0,0,8,0" VerticalAlignment="Center"><Ellipse.Effect><DropShadowEffect ShadowDepth="0" BlurRadius="20" Opacity="0.9" Color="#E5384A"/></Ellipse.Effect><Ellipse.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.05" Duration="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers></Ellipse><Ellipse Width="28" Height="28" Fill="#1E90FF" Stroke="White" StrokeThickness="3" Margin="0" VerticalAlignment="Center"><Ellipse.Effect><DropShadowEffect ShadowDepth="0" BlurRadius="20" Opacity="0.9" Color="#1E90FF"/></Ellipse.Effect><Ellipse.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.05" To="1" Duration="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers></Ellipse><StackPanel VerticalAlignment="Center" Margin="16,0,0,0"><TextBlock x:Name="DiskWarningTitle" FontSize="20" FontWeight="ExtraBold" Foreground="#B42318"/></StackPanel><TextBlock x:Name="DiskWarningMore" Text="More info - click here" FontSize="16" FontWeight="SemiBold" Foreground="#1E5BD8" TextDecorations="Underline" Cursor="Hand" VerticalAlignment="Center" Margin="22,0,0,0"/></StackPanel></Border></StackPanel><Border Grid.Column="1" CornerRadius="16" Background="#E7F6EF" Padding="12,7" VerticalAlignment="Center"><TextBlock Text="●  Protected mode" Foreground="{StaticResource Success}" FontSize="12"/></Border></Grid>
+            <Grid Grid.Row="0" Margin="0,0,0,20"><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal"><StackPanel><TextBlock x:Name="PageEyebrow" Text="THIS PC" Style="{StaticResource MutedText}" FontSize="11" FontWeight="SemiBold"/><TextBlock x:Name="PageTitle" Text="Dashboard" Style="{StaticResource TitleText}"/></StackPanel><Border x:Name="AISearchBox" Visibility="Collapsed" Width="300" Height="40" CornerRadius="20" Background="White" BorderBrush="#7C3AED" BorderThickness="2" Margin="28,8,0,0" VerticalAlignment="Center"><Grid><TextBlock Text="🔍" FontSize="14" Margin="14,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="#7C3AED"/><TextBlock x:Name="AISearchHint" Text="Search AI items (Copilot, Edge...)" Margin="40,0,12,0" VerticalAlignment="Center" Foreground="#98A2B3" FontSize="13" IsHitTestVisible="False"/><TextBox x:Name="AISearchText" Background="Transparent" BorderThickness="0" Margin="38,0,12,0" VerticalContentAlignment="Center" FontSize="13" Foreground="#101828"/></Grid></Border><Border x:Name="DiskWarning" Visibility="Collapsed" Cursor="Hand" MinWidth="560" CornerRadius="24" Background="#FFF1F2" BorderThickness="3" Padding="20,10" Margin="28,6,0,0" VerticalAlignment="Center"><Border.BorderBrush><SolidColorBrush Color="#E5384A"/></Border.BorderBrush><Border.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><ColorAnimation Storyboard.TargetProperty="BorderBrush.Color" From="#E5384A" To="#1E90FF" Duration="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Border.Triggers><StackPanel Orientation="Horizontal"><Ellipse Width="28" Height="28" Fill="#E5384A" Stroke="White" StrokeThickness="3" Margin="0,0,8,0" VerticalAlignment="Center"><Ellipse.Effect><DropShadowEffect ShadowDepth="0" BlurRadius="20" Opacity="0.9" Color="#E5384A"/></Ellipse.Effect><Ellipse.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><DoubleAnimation Storyboard.TargetProperty="Opacity" From="1" To="0.05" Duration="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers></Ellipse><Ellipse Width="28" Height="28" Fill="#1E90FF" Stroke="White" StrokeThickness="3" Margin="0" VerticalAlignment="Center"><Ellipse.Effect><DropShadowEffect ShadowDepth="0" BlurRadius="20" Opacity="0.9" Color="#1E90FF"/></Ellipse.Effect><Ellipse.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever" AutoReverse="True"><DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.05" To="1" Duration="0:0:0.35"/></Storyboard></BeginStoryboard></EventTrigger></Ellipse.Triggers></Ellipse><StackPanel VerticalAlignment="Center" Margin="16,0,0,0"><TextBlock x:Name="DiskWarningTitle" FontSize="20" FontWeight="ExtraBold" Foreground="#B42318"/></StackPanel><TextBlock x:Name="DiskWarningMore" Text="More info - click here" FontSize="16" FontWeight="SemiBold" Foreground="#1E5BD8" TextDecorations="Underline" Cursor="Hand" VerticalAlignment="Center" Margin="22,0,0,0"/></StackPanel></Border></StackPanel><Border x:Name="ProtectedPill" Grid.Column="1" CornerRadius="16" Background="#E7F6EF" Padding="12,7" VerticalAlignment="Center"><TextBlock Text="●  Protected mode" Foreground="{StaticResource Success}" FontSize="12"/></Border></Grid>
 
             <Grid Grid.Row="1">
                 <ScrollViewer x:Name="PageDashboard" VerticalScrollBarVisibility="Auto"><StackPanel>
@@ -6305,8 +6305,9 @@ function Show-DROwnerMenu {
     [void]$menu.ShowDialog()
 }
 function Invoke-DROwnerEntry {
+    param([switch]$InPerson)
     # Customers clicking the bar or the version text get nothing; it opens only for the owner.
-    if (-not ($script:DROwnerPcHere -or (Test-DRRemoteHelpSession))) { return }
+    if (-not ($InPerson -or $script:DROwnerPcHere -or (Test-DRRemoteHelpSession))) { return }
     $typed = Read-DRResetPassword
     if ($null -eq $typed) { return }
     if (-not (Test-DRResetPassword $typed)) {
@@ -6314,6 +6315,22 @@ function Invoke-DROwnerEntry {
         return
     }
     Show-DROwnerMenu
+}
+# In person at a customer's PC: triple-click "Protected mode", then double-click a DR logo (top-left of the window or sidebar) within 15 seconds.
+$script:DROwnerArmedAt = [datetime]::MinValue
+$ui.ProtectedPill.Add_PreviewMouseLeftButtonDown({
+    param($sender, $e)
+    if ($e.ClickCount -eq 3) { $script:DROwnerArmedAt = Get-Date }
+})
+foreach ($ownerLogo in @($ui.SidebarLogo, $ui.TitleLogo)) {
+    $ownerLogo.Add_PreviewMouseLeftButtonDown({
+        param($sender, $e)
+        if ($e.ClickCount -ne 2) { return }
+        if (((Get-Date) - $script:DROwnerArmedAt).TotalSeconds -gt 15) { return }
+        $script:DROwnerArmedAt = [datetime]::MinValue
+        $e.Handled = $true
+        Invoke-DROwnerEntry -InPerson
+    })
 }
 # Anywhere else: clicking the version text five times in a row opens the password box.
 $script:DROwnerClicks = 0
@@ -6324,7 +6341,10 @@ $ui.VersionText.Add_MouseLeftButtonUp({
     $script:DROwnerClicks++
     if ($script:DROwnerClicks -lt 5) { return }
     $script:DROwnerClicks = 0
-    Invoke-DROwnerEntry
+    # In person at a customer's PC: hold Ctrl+Shift+Alt on the fifth click. The password is still asked.
+    $held = [Windows.Input.Keyboard]::Modifiers
+    $need = [Windows.Input.ModifierKeys]::Control -bor [Windows.Input.ModifierKeys]::Shift -bor [Windows.Input.ModifierKeys]::Alt
+    if (($held -band $need) -eq $need) { Invoke-DROwnerEntry -InPerson } else { Invoke-DROwnerEntry }
 })
 # The blue strip shows only on the owner's own PCs (matched by hashed PC ID, never the ID itself); everywhere else the five clicks are the way in.
 $script:DROwnerPcHashes = @('5CA7C38401F6CC2DB76FC1AA3C26895A2E789A7421CB495C7169FC37E0BC2709', '97E60D52D0832D37D20CA488269FB7470875FB4167859A78D4243C245666B2CB')
