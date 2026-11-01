@@ -1,7 +1,7 @@
 {
-  "version": "1.4.353",
-  "notes": "The green Make my PC cleaner button opens the Safe plan review again, with the SAFE SCAN badge, instead of jumping to the Clean my PC page.",
-  "published": "2026-10-31T21:33:58.5091858-04:00",
+  "version": "1.4.354",
+  "notes": "The SAFE SCAN, MEDIUM SCAN and ADVANCED SCAN badge in the plan review is wider.",
+  "published": "2026-10-31T21:35:55.3931150-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F3DCEC00E2ACB7B1822A66927FB9460F5C47B70CE905C2408F89C4F52F3AE315",
+      "sha256": "A728A433F75DA804EC7C3842872D6EE02103109983D58527A59E8A9E8D6A7667",
       "size": 1380148
     },
     {
