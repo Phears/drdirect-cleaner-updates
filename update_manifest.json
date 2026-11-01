@@ -1,7 +1,7 @@
 {
-  "version": "1.4.383",
-  "notes": "A small Read me button on the main window, a cleaner main window, and a sturdier update check.",
-  "published": "2026-11-01T12:55:00.6156214-05:00",
+  "version": "1.4.384",
+  "notes": "The Read me note now includes the short safety reminders.",
+  "published": "2026-11-01T12:57:48.2468685-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "359313C9A104BC310AAFCECA3A317DA815E823E85B01D9D0D048A39553F4B64E",
-      "size": 1429911
+      "sha256": "86ED858F6851274C50F2EB6C82A4CCAAA2C11C13A3296F139820764B7313DF46",
+      "size": 1430120
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

@@ -6391,6 +6391,10 @@ function Show-DRNote {
         '',
         'A kind and respectful request: if possible, please write down the e-mail address and password you use for every website or service you sign up with, and keep them in a safe place. Recovering a lost account is not always possible. This is important. Thank you.',
         '',
+        'Settings changes can be undone.',
+        'Files and passwords stay safe unless you tick them.',
+        'Read each item first. DRDirect is not responsible for what you tick unread.',
+        '',
         '- DRDirect'
     ) -join [Environment]::NewLine
     # A plain message box draws emoji in white, so the thumbs up is a coloured Segoe icon glyph in our own small window.
