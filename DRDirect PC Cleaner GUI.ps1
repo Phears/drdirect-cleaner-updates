@@ -1087,7 +1087,7 @@ $ErrorActionPreference = 'Stop'
 <Border x:Name="UpdateBanner" Visibility="Collapsed" Background="#12C25B" CornerRadius="12" Padding="20,14" Margin="0,0,0,16"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal" VerticalAlignment="Center"><TextBlock Text="&#10004;" Foreground="White" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" Margin="0,0,12,0"/><TextBlock x:Name="UpdateBannerText" Text="There is a new update" Foreground="White" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" TextWrapping="Wrap"/></StackPanel><Button x:Name="UpdateBannerButton" Grid.Column="1" Content="See what is new and update" Style="{StaticResource HeroButton}" Foreground="#0B7A3B" Margin="16,0,0,0"/></Grid></Border>
 <Border Style="{StaticResource Card}" Effect="{DynamicResource DR3DShadow}" Padding="34" Margin="0,0,0,18" Background="{StaticResource HeroBrush}" BorderBrush="#2447B8"><Grid><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Border Grid.RowSpan="2" Margin="-34" CornerRadius="14" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}" BorderThickness="3,3,3,9" BorderBrush="#99FFFFFF"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#66FFFFFF" Offset="0"/><GradientStop Color="#14FFFFFF" Offset="0.30"/><GradientStop Color="#00000000" Offset="0.55"/><GradientStop Color="#99000820" Offset="1"/></LinearGradientBrush></Border.Background></Border><Grid Grid.Row="0" Panel.ZIndex="5" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,-14,0,0"><Button x:Name="EstimateTimeButton" Style="{StaticResource HeroGreenButton}" Height="62" MinWidth="520" Cursor="Hand" ToolTip="Shows about how long a Safe, Medium and Advanced scan would take on this PC"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFF27A" Offset="0"/><GradientStop Color="#F5B400" Offset="1"/></LinearGradientBrush></Button.Background></Button><StackPanel IsHitTestVisible="False" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,0,6"><TextBlock Text="&#x23F1; Check here first!  Every time, to see how long it takes" Foreground="#2B1A00" FontSize="15" FontWeight="ExtraBold" HorizontalAlignment="Center"/><TextBlock Text="to clean up your PC  &#x2192;  3 Choices." Foreground="#2B1A00" FontSize="13" Margin="0,2,0,0" FontWeight="SemiBold" HorizontalAlignment="Center"/></StackPanel></Grid><StackPanel HorizontalAlignment="Center" Margin="0,56,0,0"><StackPanel x:Name="StartHereRow" Orientation="Horizontal" HorizontalAlignment="Center" Background="Transparent" Cursor="Hand" ToolTip="Click to see how long each scan takes on this PC"><StackPanel.RenderTransform><TranslateTransform/></StackPanel.RenderTransform><StackPanel.Triggers><EventTrigger RoutedEvent="Loaded"><BeginStoryboard><Storyboard RepeatBehavior="Forever"><DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"><EasingDoubleKeyFrame KeyTime="0:0:0" Value="0"/><EasingDoubleKeyFrame KeyTime="0:0:0.35" Value="-7"><EasingDoubleKeyFrame.EasingFunction><QuadraticEase EasingMode="EaseOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame><EasingDoubleKeyFrame KeyTime="0:0:0.8" Value="0"><EasingDoubleKeyFrame.EasingFunction><BounceEase Bounces="2" Bounciness="3" EasingMode="EaseOut"/></EasingDoubleKeyFrame.EasingFunction></EasingDoubleKeyFrame><EasingDoubleKeyFrame KeyTime="0:0:1.6" Value="0"/></DoubleAnimationUsingKeyFrames></Storyboard></BeginStoryboard></EventTrigger></StackPanel.Triggers><TextBlock Text="&#x25B2;" FontFamily="Segoe UI Symbol" Foreground="#19E36B" FontSize="24" FontWeight="ExtraBold" VerticalAlignment="Center" Margin="0,0,10,0"><TextBlock.Effect><DropShadowEffect Color="#003A12" ShadowDepth="2" BlurRadius="3"/></TextBlock.Effect></TextBlock><TextBlock Text="START HERE" Effect="{DynamicResource DR3DHeroText}" VerticalAlignment="Center" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold"/><TextBlock Text="&#x25B2;" FontFamily="Segoe UI Symbol" Foreground="#19E36B" FontSize="24" FontWeight="ExtraBold" VerticalAlignment="Center" Margin="10,0,0,0"><TextBlock.Effect><DropShadowEffect Color="#003A12" ShadowDepth="2" BlurRadius="3"/></TextBlock.Effect></TextBlock></StackPanel><Grid HorizontalAlignment="Center" Margin="0,8,6,14"><TextBlock Text="Make my PC cleaner" Foreground="#0A1D78" FontSize="32" FontWeight="ExtraBold" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"><TextBlock.RenderTransform><TranslateTransform X="6" Y="6"/></TextBlock.RenderTransform><TextBlock.Effect><BlurEffect Radius="4"/></TextBlock.Effect></TextBlock><TextBlock Text="Make my PC cleaner" Foreground="#0A1D78" FontSize="32" FontWeight="ExtraBold" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"><TextBlock.RenderTransform><TranslateTransform X="4" Y="4"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="Make my PC cleaner" Foreground="#1A35A8" FontSize="32" FontWeight="ExtraBold" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"><TextBlock.RenderTransform><TranslateTransform X="3" Y="3"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="Make my PC cleaner" Foreground="#2447B8" FontSize="32" FontWeight="ExtraBold" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"><TextBlock.RenderTransform><TranslateTransform X="2" Y="2"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="Make my PC cleaner" Foreground="#3A5FD0" FontSize="32" FontWeight="ExtraBold" IsHitTestVisible="False" Visibility="{DynamicResource DR3DParts}"><TextBlock.RenderTransform><TranslateTransform X="1" Y="1"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="Make my PC cleaner" FontSize="32" FontWeight="ExtraBold"><TextBlock.Foreground><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#F4F8FF" Offset="0.48"/><GradientStop Color="#BFD4FF" Offset="0.52"/><GradientStop Color="#FFFFFF" Offset="1"/></LinearGradientBrush></TextBlock.Foreground></TextBlock></Grid><TextBlock Text="One click. We only do the safe things, and we ask you before anything starts." Effect="{DynamicResource DR3DHeroText}" Foreground="#C9D9FF" FontSize="16" TextWrapping="Wrap" MaxWidth="560" HorizontalAlignment="Center" TextAlignment="Center"/><WrapPanel Orientation="Horizontal" Margin="0,24,0,0" HorizontalAlignment="Center"><Button x:Name="SafeCleanButton" Content="Make my PC cleaner" Style="{StaticResource HeroGreenButton}" FontSize="15" FontWeight="Bold" Padding="20,9" Margin="0,0,10,10"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#5BE584" Offset="0"/><GradientStop Color="#13A64A" Offset="1"/></LinearGradientBrush></Button.Background></Button><Button x:Name="SafePreviewButton" Content="Show me first" Style="{StaticResource HeroGreenButton}" Padding="18,9" Margin="0,0,10,10"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#0E5A2D" Offset="0"/><GradientStop Color="#02240F" Offset="1"/></LinearGradientBrush></Button.Background></Button><Button x:Name="HeroUninstallButton" Style="{StaticResource HeroGreenButton}" Margin="0,0,10,10" ToolTip="Open the DRDirect Uninstaller Program to remove programs you no longer want"><StackPanel Orientation="Horizontal"><TextBlock Text="⌫" FontSize="14" Foreground="White" Margin="0,0,8,0" VerticalAlignment="Center"/><TextBlock Text="DRDirect Uninstaller Program" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/></StackPanel></Button></WrapPanel><TextBlock Text="✓  Settings changes can be undone.   ✓  Your files and passwords are never touched." Effect="{DynamicResource DR3DHeroText}" Foreground="White" FontSize="13.5" FontWeight="SemiBold" Margin="0,20,0,0" TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center"/></StackPanel><Grid Grid.Row="1"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,10,12,0"><CheckBox x:Name="SoundSwitch" Style="{StaticResource DRSwitch}" Effect="{DynamicResource DR3DHeroText}" Content="Sound" Margin="0,0,14,0" VerticalAlignment="Center" ToolTip="Sounds: a soft chime when a clean finishes, and a small tick when you point at a button"/><CheckBox x:Name="Buttons3DSwitch" Style="{StaticResource DRSwitch}" Effect="{DynamicResource DR3DHeroText}" Content="3D look" Margin="0,0,14,0" VerticalAlignment="Center" ToolTip="Turn the raised 3D look of the Cleaner on or off"/><CheckBox x:Name="Max3DSwitch" Style="{StaticResource DRSwitch}" Effect="{DynamicResource DR3DHeroText}" Content="Max 3D" Margin="0,0,14,0" VerticalAlignment="Center" ToolTip="Even deeper 3D: bigger shadows and thicker raised edges. Turns the 3D look on too."/></StackPanel><Button x:Name="HeroUpdateButton" Content="Check for updates" Style="{StaticResource HeroGreenButton}" Grid.Column="1" Margin="0,10,0,0" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="18,9" ToolTip="Look for a newer version of the Cleaner"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#D2700F" Offset="0"/><GradientStop Color="#8F3800" Offset="1"/></LinearGradientBrush></Button.Background></Button></Grid></Grid></Border>
 <UniformGrid Columns="3" Margin="0,0,0,22">
-                            <Border x:Name="LastCleanCard" Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Violet}" BorderThickness="5,1,1,1"><Grid><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource VioletSoft}"><TextBlock Text="◷" Foreground="{StaticResource Violet}" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="LAST CLEAN" Foreground="{StaticResource Violet}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="LastCleanValue" Text="Not yet" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock x:Name="LastCleanHint" Text="Shows here after your first clean" Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap"/><TextBlock x:Name="LastCleanQuickScan" Style="{StaticResource MutedText}" FontSize="12" Margin="0,10,0,0" TextWrapping="Wrap" Visibility="Collapsed"/><TextBlock x:Name="LastCleanFullScan" Style="{StaticResource MutedText}" FontSize="12" Margin="0,2,0,0" TextWrapping="Wrap" Visibility="Collapsed"/></StackPanel><Ellipse x:Name="LastCleanLightBlue" Width="14" Height="14" Fill="#1E90FF" Margin="-12,-12,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed"><Ellipse.Effect><DropShadowEffect Color="#1E90FF" BlurRadius="14" ShadowDepth="0" Opacity="0.9"/></Ellipse.Effect></Ellipse><Ellipse x:Name="LastCleanLightRed" Width="14" Height="14" Fill="#E02424" Margin="0,-12,-12,0" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed"><Ellipse.Effect><DropShadowEffect Color="#E02424" BlurRadius="14" ShadowDepth="0" Opacity="0.9"/></Ellipse.Effect></Ellipse></Grid></Border>
+                            <Border x:Name="LastCleanCard" Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Violet}" BorderThickness="5,1,1,1"><Grid><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource VioletSoft}"><TextBlock Text="◷" Foreground="{StaticResource Violet}" FontSize="19" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="LAST CLEAN" Foreground="{StaticResource Violet}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="LastCleanValue" Text="Not yet" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock x:Name="LastCleanHint" Text="Shows here after your first clean" Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap"/><Grid Margin="0,10,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal" VerticalAlignment="Top" Margin="0,2,8,0"><Ellipse x:Name="QuickLightA" Width="12" Height="12" Margin="0,0,3,0" Visibility="Collapsed"/><Ellipse x:Name="QuickLightB" Width="12" Height="12" Visibility="Collapsed"/></StackPanel><TextBlock Grid.Column="1" x:Name="LastCleanQuickScan" Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap" Visibility="Collapsed"/></Grid><Grid Margin="0,4,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><StackPanel Orientation="Horizontal" VerticalAlignment="Top" Margin="0,2,8,0"><Ellipse x:Name="FullLightA" Width="12" Height="12" Margin="0,0,3,0" Visibility="Collapsed"/><Ellipse x:Name="FullLightB" Width="12" Height="12" Visibility="Collapsed"/></StackPanel><TextBlock Grid.Column="1" x:Name="LastCleanFullScan" Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap" Visibility="Collapsed"/></Grid></StackPanel><Ellipse x:Name="LastCleanLightBlue" Width="14" Height="14" Fill="#1E90FF" Margin="-12,-12,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Visibility="Collapsed"><Ellipse.Effect><DropShadowEffect Color="#1E90FF" BlurRadius="14" ShadowDepth="0" Opacity="0.9"/></Ellipse.Effect></Ellipse><Ellipse x:Name="LastCleanLightRed" Width="14" Height="14" Fill="#E02424" Margin="0,-12,-12,0" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed"><Ellipse.Effect><DropShadowEffect Color="#E02424" BlurRadius="14" ShadowDepth="0" Opacity="0.9"/></Ellipse.Effect></Ellipse></Grid></Border>
                             <Border Style="{StaticResource Card}" Margin="0,0,12,0" BorderBrush="{StaticResource Teal}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border Style="{StaticResource StatIcon}" Background="{StaticResource TealSoft}"><TextBlock Text="▰" Foreground="{StaticResource Teal}" FontSize="17" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock Text="FREE SPACE" Foreground="{StaticResource Teal}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="FreeSpaceText" Text="Checking…" FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock Text="On your main drive" Style="{StaticResource MutedText}" FontSize="12"/></StackPanel></Border>
                             <Border x:Name="HealthCard" Style="{StaticResource Card}" BorderBrush="{StaticResource Amber}" BorderThickness="5,1,1,1"><StackPanel><StackPanel Orientation="Horizontal"><Border x:Name="HealthIconBox" Style="{StaticResource StatIcon}" Background="{StaticResource AmberSoft}"><TextBlock x:Name="HealthIcon" Text="⬡" Foreground="{StaticResource Amber}" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border><TextBlock x:Name="HealthLabel" Text="WINDOWS HEALTH" Foreground="{StaticResource Amber}" FontSize="11" FontWeight="Bold" VerticalAlignment="Center"/></StackPanel><TextBlock x:Name="WindowsStatusText" Text="Checking..." FontSize="23" FontWeight="SemiBold" Margin="0,12,0,2"/><TextBlock x:Name="WindowsStatusHint" Text="Takes a few seconds. Nothing is changed." Style="{StaticResource MutedText}" FontSize="12" TextWrapping="Wrap"/><Button x:Name="HealthCheckButton" Content="↻  Check again" Cursor="Hand" HorizontalAlignment="Left" Margin="0,10,0,0" Visibility="Collapsed" ToolTip="Look again, for example after fixing something. Nothing is changed."><Button.Template><ControlTemplate TargetType="Button"><TextBlock x:Name="LinkText" Text="{TemplateBinding Content}" Foreground="#2563EB" FontSize="13" FontWeight="SemiBold" Background="Transparent"/><ControlTemplate.Triggers><Trigger Property="IsMouseOver" Value="True"><Setter TargetName="LinkText" Property="TextDecorations" Value="Underline"/></Trigger></ControlTemplate.Triggers></ControlTemplate></Button.Template></Button></StackPanel></Border>
                         </UniformGrid>
@@ -1475,7 +1475,7 @@ $window.Add_Closing({
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('EstimateTimeButton','NavBroomEdge','NavBroomHandle','StartHereRow','PresetSafeBar','PresetMediumBar','PresetAdvancedBar','PresetSafeLeft','PresetMediumLeft','PresetAdvancedLeft','PlanScroll','PlanMoreUp','PlanMoreDown','NavMoreUp','BannerBroomSafe','BannerBroomMedium','BannerBroomAdvanced','BannerBroomAdvanced2','NavModeText','ScanBroomSafe','ScanBroomMedium','ScanBroomAdvanced','ScanBroomAdvanced2','NavScroll','NavMoreHint','NavHeadClean','NavHeadFix','NavHeadCheck','DashMoreHint','DashShowAllButton','NavModeToggle','NavHeadUpdate','DashOtherTitle','DashOtherGrid','DashMsTools','SmartAppControlButton','NavSmartApp','NavFullScan','DashMoreOptions','SoundSwitch','Max3DSwitch','CrazyNuttySwitch','DashNoteButton','NavNoteButton','ResetReliabilityButton','ProtectedPill','SidebarLogo','TitleLogo','AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavPowerHeat','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripCleaning','RunStripHint','NavCleanDust','ScanDustSafe','ScanDustMedium','ScanDustAdvanced','ScanDustAdvanced2','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','LastCleanCard','LastCleanLightBlue','LastCleanLightRed','LastCleanValue','LastCleanHint','LastCleanQuickScan','LastCleanFullScan','CleanCheckAllButton','CleanCheckOffButton','PresetSafeDate','PresetMediumDate','PresetAdvancedDate','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','GearBlueShadow','GearBlue','GearGoldShadow','GearGold','ConfirmLevelBadge','CleaningHeader','FunnyLine','BannerWrench','WrenchSwing','NavWrenchSwing','NavWrenchHop','WrenchHop','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('EstimateTimeButton','NavBroomEdge','NavBroomHandle','StartHereRow','PresetSafeBar','PresetMediumBar','PresetAdvancedBar','PresetSafeLeft','PresetMediumLeft','PresetAdvancedLeft','PlanScroll','PlanMoreUp','PlanMoreDown','NavMoreUp','BannerBroomSafe','BannerBroomMedium','BannerBroomAdvanced','BannerBroomAdvanced2','NavModeText','ScanBroomSafe','ScanBroomMedium','ScanBroomAdvanced','ScanBroomAdvanced2','NavScroll','NavMoreHint','NavHeadClean','NavHeadFix','NavHeadCheck','DashMoreHint','DashShowAllButton','NavModeToggle','NavHeadUpdate','DashOtherTitle','DashOtherGrid','DashMsTools','SmartAppControlButton','NavSmartApp','NavFullScan','DashMoreOptions','SoundSwitch','Max3DSwitch','CrazyNuttySwitch','DashNoteButton','NavNoteButton','ResetReliabilityButton','QuickLightA','QuickLightB','FullLightA','FullLightB','ProtectedPill','SidebarLogo','TitleLogo','AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavPowerHeat','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripCleaning','RunStripHint','NavCleanDust','ScanDustSafe','ScanDustMedium','ScanDustAdvanced','ScanDustAdvanced2','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','LastCleanCard','LastCleanLightBlue','LastCleanLightRed','LastCleanValue','LastCleanHint','LastCleanQuickScan','LastCleanFullScan','CleanCheckAllButton','CleanCheckOffButton','PresetSafeDate','PresetMediumDate','PresetAdvancedDate','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','GearBlueShadow','GearBlue','GearGoldShadow','GearGold','ConfirmLevelBadge','CleaningHeader','FunnyLine','BannerWrench','WrenchSwing','NavWrenchSwing','NavWrenchHop','WrenchHop','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -4180,6 +4180,118 @@ function Complete-RunPlan {
 }
 
 
+# Lights beside the quick scan and full scan lines on the Last clean card.
+# Green and still: done in time. Two yellow, taking turns: due soon. Blue and red, taking turns: overdue.
+$script:DRScanLights = @{}
+$script:DRScanLightOn = $false
+$script:DRScanLightTimer = $null
+$script:DRScanAsked = @{}
+function New-DRLightBrush {
+    param([string]$Color)
+    $c = [Windows.Media.ColorConverter]::ConvertFromString($Color)
+    $shine = [Windows.Media.Color]::FromRgb([byte]([int]$c.R + (255 - [int]$c.R) * 0.7), [byte]([int]$c.G + (255 - [int]$c.G) * 0.7), [byte]([int]$c.B + (255 - [int]$c.B) * 0.7))
+    $deep = [Windows.Media.Color]::FromRgb([byte]([int]$c.R * 0.45), [byte]([int]$c.G * 0.45), [byte]([int]$c.B * 0.45))
+    $brush = New-Object Windows.Media.RadialGradientBrush
+    $brush.GradientOrigin = New-Object Windows.Point(0.35, 0.3)
+    $brush.Center = New-Object Windows.Point(0.5, 0.5)
+    $brush.RadiusX = 0.65; $brush.RadiusY = 0.65
+    [void]$brush.GradientStops.Add((New-Object Windows.Media.GradientStop($shine, 0.0)))
+    [void]$brush.GradientStops.Add((New-Object Windows.Media.GradientStop($c, 0.5)))
+    [void]$brush.GradientStops.Add((New-Object Windows.Media.GradientStop($deep, 1.0)))
+    return $brush
+}
+function Set-DRLightColor {
+    param($Light, [string]$Color)
+    $Light.Fill = New-DRLightBrush $Color
+    $Light.Stroke = New-Object Windows.Media.SolidColorBrush([Windows.Media.ColorConverter]::ConvertFromString($Color))
+    $Light.StrokeThickness = 1
+    $glow = New-Object Windows.Media.Effects.DropShadowEffect
+    $glow.Color = [Windows.Media.ColorConverter]::ConvertFromString($Color)
+    $glow.BlurRadius = 9; $glow.ShadowDepth = 0; $glow.Opacity = 0.95
+    $Light.Effect = $glow
+    $Light.Visibility = 'Visible'
+}
+function Start-DRScanLightTimer {
+    if ($script:DRScanLightTimer) { return }
+    $script:DRScanLightTimer = New-Object Windows.Threading.DispatcherTimer
+    $script:DRScanLightTimer.Interval = [TimeSpan]::FromMilliseconds(500)
+    $script:DRScanLightTimer.Add_Tick({
+        $script:DRScanLightOn = -not $script:DRScanLightOn
+        foreach ($set in @($script:DRScanLights.Values)) {
+            if ($set.State -eq 'Green') { $set.A.Opacity = 1.0; $set.B.Opacity = 1.0; continue }
+            $set.A.Opacity = if ($script:DRScanLightOn) { 1.0 } else { 0.2 }
+            $set.B.Opacity = if ($script:DRScanLightOn) { 0.2 } else { 1.0 }
+        }
+    })
+    $script:DRScanLightTimer.Start()
+}
+function Format-DRTimeLeft {
+    param([double]$Days)
+    if ($Days -ge 1) { $n = [int][Math]::Ceiling($Days); return ('{0} day{1}' -f $n, $(if ($n -eq 1) { '' } else { 's' })) }
+    $h = [Math]::Max(1, [int][Math]::Ceiling($Days * 24))
+    return ('{0} hour{1}' -f $h, $(if ($h -eq 1) { '' } else { 's' }))
+}
+function Set-DRScanStatus {
+    param([string]$Which, [string]$Label, $When, [double]$DueDays, [double]$WarnDays, $Text, $LightA, $LightB)
+    # Defender reports a scan that never ran as a date long ago, so anything before 2000 means never.
+    $never = (-not $When -or $When.Year -lt 2000)
+    $state = 'RedBlue'; $line = "$Label never - overdue"
+    if (-not $never) {
+        $age = ((Get-Date) - $When).TotalDays
+        $left = $DueDays - $age
+        $day = if ($When.Date -eq (Get-Date).Date) { 'today' } elseif ($When.Date -eq (Get-Date).Date.AddDays(-1)) { 'yesterday' } else { $When.ToString('d MMMM') }
+        $done = "$Label $day, " + $When.ToString('h:mm tt')
+        if ($left -le 0) { $state = 'RedBlue'; $line = "$done - overdue by " + (Format-DRTimeLeft (-$left)) }
+        elseif ($left -le $WarnDays) { $state = 'Yellow'; $line = "$done - due in " + (Format-DRTimeLeft $left) }
+        else { $state = 'Green'; $line = "$done - next in " + (Format-DRTimeLeft $left) }
+    }
+    $Text.Text = $line
+    $Text.Visibility = 'Visible'
+    if ($state -eq 'RedBlue') { $Text.Foreground = $window.FindResource('Danger') } else { $Text.ClearValue([Windows.Controls.TextBlock]::ForegroundProperty) }
+    switch ($state) {
+        'Green'   { Set-DRLightColor $LightA '#2BE37A'; Set-DRLightColor $LightB '#2BE37A' }
+        'Yellow'  { Set-DRLightColor $LightA '#FFD21F'; Set-DRLightColor $LightB '#FFD21F' }
+        'RedBlue' { Set-DRLightColor $LightA '#1E90FF'; Set-DRLightColor $LightB '#E5322D' }
+    }
+    $LightA.Opacity = 1.0; $LightB.Opacity = 1.0
+    $script:DRScanLights[$Which] = @{ A = $LightA; B = $LightB; State = $state }
+    return [pscustomobject]@{ Which = $Which; State = $state; Since = $(if ($never) { $null } else { $When }) }
+}
+function Write-DRScanRefusal {
+    # A note in the Cleaning history, so whoever helps this customer can see they turned the scan down.
+    param([string]$Which, $Since)
+    try {
+        $reportRoot = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Reports'
+        [void][IO.Directory]::CreateDirectory($reportRoot)
+        $now = Get-Date
+        $path = Join-Path $reportRoot ('Maintenance_Report_{0}_{1}-scan-refused.txt' -f $now.ToString('yyyyMMdd_HHmmss'), $Which.ToLowerInvariant())
+        $last = if ($Since) { $Since.ToString('yyyy-MM-dd HH:mm') } else { 'never' }
+        $body = @(
+            'DRDirect PC Cleaner - Scan refused',
+            ('Time:      {0}' -f $now.ToString('yyyy-MM-dd HH:mm:ss')),
+            ('Scan:      Windows Defender {0} scan' -f $Which.ToLowerInvariant()),
+            ('Last done: {0}' -f $last),
+            '',
+            'The scan was overdue. The Cleaner asked to run it and the customer chose not to. Nothing was scanned.'
+        ) -join [Environment]::NewLine
+        [IO.File]::WriteAllText($path, $body, (New-Object Text.UTF8Encoding($false)))
+    } catch { }
+}
+function Request-DRScanNow {
+    param([string]$Which, $Since)
+    if ($TestMode -or $script:DRScanAsked[$Which]) { return }
+    if (Test-DRRunBusy) { return }
+    $script:DRScanAsked[$Which] = $true
+    $name = $Which.ToLowerInvariant()
+    $last = if ($Since) { $Since.ToString('d MMMM') } else { 'never' }
+    $answer = [Windows.MessageBox]::Show("Your Windows $name scan is overdue. It was last done: $last.`n`nScan now?`n`nIf you press No, the red and blue lights stay on until the scan is done.", 'DRDirect PC Cleaner',
+        [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question)
+    if ($answer -eq [Windows.MessageBoxResult]::Yes) {
+        Invoke-DRAIRunNow -TaskIds @($(if ($Which -eq 'Quick') { 'security.quick-scan' } else { 'security.full-scan' }))
+    } else {
+        Write-DRScanRefusal -Which $Which -Since $Since
+    }
+}
 $script:DRScanLinesAsync = $null
 function Set-DRScanLines {
     # The Last clean card also says when Windows Defender last did a quick scan and a full scan.
@@ -4201,21 +4313,14 @@ function Set-DRScanLines {
         try {
             $result = @($script:DRScanLinesPS.EndInvoke($script:DRScanLinesAsync))[0]
             if ($result -and $result.Ok) {
-                $say = {
-                    param($label, $when)
-                    # Defender reports a scan that never ran as a date long ago, so anything before 2000 means never.
-                    if (-not $when -or $when.Year -lt 2000) { return "$label never" }
-                    $day = if ($when.Date -eq (Get-Date).Date) { 'today' } elseif ($when.Date -eq (Get-Date).Date.AddDays(-1)) { 'yesterday' } else { $when.ToString('d MMMM') }
-                    "$label $day"
+                # Quick scan is due every 7 days (yellow the last day); full scan every 30 days (yellow the last 3).
+                $quick = Set-DRScanStatus -Which 'Quick' -Label 'Quick scan:' -When $result.Quick -DueDays 7 -WarnDays 1 -Text $ui.LastCleanQuickScan -LightA $ui.QuickLightA -LightB $ui.QuickLightB
+                $full = Set-DRScanStatus -Which 'Full' -Label 'Full scan:' -When $result.Full -DueDays 30 -WarnDays 3 -Text $ui.LastCleanFullScan -LightA $ui.FullLightA -LightB $ui.FullLightB
+                Start-DRScanLightTimer
+                # Overdue: ask once each time the Cleaner opens. No leaves the red and blue lights on and is written down.
+                foreach ($item in @($quick, $full)) {
+                    if ($item.State -eq 'RedBlue') { Request-DRScanNow -Which $item.Which -Since $item.Since }
                 }
-                $ui.LastCleanQuickScan.Text = & $say 'Quick scan:' $result.Quick
-                $fullText = & $say 'Full scan:' $result.Full
-                $ui.LastCleanFullScan.Text = $fullText
-                # A full scan that never ran is the one thing worth pointing out, so it turns red.
-                if ($fullText -like '*never') { $ui.LastCleanFullScan.Foreground = $window.FindResource('Danger') }
-                else { $ui.LastCleanFullScan.ClearValue([Windows.Controls.TextBlock]::ForegroundProperty) }
-                $ui.LastCleanQuickScan.Visibility = 'Visible'
-                $ui.LastCleanFullScan.Visibility = 'Visible'
             }
         } catch { }
         finally { try { $script:DRScanLinesPS.Dispose() } catch { } }

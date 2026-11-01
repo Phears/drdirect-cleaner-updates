@@ -1,7 +1,7 @@
 {
-  "version": "1.4.367",
-  "notes": "Small tidy-up to a hidden support control.",
-  "published": "2026-11-01T09:32:49.5321452-05:00",
+  "version": "1.4.368",
+  "notes": "The Last clean card now shows lights and countdowns for the quick scan and the full scan, and reminds you when one is overdue.",
+  "published": "2026-11-01T10:04:33.7804775-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "76AF8C364A476ABF1082E16346BDE2B0BC37CD4445FE138EC7BA41EF001D4954",
-      "size": 1408809
+      "sha256": "84B75D22390665CA294A33429619FE849FDB8A9B88C95C3615DE60E88440B340",
+      "size": 1415970
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
