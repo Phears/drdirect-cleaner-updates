@@ -1,7 +1,7 @@
 {
-  "version": "1.4.349",
-  "notes": "The yellow button now says: Check here every time to see how long it takes to clean your PC, with 3 choices.",
-  "published": "2026-10-31T21:12:59.7327331-04:00",
+  "version": "1.4.350",
+  "notes": "The yellow button now says: Check here first! Every time, to see how long it takes to clean up your PC, 3 Choices.",
+  "published": "2026-10-31T21:15:43.7863925-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "1420475BBFF009FD4671D77BE5BEB1B5160F99D93C78D7EC8AF0AFB0803D4C7D",
-      "size": 1377727
+      "sha256": "DF56612CFA1EAD328003D8F28AC703329D3BA36F9EDF3CAEAA932C98FE76D7EC",
+      "size": 1377747
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
