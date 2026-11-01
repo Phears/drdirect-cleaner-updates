@@ -1,7 +1,7 @@
 {
-  "version": "1.4.327",
-  "notes": "Check my drives now shows a dock's make on its own line and, where the dock allows it, the make and model of the drive inside it.",
-  "published": "2026-10-31T20:15:19.6822882-04:00",
+  "version": "1.4.328",
+  "notes": "Check my drives now shows the real make, model, serial number and firmware of drives inside a USB dock, for example Western Digital.",
+  "published": "2026-10-31T20:18:26.5824986-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "5AD8AA5024CE07B029F6912B82C8D509E1F0A949927F806BC652F7B0D5859C45",
-      "size": 339429
+      "sha256": "141C94457162A4C144E391C2017DC4EF332763767F24A4A395774892B9CFB687",
+      "size": 339430
     },
     {
       "name": "DRDirect Updater.ps1",

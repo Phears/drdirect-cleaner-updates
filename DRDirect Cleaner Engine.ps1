@@ -1220,7 +1220,7 @@ public static class DRAtaIdentify {
     [DllImport("kernel32.dll")]
     static extern bool CloseHandle(IntPtr h);
     public static byte[] Identify(int disk) {
-        IntPtr h = CreateFile(@"\.\PhysicalDrive" + disk, 0xC0000000, 3, IntPtr.Zero, 3, 0, IntPtr.Zero);
+        IntPtr h = CreateFile(@"\\.\PhysicalDrive" + disk, 0xC0000000, 3, IntPtr.Zero, 3, 0, IntPtr.Zero);
         if (h == new IntPtr(-1)) return null;
         try {
             int pt = IntPtr.Size == 8 ? 56 : 44;
