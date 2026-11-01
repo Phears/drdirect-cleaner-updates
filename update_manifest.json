@@ -1,7 +1,7 @@
 {
-  "version": "1.4.359",
-  "notes": "You can now make the whole Cleaner bigger or smaller at any time: press Ctrl and + to enlarge, Ctrl and - to shrink, Ctrl and 0 to go back to normal. Ctrl with the mouse wheel works too.",
-  "published": "2026-11-01T07:54:12.6528316-05:00",
+  "version": "1.4.360",
+  "notes": "About my PC now shows a button for your motherboard: it opens the maker's own drivers page for your exact board (chipset, LAN, Wi-Fi, audio, BIOS), which Windows Update cannot see. Nothing is downloaded or installed.",
+  "published": "2026-11-01T08:03:14.6557445-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "2F5206D9BD135AC3291D5C5DCA6D4857AF4486A5B22BCFD8D43DBB24966AC4ED",
-      "size": 1393681
+      "sha256": "AAB2EC38295BF8CC462A30A9BE555A03A3B4CD908860491DF45CBCBE43397BB8",
+      "size": 1396457
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

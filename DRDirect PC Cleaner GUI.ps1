@@ -4388,6 +4388,42 @@ function New-DRHardwareCard {
     return $panel
 }
 
+# The motherboard maker's own drivers page for this exact board. It only opens the page in the browser; nothing is
+# downloaded or installed. Windows Update (above) can not see most board drivers (chipset, LAN, Wi-Fi, BIOS).
+function Add-DRBoardSupportRow {
+    param($Panel)
+    try {
+        $board = Get-CimInstance Win32_BaseBoard -ErrorAction Stop | Select-Object -First 1
+        $system = Get-CimInstance Win32_ComputerSystem -ErrorAction SilentlyContinue | Select-Object -First 1
+        $maker = ([string]$board.Manufacturer).Trim(); $model = ([string]$board.Product).Trim()
+        $junk = '(?i)^(system product name|to be filled|default string|not applicable|o\.e\.m|none)'
+        # A ready-made PC (Dell, HP, Lenovo...) has its drivers under the PC model, not the board.
+        if ($system -and ([string]$system.Manufacturer) -match '(?i)dell|hewlett|^hp|lenovo|acer|samsung|toshiba|fujitsu' -and ([string]$system.Model) -notmatch $junk) {
+            $maker = ([string]$system.Manufacturer).Trim(); $model = ([string]$system.Model).Trim()
+        }
+        if (-not $model -or $model -match $junk) { return }
+        $site = switch -Regex ($maker) {
+            '(?i)asus' { 'asus.com'; $short = 'ASUS' }
+            '(?i)micro-star|msi' { 'msi.com'; $short = 'MSI' }
+            '(?i)gigabyte' { 'gigabyte.com'; $short = 'Gigabyte' }
+            '(?i)asrock' { 'asrock.com'; $short = 'ASRock' }
+            '(?i)dell' { 'dell.com'; $short = 'Dell' }
+            '(?i)hewlett|^hp' { 'hp.com'; $short = 'HP' }
+            '(?i)lenovo' { 'lenovo.com'; $short = 'Lenovo' }
+            '(?i)acer' { 'acer.com'; $short = 'Acer' }
+            default { $null }
+        }
+        $query = if ($site) { 'site:{0} {1} drivers' -f $site, $model } else { '{0} {1} drivers' -f $maker, $model }
+        $url = 'https://www.bing.com/search?q=' + [uri]::EscapeDataString($query)
+        $label = if ($site) { "Open the $short drivers page for this board" } else { 'Search for this board''s drivers' }
+        Add-DRHardwareRow $Panel 'Motherboard drivers' (('{0} {1}' -f $maker, $model).Trim()) 'Chipset, LAN, Wi-Fi, audio and BIOS drivers come from the maker, not Windows Update. This opens their page in your browser. Nothing is downloaded or installed.'
+        $button = New-Object Windows.Controls.Button -Property @{ Content = $label; Padding = '16,8'; Margin = '190,4,0,8'; HorizontalAlignment = 'Left'; Cursor = 'Hand'; FontWeight = 'Bold'; Foreground = 'White'; Background = '#0057D9'; BorderThickness = '0' }
+        $button.Tag = $url
+        $button.Add_Click({ param($s, $e) Start-Process ([string]$s.Tag) })
+        [void]$Panel.Children.Add($button)
+    } catch { }
+}
+
 function Add-DRHardwareRow {
     param($Panel, [string]$Label, [string]$Value, [string]$Note = '')
     $grid = New-Object Windows.Controls.Grid
@@ -4456,6 +4492,7 @@ function Show-Hardware {
     # The driver card starts empty; the check needs the internet, so it is never automatic.
     $script:driverPanel = New-DRHardwareCard 'Driver updates'
     Add-DRHardwareRow $script:driverPanel 'Not checked yet' 'Use "Check for driver updates" above. This asks Microsoft what drivers are available for this PC and installs nothing.'
+    Add-DRBoardSupportRow $script:driverPanel
 }
 
 function Start-DRDriverCheck {
@@ -4479,6 +4516,7 @@ function Start-DRDriverCheck {
             Add-DRHardwareRow $script:driverPanel '' $title
         }
     }
+    Add-DRBoardSupportRow $script:driverPanel
     $ui.CheckDriversButton.IsEnabled = $true
 }
 
