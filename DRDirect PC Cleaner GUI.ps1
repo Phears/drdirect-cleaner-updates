@@ -404,7 +404,7 @@ $ErrorActionPreference = 'Stop'
                             <DoubleAnimation Storyboard.TargetName="GreenRoot" Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.2"/>
                         </Storyboard></BeginStoryboard></Trigger.ExitActions>
                     </Trigger>
-                    <Trigger Property="Tag" Value="Active"><Setter TargetName="GreenBorder" Property="BorderBrush" Value="#FFF176"/><Setter TargetName="GreenBorder" Property="BorderThickness" Value="3.5"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger>
+                    <Trigger Property="Tag" Value="Active"><Setter TargetName="GreenBorder" Property="BorderBrush" Value="#FFF176"/><Setter TargetName="GreenBorder" Property="BorderThickness" Value="6"/></Trigger><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger>
                 </ControlTemplate.Triggers></ControlTemplate></Setter.Value>
             </Setter>
         </Style>
@@ -2551,7 +2551,12 @@ function New-TaskRow {
     }
 
     if ($isLoud) {
-        $caution = 'This is for a much deeper, better cleaning. It erases every trace of the websites you have visited, in every browser, and wipes the free space so nothing can be recovered. You will be signed out of every website. Before you tick it, make sure you have ALL the details to get back in: your email accounts, your Google account, your Microsoft and Apple accounts, and every other password you use. Close your browsers first. Saved passwords and bookmarks are kept. This cannot be undone. DRDirect is not responsible for any sign-in or password you cannot get back.'
+        $caution = @(
+            'A MUCH DEEPER, BETTER CLEANING. It reduces how much companies and websites can track and check up on what you do on this PC.',
+            'It erases every trace of the websites you have visited, in every browser, and wipes the free space so nothing can be recovered.',
+            'YOU WILL BE SIGNED OUT of every website. Before you tick it, make sure you have ALL the details to get back in: your email accounts, your Google account, your Microsoft and Apple accounts, and every other password you use.',
+            'Close your browsers first. Saved passwords and bookmarks are kept. This cannot be undone. DRDirect is not responsible for any sign-in or password you cannot get back.'
+        ) -join "`r`n`r`n"
         $cautionText = New-Object Windows.Controls.TextBlock -Property @{
             Text = $caution
             Foreground = '#96500A'
@@ -7576,6 +7581,10 @@ try {
         $pulse.EasingFunction = New-Object Windows.Media.Animation.SineEase -Property @{ EasingMode = 'EaseInOut' }
         $ui.ActivateScale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleXProperty, $pulse)
         $ui.ActivateScale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleYProperty, $pulse)
+    } elseif (-not (Test-DRTrialMode)) {
+        # Nothing left to activate: the button says so, in green, and stays still.
+        $ui.ActivateButton.Content = [string][char]0x2714 + '  All Activated'
+        $ui.ActivateButton.Foreground = New-Object Windows.Media.SolidColorBrush ([Windows.Media.ColorConverter]::ConvertFromString('#7CFFA6'))
     }
 } catch { }
 

@@ -1,7 +1,7 @@
 {
-  "version": "1.4.379",
-  "notes": "The warning on the option that signs you out of websites is bigger and clearer.",
-  "published": "2026-11-01T12:22:56.3436322-05:00",
+  "version": "1.4.380",
+  "notes": "The picked scan is easier to see, the activate button says All Activated when you are done, and the sign-out warning is easier to read.",
+  "published": "2026-11-01T12:35:13.7139237-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "D4FEF46351357DCDE17D6BC6CC409F14C928B19C9DCF0B0982BAB3344755A173",
-      "size": 1428278
+      "sha256": "1744AF2F12AB2962F5D86C2551A0112BA356B480FA0FE47D791A2042EC3C64AD",
+      "size": 1428800
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
