@@ -1,7 +1,7 @@
 {
-  "version": "1.4.324",
-  "notes": "Drive sizes in Check my drives now read the way they are sold on every drive, such as 500GB, 1TB or 4TB.",
-  "published": "2026-10-31T20:08:47.8296256-04:00",
+  "version": "1.4.325",
+  "notes": "Check my drives now shows each drive's model, serial number and firmware when the drive reports them, and says when a dock hides them.",
+  "published": "2026-10-31T20:11:27.3899140-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "3963CF1F0FC2D22FB99A9BD1FBA7C47482FC12B7F118751D33CCC6E7C6751227",
-      "size": 333877
+      "sha256": "1D9522C5F518D8103997AF4E520AA3B887E00E7089A93204D6548EA8B4459080",
+      "size": 334766
     },
     {
       "name": "DRDirect Updater.ps1",

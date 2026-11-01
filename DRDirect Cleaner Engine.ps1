@@ -1246,6 +1246,15 @@ function Invoke-DRDriveHealth {
         if ($bus -eq 'USB') { $name = $name -replace '^(\S+:(?:, \S+:)*)\s+\((.*)\)$', '$1  (Docked drive - $2)'; if ($name -notmatch 'Docked drive') { $name = 'Docked drive  -  ' + $name } }
         if ($media) { $lines.Add($(if ($bus -eq 'USB') { 'Type: {0} in a USB dock or case' -f $media } else { 'Type: {0}' -f $media })) }
         if ($bus) { $lines.Add(('Connection: {0}' -f $bus)) }
+        # Model, serial number and firmware, as the drive (or its dock) reports them. A dock that sits between
+        # the drive and Windows often reports blanks or zeros; say so instead of showing a made-up number.
+        $modelText = ([string](Get-DRDiskProperty $disk 'Model')).Trim()
+        if ($modelText) { $lines.Add(('Model: {0}' -f $modelText)) }
+        $serialText = ([string](Get-DRDiskProperty $disk 'SerialNumber')).Trim().TrimEnd('.')
+        if ($serialText -and $serialText -notmatch '^0+$') { $lines.Add(('Serial number: {0}' -f $serialText)) }
+        else { $lines.Add('Serial number: not reported' + $(if ($bus -eq 'USB') { ' (the dock or case hides it)' } else { '' })) }
+        $firmwareText = ([string](Get-DRDiskProperty $disk 'FirmwareVersion')).Trim()
+        if ($firmwareText -and $firmwareText -ne '0') { $lines.Add(('Firmware: {0}' -f $firmwareText)) }
         # Speed test: one drive letter on this drive gets a short temporary file. Works for docked drives too.
         $testLetter = ([string]$letters -split ',' | ForEach-Object { $_.Trim().TrimEnd(':') } | Where-Object { $_ } | Select-Object -First 1)
         if ($testLetter) {
