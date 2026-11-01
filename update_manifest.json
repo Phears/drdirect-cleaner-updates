@@ -1,7 +1,7 @@
 {
-  "version": "1.4.333",
-  "notes": "On Check my drives, each drive's brand, such as Samsung or Western Digital, and its size are in blue.",
-  "published": "2026-10-31T20:34:03.7343233-04:00",
+  "version": "1.4.334",
+  "notes": "The Fix Windows 10/11 button now shows its whole name; the icon no longer covers the end of it.",
+  "published": "2026-10-31T20:38:56.8926957-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B9049A1C80AD291F6D720C0099A979E7E85AB819BAD1B4800FBEFC2BACA0C076",
-      "size": 1375528
+      "sha256": "68E1274B26BAFC0101B047B2693E5FB9B4ACCEFCF0E92C0FBF94FE676B3E513A",
+      "size": 1375541
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
