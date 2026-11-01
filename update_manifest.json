@@ -1,7 +1,7 @@
 {
-  "version": "1.4.385",
-  "notes": "A clock with seconds and the date now sits in the side menu.",
-  "published": "2026-11-01T13:26:56.2056886-05:00",
+  "version": "1.4.386",
+  "notes": "The side menu clock now has a proper 3D look.",
+  "published": "2026-11-01T13:31:47.2051904-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "C9791C53A2B0633F42B68CCEB33AF4BC1C11C10F0835987ADA828B35AD8F7549",
-      "size": 1431548
+      "sha256": "33CD241869046031F401DE4FB397491D9FE86071F05FC0E436606143F2A233E7",
+      "size": 1433315
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
