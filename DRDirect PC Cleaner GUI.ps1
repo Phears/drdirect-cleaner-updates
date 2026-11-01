@@ -3216,8 +3216,8 @@ function New-DRResultCard {
     $box = New-Object Windows.Controls.Border -Property @{ Background=$fill; BorderBrush=$edge; BorderThickness='1'; CornerRadius='10'; Padding='16,12'; Margin='0,10,0,0' }
     $stack = New-Object Windows.Controls.StackPanel
     $title = New-Object Windows.Controls.TextBlock -Property @{ Foreground=$ink; FontSize=$(if ($good -or $bad) { 17 } else { 14 }); FontWeight='SemiBold'; TextWrapping='Wrap' }
-    if ($head -match '^(\S+:\s+)(\(.*\))(:\s.*)$') {
-        # A drive's card: the drive and its size, in brackets, stand out in blue.
+    if ($head -match '^(\S+:\s+\(.*?)(\b\d[\d.]*\s?[TG]B\b)(.*)$') {
+        # A drive's card: only its size, such as 4TB or 500GB, stands out in blue.
         $blue = [Windows.Media.SolidColorBrush]::new([Windows.Media.ColorConverter]::ConvertFromString('#0057D9'))
         [void]$title.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text=($mark + $Matches[1]) }))
         [void]$title.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text=$Matches[2]; Foreground=$blue }))

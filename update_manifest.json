@@ -1,7 +1,7 @@
 {
-  "version": "1.4.331",
-  "notes": "On Check my drives, each drive's name and size now stand out in blue at the top of its card.",
-  "published": "2026-10-31T20:31:21.5032215-04:00",
+  "version": "1.4.332",
+  "notes": "On Check my drives, only each drive's size, such as 4TB or 500GB, is in blue.",
+  "published": "2026-10-31T20:31:51.8095277-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "14BF25FF61BD60DB227367FEA04F39FE5B999A10A2492AA00D55ECC23C39E572",
-      "size": 1374691
+      "sha256": "EDC70F0491C5E494E1707D4C254EBE066112E2BE69216B3204BD5CEB81B9DC35",
+      "size": 1374708
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
