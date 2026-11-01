@@ -1,7 +1,7 @@
 {
-  "version": "1.4.369",
-  "notes": "Scan reminders: the Cleaner now keeps a note when an overdue scan is turned down.",
-  "published": "2026-11-01T10:15:51.3914511-05:00",
+  "version": "1.4.370",
+  "notes": "The scan reminder lights now show right under the main buttons, and the duplicate Show me first button is gone.",
+  "published": "2026-11-01T10:22:04.6839788-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "496F0F469E6E12B03ACDA808635564C896C41064FC86680DD044F572EC3B825E",
-      "size": 1422223
+      "sha256": "3DEC5CA61D6E7E46F0C25B5AC82E481F7F9356833CD1745DF16389A5CF0D5CA4",
+      "size": 1424508
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
