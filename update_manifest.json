@@ -1,7 +1,7 @@
 {
-  "version": "1.4.381",
-  "notes": "The activate button is hidden once your copy is activated.",
-  "published": "2026-11-01T12:39:03.7670579-05:00",
+  "version": "1.4.382",
+  "notes": "The All Activated note is cleaner and no longer pops up a message when clicked.",
+  "published": "2026-11-01T12:45:41.9276370-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "84C4FA54B5F01CFF8F0098532F60811C43E8477F068AF61AAF436D36BEAF7D00",
-      "size": 1428612
+      "sha256": "A484ED0D6092B3641E5D1D74A10D90B6A2D699AB0A20804B797FFDA38D927A8C",
+      "size": 1429246
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
