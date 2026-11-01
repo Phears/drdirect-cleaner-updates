@@ -1,7 +1,7 @@
 {
-  "version": "1.4.368",
-  "notes": "The Last clean card now shows lights and countdowns for the quick scan and the full scan, and reminds you when one is overdue.",
-  "published": "2026-11-01T10:04:33.7804775-05:00",
+  "version": "1.4.369",
+  "notes": "Scan reminders: the Cleaner now keeps a note when an overdue scan is turned down.",
+  "published": "2026-11-01T10:15:51.3914511-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "84B75D22390665CA294A33429619FE849FDB8A9B88C95C3615DE60E88440B340",
-      "size": 1415970
+      "sha256": "496F0F469E6E12B03ACDA808635564C896C41064FC86680DD044F572EC3B825E",
+      "size": 1422223
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

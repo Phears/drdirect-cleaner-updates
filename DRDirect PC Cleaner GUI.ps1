@@ -4259,7 +4259,7 @@ function Set-DRScanStatus {
 }
 function Write-DRScanRefusal {
     # A note in the Cleaning history, so whoever helps this customer can see they turned the scan down.
-    param([string]$Which, $Since)
+    param([string]$Which, $Since, [string]$Ignored)
     try {
         $reportRoot = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Reports'
         [void][IO.Directory]::CreateDirectory($reportRoot)
@@ -4271,11 +4271,50 @@ function Write-DRScanRefusal {
             ('Time:      {0}' -f $now.ToString('yyyy-MM-dd HH:mm:ss')),
             ('Scan:      Windows Defender {0} scan' -f $Which.ToLowerInvariant()),
             ('Last done: {0}' -f $last),
+            ('Ignored:   {0}' -f $Ignored),
             '',
             'The scan was overdue. The Cleaner asked to run it and the customer chose not to. Nothing was scanned.'
         ) -join [Environment]::NewLine
         [IO.File]::WriteAllText($path, $body, (New-Object Text.UTF8Encoding($false)))
+        Add-DRRefusalLedger -Time $now -Which $Which -Ignored $Ignored -NoteName ([IO.Path]::GetFileName($path))
     } catch { }
+}
+# A second record of every refusal, kept outside the Reports folder, so a note that is later deleted can still be spotted.
+function Add-DRRefusalLedger {
+    param([datetime]$Time, [string]$Which, [string]$Ignored, [string]$NoteName)
+    $line = '{0}|{1}|{2}|{3}' -f $Time.ToString('s'), $Which, $Ignored, $NoteName
+    try {
+        $dir = Join-Path $env:ProgramData 'DRDirect'
+        [void][IO.Directory]::CreateDirectory($dir)
+        Add-Content -LiteralPath (Join-Path $dir 'scan-refusals.log') -Value $line -Encoding UTF8
+    } catch { }
+    try {
+        $key = 'HKCU:\Software\DRDirect\PC Cleaner'
+        if (-not (Test-Path -LiteralPath $key)) { New-Item -Path $key -Force | Out-Null }
+        $old = @()
+        try { $old = @((Get-ItemProperty -LiteralPath $key -Name 'ScanRefusals' -ErrorAction Stop).ScanRefusals) } catch { }
+        Set-ItemProperty -LiteralPath $key -Name 'ScanRefusals' -Value ([string[]]($old + $line)) -Type MultiString
+    } catch { }
+}
+function Get-DRRefusalLedger {
+    # Every refusal either record knows about; each line only once.
+    $lines = @()
+    try { $lines += @(Get-Content -LiteralPath (Join-Path $env:ProgramData 'DRDirect\scan-refusals.log') -ErrorAction Stop) } catch { }
+    try { $lines += @((Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name 'ScanRefusals' -ErrorAction Stop).ScanRefusals) } catch { }
+    $seen = @{}
+    foreach ($line in $lines) {
+        $p = ([string]$line).Split('|')
+        if ($p.Count -lt 4 -or $seen.ContainsKey($line)) { continue }
+        $when = [datetime]::MinValue
+        if (-not [datetime]::TryParse($p[0], [ref]$when)) { continue }
+        $seen[$line] = $true
+        [pscustomobject]@{ Time = $when; Which = $p[1]; Ignored = $p[2]; NoteName = $p[3] }
+    }
+}
+function Test-DRRefusalLocked {
+    # A refusal note stays for 30 days; nobody can delete it from the Cleaning history before then.
+    param($File)
+    return ($File.Name -like '*-scan-refused.txt' -and ((Get-Date) - $File.LastWriteTime).TotalDays -lt 30)
 }
 function Request-DRScanNow {
     param([string]$Which, $Since)
@@ -4289,8 +4328,27 @@ function Request-DRScanNow {
     if ($answer -eq [Windows.MessageBoxResult]::Yes) {
         Invoke-DRAIRunNow -TaskIds @($(if ($Which -eq 'Quick') { 'security.quick-scan' } else { 'security.full-scan' }))
     } else {
-        Write-DRScanRefusal -Which $Which -Since $Since
+        # How long the scan has been overdue, in whole days, so the note can say how long it was ignored.
+        $dueDays = if ($Which -eq 'Quick') { 7 } else { 30 }
+        $ignored = if (-not $Since) { 'never scanned' } else {
+            $over = [int][Math]::Floor(((Get-Date) - $Since).TotalDays - $dueDays)
+            if ($over -lt 1) { 'less than a day' } else { '{0} day{1}' -f $over, $(if ($over -eq 1) { '' } else { 's' }) }
+        }
+        Write-DRScanRefusal -Which $Which -Since $Since -Ignored $ignored
     }
+}
+function Get-DRScanRefusalText {
+    # The red line for a refusal note: "Quick scan refused - ignored for 3 days". Null for any other report.
+    param($File)
+    if ($File.Name -notlike '*-scan-refused.txt') { return $null }
+    try {
+        $scan = if ($File.Name -like '*_quick-*') { 'Quick scan' } else { 'Full scan' }
+        $line = Select-String -LiteralPath $File.FullName -Pattern '^Ignored:\s+(.+)$' -ErrorAction Stop | Select-Object -First 1
+        $how = if ($line) { $line.Matches[0].Groups[1].Value.Trim() } else { '' }
+        if ($how -eq 'never scanned') { return "$scan refused - never scanned" }
+        if ($how) { return "$scan refused - ignored for $how" }
+        return "$scan refused"
+    } catch { return $null }
 }
 $script:DRScanLinesAsync = $null
 function Set-DRScanLines {
@@ -4313,6 +4371,11 @@ function Set-DRScanLines {
         try {
             $result = @($script:DRScanLinesPS.EndInvoke($script:DRScanLinesAsync))[0]
             if ($result -and $result.Ok) {
+                # Preview only: DR_SCAN_PREVIEW="6.3,28" pretends the scans are that many days old. Nothing sets it for customers.
+                if ($env:DR_SCAN_PREVIEW -match '^\s*([\d.]+)\s*,\s*([\d.]+)\s*$') {
+                    $result.Quick = (Get-Date).AddDays(-[double]$Matches[1])
+                    $result.Full = (Get-Date).AddDays(-[double]$Matches[2])
+                }
                 # Quick scan is due every 7 days (yellow the last day); full scan every 30 days (yellow the last 3).
                 $quick = Set-DRScanStatus -Which 'Quick' -Label 'Quick scan:' -When $result.Quick -DueDays 7 -WarnDays 1 -Text $ui.LastCleanQuickScan -LightA $ui.QuickLightA -LightB $ui.QuickLightB
                 $full = Set-DRScanStatus -Which 'Full' -Label 'Full scan:' -When $result.Full -DueDays 30 -WarnDays 3 -Text $ui.LastCleanFullScan -LightA $ui.FullLightA -LightB $ui.FullLightB
@@ -4480,6 +4543,8 @@ function Show-DashboardHistory {
         $right = New-Object Windows.Controls.TextBlock -Property @{
             Text = $agoText; Foreground = '#667085'; VerticalAlignment = 'Center'
         }
+        $refusedText = Get-DRScanRefusalText $file
+        if ($refusedText) { $label.Text = $refusedText; $label.Foreground = [Windows.Media.Brushes]::Red; $label.FontWeight = 'Bold' }
         [System.Windows.Controls.Grid]::SetColumn($right, 1)
         [void]$grid.Children.Add($label)
         [void]$grid.Children.Add($right)
@@ -4706,6 +4771,16 @@ function Show-History {
         $nameText.FontSize = 11
         $nameText.Margin = '0,3,0,0'
         [void]$panel.Children.Add($nameText)
+        $refusedText = Get-DRScanRefusalText $file
+        if ($refusedText) {
+            $redNote = New-Object Windows.Controls.TextBlock
+            $redNote.Text = $refusedText
+            $redNote.Foreground = [Windows.Media.Brushes]::Red
+            $redNote.FontWeight = 'Bold'
+            $redNote.FontSize = 13
+            $redNote.Margin = '0,3,0,0'
+            [void]$panel.Children.Add($redNote)
+        }
 
         $button = New-Object Windows.Controls.Button
         $button.Content = 'Open'
@@ -4750,6 +4825,11 @@ function Show-History {
 
             $target = [string]$sender.Tag
             if ([string]::IsNullOrWhiteSpace($target)) { return }
+
+            if ((Test-Path -LiteralPath $target -PathType Leaf) -and (Test-DRRefusalLocked (Get-Item -LiteralPath $target))) {
+                [void][Windows.MessageBox]::Show('This note is kept for 30 days and cannot be deleted before then.', 'DRDirect PC Cleaner', 'OK', 'Information')
+                return
+            }
 
             $answer = [Windows.MessageBox]::Show("Delete this report?`n`n$([IO.Path]::GetFileName($target))", 'DRDirect PC Cleaner', 'YesNo', 'Warning')
             if ($answer -ne 'Yes') { return }
@@ -6377,6 +6457,25 @@ function Show-DROwnerMenu {
     try { $menu.Owner = $window } catch { }
     $panel = New-Object Windows.Controls.StackPanel
     $panel.Margin = '20'
+    # Scan refusals in the last 30 days, and any note that was removed from the history since.
+    try {
+        $recent = @(Get-DRRefusalLedger | Where-Object { ((Get-Date) - $_.Time).TotalDays -lt 30 })
+        if ($recent.Count) {
+            $reportRoot = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Reports'
+            $missing = @($recent | Where-Object { -not (Test-Path -LiteralPath (Join-Path $reportRoot $_.NoteName) -PathType Leaf) })
+            $quickCount = @($recent | Where-Object { $_.Which -eq 'Quick' }).Count
+            $fullCount = @($recent | Where-Object { $_.Which -eq 'Full' }).Count
+            $warn = New-Object Windows.Controls.TextBlock
+            $warn.Foreground = [Windows.Media.Brushes]::Red
+            $warn.FontWeight = 'Bold'
+            $warn.TextWrapping = 'Wrap'
+            $warn.MaxWidth = 380
+            $warn.Margin = '0,0,0,12'
+            $warn.Text = "Scans refused in the last 30 days: $($recent.Count) (quick $quickCount, full $fullCount). Last: " + ($recent | Sort-Object Time | Select-Object -Last 1).Time.ToString('d MMMM, h:mm tt') + '.'
+            if ($missing.Count) { $warn.Text += "`n$($missing.Count) of these notes were removed from the Cleaning history." }
+            [void]$panel.Children.Add($warn)
+        }
+    } catch { }
     $items = @(
         @{ Text = '1.  Performance Monitor  -  live line graphs';                 Args = '' },
         @{ Text = '2.  Resource Monitor  -  what is slowing the PC down';         Args = '/res' },
@@ -7332,7 +7431,8 @@ $ui.ClearHistoryButton.Add_Click({
     if ([string]::IsNullOrWhiteSpace($localAppData)) { return }
 
     $reportRoot = Join-Path -Path $localAppData -ChildPath 'DRDirect PC Cleaner\Reports'
-    $all = @(Get-ChildItem -LiteralPath $reportRoot -Filter 'Maintenance_Report_*.txt' -File -ErrorAction SilentlyContinue)
+    # Refusal notes under 30 days old stay; everything else can go.
+    $all = @(Get-ChildItem -LiteralPath $reportRoot -Filter 'Maintenance_Report_*.txt' -File -ErrorAction SilentlyContinue | Where-Object { -not (Test-DRRefusalLocked $_) })
     if (-not $all) {
         [void][Windows.MessageBox]::Show('There are no reports to delete.', 'DRDirect PC Cleaner', 'OK', 'Information')
         return
