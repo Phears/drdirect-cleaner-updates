@@ -6103,7 +6103,24 @@ function Start-DRUpdateFlash {
     $script:DRUpdateFlashSaved = @{}
     Set-DRTaskbarUpdateBadge $true
     foreach ($button in @($ui.HeroUpdateButton, $ui.CheckUpdatesButton)) {
-        $script:DRUpdateFlashSaved[$button.Name] = @{ Content = $button.Content; Background = $button.Background }
+        $script:DRUpdateFlashSaved[$button.Name] = @{ Content = $button.Content; Background = $button.Background; Effect = $button.Effect }
+        # A glow that breathes between green and red, in step with the flash.
+        $glow = New-Object Windows.Media.Effects.DropShadowEffect
+        $glow.Color = [Windows.Media.ColorConverter]::ConvertFromString('#2BE37A')
+        $glow.ShadowDepth = 0
+        $glow.Opacity = 1
+        $glow.BlurRadius = 10
+        $glowColour = New-Object Windows.Media.Animation.ColorAnimation
+        $glowColour.To = [Windows.Media.ColorConverter]::ConvertFromString('#FF3B30')
+        $glowColour.Duration = [Windows.Duration]::new([TimeSpan]::FromMilliseconds(550))
+        $glowColour.AutoReverse = $true
+        $glowColour.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
+        $glowSize = New-Object Windows.Media.Animation.DoubleAnimation 10, 28, ([Windows.Duration]::new([TimeSpan]::FromMilliseconds(550)))
+        $glowSize.AutoReverse = $true
+        $glowSize.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
+        $button.Effect = $glow
+        $glow.BeginAnimation([Windows.Media.Effects.DropShadowEffect]::ColorProperty, $glowColour)
+        $glow.BeginAnimation([Windows.Media.Effects.DropShadowEffect]::BlurRadiusProperty, $glowSize)
         $button.Content = [string][char]0x2605 + '  NEW UPDATE  ' + [string][char]0x2605
         $button.FontWeight = 'ExtraBold'
         $button.Foreground = [Windows.Media.Brushes]::White
@@ -6111,15 +6128,31 @@ function Start-DRUpdateFlash {
         $brush = New-Object Windows.Media.SolidColorBrush ([Windows.Media.ColorConverter]::ConvertFromString('#16C060'))
         $button.Background = $brush
         $colour = New-Object Windows.Media.Animation.ColorAnimation
-        $colour.To = [Windows.Media.ColorConverter]::ConvertFromString('#F2C200')
+        $colour.To = [Windows.Media.ColorConverter]::ConvertFromString('#E5322D')
         $colour.Duration = [Windows.Duration]::new([TimeSpan]::FromMilliseconds(550))
         $colour.AutoReverse = $true
         $colour.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
         $brush.BeginAnimation([Windows.Media.SolidColorBrush]::ColorProperty, $colour)
 
         $scale = New-Object Windows.Media.ScaleTransform 1, 1
+        $move = New-Object Windows.Media.TranslateTransform
+        $group = New-Object Windows.Media.TransformGroup
+        [void]$group.Children.Add($scale)
+        [void]$group.Children.Add($move)
         $button.RenderTransformOrigin = New-Object Windows.Point 0.5, 0.5
-        $button.RenderTransform = $scale
+        $button.RenderTransform = $group
+        # A hop every second or so, on top of the pulse. Whole pixels only: the 3D shadow turns blurry between pixels.
+        $hop = New-Object Windows.Media.Animation.DoubleAnimationUsingKeyFrames
+        $hop.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
+        $hop.Duration = [Windows.Duration]::new([TimeSpan]::FromMilliseconds(1300))
+        $up = New-Object Windows.Media.Animation.QuadraticEase; $up.EasingMode = 'EaseOut'
+        $down = New-Object Windows.Media.Animation.BounceEase; $down.Bounces = 2; $down.Bounciness = 3; $down.EasingMode = 'EaseOut'
+        for ($ms = 0; $ms -le 800; $ms += 16) {
+            $y = if ($ms -le 250) { -10 * $up.Ease($ms / 250) } else { -10 + 10 * $down.Ease(($ms - 250) / 550) }
+            [void]$hop.KeyFrames.Add([Windows.Media.Animation.DiscreteDoubleKeyFrame]::new([math]::Round($y), [Windows.Media.Animation.KeyTime]::FromTimeSpan([TimeSpan]::FromMilliseconds($ms))))
+        }
+        [void]$hop.KeyFrames.Add([Windows.Media.Animation.DiscreteDoubleKeyFrame]::new(0, [Windows.Media.Animation.KeyTime]::FromTimeSpan([TimeSpan]::FromMilliseconds(816))))
+        $move.BeginAnimation([Windows.Media.TranslateTransform]::YProperty, $hop)
         $pulse = New-Object Windows.Media.Animation.DoubleAnimation 1, 1.12, ([Windows.Duration]::new([TimeSpan]::FromMilliseconds(550)))
         $pulse.AutoReverse = $true
         $pulse.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever
@@ -6135,7 +6168,7 @@ function Stop-DRUpdateFlash {
     foreach ($button in @($ui.HeroUpdateButton, $ui.CheckUpdatesButton)) {
         $saved = $script:DRUpdateFlashSaved[$button.Name]
         $button.RenderTransform = $null
-        if ($saved) { $button.Content = $saved.Content; $button.Background = $saved.Background }
+        if ($saved) { $button.Content = $saved.Content; $button.Background = $saved.Background; $button.Effect = $saved.Effect }
         $button.ClearValue([Windows.Controls.Control]::FontWeightProperty)
         $button.ClearValue([Windows.Controls.Control]::ForegroundProperty)
     }

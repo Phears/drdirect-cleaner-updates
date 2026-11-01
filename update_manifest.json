@@ -1,7 +1,7 @@
 {
-  "version": "1.4.373",
-  "notes": "The note under the main button now asks you to read every item before you run it.",
-  "published": "2026-11-01T10:40:03.8404222-05:00",
+  "version": "1.4.374",
+  "notes": "The New Update button is easier to spot.",
+  "published": "2026-11-01T10:43:45.2470305-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "6986CF1E812E253D3609C88574DF522B498A26BC8B1BAFE0413CDDC5A8C21AA7",
-      "size": 1422816
+      "sha256": "5BEC4CFBBB5FD2BC3090A15506EE9C242C0BAC259762CC66D774B0C24F5A7DCE",
+      "size": 1425500
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
