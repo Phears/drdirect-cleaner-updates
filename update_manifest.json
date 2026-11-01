@@ -1,7 +1,7 @@
 {
-  "version": "1.4.362",
-  "notes": "The wrench on the Fix Windows 10/11 button now wobbles and bonks while a repair is running, so you can see it working from any page.",
-  "published": "2026-11-01T08:55:46.8066840-05:00",
+  "version": "1.4.363",
+  "notes": "The two gears on the Show all tools button now turn whenever the Cleaner is working on anything: cleaning, checks, scans, driver checks and updates.",
+  "published": "2026-11-01T08:57:05.4554151-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B38FA57409B54F3987853B30EDC225684DAFE08EB83AB610995B26600F471389",
-      "size": 1397513
+      "sha256": "6C8294E3F7F5C6B91698ECC69AB0BD2C3265B1D53AD9459DC1633C208D40A6BC",
+      "size": 1398813
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

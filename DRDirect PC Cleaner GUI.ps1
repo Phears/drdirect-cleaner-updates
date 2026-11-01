@@ -3480,6 +3480,17 @@ function Set-DRGearsSpin {
     } catch { }
 }
 
+function Update-DRGearsBusy {
+    # True while the Cleaner is busy with anything: a plan, a check, a scan, the driver check or an update.
+    try {
+        $busy = ($runQueue.Count -gt 0) -or
+            ($script:activeAsync -and -not $script:activeAsync.IsCompleted) -or
+            ($ui.BusyOverlay.Visibility -eq 'Visible') -or
+            ($ui.CheckDriversButton -and -not $ui.CheckDriversButton.IsEnabled)
+        Set-DRGearsSpin -On ([bool]$busy)
+    } catch { }
+}
+
 $script:DRFixModeOn = $false
 $script:DRBannerPreset = $null
 $script:DRFunnyTimer = $null
@@ -7325,6 +7336,10 @@ if ($NoShow) {
     if (-not $ui.GearBlue.HasAnimatedProperties -or -not $ui.GearGold.HasAnimatedProperties) { throw 'GUI smoke test: the gears did not start turning.' }
     Set-DRGearsSpin -On $false
     if ($ui.GearBlue.HasAnimatedProperties) { throw 'GUI smoke test: the gears did not stop.' }
+    $ui.BusyOverlay.Visibility = 'Visible'; Update-DRGearsBusy
+    if (-not $ui.GearBlue.HasAnimatedProperties) { throw 'GUI smoke test: the gears did not turn while the Cleaner was busy.' }
+    $ui.BusyOverlay.Visibility = 'Collapsed'; Update-DRGearsBusy
+    if ($ui.GearBlue.HasAnimatedProperties) { throw 'GUI smoke test: the gears kept turning when the Cleaner was idle.' }
     $zoomBefore = $script:DRZoomBase
     Set-DRPageZoom 1.5
     if ([Math]::Abs($window.Content.LayoutTransform.ScaleX - ($script:DRZoomBase * 1.5)) -gt 0.001) { throw 'GUI smoke test: Ctrl + zoom did not enlarge the page.' }
@@ -7628,6 +7643,13 @@ function Invoke-DRTrayOffer {
     }
 }
 $script:DRTrayOffered = $false
+# The gears on the "Show all tools" button turn whenever the Cleaner is busy with anything: a plan, a check, a scan,
+# the driver check or an update. This looks twice a second, so every kind of work is covered in one place.
+$script:DRGearsWatcher = New-Object Windows.Threading.DispatcherTimer
+$script:DRGearsWatcher.Interval = [TimeSpan]::FromMilliseconds(500)
+$script:DRGearsWatcher.Add_Tick({ Update-DRGearsBusy })
+$script:DRGearsWatcher.Start()
+
 $window.Add_ContentRendered({
     if ($script:DRTrayOffered -or $TestMode) { return }
     $script:DRTrayOffered = $true
