@@ -1,7 +1,7 @@
 {
-  "version": "1.4.334",
-  "notes": "The Fix Windows 10/11 button now shows its whole name; the icon no longer covers the end of it.",
-  "published": "2026-10-31T20:38:56.8926957-04:00",
+  "version": "1.4.335",
+  "notes": "The left menu is wider, so names such as Fix Windows 10/11, Cleaning history and DRDirect Uninstaller Program show in full.",
+  "published": "2026-10-31T20:39:46.4590199-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "68E1274B26BAFC0101B047B2693E5FB9B4ACCEFCF0E92C0FBF94FE676B3E513A",
+      "sha256": "02EC2F083469F2D0FC7DDA9B1B9D03595EC6F485BDFCC6E8A70204F86FBDE7A1",
       "size": 1375541
     },
     {
