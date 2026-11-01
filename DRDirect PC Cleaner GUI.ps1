@@ -5484,7 +5484,13 @@ function Set-DRUiMode {
     $shown = if ($Simple) { 'Collapsed' } else { 'Visible' }
     foreach ($name in $script:DRSimpleHidden) { $ui[$name].Visibility = $shown }
     $ui.DashMoreHint.Visibility = if ($Simple) { 'Visible' } else { 'Collapsed' }
-    $ui.NavModeText.Text = if ($Simple) { '＋  Show all tools' } else { '－  Show fewer tools' }
+    # A small "1st window" / "2nd window" line sits above the label, so it is clear which menu is showing.
+    $ui.NavModeText.TextAlignment = 'Center'
+    $ui.NavModeText.Inlines.Clear()
+    $windowTag = New-Object Windows.Documents.Run -Property @{ Text = $(if ($Simple) { '1st window' } else { '2nd window' }); FontSize = 14; FontWeight = 'ExtraBold'; Foreground = [Windows.Media.Brushes]::SaddleBrown }
+    [void]$ui.NavModeText.Inlines.Add($windowTag)
+    [void]$ui.NavModeText.Inlines.Add((New-Object Windows.Documents.LineBreak))
+    [void]$ui.NavModeText.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text = $(if ($Simple) { '＋  Show all tools' } else { '－  Show fewer tools' }) }))
     if (Get-Command Update-DRNavNumbers -ErrorAction SilentlyContinue) { Update-DRNavNumbers }
     # Never leave someone on a page the short menu no longer lists.
     if ($Simple -and $script:currentCategory -in @('Speed','Hibernate','Security','Hardware','Health','Memory','AppUpdates','Duplicates')) { Set-Page 'Dashboard' }
