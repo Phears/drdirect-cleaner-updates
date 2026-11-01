@@ -1231,7 +1231,11 @@ function Invoke-DRDriveHealth {
         $concernsBefore = $concerns
         $driveSerious = $false
         $lines = New-Object System.Collections.Generic.List[string]
-        if ($sizeBytes) { $lines.Add(('Size: {0:N0} GB' -f ($sizeBytes / 1GB))) }
+        if ($sizeBytes) {
+            # Makers sell by decimal size (4 TB = 4,000,000,000,000 bytes) but Windows counts in 1024s, so the same drive reads smaller.
+            $sold = if ($sizeBytes -ge 1e12) { '{0:N1} TB' -f ($sizeBytes / 1e12) } else { '{0:N0} GB' -f ($sizeBytes / 1e9) }
+            $lines.Add(('Size: {0} as sold ({1:N0} GB as Windows counts it)' -f $sold, ($sizeBytes / 1GB)))
+        }
         $bus = Get-DRDiskProperty $disk 'BusType'
         # A USB drive is a dock or external case: Windows names the dock's bridge chip, not the drive inside.
         if ($bus -eq 'USB') { $name = $name -replace '^(\S+:(?:, \S+:)*)\s+\((.*)\)$', '$1  (Docked drive - $2)'; if ($name -notmatch 'Docked drive') { $name = 'Docked drive  -  ' + $name } }

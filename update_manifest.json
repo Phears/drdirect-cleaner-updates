@@ -1,7 +1,7 @@
 {
-  "version": "1.4.321",
-  "notes": "Check my drives now shows a drive in a USB dock as a docked drive, so it is clear the name is the dock and the drive inside is a hard drive.",
-  "published": "2026-10-31T19:55:13.1424117-04:00",
+  "version": "1.4.322",
+  "notes": "Check my drives now shows each drive's size the way it is sold, such as 4.0 TB, next to the smaller figure Windows shows. The Fix Windows button now says Fix Windows 10/11.",
+  "published": "2026-10-31T20:03:48.2398259-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "CDDCEC609701C7A7E09B8A6E438BD6B9277BA45C67B642B237BC7A1A5CFCE691",
-      "size": 1374081
+      "sha256": "4FE0CC30538131D0AB07EE2942448C38E92D9F426F7D2CB4B4FB476CC627C863",
+      "size": 1374087
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "2883ABBC83C56FE18EF8E436F166DF9168B44D89202924A39E853D993262E91D",
-      "size": 338034
+      "sha256": "4D21430F75E98480D67D2AB057F71E6C3EA2C925218AC6FBF3F94C4111886F51",
+      "size": 338364
     },
     {
       "name": "DRDirect Updater.ps1",
