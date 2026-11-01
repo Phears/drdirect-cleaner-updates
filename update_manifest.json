@@ -1,7 +1,7 @@
 {
-  "version": "1.4.370",
-  "notes": "The scan reminder lights now show right under the main buttons, and the duplicate Show me first button is gone.",
-  "published": "2026-11-01T10:22:04.6839788-05:00",
+  "version": "1.4.371",
+  "notes": "Small tidy-up to the scan reminder lights.",
+  "published": "2026-11-01T10:25:28.4484687-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "3DEC5CA61D6E7E46F0C25B5AC82E481F7F9356833CD1745DF16389A5CF0D5CA4",
-      "size": 1424508
+      "sha256": "FA9044D1DE7AD10231D2C05432933EC760BA11C02FA4DEA18A26044620610703",
+      "size": 1422380
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
