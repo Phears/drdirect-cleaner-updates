@@ -1,7 +1,7 @@
 {
-  "version": "1.4.350",
-  "notes": "The yellow button now says: Check here first! Every time, to see how long it takes to clean up your PC, 3 Choices.",
-  "published": "2026-10-31T21:15:43.7863925-04:00",
+  "version": "1.4.351",
+  "notes": "The green Make my PC cleaner button now opens Clean my PC, where you pick Safe, Medium or Advanced and see how long each takes. Show me first still opens the Safe plan review.",
+  "published": "2026-10-31T21:22:29.6410173-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "DF56612CFA1EAD328003D8F28AC703329D3BA36F9EDF3CAEAA932C98FE76D7EC",
-      "size": 1377747
+      "sha256": "D9B914A8A37BA2CF015E5C5D819EFD2B77704AC8B36B25A44B763ECB802BECAD",
+      "size": 1377939
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
