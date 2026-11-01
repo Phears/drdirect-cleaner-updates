@@ -1,7 +1,7 @@
 {
-  "version": "1.4.357",
-  "notes": "The number 2 in \"2nd window\" on the Show fewer tools button is now blue.",
-  "published": "2026-11-01T07:49:37.5771998-05:00",
+  "version": "1.4.358",
+  "notes": "The number 1 in \"1st window\" on the Show all tools button is now blue too.",
+  "published": "2026-11-01T07:50:43.9244324-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "193D232A47A31EA842EED0D2C5DFB756E13D4C143E80203764F1EA46D8D7E251",
-      "size": 1391861
+      "sha256": "E8E5ACFA8D56C905FBF297A6F2231514BDCF3E2B6A5BDCF614CC2899876CECDD",
+      "size": 1391731
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

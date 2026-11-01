@@ -5608,13 +5608,9 @@ function Set-DRUiMode {
     # A small "1st window" / "2nd window" line sits above the label, so it is clear which menu is showing.
     $ui.NavModeText.TextAlignment = 'Center'
     $ui.NavModeText.Inlines.Clear()
-    if ($Simple) {
-        [void]$ui.NavModeText.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text = '1st window'; FontSize = 16; FontWeight = 'ExtraBold' }))
-    } else {
-        $blue = [Windows.Media.BrushConverter]::new().ConvertFromString('#0057D9')
-        [void]$ui.NavModeText.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text = '2'; FontSize = 18; FontWeight = 'ExtraBold'; Foreground = $blue }))
-        [void]$ui.NavModeText.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text = 'nd window'; FontSize = 16; FontWeight = 'ExtraBold' }))
-    }
+    $blue = [Windows.Media.BrushConverter]::new().ConvertFromString('#0057D9')
+    [void]$ui.NavModeText.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text = $(if ($Simple) { '1' } else { '2' }); FontSize = 18; FontWeight = 'ExtraBold'; Foreground = $blue }))
+    [void]$ui.NavModeText.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text = $(if ($Simple) { 'st window' } else { 'nd window' }); FontSize = 16; FontWeight = 'ExtraBold' }))
     [void]$ui.NavModeText.Inlines.Add((New-Object Windows.Documents.LineBreak))
     [void]$ui.NavModeText.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text = $(if ($Simple) { '＋  Show all tools' } else { '－  Show fewer tools' }) }))
     if (Get-Command Update-DRNavNumbers -ErrorAction SilentlyContinue) { Update-DRNavNumbers }
