@@ -1,7 +1,7 @@
 {
-  "version": "1.4.326",
-  "notes": "Check my drives now asks a drive in a USB dock for its real make, model, serial number and firmware, where the dock allows it.",
-  "published": "2026-10-31T20:13:32.6748938-04:00",
+  "version": "1.4.327",
+  "notes": "Check my drives now shows a dock's make on its own line and, where the dock allows it, the make and model of the drive inside it.",
+  "published": "2026-10-31T20:15:19.6822882-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "DC071C52655472BD18E54576E2C11A636D5ED2B6625169EE9D6587FA764E12A8",
-      "size": 338920
+      "sha256": "5AD8AA5024CE07B029F6912B82C8D509E1F0A949927F806BC652F7B0D5859C45",
+      "size": 339429
     },
     {
       "name": "DRDirect Updater.ps1",

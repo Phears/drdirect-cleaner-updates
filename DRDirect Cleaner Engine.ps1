@@ -1318,11 +1318,15 @@ function Invoke-DRDriveHealth {
         if ($modelText) { $lines.Add(('Model: {0}' -f $modelText)) }
         $serialText = ([string](Get-DRDiskProperty $disk 'SerialNumber')).Trim().TrimEnd('.')
         $firmwareText = ([string](Get-DRDiskProperty $disk 'FirmwareVersion')).Trim()
+        if ($bus -eq 'USB') { $lines.Add(('Dock: {0} (the dock only passes the drive through; the drive inside is a separate disk)' -f ([string](Get-DRDiskProperty $disk 'FriendlyName')).Trim())) }
         if ($bus -eq 'USB' -and (Test-DRAdministrator)) {
             # Behind a dock, Windows only sees the dock. Ask the drive itself, read-only, through the dock.
             $inside = Get-DRDockedDriveIdentity -DiskNumber ([int](Get-DRDiskProperty $disk 'DeviceId'))
+            $dockMake = ([string](Get-DRDiskProperty $disk 'FriendlyName')).Trim()
+            $sizeTag = if ($name -match '\s(\d[\d.]*[TG]B)\)$') { $Matches[1] } else { '' }
             if ($inside) {
                 $lines.Add(('Drive inside the dock: {0}' -f $inside.Model))
+                $name = $name -replace '\(.*\)$', ('({0} {1}, in a {2} dock)' -f $inside.Model, $sizeTag, $dockMake).Replace('  ', ' ')
                 $serialText = [string]$inside.Serial
                 $firmwareText = [string]$inside.Firmware
             } else {
