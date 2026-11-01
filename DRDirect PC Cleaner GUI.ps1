@@ -7582,9 +7582,8 @@ try {
         $ui.ActivateScale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleXProperty, $pulse)
         $ui.ActivateScale.BeginAnimation([Windows.Media.ScaleTransform]::ScaleYProperty, $pulse)
     } elseif (-not (Test-DRTrialMode)) {
-        # Nothing left to activate: the button says so, in green, and stays still.
-        $ui.ActivateButton.Content = [string][char]0x2714 + '  All Activated'
-        $ui.ActivateButton.Foreground = New-Object Windows.Media.SolidColorBrush ([Windows.Media.ColorConverter]::ConvertFromString('#7CFFA6'))
+        # Nothing left to activate: the button is not shown at all.
+        $ui.ActivateWrap.Visibility = 'Collapsed'
     }
 } catch { }
 

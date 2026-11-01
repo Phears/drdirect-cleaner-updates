@@ -1,7 +1,7 @@
 {
-  "version": "1.4.380",
-  "notes": "The picked scan is easier to see, the activate button says All Activated when you are done, and the sign-out warning is easier to read.",
-  "published": "2026-11-01T12:35:13.7139237-05:00",
+  "version": "1.4.381",
+  "notes": "The activate button is hidden once your copy is activated.",
+  "published": "2026-11-01T12:39:03.7670579-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "1744AF2F12AB2962F5D86C2551A0112BA356B480FA0FE47D791A2042EC3C64AD",
-      "size": 1428800
+      "sha256": "84C4FA54B5F01CFF8F0098532F60811C43E8477F068AF61AAF436D36BEAF7D00",
+      "size": 1428612
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
