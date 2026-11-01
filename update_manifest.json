@@ -1,7 +1,7 @@
 {
-  "version": "1.4.378",
-  "notes": "The option that signs you out of websites now reminds you to know your passwords first.",
-  "published": "2026-11-01T11:50:00.6487409-05:00",
+  "version": "1.4.379",
+  "notes": "The warning on the option that signs you out of websites is bigger and clearer.",
+  "published": "2026-11-01T12:22:56.3436322-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "726B01635B6B96FF780F9D6A95F5D5103B05686AE5C563C71FD818C8E89B5B91",
-      "size": 1428244
+      "sha256": "D4FEF46351357DCDE17D6BC6CC409F14C928B19C9DCF0B0982BAB3344755A173",
+      "size": 1428278
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

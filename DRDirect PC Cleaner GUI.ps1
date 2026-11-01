@@ -2487,7 +2487,7 @@ function New-TaskRow {
     $badgePadding = if ($isLoud -or $isLongTest) { '9,4' } else { '8,3' }
     $badge = New-Object Windows.Controls.Border -Property @{ Background=$accent.Badge; CornerRadius=10; Padding=$badgePadding; Margin='10,0,0,0' }
     $badgeText = New-Object Windows.Controls.TextBlock -Property @{ Text=$accent.Label; Foreground=$accent.BadgeInk; FontSize=11 }
-    if ($isLoud -or $isLongTest) { $badgeText.FontSize = 10.5; $badgeText.FontWeight = 'Bold' }
+    if ($isLoud -or $isLongTest) { $badgeText.FontSize = $(if ($isLoud) { 16 } else { 10.5 }); $badgeText.FontWeight = 'Bold' }
     $badge.Child = $badgeText
 
     if ($isLoud) {
@@ -2551,11 +2551,11 @@ function New-TaskRow {
     }
 
     if ($isLoud) {
-        $caution = 'This erases every trace of the websites you have visited, in every browser, and then wipes the free space so it cannot be recovered. It removes your history, cookies, site data, saved searches and the record of open tabs. You will be signed out of every website, so make sure you know all your email addresses and passwords first. Close your browsers before you run it. Saved passwords and bookmarks are kept. This cannot be undone. Only tick it if you are sure and ready to do so. DRDirect is not responsible for any sign-in or password you cannot get back.'
+        $caution = 'This is for a much deeper, better cleaning. It erases every trace of the websites you have visited, in every browser, and wipes the free space so nothing can be recovered. You will be signed out of every website. Before you tick it, make sure you have ALL the details to get back in: your email accounts, your Google account, your Microsoft and Apple accounts, and every other password you use. Close your browsers first. Saved passwords and bookmarks are kept. This cannot be undone. DRDirect is not responsible for any sign-in or password you cannot get back.'
         $cautionText = New-Object Windows.Controls.TextBlock -Property @{
             Text = $caution
             Foreground = '#96500A'
-            FontSize = 12
+            FontSize = 16
             FontWeight = 'SemiBold'
             TextWrapping = 'Wrap'
             Margin = '0,7,12,0'
