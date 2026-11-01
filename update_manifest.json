@@ -1,7 +1,7 @@
 {
-  "version": "1.4.377",
-  "notes": "The New Update button is easier to spot, and the note on the main window is shorter.",
-  "published": "2026-11-01T11:38:25.9906474-05:00",
+  "version": "1.4.378",
+  "notes": "The option that signs you out of websites now reminds you to know your passwords first.",
+  "published": "2026-11-01T11:50:00.6487409-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "D99E1BC9DD690D7216717F5EA472399EB51AADF95568DC2297DBF7FDDA524C4E",
-      "size": 346142
+      "sha256": "A163E18016574577ED0B1EC32F7B1073C4EA5F72417CC1CD88DA3A540F8EF7EC",
+      "size": 346201
     },
     {
       "name": "DRDirect Updater.ps1",
