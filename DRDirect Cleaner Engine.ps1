@@ -1203,6 +1203,72 @@ function Get-DRDriveWriteSpeed {
     }
 }
 
+function Get-DRDockedDriveIdentity {
+    # Asks the drive behind a USB dock "who are you?" with the read-only ATA IDENTIFY request, sent through the
+    # dock (SCSI to ATA pass-through). Nothing is written to the drive. Needs administrator. Returns model,
+    # serial number and firmware, or $null when the dock does not pass the request through.
+    param([int]$DiskNumber)
+    if (-not ('DRAtaIdentify' -as [type])) {
+        Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class DRAtaIdentify {
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    static extern IntPtr CreateFile(string name, uint access, uint share, IntPtr sec, uint disposition, uint flags, IntPtr template);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool DeviceIoControl(IntPtr h, uint code, byte[] inBuf, int inSize, byte[] outBuf, int outSize, out int returned, IntPtr overlapped);
+    [DllImport("kernel32.dll")]
+    static extern bool CloseHandle(IntPtr h);
+    public static byte[] Identify(int disk) {
+        IntPtr h = CreateFile(@"\.\PhysicalDrive" + disk, 0xC0000000, 3, IntPtr.Zero, 3, 0, IntPtr.Zero);
+        if (h == new IntPtr(-1)) return null;
+        try {
+            int pt = IntPtr.Size == 8 ? 56 : 44;
+            int senseOff = pt, dataOff = pt + 32;
+            dataOff = (dataOff + 7) & ~7;
+            byte[] b = new byte[dataOff + 512];
+            BitConverter.GetBytes((ushort)pt).CopyTo(b, 0);
+            b[6] = 16;                                   // CdbLength
+            b[7] = 32;                                   // SenseInfoLength
+            b[8] = 1;                                    // SCSI_IOCTL_DATA_IN
+            BitConverter.GetBytes(512).CopyTo(b, 12);    // DataTransferLength
+            BitConverter.GetBytes(5).CopyTo(b, 16);      // TimeOutValue seconds
+            int cdb;
+            if (IntPtr.Size == 8) { BitConverter.GetBytes((long)dataOff).CopyTo(b, 24); BitConverter.GetBytes(senseOff).CopyTo(b, 32); cdb = 36; }
+            else { BitConverter.GetBytes(dataOff).CopyTo(b, 20); BitConverter.GetBytes(senseOff).CopyTo(b, 24); cdb = 28; }
+            b[cdb] = 0x85;        // ATA PASS-THROUGH (16)
+            b[cdb + 1] = 0x08;    // PIO data-in
+            b[cdb + 2] = 0x0E;    // data in, 512-byte blocks, length in sector count
+            b[cdb + 6] = 1;       // sector count
+            b[cdb + 14] = 0xEC;   // IDENTIFY DEVICE
+            int returned;
+            if (!DeviceIoControl(h, 0x4D004, b, b.Length, b, b.Length, out returned, IntPtr.Zero)) return null;
+            byte[] data = new byte[512];
+            Array.Copy(b, dataOff, data, 0, 512);
+            return data;
+        } finally { CloseHandle(h); }
+    }
+}
+'@
+    }
+    try {
+        $data = [DRAtaIdentify]::Identify($DiskNumber)
+        if (-not $data) { return $null }
+        $text = {
+            param($firstWord, $words)
+            $chars = New-Object char[] ($words * 2)
+            for ($i = 0; $i -lt $words; $i++) {
+                $chars[2 * $i]     = [char]$data[2 * ($firstWord + $i) + 1]
+                $chars[2 * $i + 1] = [char]$data[2 * ($firstWord + $i)]
+            }
+            (-join $chars).Trim([char]0, ' ')
+        }
+        $model = & $text 27 20
+        if (-not $model -or $model -notmatch '^[\x20-\x7E]+$') { return $null }
+        [pscustomobject]@{ Model = $model; Serial = (& $text 10 10); Firmware = (& $text 23 4) }
+    } catch { return $null }
+}
+
 function Invoke-DRDriveHealth {
     param([string]$TaskId, [string]$TestRoot)
     # This check only reads, so it runs for real even in test mode.
@@ -1251,9 +1317,20 @@ function Invoke-DRDriveHealth {
         $modelText = ([string](Get-DRDiskProperty $disk 'Model')).Trim()
         if ($modelText) { $lines.Add(('Model: {0}' -f $modelText)) }
         $serialText = ([string](Get-DRDiskProperty $disk 'SerialNumber')).Trim().TrimEnd('.')
+        $firmwareText = ([string](Get-DRDiskProperty $disk 'FirmwareVersion')).Trim()
+        if ($bus -eq 'USB' -and (Test-DRAdministrator)) {
+            # Behind a dock, Windows only sees the dock. Ask the drive itself, read-only, through the dock.
+            $inside = Get-DRDockedDriveIdentity -DiskNumber ([int](Get-DRDiskProperty $disk 'DeviceId'))
+            if ($inside) {
+                $lines.Add(('Drive inside the dock: {0}' -f $inside.Model))
+                $serialText = [string]$inside.Serial
+                $firmwareText = [string]$inside.Firmware
+            } else {
+                $lines.Add('Drive inside the dock: this dock does not let Windows ask the drive its make and model.')
+            }
+        }
         if ($serialText -and $serialText -notmatch '^0+$') { $lines.Add(('Serial number: {0}' -f $serialText)) }
         else { $lines.Add('Serial number: not reported' + $(if ($bus -eq 'USB') { ' (the dock or case hides it)' } else { '' })) }
-        $firmwareText = ([string](Get-DRDiskProperty $disk 'FirmwareVersion')).Trim()
         if ($firmwareText -and $firmwareText -ne '0') { $lines.Add(('Firmware: {0}' -f $firmwareText)) }
         # Speed test: one drive letter on this drive gets a short temporary file. Works for docked drives too.
         $testLetter = ([string]$letters -split ',' | ForEach-Object { $_.Trim().TrimEnd(':') } | Where-Object { $_ } | Select-Object -First 1)
