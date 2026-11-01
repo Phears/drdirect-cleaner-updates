@@ -1,7 +1,7 @@
 {
-  "version": "1.4.356",
-  "notes": "While Windows is being fixed, a 3D wrench wobbles and bonks and a funny line changes every few seconds. The two gears on the Show all tools button turn whenever the Cleaner is working.",
-  "published": "2026-10-31T21:55:12.3403818-04:00",
+  "version": "1.4.357",
+  "notes": "The number 2 in \"2nd window\" on the Show fewer tools button is now blue.",
+  "published": "2026-11-01T07:49:37.5771998-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "6FDC99182D3A8C24F5BC4ED8CDE509BF3AF8803A1271AB8AE7AB940A53AB069F",
-      "size": 1391486
+      "sha256": "193D232A47A31EA842EED0D2C5DFB756E13D4C143E80203764F1EA46D8D7E251",
+      "size": 1391861
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
