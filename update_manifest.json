@@ -1,7 +1,7 @@
 {
-  "version": "1.4.355",
-  "notes": "The SAFE, MEDIUM or ADVANCED SCAN badge in the plan review now shows how long it will take on your PC.",
-  "published": "2026-10-31T21:37:30.5171608-04:00",
+  "version": "1.4.356",
+  "notes": "While Windows is being fixed, a 3D wrench wobbles and bonks and a funny line changes every few seconds. The two gears on the Show all tools button turn whenever the Cleaner is working.",
+  "published": "2026-10-31T21:55:12.3403818-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "DF0A589520632720120FB08C8A69220C367F2D6F9675CFB9BD21A99A1D95CFF4",
-      "size": 1381577
+      "sha256": "6FDC99182D3A8C24F5BC4ED8CDE509BF3AF8803A1271AB8AE7AB940A53AB069F",
+      "size": 1391486
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
