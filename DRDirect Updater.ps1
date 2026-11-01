@@ -425,7 +425,13 @@ function Get-DRFileHashWithRetry {
 
     for ($i = 1; $i -le $Attempts; $i++) {
         try {
-            return Get-FileHash -LiteralPath $Path -Algorithm SHA256 -ErrorAction Stop
+            # Plain .NET, so it works in any runspace: Get-FileHash lives in a module that a fresh runspace may fail to load.
+            $stream = [System.IO.File]::Open($Path, [System.IO.FileMode]::Open, [System.IO.FileAccess]::Read, [System.IO.FileShare]::ReadWrite)
+            try {
+                $sha = [System.Security.Cryptography.SHA256]::Create()
+                try { $hex = ([System.BitConverter]::ToString($sha.ComputeHash($stream))).Replace('-', '') } finally { $sha.Dispose() }
+            } finally { $stream.Dispose() }
+            return [pscustomobject]@{ Algorithm = 'SHA256'; Hash = $hex; Path = $Path }
         } catch [System.UnauthorizedAccessException], [System.IO.IOException] {
             if ($i -eq $Attempts) { throw }
             Start-Sleep -Milliseconds (200 * $i)
