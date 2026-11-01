@@ -1203,6 +1203,16 @@ function Get-DRDriveWriteSpeed {
     }
 }
 
+function Format-DRDriveMaker {
+    # Drives report short maker codes: WDC for Western Digital, ST for Seagate. Spell the maker out.
+    param([string]$Model)
+    $m = ([string]$Model).Trim()
+    if ($m -match '^WDC[\s_]+(.+)$') { return 'Western Digital ' + $Matches[1] }
+    if ($m -match '^(ST\d{3,}\w*)$') { return 'Seagate ' + $Matches[1] }
+    if ($m -match '^HGST[\s_]+(.+)$') { return 'HGST ' + $Matches[1] }
+    return $m
+}
+
 function Get-DRDockedDriveIdentity {
     # Asks the drive behind a USB dock "who are you?" with the read-only ATA IDENTIFY request, sent through the
     # dock (SCSI to ATA pass-through). Nothing is written to the drive. Needs administrator. Returns model,
@@ -1315,7 +1325,8 @@ function Invoke-DRDriveHealth {
         # Model, serial number and firmware, as the drive (or its dock) reports them. A dock that sits between
         # the drive and Windows often reports blanks or zeros; say so instead of showing a made-up number.
         $modelText = ([string](Get-DRDiskProperty $disk 'Model')).Trim()
-        if ($modelText) { $lines.Add(('Model: {0}' -f $modelText)) }
+        # A dock's own name is not the drive's model; the drive inside is asked below.
+        if ($modelText -and $bus -ne 'USB') { $lines.Add(('Model: {0}' -f $modelText)) }
         $serialText = ([string](Get-DRDiskProperty $disk 'SerialNumber')).Trim().TrimEnd('.')
         $firmwareText = ([string](Get-DRDiskProperty $disk 'FirmwareVersion')).Trim()
         if ($bus -eq 'USB') { $lines.Add(('Dock: {0} (the dock only passes the drive through; the drive inside is a separate disk)' -f ([string](Get-DRDiskProperty $disk 'FriendlyName')).Trim())) }
@@ -1325,12 +1336,13 @@ function Invoke-DRDriveHealth {
             $dockMake = ([string](Get-DRDiskProperty $disk 'FriendlyName')).Trim()
             $sizeTag = if ($name -match '\s(\d[\d.]*[TG]B)\)$') { $Matches[1] } else { '' }
             if ($inside) {
-                $lines.Add(('Drive inside the dock: {0}' -f $inside.Model))
-                $name = $name -replace '\(.*\)$', ('({0} {1}, in a {2} dock)' -f $inside.Model, $sizeTag, $dockMake).Replace('  ', ' ')
+                $insideModel = Format-DRDriveMaker $inside.Model
+                $lines.Add(('Model: {0}' -f $insideModel))
+                $name = $name -replace '\(.*\)$', ('({0} {1}, in a {2} dock)' -f $insideModel, $sizeTag, $dockMake).Replace('  ', ' ')
                 $serialText = [string]$inside.Serial
                 $firmwareText = [string]$inside.Firmware
             } else {
-                $lines.Add('Drive inside the dock: this dock does not let Windows ask the drive its make and model.')
+                $lines.Add('Model: unknown - this dock does not let Windows ask the drive inside its make and model.')
             }
         }
         if ($serialText -and $serialText -notmatch '^0+$') { $lines.Add(('Serial number: {0}' -f $serialText)) }
