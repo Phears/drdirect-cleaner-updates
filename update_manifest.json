@@ -1,7 +1,7 @@
 {
-  "version": "1.4.360",
-  "notes": "About my PC now shows a button for your motherboard: it opens the maker's own drivers page for your exact board (chipset, LAN, Wi-Fi, audio, BIOS), which Windows Update cannot see. Nothing is downloaded or installed.",
-  "published": "2026-11-01T08:03:14.6557445-05:00",
+  "version": "1.4.361",
+  "notes": "Fixed the Cleaner getting stuck for hours on \"Create restore point\". It now saves the restore point safely, gives up after 3 minutes if Windows does not answer, and carries on.",
+  "published": "2026-11-01T08:51:23.9320167-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "349C78276E1423B7EBC047F09F75F2A4535419B73EBEC9DC034961A1F35078AE",
-      "size": 343807
+      "sha256": "1352C2FFE5AA4080BC695482979B120562E6242F47676AE63D981A82890BEE91",
+      "size": 346028
     },
     {
       "name": "DRDirect Updater.ps1",

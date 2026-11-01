@@ -965,6 +965,37 @@ function Format-DROutputForLog {
     return $report
 }
 
+# Saves a Windows restore point in its own PowerShell, with a time limit. Done inside the Cleaner itself, Windows
+# could save the point and then never hand control back, which left the plan stuck on this step for hours.
+function Save-DRRestorePoint {
+    param([string]$Description, [int]$TimeoutSeconds = 180)
+    $before = 0
+    try { $before = [int](@(Get-ComputerRestorePoint -ErrorAction Stop | ForEach-Object { [int]$_.SequenceNumber } | Measure-Object -Maximum).Maximum) } catch { }
+    $errorFile = Join-Path ([System.IO.Path]::GetTempPath()) ('drdirect-restore-{0}.txt' -f [guid]::NewGuid().ToString('N'))
+    $outFile = $errorFile + '.out'
+    $command = "Checkpoint-Computer -Description '{0}' -RestorePointType MODIFY_SETTINGS -ErrorAction Stop" -f $Description.Replace("'", "''")
+    $proc = Start-Process -FilePath (Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe') -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', ('"{0}"' -f $command)) -WindowStyle Hidden -PassThru -RedirectStandardError $errorFile -RedirectStandardOutput $outFile
+    # Reading the handle first is what lets ExitCode be read after the wait.
+    $null = $proc.Handle
+    $timedOut = -not $proc.WaitForExit($TimeoutSeconds * 1000)
+    if ($timedOut) { try { $proc.Kill() } catch { } }
+    $exitCode = if ($timedOut) { $null } else { $proc.ExitCode }
+    $errorText = ''
+    try { $errorText = (Get-Content -Path $errorFile -Raw -ErrorAction Stop).Trim() } catch { }
+    Remove-Item -Path $errorFile, $outFile -Force -ErrorAction SilentlyContinue
+    $after = $before
+    try { $after = [int](@(Get-ComputerRestorePoint -ErrorAction Stop | ForEach-Object { [int]$_.SequenceNumber } | Measure-Object -Maximum).Maximum) } catch { }
+    [pscustomobject]@{ Saved = ($after -gt $before); TimedOut = $timedOut; ExitCode = $exitCode; Error = $errorText }
+}
+
+function Write-DRRestorePointResult {
+    param([string]$TaskId, $Result)
+    if ($Result.Saved) { New-DREvent -TaskId $TaskId -State Information -Message 'A Windows restore point was saved before any change.' }
+    elseif ($Result.TimedOut) { New-DREvent -TaskId $TaskId -State Warning -Message 'Windows took too long to save a restore point, so the Cleaner stopped waiting and carried on. Nothing was changed by this step.' }
+    elseif ($Result.ExitCode -eq 0) { New-DREvent -TaskId $TaskId -State Information -Message 'Windows already saved a restore point in the last day, so it did not make another. That one still protects this PC.' }
+    else { New-DREvent -TaskId $TaskId -State Warning -Message 'No restore point was saved (System Restore may be off). The Cleaner keeps its own backups of the settings it changes.' }
+}
+
 function Invoke-DRExternalCommand {
     param([string]$TaskId, [string]$FilePath, [string[]]$Arguments, [string]$TestRoot)
     if ($TestRoot) {
@@ -4914,18 +4945,11 @@ function Invoke-DRTask {
             }
             'safety.restore-point' {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: a Windows restore point would be saved here, before any change.' }
-                else {
-                    try {
-                        Checkpoint-Computer -Description 'DRDirect PC Cleaner - safety point before changes' -RestorePointType MODIFY_SETTINGS -ErrorAction Stop
-                        New-DREvent -TaskId $TaskId -State Information -Message 'A Windows restore point was saved before any change.'
-                    } catch {
-                        New-DREvent -TaskId $TaskId -State Warning -Message 'No restore point was saved (System Restore may be off, or Windows already made one in the last day). The Cleaner keeps its own backups of the settings it changes.'
-                    }
-                }
+                else { Write-DRRestorePointResult -TaskId $TaskId -Result (Save-DRRestorePoint -Description 'DRDirect PC Cleaner - safety point before changes') }
             }
             'repair.restore-point' {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: restore point was not created.' }
-                else { Checkpoint-Computer -Description 'DRDirect PC Cleaner - Before Maintenance' -RestorePointType MODIFY_SETTINGS -ErrorAction Stop }
+                else { Write-DRRestorePointResult -TaskId $TaskId -Result (Save-DRRestorePoint -Description 'DRDirect PC Cleaner - Before Maintenance') }
             }
             'repair.dism-health' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath 'DISM.exe' -Arguments @('/Online','/Cleanup-Image','/RestoreHealth') -TestRoot $TestRoot | Out-Null }
             'repair.component-cleanup' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath 'DISM.exe' -Arguments @('/Online','/Cleanup-Image','/StartComponentCleanup') -TestRoot $TestRoot | Out-Null }
