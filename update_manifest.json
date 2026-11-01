@@ -1,7 +1,7 @@
 {
-  "version": "1.4.384",
-  "notes": "The Read me note now includes the short safety reminders.",
-  "published": "2026-11-01T12:57:48.2468685-05:00",
+  "version": "1.4.385",
+  "notes": "A clock with seconds and the date now sits in the side menu.",
+  "published": "2026-11-01T13:26:56.2056886-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "86ED858F6851274C50F2EB6C82A4CCAAA2C11C13A3296F139820764B7313DF46",
-      "size": 1430120
+      "sha256": "C9791C53A2B0633F42B68CCEB33AF4BC1C11C10F0835987ADA828B35AD8F7549",
+      "size": 1431548
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
