@@ -1,7 +1,7 @@
 {
-  "version": "1.4.336",
-  "notes": "The Fix Windows 10/11 button has larger letters now that the left menu is wider.",
-  "published": "2026-10-31T20:41:39.4819137-04:00",
+  "version": "1.4.337",
+  "notes": "The DRDirect Uninstaller Program button in the left menu has larger letters.",
+  "published": "2026-10-31T20:42:21.2611396-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F97A946F13BBE77A8BAB45F4D4CF21E3FCF1AE41EAA8C9A2E078DE3B886261BF",
+      "sha256": "AFB4679711EDE655D4AF1A1F7642B3DEBDBA2F7041DC9A5E91B406EEC30B141F",
       "size": 1375544
     },
     {
