@@ -1,7 +1,7 @@
 {
-  "version": "1.4.332",
-  "notes": "On Check my drives, only each drive's size, such as 4TB or 500GB, is in blue.",
-  "published": "2026-10-31T20:31:51.8095277-04:00",
+  "version": "1.4.333",
+  "notes": "On Check my drives, each drive's brand, such as Samsung or Western Digital, and its size are in blue.",
+  "published": "2026-10-31T20:34:03.7343233-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "EDC70F0491C5E494E1707D4C254EBE066112E2BE69216B3204BD5CEB81B9DC35",
-      "size": 1374708
+      "sha256": "B9049A1C80AD291F6D720C0099A979E7E85AB819BAD1B4800FBEFC2BACA0C076",
+      "size": 1375528
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

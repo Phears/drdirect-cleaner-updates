@@ -3216,12 +3216,21 @@ function New-DRResultCard {
     $box = New-Object Windows.Controls.Border -Property @{ Background=$fill; BorderBrush=$edge; BorderThickness='1'; CornerRadius='10'; Padding='16,12'; Margin='0,10,0,0' }
     $stack = New-Object Windows.Controls.StackPanel
     $title = New-Object Windows.Controls.TextBlock -Property @{ Foreground=$ink; FontSize=$(if ($good -or $bad) { 17 } else { 14 }); FontWeight='SemiBold'; TextWrapping='Wrap' }
-    if ($head -match '^(\S+:\s+\(.*?)(\b\d[\d.]*\s?[TG]B\b)(.*)$') {
-        # A drive's card: only its size, such as 4TB or 500GB, stands out in blue.
+    if ($head -match '^\S+:\s+\(') {
+        # A drive's card: its brand, such as Samsung or Western Digital, and its size, such as 4TB or 500GB, stand out in blue.
         $blue = [Windows.Media.SolidColorBrush]::new([Windows.Media.ColorConverter]::ConvertFromString('#0057D9'))
-        [void]$title.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text=($mark + $Matches[1]) }))
-        [void]$title.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text=$Matches[2]; Foreground=$blue }))
-        [void]$title.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text=$Matches[3] }))
+        $brands = 'Samsung|Western Digital|WDC|WD|Seagate|Crucial|Kingston|SanDisk|Sabrent|Toshiba|HGST|Hitachi|Intel|Micron|Corsair|ADATA|Lexar|PNY|Transcend|Gigabyte|Patriot|Silicon Power|Kioxia|SK hynix|Fanxiang|TeamGroup|Netac|Verbatim|Acer|Lenovo|Dell|HP|ASUS|MSI|Apple|Sony|Buffalo|LaCie|Orico|UGREEN|Inateck'
+        $at = 0
+        $pattern = '(?i)\b(?:' + $brands + ')\b|\b\d[\d.]*\s?[TG]B\b'
+        $open = $head.IndexOf('(')
+        [void]$title.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text=($mark + $head.Substring(0, $open)) }))
+        $rest = $head.Substring($open)
+        foreach ($hit in [regex]::Matches($rest, $pattern)) {
+            if ($hit.Index -gt $at) { [void]$title.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text=$rest.Substring($at, $hit.Index - $at) })) }
+            [void]$title.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text=$hit.Value; Foreground=$blue }))
+            $at = $hit.Index + $hit.Length
+        }
+        if ($at -lt $rest.Length) { [void]$title.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text=$rest.Substring($at) })) }
     } else { $title.Text = ($mark + $head) }
     [void]$stack.Children.Add($title)
     if ($body) {
