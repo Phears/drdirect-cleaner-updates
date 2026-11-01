@@ -1,7 +1,7 @@
 {
-  "version": "1.4.342",
-  "notes": "A menu page now keeps the same number whether the short or the full menu is showing.",
-  "published": "2026-10-31T20:59:37.0465177-04:00",
+  "version": "1.4.343",
+  "notes": "The short menu is numbered 1 to 5 with no gaps. Show all tools keeps those numbers and numbers the extra pages after them.",
+  "published": "2026-10-31T21:01:30.9770644-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "14144A83BECD74EC2E545CF032AEB8C6502BBEA2969343A40F23B5CCD4AB0767",
-      "size": 1377357
+      "sha256": "A9C73A46183D68619E62F8BAA69800CEF7D8D0779C721071506FB10B2221E2CF",
+      "size": 1377459
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
