@@ -1,7 +1,7 @@
 {
-  "version": "1.4.346",
-  "notes": "The 1st window / 2nd window line on the Show all tools button is now white and bigger, so it is easy to read.",
-  "published": "2026-10-31T21:07:35.4311540-04:00",
+  "version": "1.4.347",
+  "notes": "The yellow Test how long it takes to clean your PC button now has sharp, easy-to-read letters.",
+  "published": "2026-10-31T21:09:16.5094847-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B7092D51A0F3079B50FC4E9CFA4D5D8D88C869DBECDD4F8A14E374C34DA5969B",
-      "size": 1377616
+      "sha256": "6574DAE81D371857B917D44E94D99F795EBD57CE8425AB708629F1C7E9EF331F",
+      "size": 1377713
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
