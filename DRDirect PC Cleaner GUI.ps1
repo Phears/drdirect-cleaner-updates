@@ -1392,6 +1392,36 @@ try {
     $window.MaxWidth  = $wa.Width
 } catch { }
 
+# Ctrl + and Ctrl - make the whole page bigger or smaller at any time; Ctrl 0 puts it back.
+# It multiplies the fit-to-screen scale above, so small screens still start sensibly.
+$script:DRZoom = 1.0
+$script:DRZoomBase = 1.0
+try {
+    $t = $window.Content.LayoutTransform
+    if ($t -is [Windows.Media.ScaleTransform]) { $script:DRZoomBase = [double]$t.ScaleX }
+} catch { }
+function Set-DRPageZoom {
+    param([double]$Zoom)
+    $script:DRZoom = [Math]::Round([Math]::Max(0.5, [Math]::Min(2.0, $Zoom)), 2)
+    $s = $script:DRZoomBase * $script:DRZoom
+    $window.Content.LayoutTransform = New-Object Windows.Media.ScaleTransform($s, $s)
+}
+$window.Add_PreviewKeyDown({
+    param($sender, $e)
+    if (([Windows.Input.Keyboard]::Modifiers -band [Windows.Input.ModifierKeys]::Control) -eq 0) { return }
+    switch ([string]$e.Key) {
+        { $_ -in 'OemPlus','Add' }      { Set-DRPageZoom ($script:DRZoom + 0.1); $e.Handled = $true }
+        { $_ -in 'OemMinus','Subtract' } { Set-DRPageZoom ($script:DRZoom - 0.1); $e.Handled = $true }
+        { $_ -in 'D0','NumPad0' }       { Set-DRPageZoom 1.0; $e.Handled = $true }
+    }
+})
+$window.Add_PreviewMouseWheel({
+    param($sender, $e)
+    if (([Windows.Input.Keyboard]::Modifiers -band [Windows.Input.ModifierKeys]::Control) -eq 0) { return }
+    Set-DRPageZoom ($script:DRZoom + $(if ($e.Delta -gt 0) { 0.1 } else { -0.1 }))
+    $e.Handled = $true
+})
+
 # Open where the person left it: the size and place they gave the window last time are remembered,
 # as long as they still fit on a screen that is connected now. A first start keeps the default.
 try {
@@ -7253,6 +7283,13 @@ if ($NoShow) {
     if (-not $ui.GearBlue.HasAnimatedProperties -or -not $ui.GearGold.HasAnimatedProperties) { throw 'GUI smoke test: the gears did not start turning.' }
     Set-DRGearsSpin -On $false
     if ($ui.GearBlue.HasAnimatedProperties) { throw 'GUI smoke test: the gears did not stop.' }
+    $zoomBefore = $script:DRZoomBase
+    Set-DRPageZoom 1.5
+    if ([Math]::Abs($window.Content.LayoutTransform.ScaleX - ($script:DRZoomBase * 1.5)) -gt 0.001) { throw 'GUI smoke test: Ctrl + zoom did not enlarge the page.' }
+    Set-DRPageZoom 0.7
+    if ($window.Content.LayoutTransform.ScaleX -ge $zoomBefore) { throw 'GUI smoke test: Ctrl - zoom did not shrink the page.' }
+    Set-DRPageZoom 1.0
+    if ([Math]::Abs($window.Content.LayoutTransform.ScaleX - $script:DRZoomBase) -gt 0.001) { throw 'GUI smoke test: Ctrl 0 did not reset the zoom.' }
     Set-DRFixMode -On $false
     if ($ui.BannerWrench.Visibility -ne 'Collapsed' -or $ui.FunnyLine.Visibility -ne 'Collapsed' -or $ui.CleaningHeader.Text -ne 'CLEANING THIS PC') { throw 'GUI smoke test: the Fix Windows animation did not stop.' }
     Set-Page 'AI'

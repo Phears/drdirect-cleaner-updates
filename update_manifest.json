@@ -1,7 +1,7 @@
 {
-  "version": "1.4.358",
-  "notes": "The number 1 in \"1st window\" on the Show all tools button is now blue too.",
-  "published": "2026-11-01T07:50:43.9244324-05:00",
+  "version": "1.4.359",
+  "notes": "You can now make the whole Cleaner bigger or smaller at any time: press Ctrl and + to enlarge, Ctrl and - to shrink, Ctrl and 0 to go back to normal. Ctrl with the mouse wheel works too.",
+  "published": "2026-11-01T07:54:12.6528316-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "E8E5ACFA8D56C905FBF297A6F2231514BDCF3E2B6A5BDCF614CC2899876CECDD",
-      "size": 1391731
+      "sha256": "2F5206D9BD135AC3291D5C5DCA6D4857AF4486A5B22BCFD8D43DBB24966AC4ED",
+      "size": 1393681
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
