@@ -1,7 +1,7 @@
 {
-  "version": "1.4.361",
-  "notes": "Fixed the Cleaner getting stuck for hours on \"Create restore point\". It now saves the restore point safely, gives up after 3 minutes if Windows does not answer, and carries on.",
-  "published": "2026-11-01T08:51:23.9320167-05:00",
+  "version": "1.4.362",
+  "notes": "The wrench on the Fix Windows 10/11 button now wobbles and bonks while a repair is running, so you can see it working from any page.",
+  "published": "2026-11-01T08:55:46.8066840-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "AAB2EC38295BF8CC462A30A9BE555A03A3B4CD908860491DF45CBCBE43397BB8",
-      "size": 1396457
+      "sha256": "B38FA57409B54F3987853B30EDC225684DAFE08EB83AB610995B26600F471389",
+      "size": 1397513
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
