@@ -1,7 +1,7 @@
 {
-  "version": "1.4.340",
-  "notes": "The DRDirect logo at the top of the left menu is bigger.",
-  "published": "2026-10-31T20:51:12.4418484-04:00",
+  "version": "1.4.341",
+  "notes": "The left menu pages are now numbered 1, 2, 3 and so on down the list, in both the short and the full menu.",
+  "published": "2026-10-31T20:55:19.3458954-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "8D6FF87C3028A3406D8EB637AB9463C18EB7DAFE5CF349A0AA2411C0DE418A44",
-      "size": 1375544
+      "sha256": "87BE5910B5D9C63422960CEB315E1D835790AAE38E53C5333D4A6278AAF121EF",
+      "size": 1377049
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
