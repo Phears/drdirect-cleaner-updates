@@ -5491,14 +5491,18 @@ function Set-DRUiMode {
 }
 # Every time the Cleaner opens it starts in the Simple view. Show all tools opens the rest for that visit only.
 function Update-DRNavNumbers {
-    # Numbers the menu pages 1, 2, 3... down the list, counting only the ones showing right now.
+    # Numbers the menu pages 1, 2, 3... down the full list.
     $skip = @('NavModeToggle','NavProgress','NavNoteButton')
     $n = 0
     $navPanel = $window.FindName('Navigation')
     if (-not $navPanel) { return }
     foreach ($item in @($navPanel.Children)) {
         if ($item -isnot [Windows.Controls.Button] -or $skip -contains $item.Name) { continue }
-        if ($item.Visibility -eq 'Visible') { $n++; $item.DataContext = [string]$n } else { $item.DataContext = $null }
+        # A page keeps the same number in the short and the full menu, so the numbers match when "Show all tools" opens.
+        # Pages the short menu hides still count; pages hidden for another reason do not.
+        if ($item.Visibility -eq 'Visible' -or @($script:DRSimpleHidden) -contains $item.Name) { $n++ }
+        else { $item.DataContext = $null; continue }
+        $item.DataContext = $(if ($item.Visibility -eq 'Visible') { [string]$n } else { $null })
     }
 }
 $script:DRSimpleMode = $true

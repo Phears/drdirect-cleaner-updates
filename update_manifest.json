@@ -1,7 +1,7 @@
 {
-  "version": "1.4.341",
-  "notes": "The left menu pages are now numbered 1, 2, 3 and so on down the list, in both the short and the full menu.",
-  "published": "2026-10-31T20:55:19.3458954-04:00",
+  "version": "1.4.342",
+  "notes": "A menu page now keeps the same number whether the short or the full menu is showing.",
+  "published": "2026-10-31T20:59:37.0465177-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "87BE5910B5D9C63422960CEB315E1D835790AAE38E53C5333D4A6278AAF121EF",
-      "size": 1377049
+      "sha256": "14144A83BECD74EC2E545CF032AEB8C6502BBEA2969343A40F23B5CCD4AB0767",
+      "size": 1377357
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
