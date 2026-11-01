@@ -6305,6 +6305,8 @@ function Show-DROwnerMenu {
     [void]$menu.ShowDialog()
 }
 function Invoke-DROwnerEntry {
+    # Customers clicking the bar or the version text get nothing; it opens only for the owner.
+    if (-not ($script:DROwnerPcHere -or (Test-DRRemoteHelpSession))) { return }
     $typed = Read-DRResetPassword
     if ($null -eq $typed) { return }
     if (-not (Test-DRResetPassword $typed)) {
@@ -6335,7 +6337,24 @@ function Test-DROwnerPc {
     } catch { }
     return $false
 }
-$ui.ResetReliabilityButton.Visibility = 'Visible'
+# The strip also shows while the owner is connected by Splashtop or AnyDesk, so it is only ever there when he is on the PC.
+function Test-DRRemoteHelpSession {
+    try {
+        if (Get-Process -Name 'SRFeature' -ErrorAction SilentlyContinue) { return $true }
+        if (Get-Process -Name 'AnyDesk' -ErrorAction SilentlyContinue | Where-Object { $_.SessionId -ne 0 }) { return $true }
+    } catch { }
+    return $false
+}
+$script:DROwnerPcHere = Test-DROwnerPc
+function Update-DROwnerStrip {
+    $show = $script:DROwnerPcHere -or (Test-DRRemoteHelpSession)
+    $ui.ResetReliabilityButton.Visibility = $(if ($show) { 'Visible' } else { 'Collapsed' })
+}
+Update-DROwnerStrip
+$script:DROwnerStripTimer = New-Object Windows.Threading.DispatcherTimer
+$script:DROwnerStripTimer.Interval = [TimeSpan]::FromSeconds(5)
+$script:DROwnerStripTimer.Add_Tick({ Update-DROwnerStrip })
+$script:DROwnerStripTimer.Start()
 $ui.ResetReliabilityButton.Add_MouseLeftButtonUp({ Invoke-DROwnerEntry })
 $ui.DashNoteButton.Add_Click({ Show-DRNote })
 $ui.NavNoteButton.Add_Click({ Show-DRNote })
