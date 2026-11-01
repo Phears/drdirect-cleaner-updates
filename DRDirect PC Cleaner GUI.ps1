@@ -5917,9 +5917,7 @@ if ($ui.EstimateTimeButton) {
         }
     })
 }
-# "Make my PC cleaner" opens Clean my PC with its 3 choices; "Show me first" still goes straight to the Safe plan review.
-if ($ui.SafeCleanButton) { $ui.SafeCleanButton.Add_Click({ Stop-DRCleanButtonBounce; Set-Page 'Cleanup' }) }
-if ($ui.SafePreviewButton) { $ui.SafePreviewButton.Add_Click({ Stop-DRCleanButtonBounce; Invoke-DRSafeClean }) }
+foreach ($name in 'SafeCleanButton','SafePreviewButton') { if ($ui[$name]) { $ui[$name].Add_Click({ Stop-DRCleanButtonBounce; Invoke-DRSafeClean }) } }
 if ($ui.SafePlanRunButton) { $ui.SafePlanRunButton.Add_Click({ Invoke-DRLevelClean }) }
 if ($ui.SafeLevelSafeButton) { $ui.SafeLevelSafeButton.Add_Click({ Show-SafePlan -Level 'Safe' -Animate }) }
 if ($ui.SafeLevelMediumButton) { $ui.SafeLevelMediumButton.Add_Click({ Show-SafePlan -Level 'Medium' -Animate }) }
