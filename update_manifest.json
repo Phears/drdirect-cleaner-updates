@@ -1,7 +1,7 @@
 {
-  "version": "1.4.374",
-  "notes": "The New Update button is easier to spot.",
-  "published": "2026-11-01T10:43:45.2470305-05:00",
+  "version": "1.4.375",
+  "notes": "The note about the Uninstaller and Duplicate Finder is easier to read, and pointing at it shows you where Show all tools is.",
+  "published": "2026-11-01T10:50:54.4715037-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "5BEC4CFBBB5FD2BC3090A15506EE9C242C0BAC259762CC66D774B0C24F5A7DCE",
-      "size": 1425500
+      "sha256": "7621F1E8F0C1B80FD2B4CD89FE342864EABD854FAD93F1B8A4D36BB71DB86E47",
+      "size": 1427506
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
