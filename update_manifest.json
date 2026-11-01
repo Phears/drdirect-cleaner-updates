@@ -1,7 +1,7 @@
 {
-  "version": "1.4.345",
-  "notes": "The Show all tools button now says 1st window above it. After you click it, it says 2nd window above Show fewer tools.",
-  "published": "2026-10-31T21:06:03.0543300-04:00",
+  "version": "1.4.346",
+  "notes": "The 1st window / 2nd window line on the Show all tools button is now white and bigger, so it is easy to read.",
+  "published": "2026-10-31T21:07:35.4311540-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "D2FFDFE99CC6914445D8E1E982F88C08EDCC39BE0AF594B1D649FBB911007E43",
-      "size": 1377667
+      "sha256": "B7092D51A0F3079B50FC4E9CFA4D5D8D88C869DBECDD4F8A14E374C34DA5969B",
+      "size": 1377616
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
