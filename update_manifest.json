@@ -1,7 +1,7 @@
 {
-  "version": "1.4.376",
-  "notes": "The note on the main window now says the Uninstaller and Duplicate Finder are inside, and more.",
-  "published": "2026-11-01T10:55:03.2266333-05:00",
+  "version": "1.4.377",
+  "notes": "The New Update button is easier to spot, and the note on the main window is shorter.",
+  "published": "2026-11-01T11:38:25.9906474-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "142A11F0F6DBD8D0D18FBFDDBA14FB6A54925CEF07289EB9CC5B1061A475CFCC",
-      "size": 1427562
+      "sha256": "726B01635B6B96FF780F9D6A95F5D5103B05686AE5C563C71FD818C8E89B5B91",
+      "size": 1428244
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "1352C2FFE5AA4080BC695482979B120562E6242F47676AE63D981A82890BEE91",
-      "size": 346028
+      "sha256": "D99E1BC9DD690D7216717F5EA472399EB51AADF95568DC2297DBF7FDDA524C4E",
+      "size": 346142
     },
     {
       "name": "DRDirect Updater.ps1",

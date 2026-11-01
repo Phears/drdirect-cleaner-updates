@@ -982,7 +982,9 @@ function Save-DRRestorePoint {
     $exitCode = if ($timedOut) { $null } else { $proc.ExitCode }
     $errorText = ''
     try { $errorText = (Get-Content -Path $errorFile -Raw -ErrorAction Stop).Trim() } catch { }
-    Remove-Item -Path $errorFile, $outFile -Force -ErrorAction SilentlyContinue
+    foreach ($tempFile in @($errorFile, $outFile)) {
+        try { [void](Remove-DRSafeItem -LiteralPath $tempFile -AllowedRoot ([System.IO.Path]::GetTempPath().TrimEnd('\'))) } catch { }
+    }
     $after = $before
     try { $after = [int](@(Get-ComputerRestorePoint -ErrorAction Stop | ForEach-Object { [int]$_.SequenceNumber } | Measure-Object -Maximum).Maximum) } catch { }
     [pscustomobject]@{ Saved = ($after -gt $before); TimedOut = $timedOut; ExitCode = $exitCode; Error = $errorText }
