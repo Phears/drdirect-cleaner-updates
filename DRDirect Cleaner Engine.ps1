@@ -1364,9 +1364,9 @@ function Invoke-DRDriveHealth {
         $driveSerious = $false
         $lines = New-Object System.Collections.Generic.List[string]
         if ($sizeBytes) {
-            # Makers sell by decimal size (4 TB = 4,000,000,000,000 bytes) but Windows counts in 1024s, so the same drive reads smaller.
+            # Makers label drives by decimal size (4 TB = 4,000,000,000,000 bytes) but Windows counts in 1024s, so the same drive reads smaller.
             $sold = if ($sizeBytes -ge 0.99e12) { '{0:N1} TB' -f ($sizeBytes / 1e12) } else { '{0:N0} GB' -f ($sizeBytes / 1e9) }
-            $lines.Add(('Size: {0} as sold ({1:N0} GB as Windows counts it)' -f $sold, ($sizeBytes / 1GB)))
+            $lines.Add(('Size: {0}  (Windows shows it as {1:N0} GB)' -f $sold, ($sizeBytes / 1GB)))
             # A dock names only its controller chip, so the drive's size goes in the title the way a Samsung's name already carries 4TB.
             if ($name -notmatch '\d\s*[TG]B') {
                 $short = if ($sizeBytes -ge 0.99e12) { '{0:0.#}TB' -f ($sizeBytes / 1e12) } else { '{0:0}GB' -f ($sizeBytes / 1e9) }

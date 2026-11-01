@@ -1,7 +1,7 @@
 {
-  "version": "1.4.337",
-  "notes": "The DRDirect Uninstaller Program button in the left menu has larger letters.",
-  "published": "2026-10-31T20:42:21.2611396-04:00",
+  "version": "1.4.338",
+  "notes": "The drive size line is clearer: 4.0 TB (Windows shows it as 3,726 GB).",
+  "published": "2026-10-31T20:45:35.4808779-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,7 +15,7 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "17FF0C5585C1CB3315483E01FCD39BD7DA66FD85644B0D52E6134B6957871860",
+      "sha256": "5A819DA956D730240A986522F5DEAB1D1838AD7F8BB2EBD27D2524E91E908149",
       "size": 343768
     },
     {
