@@ -1,7 +1,7 @@
 {
-  "version": "1.4.323",
-  "notes": "Check my drives now puts a drive's size in its title, such as 4TB, for docked drives that only show the dock's name.",
-  "published": "2026-10-31T20:07:50.3872939-04:00",
+  "version": "1.4.324",
+  "notes": "Drive sizes in Check my drives now read the way they are sold on every drive, such as 500GB, 1TB or 4TB.",
+  "published": "2026-10-31T20:08:47.8296256-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "57B089C2B7AE8D207C5FC38F2C33E12A383C022DF0BF0A8219D7640F091DE3A9",
-      "size": 338828
+      "sha256": "3963CF1F0FC2D22FB99A9BD1FBA7C47482FC12B7F118751D33CCC6E7C6751227",
+      "size": 333877
     },
     {
       "name": "DRDirect Updater.ps1",
