@@ -1203,6 +1203,62 @@ function Get-DRDriveWriteSpeed {
     }
 }
 
+function Get-DRNvmeHealth {
+    # Reads an NVMe drive's own health log (read-only). Windows leaves power-on hours and power cycles blank
+    # for NVMe, but the drive keeps them. Needs administrator. Returns $null when it cannot be read.
+    param([int]$DiskNumber)
+    if (-not ('DRNvmeHealth' -as [type])) {
+        Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class DRNvmeHealth {
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    static extern IntPtr CreateFile(string name, uint access, uint share, IntPtr sec, uint disposition, uint flags, IntPtr template);
+    [DllImport("kernel32.dll", SetLastError = true)]
+    static extern bool DeviceIoControl(IntPtr h, uint code, byte[] inBuf, int inSize, byte[] outBuf, int outSize, out int returned, IntPtr overlapped);
+    [DllImport("kernel32.dll")]
+    static extern bool CloseHandle(IntPtr h);
+    public static byte[] SmartLog(int disk) {
+        IntPtr h = CreateFile(@"\\.\PhysicalDrive" + disk, 0xC0000000, 3, IntPtr.Zero, 3, 0, IntPtr.Zero);
+        if (h == new IntPtr(-1)) return null;
+        try {
+            byte[] b = new byte[8 + 40 + 512];
+            BitConverter.GetBytes(50).CopyTo(b, 0);   // StorageDeviceProtocolSpecificProperty
+            BitConverter.GetBytes(0).CopyTo(b, 4);    // PropertyStandardQuery
+            BitConverter.GetBytes(3).CopyTo(b, 8);    // ProtocolTypeNvme
+            BitConverter.GetBytes(2).CopyTo(b, 12);   // NVMeDataTypeLogPage
+            BitConverter.GetBytes(2).CopyTo(b, 16);   // log page 2: SMART / health information
+            BitConverter.GetBytes(0).CopyTo(b, 20);
+            BitConverter.GetBytes(40).CopyTo(b, 24);  // ProtocolDataOffset
+            BitConverter.GetBytes(512).CopyTo(b, 28); // ProtocolDataLength
+            int returned;
+            if (!DeviceIoControl(h, 0x2D1400, b, b.Length, b, b.Length, out returned, IntPtr.Zero)) return null;
+            byte[] log = new byte[512];
+            Array.Copy(b, 8 + 40, log, 0, 512);
+            return log;
+        } finally { CloseHandle(h); }
+    }
+}
+'@
+    }
+    try {
+        $log = [DRNvmeHealth]::SmartLog($DiskNumber)
+        if (-not $log) { return $null }
+        $units = { param($at) [double][BitConverter]::ToUInt64($log, $at) }
+        [pscustomobject]@{
+            PowerOnHours    = & $units 128
+            PowerCycles     = & $units 112
+            UnsafeShutdowns = & $units 144
+            MediaErrors     = & $units 160
+            # One data unit is 1,000 blocks of 512 bytes.
+            WrittenBytes    = (& $units 48) * 512000
+            ReadBytes       = (& $units 32) * 512000
+            PercentUsed     = [int]$log[5]
+            SpareLeft       = [int]$log[3]
+        }
+    } catch { return $null }
+}
+
 function Format-DRDriveMaker {
     # Drives report short maker codes: WDC for Western Digital, ST for Seagate. Spell the maker out.
     param([string]$Model)
@@ -1382,6 +1438,10 @@ function Invoke-DRDriveHealth {
         $wear = Get-DRDiskProperty $counter 'Wear'
         $temperature = Get-DRDiskProperty $counter 'Temperature'
         $hours = Get-DRDiskProperty $counter 'PowerOnHours'
+        # Windows leaves NVMe hours and power cycles blank; the drive's own health log has them.
+        $nvme = $null
+        if ($bus -eq 'NVMe' -and (Test-DRAdministrator)) { $nvme = Get-DRNvmeHealth -DiskNumber ([int](Get-DRDiskProperty $disk 'DeviceId')) }
+        if ($nvme -and $null -eq $hours) { $hours = $nvme.PowerOnHours }
         $readErrors = Get-DRDiskProperty $counter 'ReadErrorsUncorrected'
 
         if ($null -ne $hours) {
@@ -1395,7 +1455,13 @@ function Invoke-DRDriveHealth {
         }
         $cycles = Get-DRDiskProperty $counter 'StartStopCycleCount'
         if ($null -ne $cycles -and $cycles -gt 0) { $lines.Add(('Switched on and off {0:N0} times.' -f $cycles)) }
+        elseif ($nvme) { $lines.Add(('Switched on and off {0:N0} times.' -f $nvme.PowerCycles)) }
         elseif ($null -ne $counter) { $lines.Add('Switched on and off: this drive does not report how many times.') }
+        if ($nvme) {
+            $lines.Add(('Total written so far: {0}.  Total read: {1}.' -f (Format-DRSize $nvme.WrittenBytes), (Format-DRSize $nvme.ReadBytes)))
+            $lines.Add(('Power cut while working: {0:N0} time(s).  Spare cells left: {1}%.' -f $nvme.UnsafeShutdowns, $nvme.SpareLeft))
+            if ($nvme.MediaErrors -gt 0) { $concerns++; $driveSerious = $true; $lines.Add(('This drive has logged {0:N0} data error(s) of its own. That is an early sign of a failing drive.' -f $nvme.MediaErrors)) }
+        }
         $loads = Get-DRDiskProperty $counter 'LoadUnloadCycleCount'
         if ($null -ne $loads -and $loads -gt 0) { $lines.Add(('Read head parked {0:N0} times.' -f $loads)) }
         if ($null -ne $temperature -and $temperature -gt 0) { $lines.Add(('Temperature: {0} C' -f $temperature)) }
