@@ -1,7 +1,7 @@
 {
-  "version": "1.4.338",
-  "notes": "The drive size line is clearer: 4.0 TB (Windows shows it as 3,726 GB).",
-  "published": "2026-10-31T20:45:35.4808779-04:00",
+  "version": "1.4.339",
+  "notes": "The drive size line now says nothing is missing and why Windows shows a smaller number.",
+  "published": "2026-10-31T20:48:43.2282062-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "5A819DA956D730240A986522F5DEAB1D1838AD7F8BB2EBD27D2524E91E908149",
-      "size": 343768
+      "sha256": "349C78276E1423B7EBC047F09F75F2A4535419B73EBEC9DC034961A1F35078AE",
+      "size": 343807
     },
     {
       "name": "DRDirect Updater.ps1",
