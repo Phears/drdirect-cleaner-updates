@@ -1,7 +1,7 @@
 {
-  "version": "1.4.375",
-  "notes": "The note about the Uninstaller and Duplicate Finder is easier to read, and pointing at it shows you where Show all tools is.",
-  "published": "2026-11-01T10:50:54.4715037-05:00",
+  "version": "1.4.376",
+  "notes": "The note on the main window now says the Uninstaller and Duplicate Finder are inside, and more.",
+  "published": "2026-11-01T10:55:03.2266333-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "7621F1E8F0C1B80FD2B4CD89FE342864EABD854FAD93F1B8A4D36BB71DB86E47",
-      "size": 1427506
+      "sha256": "142A11F0F6DBD8D0D18FBFDDBA14FB6A54925CEF07289EB9CC5B1061A475CFCC",
+      "size": 1427562
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
