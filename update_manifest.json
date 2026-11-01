@@ -1,7 +1,7 @@
 {
-  "version": "1.4.322",
-  "notes": "Check my drives now shows each drive's size the way it is sold, such as 4.0 TB, next to the smaller figure Windows shows. The Fix Windows button now says Fix Windows 10/11.",
-  "published": "2026-10-31T20:03:48.2398259-04:00",
+  "version": "1.4.323",
+  "notes": "Check my drives now puts a drive's size in its title, such as 4TB, for docked drives that only show the dock's name.",
+  "published": "2026-10-31T20:07:50.3872939-04:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "4D21430F75E98480D67D2AB057F71E6C3EA2C925218AC6FBF3F94C4111886F51",
-      "size": 338364
+      "sha256": "57B089C2B7AE8D207C5FC38F2C33E12A383C022DF0BF0A8219D7640F091DE3A9",
+      "size": 338828
     },
     {
       "name": "DRDirect Updater.ps1",
