@@ -1350,7 +1350,7 @@ try {
     $logoBmp.StreamSource = New-Object System.IO.MemoryStream (,[Convert]::FromBase64String($logoB64))
     $logoBmp.EndInit()
     $logoBmp.Freeze()
-    foreach ($logoSpec in @(@('SidebarLogo', 58), @('TitleLogo', 30))) {
+    foreach ($logoSpec in @(@('SidebarLogo', 76), @('TitleLogo', 30))) {
         $logoBox = $window.FindName($logoSpec[0])
         if ($logoBox) {
             $logoBox.Child = $null
