@@ -1,7 +1,7 @@
 {
-  "version": "1.4.395",
-  "notes": "The time shown above each scan now also counts anything you ticked on other pages, so it matches the countdown.",
-  "published": "2026-11-01T21:39:25.0376068-05:00",
+  "version": "1.4.396",
+  "notes": "While a scan runs, the top of the progress page now shows the scan, its time, a progress bar and the time left, with two flashing blue lights.",
+  "published": "2026-11-01T21:49:34.2024079-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "1322099924C1EB5BB63002915828210FE941A0030C9A979C525AC84B2239D5F8",
-      "size": 1439406
+      "sha256": "B47139692228D20590529098AE4352B8E292C9157653342132ADEED57D655789",
+      "size": 1443110
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
