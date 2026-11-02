@@ -6601,7 +6601,7 @@ function Invoke-DROwnerEntry {
     }
     Show-DROwnerMenu
 }
-# In person at a customer's PC: triple-click "Protected mode", wait 15 seconds, then double-click a DR logo (top-left of the window or sidebar) within the next 45 seconds.
+# In person at a customer's PC: triple-click "Protected mode", wait 5 seconds, then double-click a DR logo (top-left of the window or sidebar) within the next 45 seconds.
 $script:DROwnerArmedAt = [datetime]::MinValue
 $ui.ProtectedPill.Add_PreviewMouseLeftButtonDown({
     param($sender, $e)
@@ -6612,7 +6612,7 @@ foreach ($ownerLogo in @($ui.SidebarLogo, $ui.TitleLogo)) {
         param($sender, $e)
         if ($e.ClickCount -ne 2) { return }
         $waited = ((Get-Date) - $script:DROwnerArmedAt).TotalSeconds
-        if ($waited -lt 15 -or $waited -gt 60) { return }
+        if ($waited -lt 5 -or $waited -gt 50) { return }
         $script:DROwnerArmedAt = [datetime]::MinValue
         $e.Handled = $true
         Invoke-DROwnerEntry -InPerson

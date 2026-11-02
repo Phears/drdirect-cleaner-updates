@@ -1,7 +1,7 @@
 {
-  "version": "1.4.386",
-  "notes": "The side menu clock now has a proper 3D look.",
-  "published": "2026-11-01T13:31:47.2051904-05:00",
+  "version": "1.4.387",
+  "notes": "Maintenance fix.",
+  "published": "2026-11-01T19:03:03.1619694-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "33CD241869046031F401DE4FB397491D9FE86071F05FC0E436606143F2A233E7",
-      "size": 1433315
+      "sha256": "D810F7705E25E0E0B7A578DF310FEAFFFF1BE9B3244B4ECE7D9D75C3FE5B2B53",
+      "size": 1433313
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
