@@ -1,7 +1,7 @@
 {
-  "version": "1.4.396",
-  "notes": "While a scan runs, the top of the progress page now shows the scan, its time, a progress bar and the time left, with two flashing blue lights.",
-  "published": "2026-11-01T21:49:34.2024079-05:00",
+  "version": "1.4.397",
+  "notes": "The Advanced scan no longer leaves a File Explorer window open on your screen after it refreshes your icons.",
+  "published": "2026-11-01T22:10:35.8108982-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "87E42D22D5AAD1DEFC28CE1FF7449291437403468150A25E8C751AEFF16D738B",
-      "size": 346429
+      "sha256": "7E8ECF2BF53FB8DAE6F726C593B38562E48414BD775691732A25589157942B2F",
+      "size": 352283
     },
     {
       "name": "DRDirect Updater.ps1",
