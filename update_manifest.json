@@ -1,7 +1,7 @@
 {
-  "version": "1.4.389",
-  "notes": "The little robot on the Switch On or Off AI button now dances while an AI tool is working: it sways, hops and waves both arms, and stops when it is done.",
-  "published": "2026-11-01T19:13:22.6749660-05:00",
+  "version": "1.4.390",
+  "notes": "About my PC no longer shows made-up model text like \"xxx0204GRxxxxxxxx0\" that some older HP PCs carry. It says the maker did not report a model and points to the motherboard line instead.",
+  "published": "2026-11-01T19:16:46.1931599-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -15,8 +15,8 @@
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "A163E18016574577ED0B1EC32F7B1073C4EA5F72417CC1CD88DA3A540F8EF7EC",
-      "size": 346201
+      "sha256": "87E42D22D5AAD1DEFC28CE1FF7449291437403468150A25E8C751AEFF16D738B",
+      "size": 346429
     },
     {
       "name": "DRDirect Updater.ps1",

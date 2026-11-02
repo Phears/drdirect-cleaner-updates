@@ -2100,8 +2100,10 @@ function Get-DRHardwareInventory {
     $friendly = Get-DRDiskProperty $product 'Version'
     # Boards sold to builders leave these fields as placeholder text rather than a model.
     $placeholder = '^\s*(None|To Be Filled By O\.E\.M\.|System Version|System Product Name|Default string|Not Applicable|N/A)\s*$'
-    if ($model -match $placeholder) { $model = '' }
-    if ($friendly -match $placeholder) { $friendly = '' }
+    # Some makers (old HP PCs) leave their own blank template in the field, like xxx0204GRxxxxxxxx0 (PPPPP-CCC#MMMMMMMMM).
+    $template = '(?i)x{5,}|P{4,}-C{2,}|M{6,}'
+    if ($model -match $placeholder -or $model -match $template) { $model = '' }
+    if ($friendly -match $placeholder -or $friendly -match $template) { $friendly = '' }
     if ($friendly -and $model) { $model = '{0} ({1})' -f $friendly, $model }
     elseif ($friendly) { $model = $friendly }
     $makeAndModel = (('{0} {1}' -f $maker, $model).Trim())
