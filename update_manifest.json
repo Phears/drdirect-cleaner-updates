@@ -1,7 +1,7 @@
 {
-  "version": "1.4.391",
-  "notes": "While a clean runs, the broom next to Clean my PC now sweeps back and forth.",
-  "published": "2026-11-01T20:48:15.4227196-05:00",
+  "version": "1.4.392",
+  "notes": "The time left during a scan is now much closer to the real time, and it counts down smoothly.",
+  "published": "2026-11-01T21:26:41.2463332-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "418FFF43EFBB811C751321FD100161E8C86989DD014081DA8B228D3D4A6BEE68",
-      "size": 1436806
+      "sha256": "8A04F6B0451B10C643450B139A99BA32A5B7F226A3E046E00B3B1CAFB24684D7",
+      "size": 1436775
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

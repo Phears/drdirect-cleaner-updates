@@ -1573,7 +1573,7 @@ $childPidFile = Join-Path $env:TEMP ('DRDirect_child_{0}.pid' -f $PID)
 $env:DRDIRECT_CHILD_PID_FILE = $childPidFile
 $script:restartCountdownTimer = $null
 $script:restartSecondsLeft = 0
-$script:DRToolLimit = $null; $script:DRScanStart = $null; $script:DRScanTask = $null; $script:DRScanGuess = 1200.0; $script:DRRunTotal = $null; $script:DRQueueRest = 0.0; $script:DRBroomColour = $null; $script:DRBroomIdleBrush = $null
+$script:DRToolLimit = $null; $script:DRScanStart = $null; $script:DRScanTask = $null; $script:DRScanGuess = 1200.0; $script:DRRunTotal = $null; $script:DRQueueRest = 0.0; $script:DRLeftShown = 0.0; $script:DRLeftTick = Get-Date; $script:DRSpeedFactor = $null; $script:DRBroomColour = $null; $script:DRBroomIdleBrush = $null
 $script:restartDelaySeconds = 0
 $script:DRShutdownMode = $false
 $script:DRAdvancedShutdownOffered = $false
@@ -2954,6 +2954,19 @@ function Format-DRApproxTime {
     return ('{0} hr {1} min' -f $h, (5 * [int][Math]::Round($m / 5)))
 }
 
+function Get-DRTaskEstimateSeconds {
+    # One task's expected time on this PC: how long it really took here last time, or its listed time scaled by the
+    # drive test. The level estimates and the running countdown both use this, so they always agree.
+    param([string]$TaskId)
+    try {
+        $last = [int](Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('Last_' + $TaskId) -ErrorAction Stop).('Last_' + $TaskId)
+        if ($last -gt 0) { return [double]$last }
+    } catch { }
+    if (-not (Get-Variable -Name DRSpeedFactor -Scope Script -ErrorAction SilentlyContinue) -or -not $script:DRSpeedFactor) { $script:DRSpeedFactor = Get-DRPcSpeedFactor }
+    $task = @($catalog | Where-Object { $_.Id -eq $TaskId } | Select-Object -First 1)
+    $listed = if ($task.Count) { [string]$task[0].Duration } else { '' }
+    return [Math]::Max(5.0, (Get-DRDurationGuessSeconds -Duration $listed) * $script:DRSpeedFactor)
+}
 function Update-DRLevelEstimates {
     # How long Safe, Medium and Advanced would take on this PC. A task that has run before uses how long it
     # really took here (saved as Last_<task> when it finished); one that has not uses its listed time, scaled
@@ -2966,10 +2979,8 @@ function Update-DRLevelEstimates {
     foreach ($level in 'Safe','Medium','Advanced') {
         $total = 0.0
         foreach ($task in @($catalog | Where-Object { [string]$_.Risk -ne 'SignOut' -and $_.Category -in @('Cleanup','Repair','Security','Health') -and (Test-TaskInOrderedPreset -Task $_ -Preset $level) })) {
-            $name = 'Last_' + [string]$task.Id
-            if ($learned -and $learned.PSObject.Properties[$name] -and [int]$learned.$name -gt 0) { $total += [int]$learned.$name; continue }
-            if ($null -eq $factor) { $factor = Get-DRPcSpeedFactor }
-            $total += (Get-DRDurationGuessSeconds -Duration ([string]$task.Duration)) * $factor
+            $total += Get-DRTaskEstimateSeconds -TaskId ([string]$task.Id)
+
         }
         $result[$level] = $total
     }
@@ -4924,43 +4935,35 @@ $pollTimer.Add_Tick({
             }
             $script:DRScanTask = $curTaskId
             $script:DRScanStart = if ($curTaskId) { Get-Date } else { $null }
-            # The countdown under the running scan button: what is left of this task plus every task still waiting,
-            # each from how long it took last time on this PC, or from its listed time.
+            # Every task's time comes from Get-DRTaskEstimateSeconds, the same as the "About ..." above the scan buttons,
+            # so the countdown starts from that number instead of a different, longer guess.
             $script:DRQueueRest = 0.0
             if ($curTaskId) {
-                $learnedTimes = $null
-                try { $learnedTimes = Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -ErrorAction Stop } catch { }
-                foreach ($queuedId in @($runQueue)) {
-                    $lastName = 'Last_' + $queuedId
-                    if ($learnedTimes -and $learnedTimes.PSObject.Properties[$lastName] -and [int]$learnedTimes.$lastName -gt 0) { $script:DRQueueRest += [int]$learnedTimes.$lastName }
-                    else { $script:DRQueueRest += Get-DRDurationGuessSeconds -Duration ([string](@($catalog | Where-Object { $_.Id -eq $queuedId } | Select-Object -First 1).Duration)) }
+                foreach ($queuedId in @($runQueue)) { $script:DRQueueRest += Get-DRTaskEstimateSeconds -TaskId $queuedId }
+                $script:DRScanGuess = Get-DRTaskEstimateSeconds -TaskId $curTaskId
+                if (-not $script:DRRunTotal) {
+                    $script:DRRunTotal = [Math]::Max(1.0, $script:DRScanGuess + $script:DRQueueRest)
+                    $script:DRLeftShown = $script:DRRunTotal
+                    $script:DRLeftTick = Get-Date
                 }
-                if (-not $script:DRRunTotal) { $script:DRRunTotal = $script:DRQueueRest + 60.0 }
-            }
-            if ($curTaskId) {
-                $script:DRScanGuess = 60.0
-                try {
-                    $listed = [string](@($catalog | Where-Object { $_.Id -eq $curTaskId } | Select-Object -First 1).Duration)
-                    if ($listed -match '(\d+)\s*-\s*(\d+)\s*min') { $script:DRScanGuess = 30.0 * ([double]$Matches[1] + [double]$Matches[2]) }
-                    elseif ($listed -match '<\s*(\d+)\s*min') { $script:DRScanGuess = 30.0 * [double]$Matches[1] }
-                    elseif ($listed -match 'hour') { $script:DRScanGuess = 5400.0 }
-                    elseif ($listed -match '(\d+)\s*min') { $script:DRScanGuess = 60.0 * [double]$Matches[1] }
-                    $lastSecs = [double](Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('Last_' + $curTaskId) -ErrorAction Stop).('Last_' + $curTaskId)
-                    if ($lastSecs -ge 5) { $script:DRScanGuess = $lastSecs }
-                } catch { }
             }
         }
         if ($curTaskId) {
             $taskFrac = ((Get-Date) - $script:DRScanStart).TotalSeconds / [Math]::Max(5.0, $script:DRScanGuess)
             $taskShare = if ($taskFrac -lt 0.9) { $taskFrac } else { 0.9 + 0.09 * (1 - [Math]::Exp(-($taskFrac - 0.9) * 2)) }
-            $planTotal = [Math]::Max(1, @($catalog | Where-Object { $selection[$_.Id] }).Count)
-            $planDone = [Math]::Max(0, $planTotal - $runQueue.Count - 1)
-            $planPct = [Math]::Min(99, 100.0 * ($planDone + $taskShare) / $planTotal)
+            # Time left: this task's share still to go, plus everything waiting. The shown number only ever goes down:
+            # one second per second normally, faster when tasks finish early, and it waits (never climbs back up)
+            # while a task takes longer than expected.
+            $now = Get-Date
+            $dt = [Math]::Max(0.0, ($now - $script:DRLeftTick).TotalSeconds); $script:DRLeftTick = $now
+            $computed = [Math]::Max(0.0, $script:DRScanGuess * (1 - [Math]::Min(1.0, $taskShare))) + $script:DRQueueRest
+            if ($computed -lt $script:DRLeftShown) { $script:DRLeftShown = [Math]::Max($computed, $script:DRLeftShown - 4 * $dt) }
+            else { $script:DRLeftShown = [Math]::Max($script:DRQueueRest, $script:DRLeftShown - $dt) }
+            $leftSecs = $script:DRLeftShown
+            $planPct = [Math]::Min(99, [Math]::Max(0, 100.0 * (1 - $leftSecs / [Math]::Max(1.0, $script:DRRunTotal))))
             $ui.OverallProgress.IsIndeterminate = $false; $ui.RunStripBar.IsIndeterminate = $false
             $ui.OverallProgress.Value = $planPct; $ui.RunStripBar.Value = $planPct
             $ui.ProgressPercent.Text = 'About ' + [int]$planPct + '%'
-            $leftSecs = [Math]::Max(0.0, $script:DRScanGuess - ((Get-Date) - $script:DRScanStart).TotalSeconds) + $script:DRQueueRest
-            if ($script:DRRunTotal -lt $leftSecs + 1) { $script:DRRunTotal = $leftSecs + 1 }
             if ($script:runScanLevel -in @('Safe','Medium','Advanced')) {
                 $lv = [string]$script:runScanLevel
                 $barCtl = $ui["Preset${lv}Bar"]; $leftCtl = $ui["Preset${lv}Left"]
@@ -4970,8 +4973,7 @@ $pollTimer.Add_Tick({
                     $leftCtl.Text = if ($leftSecs -lt 30) { [char]0x23F1 + ' Almost done...' } else { [char]0x23F1 + ' ' + ([TimeSpan]::FromSeconds([int]$leftSecs)).ToString($(if ($leftSecs -ge 3600) { 'h\:mm\:ss' } else { 'm\:ss' })) + ' left' }
                 }
             }
-        }
-        # The progress box: always shows where a run is up to, on every page, and takes
+        }        # The progress box: always shows where a run is up to, on every page, and takes
         # you back to the progress page when clicked.
         if ($busyNow) { $script:DRWasBusy = $true }
         elseif ($script:DRWasBusy) {
