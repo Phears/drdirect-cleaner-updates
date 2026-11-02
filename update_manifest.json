@@ -1,7 +1,7 @@
 {
-  "version": "1.4.394",
-  "notes": "If something in a scan takes longer than expected, the time left now tells you which item is still working instead of stopping on one number.",
-  "published": "2026-11-01T21:34:12.0863270-05:00",
+  "version": "1.4.395",
+  "notes": "The time shown above each scan now also counts anything you ticked on other pages, so it matches the countdown.",
+  "published": "2026-11-01T21:39:25.0376068-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "69B4868FE31666D04A566D805CB8C2C6915B4AD5DD416C60576E1B44B78D5C64",
-      "size": 1438509
+      "sha256": "1322099924C1EB5BB63002915828210FE941A0030C9A979C525AC84B2239D5F8",
+      "size": 1439406
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

@@ -2700,6 +2700,8 @@ function Show-TaskCategory {
     param([string]$Category)
     $ui.TaskList.Children.Clear()
     $ui.CleanupPresetPanel.Visibility = if ($Category -eq 'Cleanup') { 'Visible' } else { 'Collapsed' }
+    # Items ticked on other pages count towards the scan times, so refresh them each time this page shows.
+    if ($Category -eq 'Cleanup') { try { Set-DRLevelDates } catch { } }
     $ui.TaskIntro.Text = switch ($Category) {
         'Cleanup' { 'Select cleanup items after reviewing the estimated impact. Passwords, bookmarks, personal documents, and active sessions remain protected unless cookie cleanup is explicitly selected.' }
         'Repair' { 'Windows repairs are separate from cleanup. Creating a restore point is recommended before repair operations.' }
@@ -2967,6 +2969,16 @@ function Get-DRTaskEstimateSeconds {
     $listed = if ($task.Count) { [string]$task[0].Duration } else { '' }
     return [Math]::Max(5.0, (Get-DRDurationGuessSeconds -Duration $listed) * $script:DRSpeedFactor)
 }
+function Get-DRExtraTickedSeconds {
+    # Items ticked on other pages (a Defender full scan, a drive check...) run together with a scan level, so
+    # the time shown for that level includes them; otherwise it says minutes while the run takes an hour.
+    param([string]$Level)
+    $secs = 0.0
+    foreach ($task in @($catalog | Where-Object { $selection[$_.Id] -and $_.Category -ne 'Cleanup' -and [string]$_.Id -ne 'safety.restore-point' -and -not (Test-TaskInOrderedPreset -Task $_ -Preset $Level) })) {
+        try { $secs += Get-DRTaskEstimateSeconds -TaskId ([string]$task.Id) } catch { }
+    }
+    return $secs
+}
 function Update-DRLevelEstimates {
     # How long Safe, Medium and Advanced would take on this PC. A task that has run before uses how long it
     # really took here (saved as Last_<task> when it finished); one that has not uses its listed time, scaled
@@ -3015,7 +3027,7 @@ function Set-DRLevelDates {
         $when = $found[$level]
         $ui["Preset${level}Date"].Text = if (-not $when) { 'Not done yet' } else { 'Done ' + $when.ToString('dddd d MMMM') }
         if ((Get-Variable -Name DRLevelEstimate -Scope Script -ErrorAction SilentlyContinue) -and $script:DRLevelEstimate) {
-            $ui["Preset${level}Date"].Text += "`n" + [char]0x23F1 + ' About ' + (Format-DRApproxTime -Seconds $script:DRLevelEstimate[$level])
+            $ui["Preset${level}Date"].Text += "`n" + [char]0x23F1 + ' About ' + (Format-DRApproxTime -Seconds ($script:DRLevelEstimate[$level] + (Get-DRExtraTickedSeconds -Level $level)))
             $driveType = Get-DRSystemDriveType
             if ($driveType) { $ui["Preset${level}Date"].Text += ' on ' + $driveType }
             $ui["Preset${level}Date"].TextAlignment = 'Center'
@@ -3124,7 +3136,7 @@ function Show-Confirmation {
                         $have = Get-Variable -Name DRLevelEstimate -Scope Script -ErrorAction SilentlyContinue
                         if (-not ($have -and $script:DRLevelEstimate)) { [void](Update-DRLevelEstimates) }
                         if ($script:DRLevelEstimate -and $script:DRLevelEstimate.ContainsKey($lv)) {
-                            $estimateLine = [string][char]0x23F1 + ' About ' + (Format-DRApproxTime -Seconds $script:DRLevelEstimate[$lv])
+                            $estimateLine = [string][char]0x23F1 + ' About ' + (Format-DRApproxTime -Seconds ($script:DRLevelEstimate[$lv] + (Get-DRExtraTickedSeconds -Level $lv)))
                             $kind = Get-DRSystemDriveType
                             if ($kind) { $estimateLine += ' on ' + $kind }
                         }
