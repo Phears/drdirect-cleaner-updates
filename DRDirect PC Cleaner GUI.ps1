@@ -1577,7 +1577,7 @@ $childPidFile = Join-Path $env:TEMP ('DRDirect_child_{0}.pid' -f $PID)
 $env:DRDIRECT_CHILD_PID_FILE = $childPidFile
 $script:restartCountdownTimer = $null
 $script:restartSecondsLeft = 0
-$script:DRToolLimit = $null; $script:DRScanStart = $null; $script:DRScanTask = $null; $script:DRScanGuess = 1200.0; $script:DRRunTotal = $null; $script:DRQueueRest = 0.0; $script:DRLeftShown = 0.0; $script:DRLeftTick = Get-Date; $script:DRSpeedFactor = $null; $script:DRRunBadgeLevel = $null; $script:DRBroomColour = $null; $script:DRBroomIdleBrush = $null
+$script:DRToolLimit = $null; $script:DRScanStart = $null; $script:DRScanTask = $null; $script:DRScanGuess = 1200.0; $script:DRRunTotal = $null; $script:DRQueueRest = 0.0; $script:DRLeftShown = 0.0; $script:DRLeftTick = Get-Date; $script:DRSpeedFactor = $null; $script:DRRunBadgeLevel = $null; $script:DRDriveKindCache = $null; $script:DRBroomColour = $null; $script:DRBroomIdleBrush = $null
 $script:restartDelaySeconds = 0
 $script:DRShutdownMode = $false
 $script:DRAdvancedShutdownOffered = $false
@@ -2934,6 +2934,29 @@ function Get-DRPcSpeedFactor {
 }
 
 function Get-DRSystemDriveType {
+    # Asking Windows for the drive type takes over a second, and the Cleaner asks often. The answer is kept for
+    # this session and saved for 7 days, so starting the Cleaner and opening Clean my PC stay quick.
+    if ((Get-Variable -Name DRDriveKindCache -Scope Script -ErrorAction SilentlyContinue) -and $script:DRDriveKindCache) { return $script:DRDriveKindCache }
+    $key = 'HKCU:\Software\DRDirect\PC Cleaner'
+    try {
+        $saved = Get-ItemProperty -LiteralPath $key -ErrorAction Stop
+        if ($saved.PSObject.Properties['DriveKind'] -and $saved.PSObject.Properties['DriveKindDate'] -and ((Get-Date) - [datetime]$saved.DriveKindDate).TotalDays -lt 7) {
+            $script:DRDriveKindCache = [string]$saved.DriveKind
+            if ($script:DRDriveKindCache -eq '-') { $script:DRDriveKindCache = $null; return $null }
+            return $script:DRDriveKindCache
+        }
+    } catch { }
+    $kind = Get-DRSystemDriveTypeNow
+    $script:DRDriveKindCache = $kind
+    try {
+        if (-not (Test-Path -LiteralPath $key)) { New-Item -Path $key -Force | Out-Null }
+        Set-ItemProperty -LiteralPath $key -Name 'DriveKind' -Value $(if ($kind) { $kind } else { '-' }) -Type String
+        Set-ItemProperty -LiteralPath $key -Name 'DriveKindDate' -Value ((Get-Date).ToString('o')) -Type String
+    } catch { }
+    return $kind
+}
+
+function Get-DRSystemDriveTypeNow {
     # What kind of drive Windows is on: NVMe SSD, SSD, eMMC or HDD. Read only; $null when Windows will not say.
     try {
         $letter = ([string]$env:SystemDrive).TrimEnd(':')
@@ -2968,7 +2991,20 @@ function Get-DRTaskEstimateSeconds {
         $last = [int](Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('Last_' + $TaskId) -ErrorAction Stop).('Last_' + $TaskId)
         if ($last -gt 0) { return [double]$last }
     } catch { }
-    if (-not (Get-Variable -Name DRSpeedFactor -Scope Script -ErrorAction SilentlyContinue) -or -not $script:DRSpeedFactor) { $script:DRSpeedFactor = Get-DRPcSpeedFactor }
+    if (-not (Get-Variable -Name DRSpeedFactor -Scope Script -ErrorAction SilentlyContinue) -or -not $script:DRSpeedFactor) {
+        # The 2-second drive test runs at most once a week; its result is saved like the drive type.
+        try {
+            $saved = Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -ErrorAction Stop
+            if ($saved.PSObject.Properties['SpeedFactor'] -and $saved.PSObject.Properties['SpeedFactorDate'] -and ((Get-Date) - [datetime]$saved.SpeedFactorDate).TotalDays -lt 7) { $script:DRSpeedFactor = [double]$saved.SpeedFactor }
+        } catch { }
+        if (-not $script:DRSpeedFactor) {
+            $script:DRSpeedFactor = Get-DRPcSpeedFactor
+            try {
+                Set-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name 'SpeedFactor' -Value ([string]$script:DRSpeedFactor) -Type String
+                Set-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name 'SpeedFactorDate' -Value ((Get-Date).ToString('o')) -Type String
+            } catch { }
+        }
+    }
     $task = @($catalog | Where-Object { $_.Id -eq $TaskId } | Select-Object -First 1)
     $listed = if ($task.Count) { [string]$task[0].Duration } else { '' }
     return [Math]::Max(5.0, (Get-DRDurationGuessSeconds -Duration $listed) * $script:DRSpeedFactor)
@@ -7492,12 +7528,18 @@ function Complete-DRUpdateInstall {
                     "`$deadline = (Get-Date).AddSeconds(10)",
                     "while ((Get-Date) -lt `$deadline -and @(`$ids | Where-Object { Get-Process -Id `$_ -ErrorAction SilentlyContinue }).Count) { Start-Sleep -Milliseconds 300 }",
                     "foreach (`$i in `$ids) { if (Get-Process -Id `$i -ErrorAction SilentlyContinue) { Say ('still running, ending ' + `$i); Stop-Process -Id `$i -Force -ErrorAction SilentlyContinue } }",
+                    # Anything else still holding the one-window lock: an old Cleaner exe, or a PowerShell still running the Cleaner's window.
+                    "foreach (`$proc in @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { `$_.ProcessId -ne `$PID -and (`$_.Name -eq 'DRDirect PC Cleaner.exe' -or ([string]`$_.CommandLine -match 'DRDirect PC Cleaner GUI\.ps1')) })) { Say ('leftover, ending ' + `$proc.ProcessId + ' ' + `$proc.Name); Stop-Process -Id `$proc.ProcessId -Force -ErrorAction SilentlyContinue }",
                     "Start-Sleep -Seconds 2",
                     "try { Start-Process -FilePath '$launcherQuoted'; Say 'opened the new copy' } catch { Say ('could not open: ' + `$_.Exception.Message) }"
                 ) -join '; '
                 $encodedReopen = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($reopen))
-                Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden `
-                    -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-EncodedCommand', $encodedReopen
+                # Started through WMI so the helper is not a child of this window: an older launcher can take its
+                # children down with it when it closes, and then nothing reopened the Cleaner.
+                $helperCmd = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -EncodedCommand ' + $encodedReopen
+                $started = $false
+                try { $made = Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = $helperCmd } -ErrorAction Stop; $started = ($made.ReturnValue -eq 0) } catch { }
+                if (-not $started) { Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-EncodedCommand', $encodedReopen }
                 $script:DRForceClose = $true
                 $window.Close()
                 return

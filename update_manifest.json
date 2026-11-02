@@ -1,7 +1,7 @@
 {
-  "version": "1.4.400",
-  "notes": "The Back to the top button no longer covers the Dashboard button.",
-  "published": "2026-11-02T08:30:38.3679187-05:00",
+  "version": "1.4.401",
+  "notes": "After an update the Cleaner now reliably closes and opens again by itself, and it starts up lighter and faster.",
+  "published": "2026-11-02T08:48:04.2670090-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "26F3D30406AA062CC3548766FBCE120D7428A83416B1EB1383819300967CB3F2",
-      "size": 1445103
+      "sha256": "3D95D65386F3EBA8A14A9AA62001509325863CEEC35C0AE082B75B8B8E7FA53B",
+      "size": 1448579
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
