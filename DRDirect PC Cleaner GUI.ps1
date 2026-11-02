@@ -3048,6 +3048,12 @@ function Update-SelectionSummary {
         $ui.SelectionSummary.Text = "$total selected"
     }
 
+    # Whatever is ticked, about how long it will take on this PC, from the same times the scan buttons use.
+    if ($total -gt 0) {
+        $secs = 0.0
+        foreach ($task in $selected) { try { $secs += Get-DRTaskEstimateSeconds -TaskId ([string]$task.Id) } catch { } }
+        $ui.SelectionSummary.Text += "`n" + [char]0x23F1 + ' About ' + (Format-DRApproxTime -Seconds $secs)
+    }
     $ui.ReviewButton.IsEnabled = $total -gt 0
 }
 
@@ -3057,6 +3063,8 @@ function Show-Confirmation {
     $selected = @($catalog | Where-Object { $selection[$_.Id] })
     $ui.ConfirmList.Children.Clear()
     [void]$ui.ConfirmList.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text='Here is what will change. Nothing has run yet.'; FontWeight='ExtraBold'; FontSize=16; Margin='0,0,0,4' }))
+    $etaSecs = 0.0; foreach ($task in $selected) { try { $etaSecs += Get-DRTaskEstimateSeconds -TaskId ([string]$task.Id) } catch { } }
+    [void]$ui.ConfirmList.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=([string][char]0x23F1 + '  This will take about ' + (Format-DRApproxTime -Seconds $etaSecs) + ' on this PC.'); Foreground='#0057D9'; FontWeight='Bold'; FontSize=14; Margin='0,0,0,6' }))
     [void]$ui.ConfirmList.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text='A Windows restore point is saved first when possible, and the Cleaner keeps backups of the settings it changes. Your files, passwords and logins are never touched.'; Foreground='#0E8A5F'; FontSize=12.5; TextWrapping='Wrap'; Margin='0,0,0,8' }))
     foreach ($task in $selected) {
         $row = New-Object Windows.Controls.Border -Property @{ BorderBrush='#E3E8F0'; BorderThickness='0,0,0,1'; Padding='0,10' }
