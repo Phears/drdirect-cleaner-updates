@@ -1,7 +1,7 @@
 {
-  "version": "1.4.399",
-  "notes": "The 1st window / 2nd window button now always stays in view when you scroll the menu.",
-  "published": "2026-11-02T08:27:23.4674473-05:00",
+  "version": "1.4.400",
+  "notes": "The Back to the top button no longer covers the Dashboard button.",
+  "published": "2026-11-02T08:30:38.3679187-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F5C7F8F9AA56A8FD8F63D2BD8BCAE497B61A0AE3ECBF21DB9B7271FDD67974C1",
-      "size": 1444828
+      "sha256": "26F3D30406AA062CC3548766FBCE120D7428A83416B1EB1383819300967CB3F2",
+      "size": 1445103
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
