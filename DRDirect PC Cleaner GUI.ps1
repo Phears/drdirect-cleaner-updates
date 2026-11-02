@@ -6592,7 +6592,7 @@ function Show-DROwnerMenu {
 function Invoke-DROwnerEntry {
     param([switch]$InPerson)
     # Customers clicking the bar or the version text get nothing; it opens only for the owner.
-    if (-not ($InPerson -or $script:DROwnerPcHere -or (Test-DRRemoteHelpSession))) { return }
+    if (-not ($InPerson -or $script:DROwnerPcHere)) { return }
     $typed = Read-DRResetPassword
     if ($null -eq $typed) { return }
     if (-not (Test-DRResetPassword $typed)) {
@@ -6643,7 +6643,7 @@ function Test-DROwnerPc {
     } catch { }
     return $false
 }
-# The strip also shows while the owner is connected by Splashtop or AnyDesk, so it is only ever there when he is on the PC.
+# The strip no longer shows during a Splashtop or AnyDesk session: it is only on the owner's main PC, never on a customer's.
 function Test-DRRemoteHelpSession {
     try {
         # Splashtop keeps its helper programs running all the time; only a connected session opens network connections from them.
@@ -6658,7 +6658,7 @@ function Test-DRRemoteHelpSession {
 }
 $script:DROwnerPcHere = Test-DROwnerPc
 function Update-DROwnerStrip {
-    $show = $script:DROwnerPcHere -or (Test-DRRemoteHelpSession)
+    $show = $script:DROwnerPcHere
     $ui.ResetReliabilityButton.Visibility = $(if ($show) { 'Visible' } else { 'Collapsed' })
 }
 Update-DROwnerStrip
