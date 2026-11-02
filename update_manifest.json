@@ -1,7 +1,7 @@
 {
-  "version": "1.4.388",
-  "notes": "Maintenance fix.",
-  "published": "2026-11-01T19:06:49.9472118-05:00",
+  "version": "1.4.389",
+  "notes": "The little robot on the Switch On or Off AI button now dances while an AI tool is working: it sways, hops and waves both arms, and stops when it is done.",
+  "published": "2026-11-01T19:13:22.6749660-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "1E04C3C5B6A3ED80C59F2F932A375F254F51611C89C79CFB6DD2026F5FD9F18C",
-      "size": 1433252
+      "sha256": "4A237A688A65BDFC66E797B2BCC926F5122132B5D574DEDBE5F7D25788760C8F",
+      "size": 1435986
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
