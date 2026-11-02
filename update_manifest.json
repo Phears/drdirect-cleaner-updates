@@ -1,7 +1,7 @@
 {
-  "version": "1.4.390",
-  "notes": "About my PC no longer shows made-up model text like \"xxx0204GRxxxxxxxx0\" that some older HP PCs carry. It says the maker did not report a model and points to the motherboard line instead.",
-  "published": "2026-11-01T19:16:46.1931599-05:00",
+  "version": "1.4.391",
+  "notes": "While a clean runs, the broom next to Clean my PC now sweeps back and forth.",
+  "published": "2026-11-01T20:48:15.4227196-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "4A237A688A65BDFC66E797B2BCC926F5122132B5D574DEDBE5F7D25788760C8F",
-      "size": 1435986
+      "sha256": "418FFF43EFBB811C751321FD100161E8C86989DD014081DA8B228D3D4A6BEE68",
+      "size": 1436806
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
