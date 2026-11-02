@@ -4984,6 +4984,26 @@ $pollTimer.Add_Tick({
             $ui.OverallProgress.IsIndeterminate = $false; $ui.RunStripBar.IsIndeterminate = $false
             $ui.OverallProgress.Value = $planPct; $ui.RunStripBar.Value = $planPct
             $ui.ProgressPercent.Text = 'About ' + [int]$planPct + '%'
+            # Keep the running item (its green lights) in the middle of the list, gliding to it, until everything is done.
+            try {
+                $listScroll = $ui.ProgressList.Parent
+                if ($listScroll -is [Windows.Controls.ScrollViewer] -and $listScroll.ViewportHeight -gt 0) {
+                    $runRow = $null
+                    foreach ($child in @($ui.ProgressList.Children)) {
+                        if ([string]$child.Tag -eq $curTaskId) { $runRow = $child; break }
+                        if ($child -is [Windows.Controls.Decorator] -and $child.Child -and [string]$child.Child.Tag -eq $curTaskId) { $runRow = $child; break }
+                        if ($child -is [Windows.Controls.Panel]) { foreach ($inner in @($child.Children)) { if ([string]$inner.Tag -eq $curTaskId) { $runRow = $child; break } } }
+                        if ($runRow) { break }
+                    }
+                    if ($runRow) {
+                        $rowTop = $runRow.TranslatePoint((New-Object Windows.Point 0, 0), $ui.ProgressList).Y
+                        $target = [Math]::Max(0.0, $rowTop + $runRow.ActualHeight / 2 - $listScroll.ViewportHeight / 2)
+                        $target = [Math]::Min($target, $listScroll.ScrollableHeight)
+                        $gap = $target - $listScroll.VerticalOffset
+                        if ([Math]::Abs($gap) -gt 2) { $listScroll.ScrollToVerticalOffset($listScroll.VerticalOffset + $gap * 0.3) }
+                    }
+                }
+            } catch { }
             if ($script:runScanLevel -in @('Safe','Medium','Advanced')) {
                 $lv = [string]$script:runScanLevel
                 $barCtl = $ui["Preset${lv}Bar"]; $leftCtl = $ui["Preset${lv}Left"]

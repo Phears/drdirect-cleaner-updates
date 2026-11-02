@@ -1,7 +1,7 @@
 {
-  "version": "1.4.397",
-  "notes": "The Advanced scan no longer leaves a File Explorer window open on your screen after it refreshes your icons.",
-  "published": "2026-11-01T22:10:35.8108982-05:00",
+  "version": "1.4.398",
+  "notes": "While a scan runs, the item being cleaned now stays in the middle of the list, so you always see the green lights.",
+  "published": "2026-11-01T22:24:24.8985659-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B47139692228D20590529098AE4352B8E292C9157653342132ADEED57D655789",
-      "size": 1443110
+      "sha256": "9588B664F094CA62DC9BF44B672677282EF58B0E52F9093C745CF75EE0E29091",
+      "size": 1444655
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
