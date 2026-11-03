@@ -8041,6 +8041,17 @@ function Get-InstalledVersion {
     try { return [version]([string](Get-Content -LiteralPath $installedFile -Raw | ConvertFrom-Json).version) } catch { return $null }
 }
 
+# Windows keeps a picture of every tray icon it has seen. A bad picture saved for this helper (it showed as a grey
+# speckled square) stays until it is removed, so this helper's old entries are cleared before the icon is shown.
+try {
+    foreach ($entry in Get-ChildItem -LiteralPath 'HKCU:\Control Panel\NotifyIconSettings' -ErrorAction SilentlyContinue) {
+        $settings = Get-ItemProperty -LiteralPath $entry.PSPath -ErrorAction SilentlyContinue
+        if ($settings.ExecutablePath -like '*\WindowsPowerShell\v1.0\powershell.exe' -and $settings.InitialTooltip -eq 'DRDirect PC Cleaner') {
+            Remove-Item -LiteralPath $entry.PSPath -Recurse -Force -ErrorAction SilentlyContinue
+        }
+    }
+} catch { }
+
 $notify = New-Object Windows.Forms.NotifyIcon
 $notify.Icon = $normalIcon
 $notify.Text = 'DRDirect PC Cleaner'
@@ -8124,14 +8135,71 @@ function Install-DRTrayHelper {
     $text = $script:DRTrayScriptText.Replace("`r`n", "`n").Replace("`n", "`r`n")
     $current = if (Test-Path -LiteralPath $scriptPath -PathType Leaf) { [IO.File]::ReadAllText($scriptPath).TrimStart([char]0xFEFF) } else { $null }
     if ($current -ne $text) { [IO.File]::WriteAllText($scriptPath, $text, [Text.UTF8Encoding]::new($true)) }
+    # The helper runs from its own copy of PowerShell named "DRDirect Tray.exe" and carrying the DRDirect logo, so
+    # Task Manager's Startup list and the tray show DRDirect and not "powershell.exe". Any problem falls back to PowerShell.
+    $runner = 'powershell.exe'
+    try {
+        $trayExe = Join-Path $root 'DRDirect Tray.exe'
+        if (-not (Test-Path -LiteralPath $trayExe -PathType Leaf)) { New-DRTrayRunner -Path $trayExe }
+        if (Test-Path -LiteralPath $trayExe -PathType Leaf) { $runner = $trayExe }
+    } catch { }
     $shortcutPath = Join-Path ([Environment]::GetFolderPath('Startup')) 'DRDirect Tray.lnk'
     $shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut($shortcutPath)
-    $shortcut.TargetPath = 'powershell.exe'
+    $shortcut.TargetPath = $runner
     $shortcut.Arguments = '-NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File "' + $scriptPath + '"'
     $shortcut.WindowStyle = 7
     $shortcut.Description = 'DRDirect PC Cleaner update icon'
+    if ($runner -ne 'powershell.exe') { $shortcut.IconLocation = $runner + ',0' }
     $shortcut.Save()
-    Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-WindowStyle', 'Hidden', '-File', ('"' + $scriptPath + '"'))
+    if ($runner -ne 'powershell.exe') {
+        # An older helper that still runs under PowerShell would keep the new one from starting; end it once.
+        try {
+            foreach ($old in Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction SilentlyContinue) {
+                if ($old.CommandLine -like '*DRDirect Tray.ps1*') { Stop-Process -Id $old.ProcessId -Force -ErrorAction SilentlyContinue }
+            }
+        } catch { }
+    }
+    Start-Process -FilePath $runner -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-WindowStyle', 'Hidden', '-File', ('"' + $scriptPath + '"'))
+}
+function New-DRTrayRunner {
+    # A copy of Windows PowerShell with the DRDirect logo as its icon.
+    param([string]$Path)
+    $source = Join-Path $env:WINDIR 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    if (-not (Test-Path -LiteralPath $source -PathType Leaf)) { return }
+    $logo = [Convert]::FromBase64String([regex]::Match($script:DRTrayScriptText, "\`$logoIcon = '([^']+)'").Groups[1].Value)
+    if (-not ('DRDirect.ResourceUpdate' -as [type])) {
+        Add-Type -Namespace DRDirect -Name ResourceUpdate -MemberDefinition @'
+[DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)] public static extern IntPtr BeginUpdateResourceW(string file, bool deleteExisting);
+[DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)] public static extern bool UpdateResourceW(IntPtr h, IntPtr type, string name, ushort lang, byte[] data, uint size);
+[DllImport("kernel32.dll", SetLastError = true)] public static extern bool UpdateResourceW(IntPtr h, IntPtr type, IntPtr name, ushort lang, byte[] data, uint size);
+[DllImport("kernel32.dll", SetLastError = true)] public static extern bool EndUpdateResourceW(IntPtr h, bool discard);
+'@
+    }
+    $temp = $Path + '.new'
+    Copy-Item -LiteralPath $source -Destination $temp -Force
+    $ok = $false
+    try {
+        $count = [BitConverter]::ToUInt16($logo, 4)
+        $group = New-Object IO.MemoryStream
+        $writer = New-Object IO.BinaryWriter $group
+        $writer.Write([uint16]0); $writer.Write([uint16]1); $writer.Write([uint16]$count)
+        $handle = [DRDirect.ResourceUpdate]::BeginUpdateResourceW($temp, $false)
+        if ($handle -eq [IntPtr]::Zero) { throw 'resource update unavailable' }
+        for ($i = 0; $i -lt $count; $i++) {
+            $entry = 6 + 16 * $i
+            $size = [BitConverter]::ToUInt32($logo, $entry + 8)
+            $offset = [BitConverter]::ToUInt32($logo, $entry + 12)
+            $image = New-Object byte[] $size
+            [Array]::Copy($logo, $offset, $image, 0, $size)
+            $writer.Write([byte[]]$logo[$entry..($entry + 7)]); $writer.Write([uint32]$size); $writer.Write([uint16](101 + $i))
+            [void][DRDirect.ResourceUpdate]::UpdateResourceW($handle, [IntPtr]3, [IntPtr](101 + $i), 1033, $image, $size)
+        }
+        $writer.Flush()
+        $groupBytes = $group.ToArray()
+        [void][DRDirect.ResourceUpdate]::UpdateResourceW($handle, [IntPtr]14, 'MSH_MAIN', 1033, $groupBytes, [uint32]$groupBytes.Length)
+        $ok = [DRDirect.ResourceUpdate]::EndUpdateResourceW($handle, $false)
+    } catch { $ok = $false }
+    if ($ok) { Move-Item -LiteralPath $temp -Destination $Path -Force } else { Remove-Item -LiteralPath $temp -Force -ErrorAction SilentlyContinue }
 }
 function Invoke-DRTrayOffer {
     $root = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner'

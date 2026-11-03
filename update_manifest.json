@@ -1,7 +1,7 @@
 {
-  "version": "1.4.404",
-  "notes": "The little DRDirect icon by the clock now always shows the full DRDirect logo.",
-  "published": "2026-11-02T20:13:51.8018788-05:00",
+  "version": "1.4.405",
+  "notes": "The little DRDirect icon by the clock now starts as DRDirect Tray with the DRDirect logo.",
+  "published": "2026-11-02T20:28:10.3156256-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "ABB1C59A594AB26D44FDB5132E1B795E91DD5D68970010941A95C6D9A2B38333",
-      "size": 792159
+      "sha256": "4F87E50850589F0A29096C8D9CD659F3C0DE4C95C763BF79EEFA9A4AB7C9B467",
+      "size": 796748
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
