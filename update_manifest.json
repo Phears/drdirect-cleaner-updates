@@ -1,7 +1,7 @@
 {
-  "version": "1.4.413",
-  "notes": "The Quick scan light now turns yellow 3 days before it is due, so you get a warning before the red and blue flashing starts.",
-  "published": "2026-11-03T17:32:36.0015391-05:00",
+  "version": "1.4.414",
+  "notes": "The Last clean card now turns yellow a few days before a clean is due, and says clearly when the red and blue flashing is about cleaning, not the scans.",
+  "published": "2026-11-03T17:36:27.4801438-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "BD169C8E18C39E408D9E3446B414C75511E998EE2144BE15C7824AC272A732B5",
-      "size": 1460556
+      "sha256": "E53CEEA76B25DAF271589828A290AE886E21F21D165ACED2119B7FB8A5E04A36",
+      "size": 1461500
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

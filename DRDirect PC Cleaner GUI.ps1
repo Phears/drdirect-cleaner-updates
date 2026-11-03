@@ -4481,13 +4481,19 @@ function Set-DRLastCleanCard {
         $ui.LastCleanValue.Text = if ($when.Date -eq (Get-Date).Date) { 'Today' } elseif ($when.Date -eq (Get-Date).Date.AddDays(-1)) { 'Yesterday' } else { '{0} days ago' -f [int]$ago.TotalDays }
         $ui.LastCleanHint.Text = $when.ToString('dddd d MMMM, h:mm tt')
         # A week or more without a clean: the card turns red and says it is time.
-        $overdue = ((Get-Date).Date - $when.Date).TotalDays -ge 7
+        $daysSince = ((Get-Date).Date - $when.Date).TotalDays
+        $overdue = $daysSince -ge 7
+        # Days 4 to 6: a yellow warning, so the red and blue flashing never comes as a surprise.
+        $soon = (-not $overdue) -and $daysSince -ge 4
         if ($ui.LastCleanCard) {
-            $ui.LastCleanCard.BorderBrush = $window.FindResource($(if ($overdue) { 'Danger' } else { 'Violet' }))
+            $ui.LastCleanCard.BorderBrush = $window.FindResource($(if ($overdue) { 'Danger' } elseif ($soon) { 'Amber' } else { 'Violet' }))
         }
         if ($overdue) {
             $ui.LastCleanValue.Foreground = $window.FindResource('Danger')
-            $ui.LastCleanHint.Text = 'Time to clean. Do a Safe clean, or pick your own.'
+            $ui.LastCleanHint.Text = 'Cleaning is overdue (the scans below are separate). Do a Safe clean, or pick your own.'
+        } elseif ($soon) {
+            $ui.LastCleanValue.ClearValue([Windows.Controls.TextBlock]::ForegroundProperty)
+            $ui.LastCleanHint.Text = 'A clean is due in {0} - do one soon.' -f (Format-DRTimeLeft (7 - $daysSince))
         } else {
             $ui.LastCleanValue.ClearValue([Windows.Controls.TextBlock]::ForegroundProperty)
         }
@@ -4503,9 +4509,12 @@ function Set-DRLastCleanCard {
         # Red and blue lights in the top corners, taking turns, while a clean is overdue.
         if ($ui.LastCleanLightBlue -and $ui.LastCleanLightRed) {
             if (-not (Get-Variable -Name DRLightOn -Scope Script -ErrorAction SilentlyContinue)) { $script:DRLightOn = $false; $script:DRLightTimer = $null }
-            $lightState = if ($overdue) { 'Visible' } else { 'Collapsed' }
+            $lightState = if ($overdue -or $soon) { 'Visible' } else { 'Collapsed' }
             $ui.LastCleanLightBlue.Visibility = $lightState
             $ui.LastCleanLightRed.Visibility = $lightState
+            # Yellow and steady while the clean is due soon; red and blue taking turns once it is overdue.
+            if ($soon) { Set-DRLightColor $ui.LastCleanLightBlue '#FFD21F'; Set-DRLightColor $ui.LastCleanLightRed '#FFD21F'; $ui.LastCleanLightBlue.Opacity = 1.0; $ui.LastCleanLightRed.Opacity = 1.0 }
+            elseif ($overdue) { Set-DRLightColor $ui.LastCleanLightBlue '#1E90FF'; Set-DRLightColor $ui.LastCleanLightRed '#E02424' }
             if ($overdue) {
                 if (-not $script:DRLightTimer) {
                     $script:DRLightTimer = New-Object Windows.Threading.DispatcherTimer
