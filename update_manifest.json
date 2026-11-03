@@ -1,7 +1,7 @@
 {
-  "version": "1.4.412",
-  "notes": "A small behind-the-scenes touch-up. Nothing changes for you.",
-  "published": "2026-11-03T17:27:27.8984270-05:00",
+  "version": "1.4.413",
+  "notes": "The Quick scan light now turns yellow 3 days before it is due, so you get a warning before the red and blue flashing starts.",
+  "published": "2026-11-03T17:32:36.0015391-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "91CA275C48994F96B013965111D69565A2CBB041D2D6E280D6C0502F18E5E6F7",
-      "size": 1460537
+      "sha256": "BD169C8E18C39E408D9E3446B414C75511E998EE2144BE15C7824AC272A732B5",
+      "size": 1460556
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

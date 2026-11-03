@@ -4417,8 +4417,8 @@ function Set-DRScanLines {
                     $result.Quick = (Get-Date).AddDays(-[double]$Matches[1])
                     $result.Full = (Get-Date).AddDays(-[double]$Matches[2])
                 }
-                # Quick scan is due every 7 days (yellow the last day); full scan every 30 days (yellow the last 3).
-                $quick = Set-DRScanStatus -Which 'Quick' -Label 'Quick scan:' -When $result.Quick -DueDays 7 -WarnDays 1 -Text $ui.LastCleanQuickScan -LightA $ui.QuickLightA -LightB $ui.QuickLightB
+                # Quick scan is due every 7 days and full scan every 30 days; both turn yellow for the last 3 days before they are due.
+                $quick = Set-DRScanStatus -Which 'Quick' -Label 'Quick scan:' -When $result.Quick -DueDays 7 -WarnDays 3 -Text $ui.LastCleanQuickScan -LightA $ui.QuickLightA -LightB $ui.QuickLightB
                 $full = Set-DRScanStatus -Which 'Full' -Label 'Full scan:' -When $result.Full -DueDays 30 -WarnDays 3 -Text $ui.LastCleanFullScan -LightA $ui.FullLightA -LightB $ui.FullLightB
                 Start-DRScanLightTimer
                 # Overdue: ask once each time the Cleaner opens. No leaves the red and blue lights on and is written down.
