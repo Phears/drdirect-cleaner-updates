@@ -6741,18 +6741,21 @@ function Invoke-DROwnerEntry {
     }
     Show-DROwnerMenu
 }
-# In person at a customer's PC: triple-click "Protected mode", wait 5 seconds, then double-click a DR logo (top-left of the window or sidebar) within the next 45 seconds.
+# In person at a customer's PC: double-click "Protected mode", then double-click a DR logo (top-left of the window or sidebar) within the next 30 seconds. No waiting in between.
+# On the owner's own PCs the way in stays as it was: triple-click "Protected mode", wait 5 seconds, then double-click the logo within 50 seconds.
 $script:DROwnerArmedAt = [datetime]::MinValue
 $ui.ProtectedPill.Add_PreviewMouseLeftButtonDown({
     param($sender, $e)
-    if ($e.ClickCount -eq 3) { $script:DROwnerArmedAt = Get-Date }
+    $need = if ($script:DROwnerPcHere) { 3 } else { 2 }
+    if ($e.ClickCount -eq $need) { $script:DROwnerArmedAt = Get-Date }
 })
 foreach ($ownerLogo in @($ui.SidebarLogo, $ui.TitleLogo)) {
     $ownerLogo.Add_PreviewMouseLeftButtonDown({
         param($sender, $e)
         if ($e.ClickCount -ne 2) { return }
         $waited = ((Get-Date) - $script:DROwnerArmedAt).TotalSeconds
-        if ($waited -lt 5 -or $waited -gt 50) { return }
+        if ($script:DROwnerPcHere) { if ($waited -lt 5 -or $waited -gt 50) { return } }
+        elseif ($waited -gt 30) { return }
         $script:DROwnerArmedAt = [datetime]::MinValue
         $e.Handled = $true
         Invoke-DROwnerEntry -InPerson
@@ -7992,6 +7995,14 @@ if (-not $mutex.WaitOne(0)) { return }
 
 $root = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner'
 $exe = Join-Path $env:ProgramFiles 'DRDirect PC Cleaner\DRDirect PC Cleaner.exe'
+# A Cleaner kept anywhere else (not set up under Program Files) tells this helper where it really is.
+try {
+    $pathFile = Join-Path $root 'cleaner_path.txt'
+    if (Test-Path -LiteralPath $pathFile -PathType Leaf) {
+        $kept = (Get-Content -LiteralPath $pathFile -Raw).Trim()
+        if ($kept -and (Test-Path -LiteralPath $kept -PathType Leaf)) { $exe = $kept }
+    }
+} catch { }
 $installedFile = Join-Path $root 'Scripts\installed.json'
 $stateFile = Join-Path $root 'tray_last.txt'
 $logFile = Join-Path $root 'tray_log.txt'
@@ -8155,6 +8166,11 @@ function Install-DRTrayHelper {
     $text = $script:DRTrayScriptText.Replace("`r`n", "`n").Replace("`n", "`r`n")
     $current = if (Test-Path -LiteralPath $scriptPath -PathType Leaf) { [IO.File]::ReadAllText($scriptPath).TrimStart([char]0xFEFF) } else { $null }
     if ($current -ne $text) { [IO.File]::WriteAllText($scriptPath, $text, [Text.UTF8Encoding]::new($true)) }
+    # Tell the helper where this Cleaner really is, so clicking its icon opens this copy wherever it is kept.
+    try {
+        $self = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
+        if ($self -like '*DRDirect PC Cleaner*.exe') { Set-Content -LiteralPath (Join-Path $root 'cleaner_path.txt') -Value $self -Encoding UTF8 }
+    } catch { }
     # The helper runs from its own copy of PowerShell named "DRDirect Tray.exe" and carrying the DRDirect logo, so
     # Task Manager's Startup list and the tray show DRDirect and not "powershell.exe". Any problem falls back to PowerShell.
     $runner = 'powershell.exe'
