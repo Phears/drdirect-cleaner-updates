@@ -1,7 +1,7 @@
 {
-  "version": "1.4.403",
-  "notes": "The DRDirect icon now shows by the clock so you can see updates at a glance.",
-  "published": "2026-11-02T20:09:49.3891571-05:00",
+  "version": "1.4.404",
+  "notes": "The little DRDirect icon by the clock now always shows the full DRDirect logo.",
+  "published": "2026-11-02T20:13:51.8018788-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "EA201E591BCB2F21F30C50967337AADF9D780D5E1AD6999BBE5689F3BA78FF2E",
-      "size": 779374
+      "sha256": "ABB1C59A594AB26D44FDB5132E1B795E91DD5D68970010941A95C6D9A2B38333",
+      "size": 792159
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
