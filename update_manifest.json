@@ -1,7 +1,7 @@
 {
-  "version": "1.4.417",
-  "notes": "New on the Dashboard: DRDirect Clone & Backup. It makes an exact copy of your whole PC and a rescue USB made just for your PC. Ask DRDirect if you would like it.",
-  "published": "2026-11-03T17:49:49.7664153-05:00",
+  "version": "1.4.418",
+  "notes": "A small behind-the-scenes touch-up. Nothing changes for you.",
+  "published": "2026-11-03T17:50:27.9204404-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "CA5D803B578287A3255957300B6448BA3F053F3CFBB813E3CDD85AFEFC2689CA",
-      "size": 1462701
+      "sha256": "68EEBD5114BF7E556674739A118D29222DCFF61DBA3DAB5B68760141E0CD20C8",
+      "size": 1462996
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
