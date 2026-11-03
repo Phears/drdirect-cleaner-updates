@@ -3451,9 +3451,7 @@ function Start-DRShellForSignedInUser {
     # Brings the desktop back as the signed-in person after Explorer was stopped.
     # Windows usually restarts it by itself; if not, a one-off scheduled task
     # starts it in the person's own session. $true once Explorer is running.
-    # Windows normally restarts the taskbar within a few seconds. Starting Explorer ourselves while Windows is
-    # also doing it opens an extra File Explorer window on the person's screen, so wait up to 15 seconds first.
-    for ($i = 0; $i -lt 30; $i++) {
+    for ($i = 0; $i -lt 8; $i++) {
         if (Test-DRShellRunning) { return $true }
         Start-Sleep -Milliseconds 500
     }
@@ -4762,22 +4760,18 @@ function Invoke-DRTask {
                             New-DREvent -TaskId $TaskId -State Warning -Message 'The taskbar did not come back by itself. Press Ctrl+Shift+Esc, choose Run new task, type explorer and press Enter.'
                         }
                     } else {
-                        # Windows brings the taskbar back by itself after Explorer stops. Starting explorer.exe as well
-                        # used to open an extra File Explorer window that stayed until the person closed it, so it is
-                        # only started when Windows has not done it within 10 seconds.
-                        $back = $false
-                        for ($wait = 0; $wait -lt 20; $wait++) { if (Test-DRShellRunning) { $back = $true; break }; Start-Sleep -Milliseconds 500 }
-                        if (-not $back) { Start-Process explorer.exe }
-                        # Any folder window that appears in the next few seconds and was not open before is closed.
-                        for ($sweep = 0; $sweep -lt 12; $sweep++) {
-                            Start-Sleep -Milliseconds 500
-                            try {
-                                $shellApp = New-Object -ComObject Shell.Application
-                                foreach ($openWindow in @($shellApp.Windows())) {
-                                    try { if ($openWindow.FullName -match 'explorer\.exe$' -and $windowsBefore -notcontains $openWindow.HWND) { $openWindow.Quit() } } catch { }
-                                }
-                            } catch { }
-                        }
+                        Start-Process explorer.exe
+                        # explorer.exe with no arguments restarts the shell AND opens a
+                        # new Explorer window - closing that stray window here, not the
+                        # shell itself, is what keeps this from popping a folder open
+                        # mid-scan.
+                        Start-Sleep -Milliseconds 1200
+                        try {
+                            $shellApp = New-Object -ComObject Shell.Application
+                            foreach ($openWindow in @($shellApp.Windows())) {
+                                try { if ($openWindow.FullName -match 'explorer\.exe$' -and $windowsBefore -notcontains $openWindow.HWND) { $openWindow.Quit() } } catch { }
+                            }
+                        } catch { }
                     }
                 }
             }
