@@ -1,7 +1,7 @@
 {
-  "version": "1.4.402",
-  "notes": "The Cleaner starts a little faster.",
-  "published": "2026-11-02T09:07:39.9022871-05:00",
+  "version": "1.4.403",
+  "notes": "The DRDirect icon now shows by the clock so you can see updates at a glance.",
+  "published": "2026-11-02T20:09:49.3891571-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "41894E30B12B13E6BADEF2318CAD4DF958E1ABF30EB21E52C99BEAFA608EBA48",
-      "size": 779753
+      "sha256": "EA201E591BCB2F21F30C50967337AADF9D780D5E1AD6999BBE5689F3BA78FF2E",
+      "size": 779374
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

@@ -8064,7 +8064,7 @@ $menu = New-Object Windows.Forms.ContextMenuStrip
 [void]$menu.Items.Add('Close this icon', $null, { $notify.Visible = $false; [Windows.Forms.Application]::Exit() })
 [void]$menu.Items.Add('Stop starting with Windows', $null, {
     try { Remove-Item -LiteralPath (Join-Path ([Environment]::GetFolderPath('Startup')) 'DRDirect Tray.lnk') -Force -ErrorAction SilentlyContinue } catch { }
-    try { Set-Content -LiteralPath (Join-Path $root 'tray_choice.txt') -Value 'no' -Encoding ASCII } catch { }
+    try { Set-Content -LiteralPath (Join-Path $root 'tray_choice.txt') -Value 'off' -Encoding ASCII } catch { }
     $notify.Visible = $false
     [Windows.Forms.Application]::Exit()
 })
@@ -8135,16 +8135,12 @@ function Invoke-DRTrayOffer {
     $root = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner'
     $choiceFile = Join-Path $root 'tray_choice.txt'
     $choice = if (Test-Path -LiteralPath $choiceFile -PathType Leaf) { (Get-Content -LiteralPath $choiceFile -Raw).Trim() } else { '' }
-    if ($choice -eq 'no') { return }
-    if ($choice -eq 'yes') { Install-DRTrayHelper; return }
-    $answer = [Windows.MessageBox]::Show("Show a small DRDirect icon by the clock that turns yellow when a new version of the Cleaner is ready?`n`nIt starts with Windows and only checks the version number. You can switch it off any time from its right-click menu.", 'DRDirect PC Cleaner', [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question, [Windows.MessageBoxResult]::No)
+    # The icon is on for everyone. Only "Stop starting with Windows" in its own menu (written as 'off') keeps it away;
+    # an older 'no' came from a Yes/No box that defaulted to No, so it counts as on.
+    if ($choice -eq 'off') { return }
     New-Item -ItemType Directory -Path $root -Force | Out-Null
-    if ($answer -eq [Windows.MessageBoxResult]::Yes) {
-        Set-Content -LiteralPath $choiceFile -Value 'yes' -Encoding ASCII
-        Install-DRTrayHelper
-    } else {
-        Set-Content -LiteralPath $choiceFile -Value 'no' -Encoding ASCII
-    }
+    if ($choice -ne 'yes') { Set-Content -LiteralPath $choiceFile -Value 'yes' -Encoding ASCII }
+    Install-DRTrayHelper
 }
 $script:DRTrayOffered = $false
 # The gears on the "Show all tools" button turn whenever the Cleaner is busy with anything: a plan, a check, a scan,
