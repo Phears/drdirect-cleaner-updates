@@ -1,7 +1,7 @@
 {
-  "version": "1.4.414",
-  "notes": "The Last clean card now turns yellow a few days before a clean is due, and says clearly when the red and blue flashing is about cleaning, not the scans.",
-  "published": "2026-11-03T17:36:27.4801438-05:00",
+  "version": "1.4.415",
+  "notes": "A small behind-the-scenes touch-up. Nothing changes for you.",
+  "published": "2026-11-03T17:43:34.8849185-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "E53CEEA76B25DAF271589828A290AE886E21F21D165ACED2119B7FB8A5E04A36",
-      "size": 1461500
+      "sha256": "714A0AEEC67A060A6079C444F706E39AD268A34312DD42A412BA904D227E5FB5",
+      "size": 1462358
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
