@@ -1,7 +1,7 @@
 {
-  "version": "1.4.408",
+  "version": "1.4.409",
   "notes": "A small behind-the-scenes touch-up. Nothing changes for you.",
-  "published": "2026-11-03T17:16:46.5807840-05:00",
+  "published": "2026-11-03T17:18:51.3174908-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "BAB37CA5251A6A6E8730C2F27F2A847AF5B2B2AF1CC6D07773253607F97B6A6A",
-      "size": 1441141
+      "sha256": "304E05AE3AC6D7132B12EAC14F6DBC56CDF51816968B89CB90F2A858C8659935",
+      "size": 1441156
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
