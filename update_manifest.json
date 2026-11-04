@@ -1,7 +1,7 @@
 {
-  "version": "1.4.419",
-  "notes": "A small tidy-up to a hidden support control.",
-  "published": "2026-11-04T14:48:01.2161793-05:00",
+  "version": "1.4.420",
+  "notes": "The small DRDirect icon by the clock now starts with Windows on every PC, and you can still switch it off from its right-click menu.",
+  "published": "2026-11-04T15:53:12.4654218-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "BB30BBC9F7275F4B956353C3D45D2F4DF29D7AD4C4CFEC319CCCEC3DD49ABD29",
-      "size": 779753
+      "sha256": "988F6664A85E9D0BA2B5D23BA6C0142EDBAA384655903A4C15B365328D1DBF82",
+      "size": 779712
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

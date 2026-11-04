@@ -8132,19 +8132,21 @@ function Install-DRTrayHelper {
     Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-WindowStyle', 'Hidden', '-File', ('"' + $scriptPath + '"'))
 }
 function Invoke-DRTrayOffer {
+    # Every PC gets the small icon in its Windows Startup list, without a question. The one way to stop it is the icon's own
+    # right-click "Stop starting with Windows", which writes "no" and is kept. A "no" written by the old Yes/No box is
+    # cleared once (the marker below), so PCs that only ever answered that box now get the icon too.
     $root = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner'
-    $choiceFile = Join-Path $root 'tray_choice.txt'
-    $choice = if (Test-Path -LiteralPath $choiceFile -PathType Leaf) { (Get-Content -LiteralPath $choiceFile -Raw).Trim() } else { '' }
-    if ($choice -eq 'no') { return }
-    if ($choice -eq 'yes') { Install-DRTrayHelper; return }
-    $answer = [Windows.MessageBox]::Show("Show a small DRDirect icon by the clock that turns yellow when a new version of the Cleaner is ready?`n`nIt starts with Windows and only checks the version number. You can switch it off any time from its right-click menu.", 'DRDirect PC Cleaner', [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question, [Windows.MessageBoxResult]::No)
     New-Item -ItemType Directory -Path $root -Force | Out-Null
-    if ($answer -eq [Windows.MessageBoxResult]::Yes) {
-        Set-Content -LiteralPath $choiceFile -Value 'yes' -Encoding ASCII
-        Install-DRTrayHelper
-    } else {
-        Set-Content -LiteralPath $choiceFile -Value 'no' -Encoding ASCII
+    $choiceFile = Join-Path $root 'tray_choice.txt'
+    $markerFile = Join-Path $root 'tray_auto.txt'
+    $choice = if (Test-Path -LiteralPath $choiceFile -PathType Leaf) { (Get-Content -LiteralPath $choiceFile -Raw).Trim() } else { '' }
+    if (-not (Test-Path -LiteralPath $markerFile -PathType Leaf)) {
+        Set-Content -LiteralPath $markerFile -Value 'auto' -Encoding ASCII
+        $choice = ''
     }
+    if ($choice -eq 'no') { return }
+    Set-Content -LiteralPath $choiceFile -Value 'yes' -Encoding ASCII
+    Install-DRTrayHelper
 }
 $script:DRTrayOffered = $false
 # The gears on the "Show all tools" button turn whenever the Cleaner is busy with anything: a plan, a check, a scan,
