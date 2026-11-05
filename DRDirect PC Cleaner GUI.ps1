@@ -6009,7 +6009,7 @@ try {
 } catch { }
 
 # Simple view for a first-time person: one big button and a short menu. Every tool is one click away.
-$script:DRSimpleHidden = @('NavFullScan','NavSmartApp','NavSpeed','NavDuplicates','NavHibernate','NavUninstaller','NavSecurity','NavHealth','NavMemory','NavPowerHeat','NavHardware','NavAppUpdates','NavHeadUpdate','NavHeadClean','NavHeadFix','NavHeadCheck',
+$script:DRSimpleHidden = @('NavFullScan','NavSmartApp','NavSpeed','NavDuplicates','NavHibernate','NavUninstaller','NavSecurity','NavHealth','NavMemory','NavPowerHeat','NavHardware','NavHeadClean','NavHeadFix','NavHeadCheck',
     'DashOtherTitle','DashOtherGrid','DashMsTools','DashMoreOptions')
 function Set-DRUiMode {
     param([bool]$Simple)
@@ -6027,7 +6027,7 @@ function Set-DRUiMode {
     [void]$ui.NavModeText.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text = $(if ($Simple) { '＋  Show all tools' } else { '－  Show fewer tools' }) }))
     if (Get-Command Update-DRNavNumbers -ErrorAction SilentlyContinue) { Update-DRNavNumbers }
     # Never leave someone on a page the short menu no longer lists.
-    if ($Simple -and $script:currentCategory -in @('Speed','Hibernate','Security','Hardware','Health','Memory','AppUpdates','Duplicates')) { Set-Page 'Dashboard' }
+    if ($Simple -and $script:currentCategory -in @('Speed','Hibernate','Security','Hardware','Health','Memory','Duplicates')) { Set-Page 'Dashboard' }
 }
 # Every time the Cleaner opens it starts in the Simple view. Show all tools opens the rest for that visit only.
 function Update-DRNavNumbers {

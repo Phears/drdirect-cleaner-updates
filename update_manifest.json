@@ -1,7 +1,7 @@
 {
-  "version": "1.4.420",
-  "notes": "The small DRDirect icon by the clock now starts with Windows on every PC, and you can still switch it off from its right-click menu.",
-  "published": "2026-11-04T15:53:12.4654218-05:00",
+  "version": "1.4.421",
+  "notes": "The 'Update my apps' button is back in the short menu, so you can update your apps without opening 'Show all tools' first.",
+  "published": "2026-11-05T00:36:38.2020020-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "988F6664A85E9D0BA2B5D23BA6C0142EDBAA384655903A4C15B365328D1DBF82",
-      "size": 779712
+      "sha256": "D1129C2E426971FD25EDC05FDDE51E979072D84E03595301E7723BA05D5E58F8",
+      "size": 779667
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
