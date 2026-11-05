@@ -494,11 +494,11 @@ $ErrorActionPreference = 'Stop'
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
                     <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
                     <!-- 3D, like the other buttons: a darker edge underneath and a shine across the top -->
-                    <Border CornerRadius="9" Background="{DynamicResource DR3DSlabA}" Margin="{DynamicResource DR3DEdgeSmall}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
+                    <Border CornerRadius="9" Background="{DynamicResource DR3DSlabA}" Margin="{DynamicResource DR3DEdgeNav}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/><Border CornerRadius="9" Background="#CC22346E" Margin="{DynamicResource DR3DEdgeNavMid}" Visibility="{DynamicResource DR3DMaxParts}" IsHitTestVisible="False"/>
                     <Border x:Name="NavBorder" Background="{TemplateBinding Background}" BorderBrush="#8B5CF6" BorderThickness="1" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter Effect="{DynamicResource DR3DText}"/></Border>
                     <Border CornerRadius="9" Visibility="{DynamicResource DR3DParts}" BorderBrush="#66FFFFFF" BorderThickness="1,1,1,0" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#55FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="0.5"/><GradientStop Color="#33000000" Offset="1"/></LinearGradientBrush></Border.Background></Border>
                     <Border CornerRadius="0,0,9,9" VerticalAlignment="Bottom" Height="3" Margin="1,0,1,1" Background="#55000000" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
-                    <Border x:Name="NavAccent" Width="3" Height="22" CornerRadius="2" Background="#C084FC" HorizontalAlignment="Left" VerticalAlignment="Center" Opacity="0"/>
+                    <Border CornerRadius="9,9,0,0" VerticalAlignment="Top" Height="30" Margin="1,1,1,0" Visibility="{DynamicResource DR3DMaxParts}" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#66FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background></Border><Border CornerRadius="9" Visibility="{DynamicResource DR3DMaxParts}" BorderBrush="#99000000" BorderThickness="0,0,0,6" IsHitTestVisible="False"/><Border x:Name="NavAccent" Width="3" Height="22" CornerRadius="2" Background="#C084FC" HorizontalAlignment="Left" VerticalAlignment="Center" Opacity="0"/>
                 <TextBlock Text="{Binding}" Foreground="#9FC2FF" FontSize="14" FontWeight="ExtraBold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0" IsHitTestVisible="False"/>
 </Grid>
                 <ControlTemplate.Triggers>
@@ -537,7 +537,7 @@ $ErrorActionPreference = 'Stop'
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
                     <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
-                    <Border CornerRadius="12" Background="{DynamicResource DR3DSlabA}" Margin="{DynamicResource DR3DEdgeSmall}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
+                    <Border CornerRadius="12" Background="{DynamicResource DR3DSlabA}" Margin="{DynamicResource DR3DEdgeNav}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/><Border CornerRadius="12" Background="#CC22346E" Margin="{DynamicResource DR3DEdgeNavMid}" Visibility="{DynamicResource DR3DMaxParts}" IsHitTestVisible="False"/>
                     <Border x:Name="NavBorder" CornerRadius="12" BorderBrush="#CCFFFFFF" BorderThickness="1.2" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
                         <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#4A9BFF" Offset="0"/><GradientStop Color="#1E5FD9" Offset="1"/></LinearGradientBrush></Border.Background>
                         <Grid>
@@ -545,7 +545,7 @@ $ErrorActionPreference = 'Stop'
                             <ContentPresenter/>
                         </Grid>
                     </Border>
-                <TextBlock Text="{Binding}" Foreground="White" FontSize="14" FontWeight="ExtraBold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0" IsHitTestVisible="False"/>
+                <Border CornerRadius="12,12,0,0" VerticalAlignment="Top" Height="30" Margin="1,1,1,0" Visibility="{DynamicResource DR3DMaxParts}" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#66FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background></Border><Border CornerRadius="12" Visibility="{DynamicResource DR3DMaxParts}" BorderBrush="#99000000" BorderThickness="0,0,0,6" IsHitTestVisible="False"/><TextBlock Text="{Binding}" Foreground="White" FontSize="14" FontWeight="ExtraBold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0" IsHitTestVisible="False"/>
 </Grid>
                 <ControlTemplate.Triggers>
                     <Trigger Property="IsMouseOver" Value="True">
@@ -564,9 +564,9 @@ $ErrorActionPreference = 'Stop'
             <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
                 <Grid x:Name="NavRoot" RenderTransformOrigin="0,0.5">
                     <Grid.RenderTransform><TranslateTransform X="0" Y="0"/></Grid.RenderTransform>
-                    <Border CornerRadius="9" Background="{DynamicResource DR3DSlabA}" Margin="{DynamicResource DR3DEdgeSmall}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
+                    <Border CornerRadius="9" Background="{DynamicResource DR3DSlabA}" Margin="{DynamicResource DR3DEdgeNav}" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/><Border CornerRadius="9" Background="#CC22346E" Margin="{DynamicResource DR3DEdgeNavMid}" Visibility="{DynamicResource DR3DMaxParts}" IsHitTestVisible="False"/>
                     <Border x:Name="NavBorder" Background="{TemplateBinding Background}" BorderBrush="#00E5FF" BorderThickness="1" CornerRadius="9" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True"><ContentPresenter Effect="{DynamicResource DR3DText}"/></Border>
-                    <Border CornerRadius="9,9,0,0" VerticalAlignment="Top" Height="17" Margin="1,1,1,0" Background="#33FFFFFF" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
+                    <Border CornerRadius="9,9,0,0" VerticalAlignment="Top" Height="17" Margin="1,1,1,0" Background="#33FFFFFF" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/><Border CornerRadius="9,9,0,0" VerticalAlignment="Top" Height="30" Margin="1,1,1,0" Visibility="{DynamicResource DR3DMaxParts}" IsHitTestVisible="False"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#66FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background></Border><Border CornerRadius="9" Visibility="{DynamicResource DR3DMaxParts}" BorderBrush="#99000000" BorderThickness="0,0,0,6" IsHitTestVisible="False"/>
                     <Border CornerRadius="0,0,9,9" VerticalAlignment="Bottom" Height="3" Margin="1,0,1,1" Background="#55000000" Visibility="{DynamicResource DR3DParts}" IsHitTestVisible="False"/>
                     <Border x:Name="NavAccent" Width="3" Height="22" CornerRadius="2" Background="#FFFFFF" HorizontalAlignment="Left" VerticalAlignment="Center" Opacity="0"/>
                 <TextBlock Text="{Binding}" Foreground="#9FC2FF" FontSize="14" FontWeight="ExtraBold" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="8,0,0,0" IsHitTestVisible="False"/>

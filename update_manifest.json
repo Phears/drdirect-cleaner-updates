@@ -1,7 +1,7 @@
 {
-  "version": "1.4.422",
-  "notes": "The 'Update my apps' button in the menu is no longer hidden behind the blue bar at the bottom.",
-  "published": "2026-11-05T00:41:43.5238912-05:00",
+  "version": "1.4.423",
+  "notes": "The 'Update my apps', 'Switch On or Off AI' and Uninstaller buttons in the menu now have the same Max 3D look as the other buttons.",
+  "published": "2026-11-05T00:45:35.1812777-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "9E6F482B3EB1D878295794B50284C9712B548B59110A6160E76C7381A4E0E563",
-      "size": 771615
+      "sha256": "D38C730654B464D2DE60922B7B847403CCB1E4865E353CFEE0C57E50C1FB71D1",
+      "size": 773620
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
