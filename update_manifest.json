@@ -1,7 +1,7 @@
 {
-  "version": "1.4.424",
-  "notes": "The 'Update my apps' button in the menu now matches the other buttons' Max 3D look more closely.",
-  "published": "2026-11-05T00:48:42.1836600-05:00",
+  "version": "1.4.425",
+  "notes": "The menu buttons now have rounder corners, and the 'Update my apps', 'Switch On or Off AI' and Uninstaller buttons show the full Max 3D look.",
+  "published": "2026-11-05T00:51:00.7260685-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "02F3D82B56B43E4F36F11B07869FB5AF907C96E459B1AC1361484A819B1B5228",
-      "size": 774018
+      "sha256": "3CC293E8D5B737E198259DD97C28D60F19C987A729FB66FDCE6D0479E7E56D3F",
+      "size": 774115
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
