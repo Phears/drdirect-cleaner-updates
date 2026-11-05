@@ -6800,6 +6800,7 @@ $script:DROwnerPcHere = Test-DROwnerPc
 function Update-DROwnerStrip {
     $show = $script:DROwnerPcHere
     $ui.ResetReliabilityButton.Visibility = $(if ($show) { 'Visible' } else { 'Collapsed' })
+    $ui.NavScroll.Margin = $(if ($show) { [Windows.Thickness]::new(0,0,0,40) } else { [Windows.Thickness]::new(0) })
 }
 Update-DROwnerStrip
 $script:DROwnerStripTimer = New-Object Windows.Threading.DispatcherTimer

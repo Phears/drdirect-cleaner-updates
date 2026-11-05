@@ -1,7 +1,7 @@
 {
-  "version": "1.4.421",
-  "notes": "The 'Update my apps' button is back in the short menu, so you can update your apps without opening 'Show all tools' first.",
-  "published": "2026-11-05T00:36:38.2020020-05:00",
+  "version": "1.4.422",
+  "notes": "The 'Update my apps' button in the menu is no longer hidden behind the blue bar at the bottom.",
+  "published": "2026-11-05T00:41:43.5238912-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "D1129C2E426971FD25EDC05FDDE51E979072D84E03595301E7723BA05D5E58F8",
-      "size": 779667
+      "sha256": "9E6F482B3EB1D878295794B50284C9712B548B59110A6160E76C7381A4E0E563",
+      "size": 771615
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
