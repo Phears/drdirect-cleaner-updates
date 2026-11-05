@@ -5540,6 +5540,13 @@ foreach ($s in @($pkgs | Where-Object { ($skipIds -contains $_.Id) -or ($_.Name 
     Write-Host (RGB 150 150 255 "⏭️  Skipping $($s.Name) [$($s.Id)]")
 }
 $pkgs = @($pkgs | Where-Object { ($skipIds -notcontains $_.Id) -and ($_.Name -notlike $skipName) })
+# Adobe Acrobat Reader: the Microsoft Store listing cannot update a copy that came from Adobe's own installer
+# ("install technology is different"). Adobe's installer package in the winget source can, so use that one.
+$acroId = 'Adobe.Acrobat.Reader.64-bit'
+$seenIds = @{}
+$pkgs = @($pkgs | ForEach-Object {
+    if ($_.Id -eq 'XPDP273C0XHQH2' -or ($_.Name -like 'Adobe Acrobat*' -and $_.Id -notlike 'Adobe.*')) { [pscustomobject]@{ Name = $_.Name; Id = $acroId } } else { $_ }
+} | Where-Object { if ($seenIds.ContainsKey($_.Id)) { $false } else { $seenIds[$_.Id] = $true; $true } })
 if ($pkgs.Count -eq 0) {
     Write-Host (RGB 150 150 255 '😎 Everything is already up to date!')
     Read-Host 'Press Enter to close' | Out-Null
@@ -5560,6 +5567,7 @@ foreach ($p in $pkgs) {
     Write-Host (RGB 150 150 255 "  [$($p.Id)]  (timeout ${TimeoutMinutes}m)")
 
     $a = @('upgrade', '--id', $p.Id, '--exact', '--silent', '--accept-source-agreements', '--accept-package-agreements')
+    if ($p.Id -eq $acroId) { $a += @('--source', 'winget') }
     $proc = Start-Process $wingetExe -ArgumentList $a -NoNewWindow -PassThru   # shares console => real progress bar
     $null = $proc.Handle   # without this, ExitCode comes back empty after a timed WaitForExit
     $done = $proc.WaitForExit($TimeoutMinutes * 60000)
@@ -5605,6 +5613,10 @@ foreach ($p in $pkgs) {
             Write-Host (RGB 255 60 90 "💥 PowerShell 7 failed (exit code $($iproc.ExitCode))")
             $fail += "PowerShell 7 (exit $($iproc.ExitCode))"
         }
+    }
+    elseif ($proc.ExitCode -eq -1978335212 -and $p.Id -eq $acroId) {
+        # This copy of Acrobat Reader came from the Microsoft Store, which keeps it current by itself.
+        Write-Host (RGB 150 150 255 "⏭️  $($p.Name) - installed from the Microsoft Store, so the Store updates it. Nothing to do")
     }
     else {
         Write-Host (RGB 255 60 90 "💥 $($p.Name) failed (exit code $($proc.ExitCode))")
