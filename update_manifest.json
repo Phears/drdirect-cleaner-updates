@@ -1,7 +1,7 @@
 {
-  "version": "1.4.439",
+  "version": "1.4.440",
   "notes": "Check my PC now also checks security, spyware, Defender exclusions, startup apps, large files and PHP.",
-  "published": "2026-11-06T14:12:39.6997233-05:00",
+  "published": "2026-11-06T14:16:29.2436700-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "0B9B6EE4937A6B80A32FCCD0E00627DE5E2449AF7178B5BAA7D9D321B193A879",
-      "size": 920472
+      "sha256": "73362A3F4ACF63C5D71E65E3E9ECCCCAB6862C2DF1661522C763668A1875535C",
+      "size": 920867
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
