@@ -5800,6 +5800,27 @@ function Resolve-DRImagerHome {
     $null
 }
 
+# Where to copy the Rescue system from: the Rescue file (ISO), the copy the Cleaner saved on this PC, or a
+# DRDirect Rescue USB that is plugged in (saved to this PC first, so the same stick can be made again). $null if none.
+function Get-DRSavedRescueFolder { Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Rescue System' }
+function Test-DRRescueTree { param([string]$Root) try { (Test-Path -LiteralPath (Join-Path $Root 'bootmgr')) -and (Test-Path -LiteralPath (Join-Path $Root 'sources\boot.wim')) } catch { $false } }
+function Find-DRRescueSource {
+    $home2 = Resolve-DRImagerHome
+    if ($home2) { return (Join-Path $home2 'DRDirect Imager Rescue.iso') }
+    $saved = Get-DRSavedRescueFolder
+    if (Test-DRRescueTree $saved) { return $saved }
+    foreach ($v in @(Get-Volume -ErrorAction SilentlyContinue | Where-Object { $_.DriveLetter })) {
+        $r = "$($v.DriveLetter):\"
+        if (-not (Test-DRRescueTree $r)) { continue }
+        # A Windows install stick has the same boot files; only a DRDirect Rescue USB is used.
+        if ((Test-Path -LiteralPath (Join-Path $r 'sources\install.wim')) -or (Test-Path -LiteralPath (Join-Path $r 'sources\install.esd'))) { continue }
+        $isOurs = ([string]$v.FileSystemLabel -eq 'DRDIRECT') -or (Test-Path -LiteralPath (Join-Path $r 'DRDirect'))
+        if (-not $isOurs) { try { $isOurs = ([IO.File]::ReadAllText((Join-Path $r 'autorun.inf')) -match 'DRDirect') } catch { } }
+        if ($isOurs) { return $r }
+    }
+    $null
+}
+
 # Rescue USB: only USB flash drives are ever offered, never the Windows drive or an internal drive. (Same as the Imager.)
 function Get-DRRescueUsbDisks {
     foreach ($d in (Get-Disk -ErrorAction SilentlyContinue | Sort-Object Number)) {
@@ -5828,6 +5849,17 @@ function Write-RescueUsb {
         if (-not $okBus) { return @{ Ok = $false; Message = "Disk $DiskNumber is not a USB flash drive. Nothing was changed." } }
         if ($disk.IsBoot -or $disk.IsSystem) { return @{ Ok = $false; Message = 'That is the Windows drive. Nothing was changed.' } }
         if (-not (Test-Path -LiteralPath $IsoPath)) { return @{ Ok = $false; Message = 'The rescue file is missing. Nothing was changed.' } }
+        # Copying from a Rescue USB: keep its rescue system on this PC first, so the stick can be erased and made again.
+        if ($IsoPath -match '^[A-Za-z]:\\$') {
+            & $Say 'Saving the Rescue system to this PC...'
+            $saveTo = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Rescue System'
+            $null = New-Item -ItemType Directory -Force -Path $saveTo
+            & robocopy.exe $IsoPath $saveTo /MIR /R:2 /W:2 /NFL /NDL /NJH /NJS /NP /XD 'System Volume Information' /XF usb.id pc.id owner.id | Out-Null
+            if ($LASTEXITCODE -ge 8) { return @{ Ok = $false; Message = "The Rescue system could not be saved from the USB (robocopy code $LASTEXITCODE). Nothing was changed." } }
+            if (-not ((Test-Path -LiteralPath (Join-Path $saveTo 'bootmgr')) -and (Test-Path -LiteralPath (Join-Path $saveTo 'sources\boot.wim')))) { return @{ Ok = $false; Message = 'The Rescue system on the USB is not complete. Nothing was changed.' } }
+            $IsoPath = $saveTo
+        }
+        $fromFolder = Test-Path -LiteralPath $IsoPath -PathType Container
         if ($ExpectLetter) {
             $have = @(Get-Partition -DiskNumber $DiskNumber -ErrorAction SilentlyContinue | Where-Object { $_.DriveLetter } | ForEach-Object { [string]$_.DriveLetter })
             if ($have -notcontains $ExpectLetter.ToUpperInvariant()) { return @{ Ok = $false; Message = "Drive $($ExpectLetter): is not on disk $DiskNumber any more. Nothing was changed." } }
@@ -5849,12 +5881,16 @@ function Write-RescueUsb {
         $null = Format-Volume -Partition $part -FileSystem FAT32 -NewFileSystemLabel 'DRDIRECT' -Confirm:$false -Force -ErrorAction Stop
         $dest = ([string]$part.DriveLetter) + ':\'
         & $Say 'Copying the rescue system...'
-        $img = Mount-DiskImage -ImagePath $IsoPath -PassThru -ErrorAction Stop
-        $mounted = $true
-        $src = (($img | Get-Volume).DriveLetter) + ':\'
-        & robocopy.exe $src $dest /E /R:2 /W:2 /NFL /NDL /NJH /NJS /NP | Out-Null
-        if ($LASTEXITCODE -ge 8) { throw "Copying failed (robocopy code $LASTEXITCODE)." }
-        Dismount-DiskImage -ImagePath $IsoPath | Out-Null; $mounted = $false
+        # No backslash at the end: with a space in the path, a final backslash makes robocopy misread the folder.
+        if ($fromFolder) { $src = $IsoPath.TrimEnd('\') }
+        else {
+            $img = Mount-DiskImage -ImagePath $IsoPath -PassThru -ErrorAction Stop
+            $mounted = $true
+            $src = (($img | Get-Volume).DriveLetter) + ':\'
+        }
+        $rcOut = @(& robocopy.exe $src $dest /E /R:2 /W:2 /NFL /NDL /NJH /NJS /NP 2>&1 | ForEach-Object { [string]$_ } | Where-Object { $_.Trim() })
+        if ($LASTEXITCODE -ge 8) { throw ("Copying failed (robocopy code $LASTEXITCODE). From: $src  To: $dest  " + (($rcOut | Select-Object -Last 3) -join ' ')) }
+        if ($mounted) { Dismount-DiskImage -ImagePath $IsoPath | Out-Null; $mounted = $false }
         # Old-style PCs (BIOS) need the boot sector written too.
         $bootsect = Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'ADK') -Recurse -Filter 'bootsect.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
         if ($bootsect) { & $bootsect.FullName /nt60 ($dest.TrimEnd('\')) /force /mbr 2>&1 | Out-Null }
@@ -5865,11 +5901,19 @@ function Write-RescueUsb {
         }
         $app = Join-Path $dest 'DRDirect'; $null = New-Item -ItemType Directory -Force -Path $app
         # The Windows app on the stick, so the same stick also works from inside Windows.
+        # The app files can sit in several places (beside the Imager, in the Cleaner's own folder, or in the saved Rescue system).
+        $appPlaces = @($PSScriptRoot, (Join-Path $PSScriptRoot 'DRDirect Imager'), (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner'),
+            (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Rescue System\DRDirect'), (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts'))
+        $ico = $null
         foreach ($f in 'DRDirect Imager.ps1', 'DRDirect Imager Engine.ps1', 'DRDirect Image.ico', 'DRDirect Logo.png') {
-            $s = Join-Path $PSScriptRoot $f
-            if (Test-Path -LiteralPath $s) { Copy-Item -LiteralPath $s -Destination $app -Force }
+            foreach ($pl in $appPlaces) {
+                if (-not $pl) { continue }
+                $s = Join-Path $pl $f
+                if (Test-Path -LiteralPath $s -PathType Leaf) { Copy-Item -LiteralPath $s -Destination $app -Force -ErrorAction Stop; if ($f -eq 'DRDirect Image.ico') { $ico = $s }; break }
+            }
         }
-        $ico = Join-Path $PSScriptRoot 'DRDirect Image.ico'
+        if (-not (Test-Path -LiteralPath (Join-Path $app 'DRDirect Imager.ps1'))) { throw ("DRDirect Imager.ps1 was not found to put on the USB. Looked in: " + (($appPlaces | Where-Object { $_ }) -join ' | ')) }
+        if (-not $ico) { $ico = Join-Path $PSScriptRoot 'DRDirect Image.ico' }
         if (Test-Path -LiteralPath $ico) {
             Copy-Item -LiteralPath $ico -Destination (Join-Path $app 'DRDirect.ico') -Force
             Set-Content -LiteralPath (Join-Path $dest 'autorun.inf') -Value "[autorun]`r`nicon=DRDirect\DRDirect.ico`r`nlabel=DRDirect Rescue" -Encoding ASCII
@@ -6724,7 +6768,7 @@ function Show-DRDriveCopy {
                 $c.HeadA.Text = 'RESCUE SYSTEM'; $c.SubA.Text = '(starts this PC without Windows)'
                 $c.HeadB.Text = 'USB FLASH DRIVE'; $c.SubB.Text = '(becomes the Rescue USB)'
                 $last = Get-DRRescueUsbRecord
-                $c.ALabel.Text = if (-not $state.Home -and -not $state.Demo) { 'The Rescue system is not on this PC. Ask DRDirect for a Rescue USB.' }
+                $c.ALabel.Text = if (-not (Find-DRRescueSource) -and -not $state.Demo) { 'Plug in a DRDirect Rescue USB once: the Cleaner keeps its Rescue system for next time.' }
                     elseif ($last) { "Your last Rescue USB was made on $($last.When.ToString('d MMMM yyyy')) ($($last.What)).`nLost it or broken? Make a new one here, any time." }
                     else { "You do not have a Rescue USB yet. Make one now and keep it somewhere safe.`nLost it or broken later? Come back here and make a new one." }
                 if ($last) { $c.HeadA.Text = 'NEW RESCUE USB'; $c.Go.Content = [Net.WebUtility]::HtmlDecode('&#x25B6;  Make a new Rescue USB') }
@@ -6829,9 +6873,10 @@ function Show-DRDriveCopy {
             'rescue' {
                 $u = if ($c.Dst.SelectedIndex -ge 0) { $state.Usb[$c.Dst.SelectedIndex] } else { $null }
                 & $setBig 'A' 'ISO'; & $setBig 'B' $(if ($u -and $u.Letters.Count) { "$($u.Letters[0]):" } elseif ($u) { 'USB' } else { '?' })
-                $c.InfoA.Text = if ($state.Home) { 'DRDirect Rescue system' } else { 'Not found on this PC' }
+                $state.RescueSrc = Find-DRRescueSource
+                $c.InfoA.Text = if ($state.RescueSrc -match '^[A-Za-z]:\\$') { "DRDirect Rescue system`n(from the Rescue USB $($state.RescueSrc.Substring(0,2)))" } elseif ($state.RescueSrc) { 'DRDirect Rescue system' } else { 'Not found on this PC' }
                 $c.InfoB.Text = if ($u) { "$($u.Name)`n$(Format-ImgSize $u.Size)" } else { 'Plug in a USB flash drive you do not need.' }
-                if (-not $state.Home -and -not $state.Demo) { & $block 'The Rescue system (DRDirect Imager Rescue.iso) is not on this PC, so a Rescue USB cannot be created here.'; return }
+                if (-not $state.RescueSrc -and -not $state.Demo) { & $block 'The Rescue system is not on this PC. Plug in a DRDirect Rescue USB and press Look again: the Cleaner saves its Rescue system and can then make new ones.'; $c.Go.Content = [string][char]0x21BB + '  Look again'; $c.Go.IsEnabled = $true; $state.LookAgain = $true; return }
                 if (-not $state.Usb.Count) { & $tip 'Plug in a USB stick (any size from 1 GB), then press Look again. A new one replaces a lost or broken Rescue USB.'; $c.Go.Content = [string][char]0x21BB + '  Look again'; $c.Go.IsEnabled = $true; $state.LookAgain = $true; return }
                 if (-not $u) { & $tip 'More than one USB flash drive is plugged in. Pick the one to use.'; return }
                 $ul = if ($u.Letters.Count) { "$($u.Letters[0]):" } else { 'the USB' }
@@ -7000,7 +7045,7 @@ function Show-DRDriveCopy {
                     $job = [pscustomobject]@{ Done = [long]0; Total = [long]5; FileDone = 0; FileTotal = 0; Finished = $false; Ok = $false; Error = $null; Cancel = $false }
                     if (-not $state.Demo) {
                         $rs = [runspacefactory]::CreateRunspace(); $rs.Open()
-                        foreach ($kv in @{ sync = $sync; DRImagerHome = $state.Home; DiskNumber = $u.Number; IsoPath = (Join-Path $state.Home 'DRDirect Imager Rescue.iso'); ExpectLetter = $(if ($u.Letters.Count) { [string]$u.Letters[0] } else { '' }) }.GetEnumerator()) {
+                        foreach ($kv in @{ sync = $sync; DRImagerHome = $(if ($state.Home) { $state.Home } else { Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner' }); DiskNumber = $u.Number; IsoPath = $(if ($state.RescueSrc) { $state.RescueSrc } else { Find-DRRescueSource }); ExpectLetter = $(if ($u.Letters.Count) { [string]$u.Letters[0] } else { '' }) }.GetEnumerator()) {
                             $rs.SessionStateProxy.SetVariable($kv.Key, $kv.Value)
                         }
                         $ps = [powershell]::Create(); $ps.Runspace = $rs
