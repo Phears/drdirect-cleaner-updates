@@ -1,7 +1,7 @@
 {
-  "version": "1.4.436",
-  "notes": "Update all apps now gives each app up to 45 minutes.",
-  "published": "2026-11-06T13:40:50.0699383-05:00",
+  "version": "1.4.437",
+  "notes": "Update all apps now waits for every app to finish updating.",
+  "published": "2026-11-06T13:49:02.7319072-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
