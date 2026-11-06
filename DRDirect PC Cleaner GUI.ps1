@@ -2684,6 +2684,15 @@ function Get-VisibleTasksForCategory {
         $hidden += 'ai.claude-block'
     }
 
+    # The Defender scans also show at the bottom of the Clean my PC page, so the person sees them in the level
+    # they picked: the quick scan on every level, the full scan on Advanced (and Custom). They stay on the
+    # Security page too; it is the same item, so ticking it in one place ticks it in the other.
+    if ($Category -eq 'Cleanup') {
+        $scanIds = @('security.quick-scan')
+        if ($script:cleanupLevel -notin @('Safe', 'Medium')) { $scanIds += 'security.full-scan' }
+        $tasks = @($tasks) + @($catalog | Where-Object { $scanIds -contains $_.Id })
+    }
+
     if ($Category -in @('Cleanup','AI') -and $hidden.Count) {
         return @($tasks | Where-Object { $hidden -notcontains $_.Id })
     }

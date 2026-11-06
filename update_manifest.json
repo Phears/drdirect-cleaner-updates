@@ -1,7 +1,7 @@
 {
-  "version": "1.4.446",
-  "notes": "Advanced scan shows a safer, more honest time: the full scan counts as at least 1 hour, and DISM, SFC and scans never less than their usual time.",
-  "published": "2026-11-06T16:57:04.7323679-05:00",
+  "version": "1.4.447",
+  "notes": "The Defender quick scan and full scan now show on the Clean my PC page too (full scan on Advanced).",
+  "published": "2026-11-06T17:14:41.1495038-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "436F15345645B5D6949A3D1A6A2E4F8FDCA06E980A4FC9988B318E084010B232",
-      "size": 928055
+      "sha256": "8383BAB12E5DAEFA9783CF54B7BA56EC413E317BD54EAA48D98D1047FFAFB09A",
+      "size": 928638
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
