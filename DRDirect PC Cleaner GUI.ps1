@@ -5300,8 +5300,8 @@ function Start-DRFlashyUpgrade {
     # The script is written to %TEMP% as UTF-8 with BOM so Windows PowerShell reads the emoji correctly.
     $flashy = @'
 # Flashy winget upgrade --all  (live progress, per-package timeout)
-# Usage: .\winget-upgrade-all.ps1 [-IncludeUnknown] [-NoAnim] [-TimeoutMinutes 10]
-param([switch]$IncludeUnknown, [switch]$NoAnim, [int]$TimeoutMinutes = 10)
+# Usage: .\winget-upgrade-all.ps1 [-IncludeUnknown] [-NoAnim] [-TimeoutMinutes 45]
+param([switch]$IncludeUnknown, [switch]$NoAnim, [int]$TimeoutMinutes = 45)
 
 $ESC = [char]27
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8

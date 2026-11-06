@@ -1,7 +1,7 @@
 {
-  "version": "1.4.435",
-  "notes": "Clone & Backup moved to the left side of the dashboard.",
-  "published": "2026-11-06T13:17:49.5327902-05:00",
+  "version": "1.4.436",
+  "notes": "Update all apps now gives each app up to 45 minutes.",
+  "published": "2026-11-06T13:40:50.0699383-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "70FDF020F428E80EE335C1999B7E06057028B20E61E97D720E9EA491D6590790",
+      "sha256": "3BCC7F1916E129B656CC1313B922E0E1DDF9DCAE3E18913D96CD09CEE6FDF045",
       "size": 920114
     },
     {
