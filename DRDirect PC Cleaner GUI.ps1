@@ -2689,7 +2689,12 @@ function Get-VisibleTasksForCategory {
     # Security page too; it is the same item, so ticking it in one place ticks it in the other.
     if ($Category -eq 'Cleanup') {
         $scanIds = @('security.quick-scan')
-        if ($script:cleanupLevel -notin @('Safe', 'Medium')) { $scanIds += 'security.full-scan' }
+        # On Advanced (and Custom) every Security and privacy item that Advanced runs shows here too, in page order.
+        if ($script:cleanupLevel -notin @('Safe', 'Medium')) {
+            $scanIds = @('security.checkup', 'security.checkup-fix', 'security.defender-update', 'security.quick-scan',
+                'security.full-scan', 'security.remove-exclusions', 'security.network-files', 'security.typing-privacy',
+                'security.win11-extras', 'security.telemetry-off', 'security.compat-task-off', 'security.sweep')
+        }
         $tasks = @($tasks) + @($catalog | Where-Object { $scanIds -contains $_.Id })
     }
 

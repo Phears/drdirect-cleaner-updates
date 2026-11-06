@@ -1,7 +1,7 @@
 {
-  "version": "1.4.447",
-  "notes": "The Defender quick scan and full scan now show on the Clean my PC page too (full scan on Advanced).",
-  "published": "2026-11-06T17:17:26.6665086-05:00",
+  "version": "1.4.448",
+  "notes": "Advanced on the Clean my PC page now lists every Security and privacy item it runs, ticked.",
+  "published": "2026-11-06T17:24:18.4938087-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "8383BAB12E5DAEFA9783CF54B7BA56EC413E317BD54EAA48D98D1047FFAFB09A",
-      "size": 928638
+      "sha256": "4BF6383E9D81B556BE5A26C0479FE053AD3A2DA493C50CB3D15508A860842DB7",
+      "size": 929084
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
