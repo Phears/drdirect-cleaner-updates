@@ -2813,92 +2813,6 @@ foreach ($bulkName in 'CleanCheckAllButton','CleanCheckOffButton') {
     })
 }
 
-function Show-DRBebeSurprise {
-    <#
-        A family joke for one PC only: a chubby baby with a milk bottle for 8 seconds,
-        no sound, before the Cleaner opens. Shown the first 3 times, then
-        never again. The PC is matched by a SHA-256 of its ID, so the ID itself
-        is not in the published script. Any error is ignored; the Cleaner opens.
-    #>
-    param([switch]$Force)
-    try {
-        $key = 'HKCU:\Software\DRDirect\PC Cleaner'
-        if (-not $Force) {
-            $uuid = [string](Get-CimInstance Win32_ComputerSystemProduct -ErrorAction Stop).UUID
-            $serial = [string](Get-CimInstance Win32_BaseBoard -ErrorAction Stop).SerialNumber
-            $id = ('{0}-{1}' -f $uuid.Trim(), $serial.Trim()).ToLowerInvariant()
-            $sha = [Security.Cryptography.SHA256]::Create()
-            $hash = -join ($sha.ComputeHash([Text.Encoding]::UTF8.GetBytes($id)) | ForEach-Object { $_.ToString('x2') })
-            if ($hash -ne '9d9fa84a3d0ff4a8b4a02c5b210c06dec09f0cdb637d92dcf3ddbe7be4b2178e') { return }
-            $shown = 0
-            try { $shown = [int](Get-ItemProperty -LiteralPath $key -Name 'BebeShown' -ErrorAction Stop).BebeShown } catch { }
-            if ($shown -ge 3) { return }
-            if (-not (Test-Path -LiteralPath $key)) { New-Item -Path $key -Force | Out-Null }
-            Set-ItemProperty -LiteralPath $key -Name 'BebeShown' -Value ($shown + 1) -Type DWord
-        }
-
-        [xml]$xaml = @'
-<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="For BéBé Gilles" Width="640" Height="700" WindowStartupLocation="CenterScreen" WindowStyle="None"
-        AllowsTransparency="True" Background="Transparent" Topmost="True" ShowInTaskbar="True">
-  <Border CornerRadius="28" BorderBrush="#FF9EC5" BorderThickness="6">
-    <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFF6FB" Offset="0"/><GradientStop Color="#DDF0FF" Offset="1"/></LinearGradientBrush></Border.Background>
-    <Grid>
-      <TextBlock Text="For BéBé Gilles" FontSize="50" FontWeight="ExtraBold" Foreground="#E2337A" HorizontalAlignment="Center" Margin="0,22,0,0" FontFamily="Segoe UI Black">
-        <TextBlock.Effect><DropShadowEffect Color="#7FFFFFFF" ShadowDepth="3" BlurRadius="2"/></TextBlock.Effect>
-      </TextBlock>
-      <Canvas Width="520" Height="540" Margin="0,70,0,0">
-        <!-- chubby body in a blue onesie -->
-        <Ellipse Canvas.Left="120" Canvas.Top="270" Width="280" Height="250" Fill="#7EC8F2" Stroke="#3D8FC4" StrokeThickness="4"/>
-        <!-- belly -->
-        <Ellipse Canvas.Left="175" Canvas.Top="330" Width="170" Height="150" Fill="#A9DDF7"/>
-        <!-- chubby legs -->
-        <Ellipse Canvas.Left="105" Canvas.Top="440" Width="120" Height="90" Fill="#FFD3B0" Stroke="#E8A882" StrokeThickness="4"/>
-        <Ellipse Canvas.Left="295" Canvas.Top="440" Width="120" Height="90" Fill="#FFD3B0" Stroke="#E8A882" StrokeThickness="4"/>
-        <!-- big round head -->
-        <Ellipse Canvas.Left="110" Canvas.Top="20" Width="300" Height="280" Fill="#FFD9BA" Stroke="#E8A882" StrokeThickness="4"/>
-        <!-- curl of hair -->
-        <Path Data="M 255,28 C 230,0 290,-6 278,22 C 270,40 250,30 262,20" Stroke="#8A5A2B" StrokeThickness="7" Fill="Transparent" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-        <!-- ears -->
-        <Ellipse Canvas.Left="92" Canvas.Top="135" Width="44" Height="60" Fill="#FFCFAA" Stroke="#E8A882" StrokeThickness="4"/>
-        <Ellipse Canvas.Left="384" Canvas.Top="135" Width="44" Height="60" Fill="#FFCFAA" Stroke="#E8A882" StrokeThickness="4"/>
-        <!-- happy closed eyes -->
-        <Path Data="M 175,140 Q 197,118 219,140" Stroke="#3A2A20" StrokeThickness="7" Fill="Transparent" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-        <Path Data="M 301,140 Q 323,118 345,140" Stroke="#3A2A20" StrokeThickness="7" Fill="Transparent" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
-        <!-- fat pink cheeks -->
-        <Ellipse Canvas.Left="140" Canvas.Top="170" Width="80" Height="60" Fill="#FF9BB0" Opacity="0.75"/>
-        <Ellipse Canvas.Left="300" Canvas.Top="170" Width="80" Height="60" Fill="#FF9BB0" Opacity="0.75"/>
-        <!-- little nose -->
-        <Ellipse Canvas.Left="249" Canvas.Top="168" Width="22" Height="16" Fill="#F2B08C"/>
-        <!-- the milk bottle, tipped up to the mouth -->
-        <Canvas Canvas.Left="236" Canvas.Top="196">
-          <Canvas.RenderTransform><RotateTransform Angle="-35"/></Canvas.RenderTransform>
-          <Ellipse Canvas.Left="10" Canvas.Top="0" Width="28" Height="34" Fill="#F5B88A" Stroke="#D98E5C" StrokeThickness="3"/>
-          <Rectangle Canvas.Left="2" Canvas.Top="26" Width="44" Height="18" RadiusX="5" RadiusY="5" Fill="#FF6FA5" Stroke="#D9437E" StrokeThickness="3"/>
-          <Rectangle Canvas.Left="0" Canvas.Top="42" Width="48" Height="150" RadiusX="16" RadiusY="16" Fill="#FFFFFF" Stroke="#9CC9E8" StrokeThickness="4"/>
-          <Rectangle Canvas.Left="4" Canvas.Top="92" Width="40" Height="96" RadiusX="12" RadiusY="12" Fill="#F7F9FF"/>
-          <Rectangle Canvas.Left="10" Canvas.Top="110" Width="16" Height="4" Fill="#9CC9E8"/>
-          <Rectangle Canvas.Left="10" Canvas.Top="135" Width="16" Height="4" Fill="#9CC9E8"/>
-          <Rectangle Canvas.Left="10" Canvas.Top="160" Width="16" Height="4" Fill="#9CC9E8"/>
-        </Canvas>
-        <!-- chubby hands holding the bottle -->
-        <Ellipse Canvas.Left="250" Canvas.Top="300" Width="70" Height="62" Fill="#FFD3B0" Stroke="#E8A882" StrokeThickness="4"/>
-        <Ellipse Canvas.Left="318" Canvas.Top="250" Width="66" Height="58" Fill="#FFD3B0" Stroke="#E8A882" StrokeThickness="4"/>
-      </Canvas>
-    </Grid>
-  </Border>
-</Window>
-'@
-        $bebe = [Windows.Markup.XamlReader]::Load((New-Object Xml.XmlNodeReader $xaml))
-        $closeTimer = New-Object Windows.Threading.DispatcherTimer
-        # The picture shows for 8 seconds, then the Cleaner opens as normal.
-        $closeTimer.Interval = [TimeSpan]::FromSeconds(8)
-        $closeTimer.Add_Tick({ $closeTimer.Stop(); $bebe.Close() })
-        $bebe.Add_ContentRendered({ $closeTimer.Start() })
-        [void]$bebe.ShowDialog()
-    } catch { }
-}
-
 function Get-DRDurationGuessSeconds {
     # A task's listed time ("< 2 min", "5-20 min", "1+ hours") as a middle-of-the-range guess in seconds.
     param([string]$Duration)
@@ -6094,7 +6008,19 @@ function Show-DRDriveCopy {
     $window.Cursor = [Windows.Input.Cursors]::Wait
     $loaded = $false; $loadErr = $null
     try { $loaded = Import-DRImagerEngine } catch { $loadErr = $_.Exception.Message }
-    finally { $window.Cursor = $null }
+    if (-not $loaded -and -not $script:DRImagerEngineCode) {
+        # A PC that updated with an older updater got this window but not its engine. Fetch it now.
+        try {
+            if ((Get-Command Repair-DRSkippedUpdateFile -ErrorAction SilentlyContinue) -and
+                (Repair-DRSkippedUpdateFile -Name 'DRDirect Imager Engine.ps1')) {
+                $engineFile = Join-Path (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts') 'DRDirect Imager Engine.ps1'
+                $script:DRImagerEngineCode = [scriptblock]::Create([IO.File]::ReadAllText($engineFile))
+                $loadErr = $null
+                $loaded = Import-DRImagerEngine
+            }
+        } catch { $loadErr = $_.Exception.Message }
+    }
+    $window.Cursor = $null
     if (-not $loaded) {
         $why = if ($loadErr) { "`n`n($loadErr)" } else { '' }
         [Windows.MessageBox]::Show("Clone & Backup is not included in this copy of the Cleaner.`nAsk DRDirect for a new build.$why", 'DRDirect PC Cleaner',
@@ -9538,7 +9464,5 @@ $window.Add_ContentRendered({
 })
     # The scan-button brooms stand still until a cleanup runs; then only that scan's broom sweeps.
     Set-DRScanBroomsAlive $false
-    # A family joke on one PC only (see Show-DRBebeSurprise); every other PC skips straight past it.
-    Show-DRBebeSurprise
     [void]$window.ShowDialog()
 }

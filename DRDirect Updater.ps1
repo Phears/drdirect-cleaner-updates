@@ -554,6 +554,65 @@ function Install-DRUpdate {
         }
     }
 }
+function Repair-DRSkippedUpdateFile {
+    <#
+    .SYNOPSIS
+        Fetches one script that an update applied by an older updater skipped.
+    .DESCRIPTION
+        An older updater only installs files on its own allow-list, so a PC that
+        took the Clone & Backup update with one got the new interface but not
+        'DRDirect Imager Engine.ps1', and the version was still marked installed.
+        This reads the signed manifest of the update the person already accepted
+        and downloads just that file, checked against its signed checksum.
+        Returns $true when the file is now in place and correct.
+    #>
+    param([Parameter(Mandatory)][string]$Name)
+    try {
+        if ($script:DRUpdatableFiles -notcontains $Name) { return $false }
+        $root = Get-DRUpdateRoot
+        $manifestPath = Join-Path $root 'update_manifest.json'
+        $signaturePath = Join-Path $root 'update_manifest.sig'
+        if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf) -or
+            -not (Test-Path -LiteralPath $signaturePath -PathType Leaf)) { return $false }
+        $manifestBytes = [System.IO.File]::ReadAllBytes($manifestPath)
+        if (-not (Test-DRManifestSignature -ManifestBytes $manifestBytes -SignatureBase64 ([System.IO.File]::ReadAllText($signaturePath)))) { return $false }
+        $manifest = ConvertFrom-Json -InputObject ([System.Text.Encoding]::UTF8.GetString($manifestBytes).TrimStart([char]0xFEFF).Trim())
+        # Only a version the person accepted counts, not one that was merely offered.
+        if ([version]$manifest.version -gt (Get-DRInstalledVersion)) { return $false }
+        $entry = @($manifest.files | Where-Object { $_.name -eq $Name }) | Select-Object -First 1
+        if (-not $entry) { return $false }
+        $expected = ([string]$entry.sha256).ToUpperInvariant()
+
+        $final = Join-Path $root $Name
+        if ((Test-Path -LiteralPath $final -PathType Leaf) -and (Get-DRFileHashWithRetry -Path $final).Hash -eq $expected) { return $true }
+
+        try {
+            [Net.ServicePointManager]::SecurityProtocol =
+                [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+        } catch { }
+        $temp = "$final.downloading"
+        Clear-DRStaleTemp -Path $temp
+        $attempt = 0
+        while ($true) {
+            $attempt++
+            try { Invoke-DRFeedWeb -Name $Name -OutFile $temp -TimeoutSec 120 | Out-Null; break }
+            catch {
+                if ($attempt -ge 3) { throw }
+                Clear-DRStaleTemp -Path $temp
+                Start-Sleep -Seconds ($attempt * 2)
+            }
+        }
+        if ((Get-DRFileHashWithRetry -Path $temp).Hash -ne $expected) {
+            Clear-DRStaleTemp -Path $temp
+            return $false
+        }
+        Move-Item -LiteralPath $temp -Destination $final -Force
+        return $true
+    } catch {
+        try { Clear-DRStaleTemp -Path (Join-Path (Get-DRUpdateRoot) "$Name.downloading") } catch { }
+        return $false
+    }
+}
 function Update-DRUninstallerFromFeed {
     <#
     .SYNOPSIS

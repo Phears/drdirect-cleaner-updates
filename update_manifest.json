@@ -1,7 +1,7 @@
 {
-  "version": "1.4.432",
-  "notes": "Big 3D Clone & Backup logo on the dashboard - click it to open Clone & Backup.",
-  "published": "2026-11-05T23:36:33.2937091-05:00",
+  "version": "1.4.431",
+  "notes": "Clone & Backup now opens on every PC. Removed the baby picture.",
+  "published": "2026-11-06T12:15:29.8719562-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "AC575C6E7B127579D2445575D19755BEAEF4CE4CC260858CA891F8718C9AA9F4",
-      "size": 926636
+      "sha256": "12BD2BA4108A5E8A9545F400DFB6F80B9774A16198D6DE6CACE7AAC9BD231EAE",
+      "size": 920939
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -20,8 +20,8 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "0B3DB320D2658C904B133CDD1AAEB71BC1140AFF013E1DC1BD11DD607DEABBE1",
-      "size": 60962
+      "sha256": "9116447A86173CDCBC3412EFB650D6D1F3544CC0D8D971F7B157C8059BF75651",
+      "size": 64027
     },
     {
       "name": "DRDirect Activation.ps1",
