@@ -1,7 +1,7 @@
 {
   "version": "1.4.448",
   "notes": "Advanced on the Clean my PC page now lists every Security and privacy item it runs, ticked.",
-  "published": "2026-11-06T17:24:18.4938087-05:00",
+  "published": "2026-11-06T17:38:08.6885447-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "4BF6383E9D81B556BE5A26C0479FE053AD3A2DA493C50CB3D15508A860842DB7",
-      "size": 929084
+      "sha256": "81DD40172062D3A1E4C36713ED28C7AB6160D2112E5B168E2BCA5A061C899A22",
+      "size": 929495
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

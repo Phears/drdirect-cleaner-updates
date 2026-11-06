@@ -2954,7 +2954,9 @@ function Get-DRTaskEstimateSeconds {
             # A full scan reads every file: never shown as less than an hour (its own label says 1+ hours).
             $recorded = 0.0; try { $recorded = [double]$script:DRMpTimes.Full } catch { }
             if ($recorded -gt 86400) { $recorded = 0.0 }
-            return [Math]::Max(3600.0, [Math]::Max($dataGuess, [Math]::Max($recorded, $lastReal)))
+            # Windows' own record of the last full scan wins over the guess from data (which counts every drive).
+            $best = if ($recorded -ge 60) { $recorded } else { $dataGuess }
+            return [Math]::Max(3600.0, [Math]::Max($best, $lastReal))
         }
     }
     if (-not (Get-Variable -Name DRSpeedFactor -Scope Script -ErrorAction SilentlyContinue) -or -not $script:DRSpeedFactor) {
@@ -2980,7 +2982,9 @@ function Get-DRExtraTickedSeconds {
     # the time shown for that level includes them; otherwise it says minutes while the run takes an hour.
     param([string]$Level)
     $secs = 0.0
-    foreach ($task in @($catalog | Where-Object { $selection[$_.Id] -and $_.Category -ne 'Cleanup' -and [string]$_.Id -ne 'safety.restore-point' -and -not (Test-TaskInOrderedPreset -Task $_ -Preset $Level) })) {
+    # Items that Advanced itself ticks (repairs, security, scans) are not extras someone added by hand, so a
+    # lower level never counts them; otherwise Safe shows Advanced's hours.
+    foreach ($task in @($catalog | Where-Object { $selection[$_.Id] -and $_.Category -ne 'Cleanup' -and [string]$_.Id -ne 'safety.restore-point' -and -not (Test-TaskInOrderedPreset -Task $_ -Preset $Level) -and -not (Test-TaskInOrderedPreset -Task $_ -Preset 'Advanced') })) {
         try { $secs += Get-DRTaskEstimateSeconds -TaskId ([string]$task.Id) } catch { }
     }
     return $secs
