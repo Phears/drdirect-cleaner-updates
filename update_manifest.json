@@ -1,7 +1,7 @@
 {
-  "version": "1.4.431",
+  "version": "1.4.433",
   "notes": "Clone & Backup now opens on every PC. Removed the baby picture.",
-  "published": "2026-11-06T12:15:29.8719562-05:00",
+  "published": "2026-11-06T12:38:49.0425242-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
