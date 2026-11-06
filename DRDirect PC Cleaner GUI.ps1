@@ -5860,6 +5860,34 @@ function Resolve-DRImagerHome {
 
 # Where to copy the Rescue system from: the Rescue file (ISO), the copy the Cleaner saved on this PC, or a
 # DRDirect Rescue USB that is plugged in (saved to this PC first, so the same stick can be made again). $null if none.
+# Windows ignores the icon in autorun.inf on USB sticks, so a Rescue USB showed a plain drive. Windows does use
+# DriveIcons in the registry, set per drive letter. Every plugged-in DRDirect Rescue USB gets the DRDirect logo and
+# name; a letter we set earlier that is no longer a Rescue USB is cleared (only entries marked as ours).
+function Set-DRRescueDriveIcons {
+    try {
+        $base = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\DriveIcons'
+        $rescue = @{}
+        foreach ($v in @(Get-Volume -ErrorAction SilentlyContinue | Where-Object { $_.DriveLetter -and [string]$_.DriveType -eq 'Removable' })) {
+            $l = ([string]$v.DriveLetter).ToUpperInvariant()
+            $ico = "$($l):\DRDirect\DRDirect.ico"
+            if (Test-Path -LiteralPath $ico) { $rescue[$l] = $ico }
+        }
+        foreach ($l in $rescue.Keys) {
+            $k = Join-Path $base $l
+            $null = New-Item -Path (Join-Path $k 'DefaultIcon') -Force
+            Set-Item -Path (Join-Path $k 'DefaultIcon') -Value $rescue[$l]
+            $null = New-Item -Path (Join-Path $k 'DefaultLabel') -Force
+            Set-Item -Path (Join-Path $k 'DefaultLabel') -Value 'DRDirect Rescue'
+            Set-ItemProperty -Path $k -Name 'DRDirectRescue' -Value 1 -Type DWord
+        }
+        foreach ($old in @(Get-ChildItem -Path $base -ErrorAction SilentlyContinue)) {
+            $l = Split-Path -Leaf $old.PSPath
+            $ours = $null; try { $ours = (Get-ItemProperty -Path $old.PSPath -Name 'DRDirectRescue' -ErrorAction Stop).DRDirectRescue } catch { }
+            if ($ours -and -not $rescue.ContainsKey($l.ToUpperInvariant())) { Remove-Item -Path $old.PSPath -Recurse -Force -ErrorAction SilentlyContinue }
+        }
+    } catch { }
+}
+
 function Get-DRSavedRescueFolder { Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Rescue System' }
 function Test-DRRescueTree { param([string]$Root) try { (Test-Path -LiteralPath (Join-Path $Root 'bootmgr')) -and (Test-Path -LiteralPath (Join-Path $Root 'sources\boot.wim')) } catch { $false } }
 function Find-DRRescueSource {
@@ -5977,6 +6005,13 @@ function Write-RescueUsb {
             Set-Content -LiteralPath (Join-Path $dest 'autorun.inf') -Value "[autorun]`r`nicon=DRDirect\DRDirect.ico`r`nlabel=DRDirect Rescue" -Encoding ASCII
             try { (Get-Item -LiteralPath (Join-Path $dest 'autorun.inf') -Force).Attributes = 'Hidden, System, Archive' } catch { }
         }
+        # Windows ignores the autorun.inf icon on USB sticks; DriveIcons in the registry is what it shows.
+        try {
+            $dk = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\DriveIcons\' + ([string]$part.DriveLetter).ToUpperInvariant()
+            $null = New-Item -Path ($dk + '\DefaultIcon') -Force; Set-Item -Path ($dk + '\DefaultIcon') -Value ((Join-Path $app 'DRDirect.ico'))
+            $null = New-Item -Path ($dk + '\DefaultLabel') -Force; Set-Item -Path ($dk + '\DefaultLabel') -Value 'DRDirect Rescue'
+            Set-ItemProperty -Path $dk -Name 'DRDirectRescue' -Value 1 -Type DWord
+        } catch { }
         $launcher = "@echo off`r`nstart `"`" powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File `"%~dp0DRDirect\DRDirect Imager.ps1`"`r`n"
         Set-Content -LiteralPath (Join-Path $dest 'DRDirect Clone & Backup.bat') -Value $launcher -Encoding ASCII
         $readme = "Directional Aid for Users`r`n-------------------------`r`n`r`nThis is a DRDirect Rescue USB. It holds hidden boot files. Please do not change anything on it.`r`nTo start a rescue, restart the PC from this USB. To use the app inside Windows, open DRDirect Clone & Backup.bat.`r`nTo make another Rescue USB, use the Rescue USB button in DRDirect Clone & Backup. Copying these files is not enough.`r`n`r`nDRDirect`r`n"
@@ -6124,6 +6159,8 @@ function Show-DRDriveCopy {
         } catch { $loadErr = $_.Exception.Message }
     }
     $window.Cursor = $null
+    # Plugged-in Rescue USBs show the DRDirect logo in File Explorer.
+    Set-DRRescueDriveIcons
     if (-not $loaded) {
         $why = if ($loadErr) { "`n`n($loadErr)" } else { '' }
         [Windows.MessageBox]::Show("Clone & Backup is not included in this copy of the Cleaner.`nAsk DRDirect for a new build.$why", 'DRDirect PC Cleaner',

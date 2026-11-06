@@ -1,7 +1,7 @@
 {
-  "version": "1.4.450",
-  "notes": "Advanced on the Clean my PC page now lists everything it runs: cleanup, repairs (DISM, SFC), security and checks.",
-  "published": "2026-11-06T18:01:15.6857348-05:00",
+  "version": "1.4.451",
+  "notes": "Rescue USBs now show the DRDirect logo and name in File Explorer.",
+  "published": "2026-11-06T18:09:02.3584131-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "A7CE6DA3D859B12B8449404AF7CB2B01F9CEA82BCB608EB8865C28C535510974",
-      "size": 929794
+      "sha256": "1E22D567F712E90EBBE82BD61DD62A93E959BEAC5A300199DC73B00ACC450EB1",
+      "size": 932280
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
