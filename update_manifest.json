@@ -1,7 +1,7 @@
 {
-  "version": "1.4.433",
-  "notes": "Clone & Backup now opens on every PC. Removed the baby picture.",
-  "published": "2026-11-06T12:38:49.0425242-05:00",
+  "version": "1.4.434",
+  "notes": "Clone & Backup is now beside the Make my PC cleaner button.",
+  "published": "2026-11-06T13:15:38.0801402-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "12BD2BA4108A5E8A9545F400DFB6F80B9774A16198D6DE6CACE7AAC9BD231EAE",
-      "size": 920939
+      "sha256": "2A87914B26DEA81C85CC2A708322F5FEF0F190B10EF7EAE37A294DC727EAD50F",
+      "size": 920048
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
