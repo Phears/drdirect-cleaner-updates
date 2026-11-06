@@ -1,7 +1,7 @@
 {
-  "version": "1.4.448",
-  "notes": "Advanced on the Clean my PC page now lists every Security and privacy item it runs, ticked.",
-  "published": "2026-11-06T17:38:08.6885447-05:00",
+  "version": "1.4.449",
+  "notes": "Fixes the scan times: Safe and Medium no longer show Advanced hours, and the full scan uses how long it really took on this PC.",
+  "published": "2026-11-06T17:38:26.3820706-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
