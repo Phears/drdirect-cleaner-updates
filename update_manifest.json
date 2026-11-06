@@ -1,7 +1,7 @@
 {
   "version": "1.4.445",
   "notes": "Advanced scan now runs everything on the Security and privacy page too, and shows the real time for all of it.",
-  "published": "2026-11-06T16:30:20.4961649-05:00",
+  "published": "2026-11-06T16:33:39.8234878-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
