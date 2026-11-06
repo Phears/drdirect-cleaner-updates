@@ -2691,9 +2691,12 @@ function Get-VisibleTasksForCategory {
         $scanIds = @('security.quick-scan')
         # On Advanced (and Custom) every Security and privacy item that Advanced runs shows here too, in page order.
         if ($script:cleanupLevel -notin @('Safe', 'Medium')) {
-            $scanIds = @('security.checkup', 'security.checkup-fix', 'security.defender-update', 'security.quick-scan',
+            # Everything else Advanced runs shows here too: the repairs, the security items and the two checks.
+            $scanIds = @('repair.restore-point', 'repair.dism-health', 'repair.component-cleanup', 'repair.sfc', 'repair.windows-update',
+                'security.checkup', 'security.checkup-fix', 'security.defender-update', 'security.quick-scan',
                 'security.full-scan', 'security.remove-exclusions', 'security.network-files', 'security.typing-privacy',
-                'security.win11-extras', 'security.telemetry-off', 'security.compat-task-off', 'security.sweep')
+                'security.win11-extras', 'security.telemetry-off', 'security.compat-task-off', 'security.sweep',
+                'health.drive-check', 'health.ram-check')
         }
         $tasks = @($tasks) + @($catalog | Where-Object { $scanIds -contains $_.Id })
     }
