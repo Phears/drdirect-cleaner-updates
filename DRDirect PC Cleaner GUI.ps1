@@ -162,6 +162,20 @@ if (-not $NoShow) { Enter-DRSingleWindow -MutexName 'Global\DRDirectPCCleanerWin
 . (Join-Path $PSScriptRoot 'DRDirect Updater.ps1')
 # </UPDATER-IMPORT>
 
+# The DRDirect Imager engine (Clone & Backup) is spliced in at build time as a script block, so it is only
+# compiled when that window opens. Run from the project, it is read from the 'DRDirect Imager' folder.
+# <IMAGER-IMPORT>
+$script:DRImagerEngineCode = $null
+if ($PSScriptRoot) {
+    foreach ($drImgPath in @((Join-Path $PSScriptRoot 'DRDirect Imager\DRDirect Imager Engine.ps1'), (Join-Path $PSScriptRoot 'DRDirect Imager Engine.ps1'))) {
+        if (Test-Path -LiteralPath $drImgPath -PathType Leaf) {
+            try { $script:DRImagerEngineCode = [scriptblock]::Create([IO.File]::ReadAllText($drImgPath)) } catch { }
+            break
+        }
+    }
+}
+# </IMAGER-IMPORT>
+
 # List the Cleaner in Windows' installed programs. The shared code is in the updater.
 if (-not $TestMode -and -not $NoShow) { Register-DRInstalledProduct -Product 'Cleaner' }
 
@@ -1071,6 +1085,8 @@ $ErrorActionPreference = 'Stop'
                     <Button x:Name="NavPowerHeat" Style="{StaticResource NavButton}" Foreground="#FACC15" Content="⚡   Check power and heat" ToolTip="Looks for signs of a failing power supply, dust or a PC that runs too hot"/>
                     <Button x:Name="NavHardware" Style="{StaticResource NavButton}" Content="▤   About my PC"/>
                     <Button x:Name="NavHistory" Style="{StaticResource NavButton}" Foreground="#22D3EE" FontWeight="SemiBold" ToolTip="See what the Cleaner did, open the reports, and undo changes to settings"><Grid HorizontalAlignment="Stretch"><TextBlock Text="◷   Cleaning history" VerticalAlignment="Center" HorizontalAlignment="Left" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/><Viewbox Width="46" Height="46" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,-10,0,-10" IsHitTestVisible="False"><Canvas Width="64" Height="64"><Canvas.Resources><LinearGradientBrush x:Key="HsBlue" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#DDF0FF" Offset="0"/><GradientStop Color="#6FAEFF" Offset="0.2"/><GradientStop Color="#1F5FE0" Offset="0.55"/><GradientStop Color="#0B3AA8" Offset="0.85"/><GradientStop Color="#4F8CF0" Offset="1"/></LinearGradientBrush><LinearGradientBrush x:Key="HsGold" StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFF4B8" Offset="0"/><GradientStop Color="#F2B91C" Offset="0.45"/><GradientStop Color="#9A6000" Offset="1"/></LinearGradientBrush><RadialGradientBrush x:Key="HsDial" GradientOrigin="0.4,0.3"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#DCEBFF" Offset="0.7"/><GradientStop Color="#9CBDEB" Offset="1"/></RadialGradientBrush><LinearGradientBrush x:Key="HsGloss" StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#F2FFFFFF" Offset="0"/><GradientStop Color="#1FFFFFFF" Offset="0.6"/><GradientStop Color="#00FFFFFF" Offset="1"/></LinearGradientBrush></Canvas.Resources><Canvas.Effect><DropShadowEffect BlurRadius="7" ShadowDepth="4" Direction="270" Opacity="0.6"/></Canvas.Effect><Ellipse Canvas.Left="13" Canvas.Top="16" Width="38" Height="38" Fill="#05215E"/><Ellipse Canvas.Left="13" Canvas.Top="14" Width="38" Height="38" Fill="{StaticResource HsBlue}" Stroke="#CFF3FF" StrokeThickness="1.4"/><Ellipse Canvas.Left="17" Canvas.Top="18" Width="30" Height="30" Fill="{StaticResource HsDial}" Stroke="#0A2E8A" StrokeThickness="1"/><Line X1="32" Y1="33" X2="32" Y2="23" Stroke="#0B3AA8" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/><Line X1="32" Y1="33" X2="39" Y2="37" Stroke="#0B3AA8" StrokeThickness="3" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/><Ellipse Canvas.Left="29.4" Canvas.Top="30.4" Width="5.2" Height="5.2" Fill="{StaticResource HsGold}" Stroke="White" StrokeThickness="0.6"/><Path Data="M9,36 A24,24 0 1 1 15,50" Stroke="#7A4A00" StrokeThickness="9" StrokeStartLineCap="Round" StrokeEndLineCap="Round"><Path.RenderTransform><TranslateTransform Y="3"/></Path.RenderTransform></Path><Path Data="M9,36 A24,24 0 1 1 15,50" Stroke="{StaticResource HsGold}" StrokeThickness="7" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/><Path Data="M9,36 A24,24 0 1 1 15,50" Stroke="#FFF9C9" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"><Path.RenderTransform><TranslateTransform X="-1.8" Y="-1.8"/></Path.RenderTransform></Path><Polygon Points="0,32 16,37 11,23" Fill="{StaticResource HsGold}" Stroke="#FFF6B8" StrokeThickness="1.2" StrokeLineJoin="Round"/><Path Data="M18,26 A15,15 0 0 1 46,26 C41,22 37,21 32,21 C27,21 23,22 18,26 Z" Fill="{StaticResource HsGloss}"/></Canvas></Viewbox></Grid></Button>
+                    <TextBlock x:Name="NavHeadBackup" Text="BACKUP" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold" Margin="20,16,0,4"/>
+                    <Button x:Name="NavDriveCopy" Style="{StaticResource WingetNavButton}" Content="⇄   Clone &amp; Backup" FontSize="16" FontWeight="Bold" Margin="{DynamicResource DR3DNavMargin}" ToolTip="SmartCopy, Secure, Restore and Rescue USB: copy or back up a whole drive"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FF9A1F" Offset="0"/><GradientStop Color="#E8590C" Offset="0.55"/><GradientStop Color="#B83A06" Offset="1"/></LinearGradientBrush></Button.Background></Button>
                     <TextBlock x:Name="NavHeadUpdate" Text="UPDATE" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold" Margin="20,16,0,4"/>
                     <Button x:Name="NavAppUpdates" Style="{StaticResource WingetNavButton}" Content="⭳   Update my apps" Margin="{DynamicResource DR3DNavMargin}" ToolTip="Update every app with winget, in a colour PowerShell window"/>
                     <Button x:Name="NavNoteButton" Content="Please read first  :)" Style="{StaticResource HeroGreenButton}" Margin="10,10,10,4" Padding="14,11" FontSize="15" FontWeight="Bold" ToolTip="Click to read a short, friendly note"><Button.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#5BE584" Offset="0"/><GradientStop Color="#13A64A" Offset="1"/></LinearGradientBrush></Button.Background></Button>
@@ -1481,7 +1497,7 @@ $window.Add_Closing({
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('EstimateTimeButton','NavPinned','RunLevelPanel','RunLevelEta','RunLevelBadge','RunLevelName','RunLevelBar','RunLevelLeft','NavBroomTilt','NavBroomEdge','NavBroomHandle','StartHereRow','PresetSafeBar','PresetMediumBar','PresetAdvancedBar','PresetSafeLeft','PresetMediumLeft','PresetAdvancedLeft','PlanScroll','PlanMoreUp','PlanMoreDown','NavMoreUp','BannerBroomSafe','BannerBroomMedium','BannerBroomAdvanced','BannerBroomAdvanced2','NavModeText','ScanBroomSafe','ScanBroomMedium','ScanBroomAdvanced','ScanBroomAdvanced2','NavScroll','NavMoreHint','NavHeadClean','NavHeadFix','NavHeadCheck','DashMoreHint','DashShowAllButton','NavModeToggle','NavHeadUpdate','DashOtherTitle','DashOtherGrid','DashMsTools','SmartAppControlButton','NavSmartApp','NavFullScan','DashMoreOptions','SoundSwitch','Max3DSwitch','CrazyNuttySwitch','DashNoteButton','NavNoteButton','ResetReliabilityButton','ClockBox','ClockTime','ClockDate','ReadmeIconButton','HeroToolsHint','QuickLightA','QuickLightB','FullLightA','FullLightB','ProtectedPill','SidebarLogo','TitleLogo','AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavPowerHeat','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripCleaning','RunStripHint','NavCleanDust','ScanDustSafe','ScanDustMedium','ScanDustAdvanced','ScanDustAdvanced2','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','LastCleanCard','LastCleanLightBlue','LastCleanLightRed','LastCleanValue','LastCleanHint','LastCleanQuickScan','LastCleanFullScan','CleanCheckAllButton','CleanCheckOffButton','PresetSafeDate','PresetMediumDate','PresetAdvancedDate','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','GearBlueShadow','GearBlue','GearGoldShadow','GearGold','ConfirmLevelBadge','CleaningHeader','FunnyLine','BannerWrench','WrenchSwing','RobotSway','RobotHop','RobotArmL','RobotArmR','NavWrenchSwing','NavWrenchHop','WrenchHop','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('EstimateTimeButton','NavPinned','RunLevelPanel','RunLevelEta','RunLevelBadge','RunLevelName','RunLevelBar','RunLevelLeft','NavBroomTilt','NavBroomEdge','NavBroomHandle','StartHereRow','PresetSafeBar','PresetMediumBar','PresetAdvancedBar','PresetSafeLeft','PresetMediumLeft','PresetAdvancedLeft','PlanScroll','PlanMoreUp','PlanMoreDown','NavMoreUp','BannerBroomSafe','BannerBroomMedium','BannerBroomAdvanced','BannerBroomAdvanced2','NavModeText','ScanBroomSafe','ScanBroomMedium','ScanBroomAdvanced','ScanBroomAdvanced2','NavScroll','NavMoreHint','NavHeadClean','NavHeadFix','NavHeadCheck','DashMoreHint','DashShowAllButton','NavModeToggle','NavHeadUpdate','DashOtherTitle','DashOtherGrid','DashMsTools','SmartAppControlButton','NavSmartApp','NavFullScan','DashMoreOptions','SoundSwitch','Max3DSwitch','CrazyNuttySwitch','DashNoteButton','NavNoteButton','ResetReliabilityButton','ClockBox','ClockTime','ClockDate','ReadmeIconButton','HeroToolsHint','QuickLightA','QuickLightB','FullLightA','FullLightB','ProtectedPill','SidebarLogo','TitleLogo','AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavPowerHeat','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripCleaning','RunStripHint','NavCleanDust','ScanDustSafe','ScanDustMedium','ScanDustAdvanced','ScanDustAdvanced2','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','LastCleanCard','LastCleanLightBlue','LastCleanLightRed','LastCleanValue','LastCleanHint','LastCleanQuickScan','LastCleanFullScan','CleanCheckAllButton','CleanCheckOffButton','PresetSafeDate','PresetMediumDate','PresetAdvancedDate','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','GearBlueShadow','GearBlue','GearGoldShadow','GearGold','ConfirmLevelBadge','CleaningHeader','FunnyLine','BannerWrench','WrenchSwing','RobotSway','RobotHop','RobotArmL','RobotArmR','NavWrenchSwing','NavWrenchHop','WrenchHop','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch','NavDriveCopy','NavHeadBackup') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -5841,6 +5857,1336 @@ function Open-DRUninstaller {
             [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Error) | Out-Null
     }
 }
+# ---------- DRDirect Clone & Backup inside the Cleaner: SmartCopy, Secure, Check, Restore, Rescue USB ----------
+# The Imager engine is loaded only when this window opens, so the Cleaner starts as fast as before.
+# Its functions are made script-wide so the window's click handlers can see them.
+function Get-DRImagerEngineText {
+    if (-not $script:DRImagerEngineCode) { return $null }
+    # The engine looks for its WinPE copy beside itself; inside the Cleaner there is no such file, so point it somewhere harmless.
+    $script:DRImagerEngineCode.ToString().Replace('Join-Path $PSScriptRoot ''DRImgEngine.dll''', 'Join-Path $env:SystemRoot ''DRImgEngine.dll''')
+}
+function Import-DRImagerEngine {
+    if (('DRImgJob' -as [type]) -and (Get-Command Get-SmartExtents -ErrorAction SilentlyContinue)) { return $true }
+    $code = Get-DRImagerEngineText
+    if (-not $code) { return $false }
+    $code = [regex]::Replace($code, '(?m)^function (?=[A-Za-z])', 'function script:')
+    . ([scriptblock]::Create($code))
+    return [bool](('DRImgJob' -as [type]) -and (Get-Command Get-SmartExtents -ErrorAction SilentlyContinue))
+}
+
+# Where the Rescue system (DRDirect Imager Rescue.iso, with the ADK beside it) lives on this PC, or $null.
+function Resolve-DRImagerHome {
+    $places = New-Object System.Collections.Generic.List[string]
+    try { if ($PSScriptRoot) { $places.Add((Join-Path $PSScriptRoot 'DRDirect Imager')); $places.Add((Join-Path (Split-Path -Parent $PSScriptRoot) 'DRDirect Imager')) } } catch { }
+    try { if ($env:USERPROFILE) { $places.Add((Join-Path $env:USERPROFILE 'DRDirect Imager')) } } catch { }
+    foreach ($p in $places) {
+        try { if (Test-Path -LiteralPath (Join-Path $p 'DRDirect Imager Rescue.iso') -PathType Leaf) { return $p } } catch { }
+    }
+    $null
+}
+
+# Rescue USB: only USB flash drives are ever offered, never the Windows drive or an internal drive. (Same as the Imager.)
+function Get-DRRescueUsbDisks {
+    foreach ($d in (Get-Disk -ErrorAction SilentlyContinue | Sort-Object Number)) {
+        if ([string]$d.BusType -ne 'USB' -or $d.IsBoot -or $d.IsSystem) { continue }
+        $letters = @(Get-Partition -DiskNumber $d.Number -ErrorAction SilentlyContinue | Where-Object { $_.DriveLetter } | ForEach-Object { [string]$_.DriveLetter })
+        $files = 0; $usedBytes = 0L
+        foreach ($l in $letters) {
+            try {
+                $v = Get-Volume -DriveLetter $l -ErrorAction Stop
+                $usedBytes += ($v.Size - $v.SizeRemaining)
+                $files += @(Get-ChildItem -LiteralPath ("$l`:\") -Recurse -File -Force -ErrorAction SilentlyContinue).Count
+            } catch { }
+        }
+        [pscustomobject]@{ Number = [int]$d.Number; Name = [string]$d.FriendlyName; Size = [int64]$d.Size; Letters = $letters; Files = $files; UsedBytes = $usedBytes }
+    }
+}
+
+# The Imager's Rescue USB writer, run in the background so the animation keeps moving while the stick is written.
+$script:DRRescueUsbWriter = @'
+function Write-RescueUsb {
+    param([int]$DiskNumber, [string]$IsoPath, [string]$ExpectLetter, [switch]$AllowVirtual, [string]$OwnerPassword, [scriptblock]$Say = { param($t) })
+    $mounted = $false
+    try {
+        $disk = Get-Disk -Number $DiskNumber -ErrorAction Stop
+        $okBus = ([string]$disk.BusType -eq 'USB') -or ($AllowVirtual -and [string]$disk.BusType -eq 'File Backed Virtual')
+        if (-not $okBus) { return @{ Ok = $false; Message = "Disk $DiskNumber is not a USB flash drive. Nothing was changed." } }
+        if ($disk.IsBoot -or $disk.IsSystem) { return @{ Ok = $false; Message = 'That is the Windows drive. Nothing was changed.' } }
+        if (-not (Test-Path -LiteralPath $IsoPath)) { return @{ Ok = $false; Message = 'The rescue file is missing. Nothing was changed.' } }
+        if ($ExpectLetter) {
+            $have = @(Get-Partition -DiskNumber $DiskNumber -ErrorAction SilentlyContinue | Where-Object { $_.DriveLetter } | ForEach-Object { [string]$_.DriveLetter })
+            if ($have -notcontains $ExpectLetter.ToUpperInvariant()) { return @{ Ok = $false; Message = "Drive $($ExpectLetter): is not on disk $DiskNumber any more. Nothing was changed." } }
+        }
+        & $Say 'Erasing the USB flash drive...'
+        Set-Disk -Number $DiskNumber -IsOffline $false -ErrorAction SilentlyContinue
+        Set-Disk -Number $DiskNumber -IsReadOnly $false -ErrorAction SilentlyContinue
+        # A brand-new stick can be raw (never initialized); there is nothing to clear on it.
+        $disk = Get-Disk -Number $DiskNumber -ErrorAction Stop
+        if ([string]$disk.PartitionStyle -ne 'RAW') { Clear-Disk -Number $DiskNumber -RemoveData -RemoveOEM -Confirm:$false -ErrorAction Stop }
+        # After clearing, Windows may leave the stick already set up (empty MBR) or raw; set it up only when raw, and make sure it is MBR.
+        $disk = Get-Disk -Number $DiskNumber -ErrorAction Stop
+        if ([string]$disk.PartitionStyle -eq 'RAW') { Initialize-Disk -Number $DiskNumber -PartitionStyle MBR -ErrorAction Stop }
+        elseif ([string]$disk.PartitionStyle -ne 'MBR') { Set-Disk -Number $DiskNumber -PartitionStyle MBR -ErrorAction Stop }
+        & $Say 'Formatting...'
+        # FAT32 so every PC can start from it; Windows formats FAT32 only up to 32 GB, so the first partition is capped.
+        $cap = [int64]30GB
+        $part = if ($disk.Size -gt $cap) { New-Partition -DiskNumber $DiskNumber -Size $cap -AssignDriveLetter -IsActive -ErrorAction Stop } else { New-Partition -DiskNumber $DiskNumber -UseMaximumSize -AssignDriveLetter -IsActive -ErrorAction Stop }
+        $null = Format-Volume -Partition $part -FileSystem FAT32 -NewFileSystemLabel 'DRDIRECT' -Confirm:$false -Force -ErrorAction Stop
+        $dest = ([string]$part.DriveLetter) + ':\'
+        & $Say 'Copying the rescue system...'
+        $img = Mount-DiskImage -ImagePath $IsoPath -PassThru -ErrorAction Stop
+        $mounted = $true
+        $src = (($img | Get-Volume).DriveLetter) + ':\'
+        & robocopy.exe $src $dest /E /R:2 /W:2 /NFL /NDL /NJH /NJS /NP | Out-Null
+        if ($LASTEXITCODE -ge 8) { throw "Copying failed (robocopy code $LASTEXITCODE)." }
+        Dismount-DiskImage -ImagePath $IsoPath | Out-Null; $mounted = $false
+        # Old-style PCs (BIOS) need the boot sector written too.
+        $bootsect = Get-ChildItem -LiteralPath (Join-Path $PSScriptRoot 'ADK') -Recurse -Filter 'bootsect.exe' -ErrorAction SilentlyContinue | Select-Object -First 1
+        if ($bootsect) { & $bootsect.FullName /nt60 ($dest.TrimEnd('\')) /force /mbr 2>&1 | Out-Null }
+        & $Say 'Setting up the stick...'
+        # Boot files are hidden, so the stick looks tidy: only the DRDirect app, a launcher and a readme show.
+        foreach ($item in (Get-ChildItem -LiteralPath $dest -Force -ErrorAction SilentlyContinue)) {
+            try { $item.Attributes = $item.Attributes -bor [IO.FileAttributes]::Hidden -bor [IO.FileAttributes]::System } catch { }
+        }
+        $app = Join-Path $dest 'DRDirect'; $null = New-Item -ItemType Directory -Force -Path $app
+        # The Windows app on the stick, so the same stick also works from inside Windows.
+        foreach ($f in 'DRDirect Imager.ps1', 'DRDirect Imager Engine.ps1', 'DRDirect Image.ico', 'DRDirect Logo.png') {
+            $s = Join-Path $PSScriptRoot $f
+            if (Test-Path -LiteralPath $s) { Copy-Item -LiteralPath $s -Destination $app -Force }
+        }
+        $ico = Join-Path $PSScriptRoot 'DRDirect Image.ico'
+        if (Test-Path -LiteralPath $ico) {
+            Copy-Item -LiteralPath $ico -Destination (Join-Path $app 'DRDirect.ico') -Force
+            Set-Content -LiteralPath (Join-Path $dest 'autorun.inf') -Value "[autorun]`r`nicon=DRDirect\DRDirect.ico`r`nlabel=DRDirect Rescue" -Encoding ASCII
+            try { (Get-Item -LiteralPath (Join-Path $dest 'autorun.inf') -Force).Attributes = 'Hidden, System, Archive' } catch { }
+        }
+        $launcher = "@echo off`r`nstart `"`" powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File `"%~dp0DRDirect\DRDirect Imager.ps1`"`r`n"
+        Set-Content -LiteralPath (Join-Path $dest 'DRDirect Clone & Backup.bat') -Value $launcher -Encoding ASCII
+        $readme = "Directional Aid for Users`r`n-------------------------`r`n`r`nThis is a DRDirect Rescue USB. It holds hidden boot files. Please do not change anything on it.`r`nTo start a rescue, restart the PC from this USB. To use the app inside Windows, open DRDirect Clone & Backup.bat.`r`nTo make another Rescue USB, use the Rescue USB button in DRDirect Clone & Backup. Copying these files is not enough.`r`n`r`nDRDirect`r`n"
+        Set-Content -LiteralPath (Join-Path $dest 'readme.txt') -Value $readme -Encoding ASCII
+        # The PC this stick was made for, kept as hashes (never the plain ID), for the PC lock.
+        # The stick's own serial number, so a copy on another stick refuses to start (skipped when the stick reports none).
+        $serialHash = Get-StickSerialHash ([string]$part.DriveLetter)
+        if ($serialHash) { Set-Content -LiteralPath (Join-Path $app 'usb.id') -Value $serialHash -Encoding ASCII }
+        if ($OwnerPassword) {
+            # Master stick: no PC lock; it asks for the owner password instead.
+            Set-Content -LiteralPath (Join-Path $app 'owner.id') -Value (New-OwnerRecord $OwnerPassword) -Encoding ASCII
+        } else {
+        try {
+            $uuid = ([string](Get-CimInstance Win32_ComputerSystemProduct).UUID).Trim()
+            $serial = ([string](Get-CimInstance Win32_BaseBoard).SerialNumber).Trim()
+            $ids = @(); if ($uuid) { $ids += $uuid.ToLowerInvariant() }; if ($uuid -and $serial) { $ids += ("{0}-{1}" -f $uuid, $serial).ToLowerInvariant() }
+            $hashes = foreach ($id in $ids) { ([Security.Cryptography.SHA256]::Create().ComputeHash([Text.Encoding]::UTF8.GetBytes($id)) | ForEach-Object { $_.ToString('X2') }) -join '' }
+            Set-Content -LiteralPath (Join-Path $app 'pc.id') -Value $hashes -Encoding ASCII
+        } catch { }
+        }
+        # Lock files are hidden and read-only so they are not changed by accident.
+        foreach ($lf in 'pc.id', 'owner.id', 'usb.id') { $lp = Join-Path $app $lf; if (Test-Path -LiteralPath $lp) { try { (Get-Item -LiteralPath $lp -Force).Attributes = 'Hidden, ReadOnly, Archive' } catch { } } }
+        & $Say 'Checking...'
+        foreach ($need in 'bootmgr', 'EFI\Boot\bootx64.efi', 'sources\boot.wim', $(if ($OwnerPassword) { 'DRDirect\owner.id' } else { 'DRDirect\pc.id' }), 'DRDirect\DRDirect Imager.ps1', 'readme.txt') {
+            if (-not (Test-Path -LiteralPath (Join-Path $dest $need))) { throw "The check failed: $need is missing on the USB." }
+        }
+        return @{ Ok = $true; Message = "The Rescue USB is ready on drive $($dest.Substring(0,2))." ; Letter = $dest.Substring(0,2) }
+    } catch {
+        return @{ Ok = $false; Message = "It did not finish: $($_.Exception.Message)" }
+    } finally {
+        if ($mounted) { try { Dismount-DiskImage -ImagePath $IsoPath | Out-Null } catch { } }
+    }
+}
+'@
+
+# When the last Rescue USB was made on this PC, so a lost or broken one is easy to replace.
+function Get-DRRescueUsbRecord {
+    try {
+        $v = (Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name 'RescueUsbLast' -ErrorAction Stop).RescueUsbLast
+        $p = ([string]$v) -split '\|'
+        if ($p.Count -ge 2) { return [pscustomobject]@{ When = [datetime]::ParseExact($p[0], 'yyyy-MM-dd HH:mm', [Globalization.CultureInfo]::InvariantCulture); What = $p[1] } }
+    } catch { }
+    $null
+}
+function Set-DRRescueUsbRecord([string]$What) {
+    try {
+        $key = 'HKCU:\Software\DRDirect\PC Cleaner'
+        if (-not (Test-Path -LiteralPath $key)) { New-Item -Path $key -Force | Out-Null }
+        Set-ItemProperty -LiteralPath $key -Name 'RescueUsbLast' -Value ((Get-Date).ToString('yyyy-MM-dd HH:mm', [Globalization.CultureInfo]::InvariantCulture) + '|' + ($What -replace '\|', ' ')) -Type String
+    } catch { }
+}
+
+# The last backup file made with Secure, so Check, Restore and Browse start there instead of wherever Windows last was.
+function Get-DRLastBackupStore {
+    # Shared by every account on this PC: an elevated Cleaner can run under a hidden admin account with its own registry.
+    $root = $env:ProgramData; if (-not $root) { $root = 'C:\ProgramData' }
+    Join-Path $root 'DRDirect PC Cleaner\Clone and Backup - last backup.txt'
+}
+function Get-DRLastBackupFile {
+    try {
+        $f = Get-DRLastBackupStore
+        if (Test-Path -LiteralPath $f -PathType Leaf) {
+            $p = ([IO.File]::ReadAllText($f)).Trim()
+            if ($p) { return $p }
+        }
+    } catch { }
+    try {
+        $p = [string](Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name 'LastBackupFile' -ErrorAction Stop).LastBackupFile
+        if ($p) { return $p }
+    } catch { }
+    $null
+}
+function Set-DRLastBackupFile([string]$Path) {
+    if (-not $Path) { return }
+    try {
+        $f = Get-DRLastBackupStore
+        $d = Split-Path -Parent $f
+        if (-not (Test-Path -LiteralPath $d)) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
+        [IO.File]::WriteAllText($f, $Path, (New-Object Text.UTF8Encoding($false)))
+    } catch { }
+    try {
+        $key = 'HKCU:\Software\DRDirect\PC Cleaner'
+        if (-not (Test-Path -LiteralPath $key)) { New-Item -Path $key -Force | Out-Null }
+        Set-ItemProperty -LiteralPath $key -Name 'LastBackupFile' -Value $Path -Type String
+    } catch { }
+}
+function Get-DRLastBackupFolder {
+    $p = Get-DRLastBackupFile
+    if ($p) { try { $d = [IO.Path]::GetDirectoryName($p); if ($d -and (Test-Path -LiteralPath $d -PathType Container)) { return $d } } catch { } }
+    $null
+}
+
+# Picks where a backup goes, so nobody has to choose: the last backup folder if it is still there and on another drive,
+# otherwise a 'DRDirect Backups' folder on the drive with the most free space that is not the drive being saved.
+# FAT32 drives are skipped (a file there cannot be bigger than 4 GB). Returns @{ Path; Free; Letter } or $null.
+function Get-DRAutoBackupPlace($Disk) {
+    $skip = @(Get-DiskLetters $Disk.Number | ForEach-Object { ([string]$_).ToUpperInvariant() })
+    $name = '{0} {1} drive backup.drimg' -f (Get-Date -Format 'yyyy-MM-dd'), $(if ($Disk.Letters) { ($Disk.Letters -split ' ')[0].TrimEnd(':') } else { "Disk $($Disk.Number)" })
+    $folder = $null; $free = 0; $letter = $null
+    $last = Get-DRLastBackupFolder
+    if ($last) {
+        try {
+            $l = ([IO.Path]::GetPathRoot($last)).Substring(0, 1).ToUpperInvariant()
+            $v = Get-Volume -DriveLetter $l -ErrorAction Stop
+            if ($skip -notcontains $l -and [string]$v.FileSystem -ne 'FAT32' -and [string]$v.FileSystemLabel -ne 'DRDIRECT') { $folder = $last; $free = [double]$v.SizeRemaining; $letter = $l }
+        } catch { }
+    }
+    if (-not $folder) {
+        $best = Get-Volume -ErrorAction SilentlyContinue | Where-Object {
+            $_.DriveLetter -and ($_.DriveType -eq 'Fixed' -or $_.DriveType -eq 'Removable') -and
+            @('NTFS', 'exFAT', 'ReFS') -contains [string]$_.FileSystem -and $_.Size -gt 16GB -and
+            [string]$_.FileSystemLabel -ne 'DRDIRECT' -and -not (Test-Path -LiteralPath "$($_.DriveLetter):\DRDirect\DRDirect Imager.ps1") -and
+            $skip -notcontains ([string]$_.DriveLetter).ToUpperInvariant()
+        } | Sort-Object SizeRemaining -Descending | Select-Object -First 1
+        if (-not $best) { return $null }
+        $letter = ([string]$best.DriveLetter).ToUpperInvariant()
+        $folder = "$($letter):\DRDirect Backups"; $free = [double]$best.SizeRemaining
+    }
+    $path = Join-Path $folder $name
+    $n = 2
+    while (Test-Path -LiteralPath $path) { $path = Join-Path $folder ($name -replace '\.drimg$', " ($n).drimg"); $n++ }
+    @{ Path = $path; Free = $free; Letter = $letter }
+}
+
+function Show-DRDriveCopy {
+    param([string]$Mode = '')
+    if ($script:activePowerShell) {
+        [Windows.MessageBox]::Show('Please wait until the cleaning is finished, then open Clone & Backup.', 'DRDirect PC Cleaner',
+            [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information) | Out-Null
+        return
+    }
+    $window.Cursor = [Windows.Input.Cursors]::Wait
+    $loaded = $false; $loadErr = $null
+    try { $loaded = Import-DRImagerEngine } catch { $loadErr = $_.Exception.Message }
+    finally { $window.Cursor = $null }
+    if (-not $loaded) {
+        $why = if ($loadErr) { "`n`n($loadErr)" } else { '' }
+        [Windows.MessageBox]::Show("Clone & Backup is not included in this copy of the Cleaner.`nAsk DRDirect for a new build.$why", 'DRDirect PC Cleaner',
+            [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Information) | Out-Null
+        return
+    }
+
+    [xml]$xaml = @'
+<Window xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="DRDirect PC Cleaner - Clone &amp; Backup" Width="1040" Height="764" MinWidth="640" MinHeight="470"
+        WindowStartupLocation="CenterOwner" FontFamily="Segoe UI" ResizeMode="CanResize">
+  <Window.Resources>
+    <DropShadowEffect x:Key="Txt3D" Color="#000514" Direction="300" ShadowDepth="4" BlurRadius="3" Opacity="0.9"/>
+    <DropShadowEffect x:Key="Txt3DSmall" Color="#000514" Direction="300" ShadowDepth="2" BlurRadius="2" Opacity="0.85"/>
+    <Style x:Key="Big3D" TargetType="Button">
+      <Setter Property="Height" Value="76"/><Setter Property="MinWidth" Value="320"/><Setter Property="Margin" Value="14,0,14,22"/><Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Foreground" Value="White"/><Setter Property="FontSize" Value="27"/><Setter Property="FontWeight" Value="Black"/>
+      <Setter Property="Background"><Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#7CF5A6" Offset="0"/><GradientStop Color="#16B04F" Offset="0.5"/><GradientStop Color="#076A2A" Offset="1"/></LinearGradientBrush></Setter.Value></Setter>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+        <Grid>
+          <Border CornerRadius="20" Background="#030718" Margin="0,16,0,-16" IsHitTestVisible="False"/><Border CornerRadius="20" Background="#070E25" Margin="0,14,0,-14" IsHitTestVisible="False"/><Border CornerRadius="20" Background="#0C1533" Margin="0,12,0,-12" IsHitTestVisible="False"/><Border CornerRadius="20" Background="#111C41" Margin="0,10,0,-10" IsHitTestVisible="False"/><Border CornerRadius="20" Background="#16234F" Margin="0,8,0,-8" IsHitTestVisible="False"/><Border CornerRadius="20" Background="#1B2A5C" Margin="0,6,0,-6" IsHitTestVisible="False"/><Border CornerRadius="20" Background="#20316A" Margin="0,4,0,-4" IsHitTestVisible="False"/><Border CornerRadius="20" Background="#253878" Margin="0,2,0,-2" IsHitTestVisible="False"/>
+          <Grid x:Name="Face"><Grid.RenderTransform><TranslateTransform/></Grid.RenderTransform>
+            <Border CornerRadius="20" Background="{TemplateBinding Background}" BorderBrush="#E6FFFFFF" BorderThickness="2,2,2,0"/>
+            <Border CornerRadius="20,20,0,0" VerticalAlignment="Top" Height="34" Margin="3,3,3,0" Background="#55FFFFFF" IsHitTestVisible="False"/>
+            <Border CornerRadius="0,0,20,20" VerticalAlignment="Bottom" Height="6" Margin="2,0,2,1" Background="#55000000" IsHitTestVisible="False"/>
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="30,0" Effect="{StaticResource Txt3D}"/>
+            <Border x:Name="Hover" CornerRadius="20" Background="#30FFFFFF" Opacity="0" IsHitTestVisible="False"/>
+          </Grid>
+        </Grid>
+        <ControlTemplate.Triggers>
+          <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Hover" Property="Opacity" Value="1"/></Trigger>
+          <Trigger Property="IsPressed" Value="True"><Setter TargetName="Face" Property="RenderTransform"><Setter.Value><TranslateTransform Y="12"/></Setter.Value></Setter></Trigger>
+          <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger>
+        </ControlTemplate.Triggers>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="Steel3D" TargetType="Button" BasedOn="{StaticResource Big3D}">
+      <Setter Property="MinWidth" Value="180"/><Setter Property="FontSize" Value="21"/><Setter Property="Height" Value="64"/>
+      <Setter Property="Background"><Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#8FA8DC" Offset="0"/><GradientStop Color="#34508F" Offset="0.5"/><GradientStop Color="#16234A" Offset="1"/></LinearGradientBrush></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="Small3D" TargetType="Button" BasedOn="{StaticResource Big3D}">
+      <Setter Property="MinWidth" Value="96"/><Setter Property="FontSize" Value="15"/><Setter Property="Height" Value="42"/><Setter Property="Margin" Value="8,0,0,16"/>
+      <Setter Property="Background"><Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#8FA8DC" Offset="0"/><GradientStop Color="#34508F" Offset="0.5"/><GradientStop Color="#16234A" Offset="1"/></LinearGradientBrush></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="Tab3D" TargetType="Button">
+      <Setter Property="Height" Value="62"/><Setter Property="MinWidth" Value="200"/><Setter Property="Margin" Value="8,0,8,14"/><Setter Property="Cursor" Value="Hand"/>
+      <Setter Property="Foreground" Value="White"/><Setter Property="FontSize" Value="20"/><Setter Property="FontWeight" Value="ExtraBold"/>
+      <Setter Property="Background"><Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#7A92C8" Offset="0"/><GradientStop Color="#2F4583" Offset="0.5"/><GradientStop Color="#16234A" Offset="1"/></LinearGradientBrush></Setter.Value></Setter>
+      <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button">
+        <Grid>
+          <Border CornerRadius="16" Background="#030718" Margin="0,10,0,-10" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#0A122E" Margin="0,8,0,-8" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#121D44" Margin="0,6,0,-6" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#1A285A" Margin="0,4,0,-4" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#223370" Margin="0,2,0,-2" IsHitTestVisible="False"/>
+          <Grid x:Name="Face"><Grid.RenderTransform><TranslateTransform/></Grid.RenderTransform>
+            <Border x:Name="Glow" CornerRadius="16" Margin="-6" Background="#00FFE600" IsHitTestVisible="False"/>
+            <Border CornerRadius="16" Background="{TemplateBinding Background}" BorderBrush="#CCFFFFFF" BorderThickness="2,2,2,0"/>
+            <Border CornerRadius="16,16,0,0" VerticalAlignment="Top" Height="26" Margin="3,3,3,0" Background="#4CFFFFFF" IsHitTestVisible="False"/>
+            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="22,0" Effect="{StaticResource Txt3DSmall}"/>
+            <Border x:Name="Hover" CornerRadius="16" Background="#26FFFFFF" Opacity="0" IsHitTestVisible="False"/>
+          </Grid>
+        </Grid>
+        <ControlTemplate.Triggers>
+          <Trigger Property="Tag" Value="Active"><Setter TargetName="Face" Property="RenderTransform"><Setter.Value><TranslateTransform Y="6"/></Setter.Value></Setter>
+            <Setter TargetName="Glow" Property="Background" Value="#55FFE600"/></Trigger>
+          <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Hover" Property="Opacity" Value="1"/></Trigger>
+          <Trigger Property="IsPressed" Value="True"><Setter TargetName="Face" Property="RenderTransform"><Setter.Value><TranslateTransform Y="9"/></Setter.Value></Setter></Trigger>
+          <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.5"/></Trigger>
+        </ControlTemplate.Triggers>
+      </ControlTemplate></Setter.Value></Setter>
+    </Style>
+    <Style x:Key="Bare" TargetType="Button"><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Button"><ContentPresenter/></ControlTemplate></Setter.Value></Setter></Style>
+    <Style TargetType="ComboBox"><Setter Property="FontSize" Value="16"/><Setter Property="Height" Value="42"/><Setter Property="VerticalContentAlignment" Value="Center"/><Setter Property="Padding" Value="10,4"/></Style>
+    <Style TargetType="TextBox"><Setter Property="FontSize" Value="15"/><Setter Property="Height" Value="42"/><Setter Property="VerticalContentAlignment" Value="Center"/><Setter Property="Padding" Value="8,0"/></Style>
+  </Window.Resources>
+  <Window.Background>
+    <RadialGradientBrush Center="0.5,0.32" GradientOrigin="0.5,0.22" RadiusX="0.95" RadiusY="0.95">
+      <GradientStop Color="#3462D6" Offset="0"/><GradientStop Color="#1B2F82" Offset="0.5"/><GradientStop Color="#070D2E" Offset="1"/>
+    </RadialGradientBrush>
+  </Window.Background>
+  <Viewbox Stretch="Uniform">
+  <Grid Width="1280" Height="940">
+    <!-- a glowing floor the cards stand on -->
+    <Ellipse Width="1500" Height="420" VerticalAlignment="Top" Margin="-110,520,-110,0" IsHitTestVisible="False">
+      <Ellipse.Fill><RadialGradientBrush><GradientStop Color="#552F7CFF" Offset="0"/><GradientStop Color="#002F7CFF" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
+    <Grid Margin="36,14,36,10">
+      <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+
+      <StackPanel>
+        <Grid HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+  <Grid.RenderTransform><ScaleTransform x:Name="TitleScale"/></Grid.RenderTransform>
+  <TextBlock Text="{Binding Text, ElementName=Title1}" Foreground="#020614" FontSize="58" FontWeight="Black" HorizontalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="10.00" Y="13.00"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="{Binding Text, ElementName=Title1}" Foreground="#050C26" FontSize="58" FontWeight="Black" HorizontalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="8.75" Y="11.38"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="{Binding Text, ElementName=Title1}" Foreground="#081235" FontSize="58" FontWeight="Black" HorizontalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="7.50" Y="9.75"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="{Binding Text, ElementName=Title1}" Foreground="#0B1844" FontSize="58" FontWeight="Black" HorizontalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="6.25" Y="8.12"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="{Binding Text, ElementName=Title1}" Foreground="#0F1F55" FontSize="58" FontWeight="Black" HorizontalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="5.00" Y="6.50"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="{Binding Text, ElementName=Title1}" Foreground="#142766" FontSize="58" FontWeight="Black" HorizontalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="3.75" Y="4.88"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="{Binding Text, ElementName=Title1}" Foreground="#1A3078" FontSize="58" FontWeight="Black" HorizontalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="2.50" Y="3.25"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="{Binding Text, ElementName=Title1}" Foreground="#213A8A" FontSize="58" FontWeight="Black" HorizontalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="1.25" Y="1.62"/></TextBlock.RenderTransform></TextBlock>
+  <TextBlock x:Name="Title1" FontSize="58" FontWeight="Black" HorizontalAlignment="Center">
+    <TextBlock.Foreground><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#FFFFFF" Offset="0.45"/><GradientStop Color="#FFE97A" Offset="0.55"/><GradientStop Color="#FFC400" Offset="1"/></LinearGradientBrush></TextBlock.Foreground></TextBlock>
+</Grid>
+        <TextBlock x:Name="Sub1" Foreground="#FFE600" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" MaxWidth="1150" Margin="0,4,0,0" Effect="{StaticResource Txt3DSmall}"/>
+      </StackPanel>
+
+      <StackPanel x:Name="HomePanel" Grid.Row="1" VerticalAlignment="Center" Margin="0,0,0,40">
+  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+    <Button x:Name="Tileclone" Style="{StaticResource Bare}" Margin="22,0" RenderTransformOrigin="0.5,0.5" Cursor="Hand">
+  <Button.RenderTransform><TransformGroup><ScaleTransform x:Name="TilecloneScale"/><TranslateTransform x:Name="TilecloneBob"/></TransformGroup></Button.RenderTransform>
+  <StackPanel>
+    <Grid Width="236" Height="236">
+      <Ellipse Width="420" Height="420" Margin="-92" IsHitTestVisible="False"><Ellipse.Fill><RadialGradientBrush><GradientStop Color="#8CBAFF" Offset="0"/><GradientStop Color="#00000000" Offset="1"/></RadialGradientBrush></Ellipse.Fill><Ellipse.OpacityMask><RadialGradientBrush><GradientStop Color="#77000000" Offset="0"/><GradientStop Color="#00000000" Offset="1"/></RadialGradientBrush></Ellipse.OpacityMask></Ellipse>
+      <Ellipse Width="250" Height="46" VerticalAlignment="Bottom" Margin="0,0,0,-58" IsHitTestVisible="False"><Ellipse.Fill><RadialGradientBrush><GradientStop Color="#C0000614" Offset="0"/><GradientStop Color="#00000614" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
+      <Border CornerRadius="34" Background="#02040E" Margin="0,34,0,-34" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#040818" Margin="0,32,0,-32" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#060C22" Margin="0,30,0,-30" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#09112C" Margin="0,28,0,-28" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#0B1536" Margin="0,26,0,-26" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#0D1A3F" Margin="0,24,0,-24" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#101E4A" Margin="0,22,0,-22" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#122254" Margin="0,20,0,-20" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#14275E" Margin="0,18,0,-18" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#172B68" Margin="0,16,0,-16" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#193072" Margin="0,14,0,-14" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#1B347C" Margin="0,12,0,-12" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#1E3886" Margin="0,10,0,-10" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#203D90" Margin="0,8,0,-8" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#22419A" Margin="0,6,0,-6" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#2546A4" Margin="0,4,0,-4" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#274AAE" Margin="0,2,0,-2" IsHitTestVisible="False"/>
+      <Border CornerRadius="34" BorderThickness="3">
+        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0.3,1"><GradientStop Color="#8CBAFF" Offset="0"/><GradientStop Color="#2B5FE3" Offset="0.5"/><GradientStop Color="#142C80" Offset="1"/></LinearGradientBrush></Border.Background>
+        <Border.BorderBrush><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#FFFFFFFF" Offset="0"/><GradientStop Color="#66FFFFFF" Offset="0.45"/><GradientStop Color="#55000000" Offset="1"/></LinearGradientBrush></Border.BorderBrush></Border>
+      <Border CornerRadius="32,32,60,60" VerticalAlignment="Top" Height="112" Margin="4,4,4,0" IsHitTestVisible="False">
+        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#88FFFFFF" Offset="0"/><GradientStop Color="#10FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+      <Grid Margin="8" ClipToBounds="True" IsHitTestVisible="False">
+        <Rectangle Width="70" Height="400" Margin="0,-90,0,-90" RenderTransformOrigin="0.5,0.5">
+          <Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#00FFFFFF" Offset="0"/><GradientStop Color="#99FFFFFF" Offset="0.5"/><GradientStop Color="#00FFFFFF" Offset="1"/></LinearGradientBrush></Rectangle.Fill>
+          <Rectangle.RenderTransform><TransformGroup><RotateTransform Angle="25"/><TranslateTransform x:Name="TilecloneShine" X="-300"/></TransformGroup></Rectangle.RenderTransform></Rectangle>
+      </Grid>
+      <Grid RenderTransformOrigin="0.5,0.5" Margin="0,0,6,8"><Grid.RenderTransform><RotateTransform x:Name="TilecloneWobble"/></Grid.RenderTransform>
+        <TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#020614" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="9.6" Y="12.5"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#06103A" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="8.0" Y="10.4"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#0B1A55" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="6.4" Y="8.3"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#13266E" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="4.8" Y="6.2"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#1D3488" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="3.2" Y="4.2"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#2A44A0" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="1.6" Y="2.1"/></TextBlock.RenderTransform></TextBlock>
+        <TextBlock Text="&#xE8C8;" FontFamily="Segoe MDL2 Assets" FontSize="104" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+          <TextBlock.Foreground><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#F2F6FF" Offset="0.5"/><GradientStop Color="#B8C6E6" Offset="1"/></LinearGradientBrush></TextBlock.Foreground></TextBlock>
+      </Grid>
+      <Ellipse Width="26" Height="12" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,18,0,0" Fill="#CCFFFFFF" IsHitTestVisible="False"><Ellipse.Effect><BlurEffect Radius="6"/></Ellipse.Effect></Ellipse>
+    </Grid>
+    <Grid HorizontalAlignment="Center" Margin="0,58,0,0">
+      <TextBlock Text="SmartCopy" FontSize="34" FontWeight="Black" Foreground="#020614"><TextBlock.RenderTransform><TranslateTransform X="4" Y="5"/></TextBlock.RenderTransform></TextBlock>
+      <TextBlock Text="SmartCopy" FontSize="34" FontWeight="Black" Foreground="#13266E"><TextBlock.RenderTransform><TranslateTransform X="2" Y="2.5"/></TextBlock.RenderTransform></TextBlock>
+      <TextBlock Text="SmartCopy" FontSize="34" FontWeight="Black"><TextBlock.Foreground><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0.45"/><GradientStop Color="#FFE97A" Offset="0.55"/><GradientStop Color="#FFC400" Offset="1"/></LinearGradientBrush></TextBlock.Foreground></TextBlock>
+    </Grid>
+    <TextBlock Text="Drive onto drive" Foreground="White" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,4,0,0" Effect="{StaticResource Txt3DSmall}"/>
+  </StackPanel>
+</Button>
+    <Button x:Name="Tilecreate" Style="{StaticResource Bare}" Margin="22,0" RenderTransformOrigin="0.5,0.5" Cursor="Hand">
+  <Button.RenderTransform><TransformGroup><ScaleTransform x:Name="TilecreateScale"/><TranslateTransform x:Name="TilecreateBob"/></TransformGroup></Button.RenderTransform>
+  <StackPanel>
+    <Grid Width="236" Height="236">
+      <Ellipse Width="420" Height="420" Margin="-92" IsHitTestVisible="False"><Ellipse.Fill><RadialGradientBrush><GradientStop Color="#FFE98A" Offset="0"/><GradientStop Color="#00000000" Offset="1"/></RadialGradientBrush></Ellipse.Fill><Ellipse.OpacityMask><RadialGradientBrush><GradientStop Color="#77000000" Offset="0"/><GradientStop Color="#00000000" Offset="1"/></RadialGradientBrush></Ellipse.OpacityMask></Ellipse>
+      <Ellipse Width="250" Height="46" VerticalAlignment="Bottom" Margin="0,0,0,-58" IsHitTestVisible="False"><Ellipse.Fill><RadialGradientBrush><GradientStop Color="#C0000614" Offset="0"/><GradientStop Color="#00000614" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
+      <Border CornerRadius="34" Background="#02040E" Margin="0,34,0,-34" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#0B0A0E" Margin="0,32,0,-32" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#15100E" Margin="0,30,0,-30" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#1F160E" Margin="0,28,0,-28" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#291C0E" Margin="0,26,0,-26" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#32220E" Margin="0,24,0,-24" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#3C280E" Margin="0,22,0,-22" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#462E0E" Margin="0,20,0,-20" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#50340E" Margin="0,18,0,-18" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#593A0F" Margin="0,16,0,-16" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#63400F" Margin="0,14,0,-14" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#6D460F" Margin="0,12,0,-12" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#774C0F" Margin="0,10,0,-10" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#80520F" Margin="0,8,0,-8" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#8A580F" Margin="0,6,0,-6" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#945E0F" Margin="0,4,0,-4" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#9E640F" Margin="0,2,0,-2" IsHitTestVisible="False"/>
+      <Border CornerRadius="34" BorderThickness="3">
+        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0.3,1"><GradientStop Color="#FFE98A" Offset="0"/><GradientStop Color="#F2A516" Offset="0.5"/><GradientStop Color="#9A5600" Offset="1"/></LinearGradientBrush></Border.Background>
+        <Border.BorderBrush><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#FFFFFFFF" Offset="0"/><GradientStop Color="#66FFFFFF" Offset="0.45"/><GradientStop Color="#55000000" Offset="1"/></LinearGradientBrush></Border.BorderBrush></Border>
+      <Border CornerRadius="32,32,60,60" VerticalAlignment="Top" Height="112" Margin="4,4,4,0" IsHitTestVisible="False">
+        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#88FFFFFF" Offset="0"/><GradientStop Color="#10FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+      <Grid Margin="8" ClipToBounds="True" IsHitTestVisible="False">
+        <Rectangle Width="70" Height="400" Margin="0,-90,0,-90" RenderTransformOrigin="0.5,0.5">
+          <Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#00FFFFFF" Offset="0"/><GradientStop Color="#99FFFFFF" Offset="0.5"/><GradientStop Color="#00FFFFFF" Offset="1"/></LinearGradientBrush></Rectangle.Fill>
+          <Rectangle.RenderTransform><TransformGroup><RotateTransform Angle="25"/><TranslateTransform x:Name="TilecreateShine" X="-300"/></TransformGroup></Rectangle.RenderTransform></Rectangle>
+      </Grid>
+      <Grid RenderTransformOrigin="0.5,0.5" Margin="0,0,6,8"><Grid.RenderTransform><RotateTransform x:Name="TilecreateWobble"/></Grid.RenderTransform>
+        <TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#020614" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="9.6" Y="12.5"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#06103A" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="8.0" Y="10.4"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#0B1A55" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="6.4" Y="8.3"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#13266E" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="4.8" Y="6.2"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#1D3488" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="3.2" Y="4.2"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#2A44A0" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="1.6" Y="2.1"/></TextBlock.RenderTransform></TextBlock>
+        <TextBlock Text="&#xE74E;" FontFamily="Segoe MDL2 Assets" FontSize="104" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+          <TextBlock.Foreground><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#F2F6FF" Offset="0.5"/><GradientStop Color="#B8C6E6" Offset="1"/></LinearGradientBrush></TextBlock.Foreground></TextBlock>
+      </Grid>
+      <Ellipse Width="26" Height="12" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,18,0,0" Fill="#CCFFFFFF" IsHitTestVisible="False"><Ellipse.Effect><BlurEffect Radius="6"/></Ellipse.Effect></Ellipse>
+    </Grid>
+    <Grid HorizontalAlignment="Center" Margin="0,58,0,0">
+      <TextBlock Text="Secure" FontSize="34" FontWeight="Black" Foreground="#020614"><TextBlock.RenderTransform><TranslateTransform X="4" Y="5"/></TextBlock.RenderTransform></TextBlock>
+      <TextBlock Text="Secure" FontSize="34" FontWeight="Black" Foreground="#13266E"><TextBlock.RenderTransform><TranslateTransform X="2" Y="2.5"/></TextBlock.RenderTransform></TextBlock>
+      <TextBlock Text="Secure" FontSize="34" FontWeight="Black"><TextBlock.Foreground><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0.45"/><GradientStop Color="#FFE97A" Offset="0.55"/><GradientStop Color="#FFC400" Offset="1"/></LinearGradientBrush></TextBlock.Foreground></TextBlock>
+    </Grid>
+    <TextBlock Text="Drive into a backup file" Foreground="White" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,4,0,0" Effect="{StaticResource Txt3DSmall}"/>
+  </StackPanel>
+</Button>
+    <Button x:Name="Tilerestore" Style="{StaticResource Bare}" Margin="22,0" RenderTransformOrigin="0.5,0.5" Cursor="Hand">
+  <Button.RenderTransform><TransformGroup><ScaleTransform x:Name="TilerestoreScale"/><TranslateTransform x:Name="TilerestoreBob"/></TransformGroup></Button.RenderTransform>
+  <StackPanel>
+    <Grid Width="236" Height="236">
+      <Ellipse Width="420" Height="420" Margin="-92" IsHitTestVisible="False"><Ellipse.Fill><RadialGradientBrush><GradientStop Color="#7CF5A6" Offset="0"/><GradientStop Color="#00000000" Offset="1"/></RadialGradientBrush></Ellipse.Fill><Ellipse.OpacityMask><RadialGradientBrush><GradientStop Color="#77000000" Offset="0"/><GradientStop Color="#00000000" Offset="1"/></RadialGradientBrush></Ellipse.OpacityMask></Ellipse>
+      <Ellipse Width="250" Height="46" VerticalAlignment="Bottom" Margin="0,0,0,-58" IsHitTestVisible="False"><Ellipse.Fill><RadialGradientBrush><GradientStop Color="#C0000614" Offset="0"/><GradientStop Color="#00000614" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
+      <Border CornerRadius="34" Background="#02040E" Margin="0,34,0,-34" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#020A10" Margin="0,32,0,-32" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#031112" Margin="0,30,0,-30" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#041815" Margin="0,28,0,-28" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#041F17" Margin="0,26,0,-26" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#05261A" Margin="0,24,0,-24" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#062D1C" Margin="0,22,0,-22" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#06341F" Margin="0,20,0,-20" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#073B21" Margin="0,18,0,-18" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#084224" Margin="0,16,0,-16" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#094926" Margin="0,14,0,-14" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#095029" Margin="0,12,0,-12" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#0A572B" Margin="0,10,0,-10" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#0B5E2E" Margin="0,8,0,-8" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#0B6530" Margin="0,6,0,-6" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#0C6C33" Margin="0,4,0,-4" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#0D7335" Margin="0,2,0,-2" IsHitTestVisible="False"/>
+      <Border CornerRadius="34" BorderThickness="3">
+        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0.3,1"><GradientStop Color="#7CF5A6" Offset="0"/><GradientStop Color="#16B04F" Offset="0.5"/><GradientStop Color="#076A2A" Offset="1"/></LinearGradientBrush></Border.Background>
+        <Border.BorderBrush><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#FFFFFFFF" Offset="0"/><GradientStop Color="#66FFFFFF" Offset="0.45"/><GradientStop Color="#55000000" Offset="1"/></LinearGradientBrush></Border.BorderBrush></Border>
+      <Border CornerRadius="32,32,60,60" VerticalAlignment="Top" Height="112" Margin="4,4,4,0" IsHitTestVisible="False">
+        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#88FFFFFF" Offset="0"/><GradientStop Color="#10FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+      <Grid Margin="8" ClipToBounds="True" IsHitTestVisible="False">
+        <Rectangle Width="70" Height="400" Margin="0,-90,0,-90" RenderTransformOrigin="0.5,0.5">
+          <Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#00FFFFFF" Offset="0"/><GradientStop Color="#99FFFFFF" Offset="0.5"/><GradientStop Color="#00FFFFFF" Offset="1"/></LinearGradientBrush></Rectangle.Fill>
+          <Rectangle.RenderTransform><TransformGroup><RotateTransform Angle="25"/><TranslateTransform x:Name="TilerestoreShine" X="-300"/></TransformGroup></Rectangle.RenderTransform></Rectangle>
+      </Grid>
+      <Grid RenderTransformOrigin="0.5,0.5" Margin="0,0,6,8"><Grid.RenderTransform><RotateTransform x:Name="TilerestoreWobble"/></Grid.RenderTransform>
+        <TextBlock Text="&#xE777;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#020614" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="9.6" Y="12.5"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE777;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#06103A" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="8.0" Y="10.4"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE777;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#0B1A55" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="6.4" Y="8.3"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE777;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#13266E" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="4.8" Y="6.2"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE777;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#1D3488" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="3.2" Y="4.2"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE777;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#2A44A0" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="1.6" Y="2.1"/></TextBlock.RenderTransform></TextBlock>
+        <TextBlock Text="&#xE777;" FontFamily="Segoe MDL2 Assets" FontSize="104" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+          <TextBlock.Foreground><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#F2F6FF" Offset="0.5"/><GradientStop Color="#B8C6E6" Offset="1"/></LinearGradientBrush></TextBlock.Foreground></TextBlock>
+      </Grid>
+      <Ellipse Width="26" Height="12" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,18,0,0" Fill="#CCFFFFFF" IsHitTestVisible="False"><Ellipse.Effect><BlurEffect Radius="6"/></Ellipse.Effect></Ellipse>
+    </Grid>
+    <Grid HorizontalAlignment="Center" Margin="0,58,0,0">
+      <TextBlock Text="Restore" FontSize="34" FontWeight="Black" Foreground="#020614"><TextBlock.RenderTransform><TranslateTransform X="4" Y="5"/></TextBlock.RenderTransform></TextBlock>
+      <TextBlock Text="Restore" FontSize="34" FontWeight="Black" Foreground="#13266E"><TextBlock.RenderTransform><TranslateTransform X="2" Y="2.5"/></TextBlock.RenderTransform></TextBlock>
+      <TextBlock Text="Restore" FontSize="34" FontWeight="Black"><TextBlock.Foreground><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0.45"/><GradientStop Color="#FFE97A" Offset="0.55"/><GradientStop Color="#FFC400" Offset="1"/></LinearGradientBrush></TextBlock.Foreground></TextBlock>
+    </Grid>
+    <TextBlock Text="Backup file back onto a drive" Foreground="White" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,4,0,0" Effect="{StaticResource Txt3DSmall}"/>
+  </StackPanel>
+</Button>
+    <Button x:Name="Tilerescue" Style="{StaticResource Bare}" Margin="22,0" RenderTransformOrigin="0.5,0.5" Cursor="Hand">
+  <Button.RenderTransform><TransformGroup><ScaleTransform x:Name="TilerescueScale"/><TranslateTransform x:Name="TilerescueBob"/></TransformGroup></Button.RenderTransform>
+  <StackPanel>
+    <Grid Width="236" Height="236">
+      <Ellipse Width="420" Height="420" Margin="-92" IsHitTestVisible="False"><Ellipse.Fill><RadialGradientBrush><GradientStop Color="#D3B2FF" Offset="0"/><GradientStop Color="#00000000" Offset="1"/></RadialGradientBrush></Ellipse.Fill><Ellipse.OpacityMask><RadialGradientBrush><GradientStop Color="#77000000" Offset="0"/><GradientStop Color="#00000000" Offset="1"/></RadialGradientBrush></Ellipse.OpacityMask></Ellipse>
+      <Ellipse Width="250" Height="46" VerticalAlignment="Bottom" Margin="0,0,0,-58" IsHitTestVisible="False"><Ellipse.Fill><RadialGradientBrush><GradientStop Color="#C0000614" Offset="0"/><GradientStop Color="#00000614" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
+      <Border CornerRadius="34" Background="#02040E" Margin="0,34,0,-34" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#070617" Margin="0,32,0,-32" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#0C0821" Margin="0,30,0,-30" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#110A2A" Margin="0,28,0,-28" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#160D34" Margin="0,26,0,-26" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#1B0F3D" Margin="0,24,0,-24" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#211147" Margin="0,22,0,-22" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#261450" Margin="0,20,0,-20" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#2B165A" Margin="0,18,0,-18" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#301863" Margin="0,16,0,-16" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#351A6D" Margin="0,14,0,-14" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#3A1D76" Margin="0,12,0,-12" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#401F80" Margin="0,10,0,-10" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#452189" Margin="0,8,0,-8" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#4A2493" Margin="0,6,0,-6" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#4F269C" Margin="0,4,0,-4" IsHitTestVisible="False"/><Border CornerRadius="34" Background="#5428A6" Margin="0,2,0,-2" IsHitTestVisible="False"/>
+      <Border CornerRadius="34" BorderThickness="3">
+        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0.3,1"><GradientStop Color="#D3B2FF" Offset="0"/><GradientStop Color="#8B5CF6" Offset="0.5"/><GradientStop Color="#43198C" Offset="1"/></LinearGradientBrush></Border.Background>
+        <Border.BorderBrush><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#FFFFFFFF" Offset="0"/><GradientStop Color="#66FFFFFF" Offset="0.45"/><GradientStop Color="#55000000" Offset="1"/></LinearGradientBrush></Border.BorderBrush></Border>
+      <Border CornerRadius="32,32,60,60" VerticalAlignment="Top" Height="112" Margin="4,4,4,0" IsHitTestVisible="False">
+        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#88FFFFFF" Offset="0"/><GradientStop Color="#10FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+      <Grid Margin="8" ClipToBounds="True" IsHitTestVisible="False">
+        <Rectangle Width="70" Height="400" Margin="0,-90,0,-90" RenderTransformOrigin="0.5,0.5">
+          <Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#00FFFFFF" Offset="0"/><GradientStop Color="#99FFFFFF" Offset="0.5"/><GradientStop Color="#00FFFFFF" Offset="1"/></LinearGradientBrush></Rectangle.Fill>
+          <Rectangle.RenderTransform><TransformGroup><RotateTransform Angle="25"/><TranslateTransform x:Name="TilerescueShine" X="-300"/></TransformGroup></Rectangle.RenderTransform></Rectangle>
+      </Grid>
+      <Grid RenderTransformOrigin="0.5,0.5" Margin="0,0,6,8"><Grid.RenderTransform><RotateTransform x:Name="TilerescueWobble"/></Grid.RenderTransform>
+        <TextBlock Text="&#xE88E;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#020614" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="9.6" Y="12.5"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE88E;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#06103A" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="8.0" Y="10.4"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE88E;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#0B1A55" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="6.4" Y="8.3"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE88E;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#13266E" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="4.8" Y="6.2"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE88E;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#1D3488" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="3.2" Y="4.2"/></TextBlock.RenderTransform></TextBlock><TextBlock Text="&#xE88E;" FontFamily="Segoe MDL2 Assets" FontSize="104" Foreground="#2A44A0" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False"><TextBlock.RenderTransform><TranslateTransform X="1.6" Y="2.1"/></TextBlock.RenderTransform></TextBlock>
+        <TextBlock Text="&#xE88E;" FontFamily="Segoe MDL2 Assets" FontSize="104" HorizontalAlignment="Center" VerticalAlignment="Center" IsHitTestVisible="False">
+          <TextBlock.Foreground><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#F2F6FF" Offset="0.5"/><GradientStop Color="#B8C6E6" Offset="1"/></LinearGradientBrush></TextBlock.Foreground></TextBlock>
+      </Grid>
+      <Ellipse Width="26" Height="12" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="30,18,0,0" Fill="#CCFFFFFF" IsHitTestVisible="False"><Ellipse.Effect><BlurEffect Radius="6"/></Ellipse.Effect></Ellipse>
+    </Grid>
+    <Grid HorizontalAlignment="Center" Margin="0,58,0,0">
+      <TextBlock Text="Rescue USB" FontSize="34" FontWeight="Black" Foreground="#020614"><TextBlock.RenderTransform><TranslateTransform X="4" Y="5"/></TextBlock.RenderTransform></TextBlock>
+      <TextBlock Text="Rescue USB" FontSize="34" FontWeight="Black" Foreground="#13266E"><TextBlock.RenderTransform><TranslateTransform X="2" Y="2.5"/></TextBlock.RenderTransform></TextBlock>
+      <TextBlock Text="Rescue USB" FontSize="34" FontWeight="Black"><TextBlock.Foreground><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0.45"/><GradientStop Color="#FFE97A" Offset="0.55"/><GradientStop Color="#FFC400" Offset="1"/></LinearGradientBrush></TextBlock.Foreground></TextBlock>
+    </Grid>
+    <TextBlock Text="Create or replace a Rescue USB" Foreground="White" FontSize="18" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,4,0,0" Effect="{StaticResource Txt3DSmall}"/>
+  </StackPanel>
+</Button>
+  </StackPanel>
+  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,46,0,0">
+    <Button x:Name="Close0" Content="Close" Style="{StaticResource Steel3D}"/>
+    <Button x:Name="TileCheck" Style="{StaticResource Steel3D}" MinWidth="300"><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="22" VerticalAlignment="Center" Margin="0,0,12,0"/><TextBlock Text="Check a backup file" VerticalAlignment="Center"/></StackPanel></Button>
+  </StackPanel>
+</StackPanel>
+      <Grid x:Name="JobPanel" Grid.Row="1" Visibility="Collapsed">
+        <Grid.RowDefinitions><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+
+      <Grid Grid.Row="0" Margin="0,22,0,0">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+        <Grid Width="340">
+  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+  <Ellipse Width="420" Height="420" Margin="-40,-50,-40,-40" IsHitTestVisible="False"><Ellipse.Fill><RadialGradientBrush><GradientStop x:Name="ASpotColor" Color="#664FA3FF" Offset="0"/><GradientStop Color="#004FA3FF" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
+  <Grid x:Name="ACard" Width="340" Height="350">
+    <Grid.RenderTransform><TranslateTransform x:Name="ABob"/></Grid.RenderTransform>
+    <Ellipse Width="330" Height="46" VerticalAlignment="Bottom" Margin="0,0,0,-58" IsHitTestVisible="False"><Ellipse.Fill><RadialGradientBrush><GradientStop Color="#C0000614" Offset="0"/><GradientStop Color="#00000614" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
+    <Border CornerRadius="30" Background="#030718" Margin="0,26,0,-26" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#070D23" Margin="0,24,0,-24" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#0B132E" Margin="0,22,0,-22" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#0F1939" Margin="0,20,0,-20" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#131F44" Margin="0,18,0,-18" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#18254F" Margin="0,16,0,-16" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#1C2B5A" Margin="0,14,0,-14" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#203165" Margin="0,12,0,-12" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#243770" Margin="0,10,0,-10" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#293D7B" Margin="0,8,0,-8" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#2D4386" Margin="0,6,0,-6" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#314991" Margin="0,4,0,-4" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#354F9C" Margin="0,2,0,-2" IsHitTestVisible="False"/>
+    <Border x:Name="AFace" CornerRadius="30" BorderBrush="#E6FFFFFF" BorderThickness="2,2,2,0"/>
+    <Border CornerRadius="30" BorderBrush="#55000000" BorderThickness="0,0,0,5" IsHitTestVisible="False"/>
+    <Border CornerRadius="30,30,0,0" VerticalAlignment="Top" Height="92" Margin="3,3,3,0" IsHitTestVisible="False">
+      <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#77FFFFFF" Offset="0"/><GradientStop Color="#11FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+    <Border CornerRadius="30" IsHitTestVisible="False">
+      <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#40FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="0.35"/><GradientStop Color="#00FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+    <StackPanel Margin="0,16,0,0">
+      <TextBlock x:Name="AHead" Foreground="#FFE600" FontSize="23" FontWeight="ExtraBold" HorizontalAlignment="Center" Effect="{StaticResource Txt3D}"/>
+      <TextBlock x:Name="ASub" Foreground="#F2F6FF" FontSize="13.5" FontWeight="SemiBold" HorizontalAlignment="Center" Effect="{StaticResource Txt3DSmall}"/>
+      <Grid Height="170" Margin="0,10,0,0"><Grid x:Name="AHdd" Width="176" Height="150">
+  <Border CornerRadius="16" Background="#1A2036" Margin="0,12,0,-12" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#242B42" Margin="0,10,0,-10" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#2F374E" Margin="0,8,0,-8" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#3A435B" Margin="0,6,0,-6" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#444E67" Margin="0,4,0,-4" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#4F5A73" Margin="0,2,0,-2" IsHitTestVisible="False"/>
+  <Border CornerRadius="16" BorderBrush="#FFFFFF" BorderThickness="1.5,1.5,1.5,0">
+    <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#C3CCDD" Offset="0.45"/><GradientStop Color="#7C879E" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+  <Border CornerRadius="16,16,0,0" VerticalAlignment="Top" Height="40" Margin="2,2,2,0" Background="#66FFFFFF" IsHitTestVisible="False"/>
+  <Ellipse Width="120" Height="120" Margin="0,0,26,0" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="#40000820"><Ellipse.RenderTransform><TranslateTransform X="3" Y="5"/></Ellipse.RenderTransform></Ellipse>
+  <Ellipse Width="116" Height="116" Margin="0,0,26,0" HorizontalAlignment="Center" VerticalAlignment="Center" Stroke="#5A6580" StrokeThickness="2.5">
+    <Ellipse.Fill><RadialGradientBrush GradientOrigin="0.3,0.25"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#D5DCEA" Offset="0.45"/><GradientStop Color="#6E7A96" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
+  <Ellipse Width="80" Height="80" Margin="0,0,26,0" HorizontalAlignment="Center" VerticalAlignment="Center" Stroke="#338090B0" StrokeThickness="1"/>
+  <Canvas Width="116" Height="116" Margin="0,0,26,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <Canvas.RenderTransform><RotateTransform x:Name="SpinA" CenterX="58" CenterY="58"/></Canvas.RenderTransform>
+    <Path Data="M58,58 L58,4 A54,54 0 0 1 104,30 Z" Fill="#88FFFFFF"/><Path Data="M58,58 L58,112 A54,54 0 0 1 12,86 Z" Fill="#55FFFFFF"/></Canvas>
+  <Ellipse Width="22" Height="22" Margin="0,0,26,0" HorizontalAlignment="Center" VerticalAlignment="Center" Stroke="#FFFFFF" StrokeThickness="2">
+    <Ellipse.Fill><RadialGradientBrush GradientOrigin="0.3,0.3"><GradientStop Color="#9AA6C2" Offset="0"/><GradientStop Color="#3C465E" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
+  <Rectangle Width="11" Height="74" RadiusX="5" RadiusY="5" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,16,24,0">
+    <Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#8C97B2" Offset="0"/><GradientStop Color="#3A4460" Offset="1"/></LinearGradientBrush></Rectangle.Fill>
+    <Rectangle.RenderTransform><RotateTransform Angle="28" CenterX="5" CenterY="5"/></Rectangle.RenderTransform>
+    <Rectangle.Effect><DropShadowEffect Color="#000820" ShadowDepth="4" Direction="300" BlurRadius="3" Opacity="0.6"/></Rectangle.Effect></Rectangle>
+  <Ellipse x:Name="LedA" Width="15" Height="15" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,12,12" Fill="#39FF7A" Stroke="#FFFFFF" StrokeThickness="1">
+    <Ellipse.Effect><DropShadowEffect x:Name="LedGlowA" Color="#39FF7A" ShadowDepth="0" BlurRadius="18" Opacity="1"/></Ellipse.Effect></Ellipse>
+</Grid><Grid x:Name="AFile" Width="140" Height="160" Visibility="Collapsed">
+  <Path Data="M14,0 L96,0 L126,30 L126,146 Q126,160 112,160 L14,160 Q0,160 0,146 L0,14 Q0,0 14,0 Z" Fill="#05102E"><Path.RenderTransform><TranslateTransform X="6" Y="12"/></Path.RenderTransform></Path>
+  <Path Data="M14,0 L96,0 L126,30 L126,146 Q126,160 112,160 L14,160 Q0,160 0,146 L0,14 Q0,0 14,0 Z" Fill="#1A2A5E"><Path.RenderTransform><TranslateTransform X="3" Y="6"/></Path.RenderTransform></Path>
+  <Path Data="M14,0 L96,0 L126,30 L126,146 Q126,160 112,160 L14,160 Q0,160 0,146 L0,14 Q0,0 14,0 Z" Stroke="#FFFFFF" StrokeThickness="1.5">
+    <Path.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#DCE4F2" Offset="0.5"/><GradientStop Color="#97A4BE" Offset="1"/></LinearGradientBrush></Path.Fill></Path>
+  <Path Data="M96,0 L96,22 Q96,30 104,30 L126,30 Z" Fill="#8E9BB6" Stroke="#FFFFFF" StrokeThickness="1"/>
+  <Border Width="96" Height="34" CornerRadius="8" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="14,56,0,0">
+    <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFD54A" Offset="0"/><GradientStop Color="#E8590C" Offset="1"/></LinearGradientBrush></Border.Background>
+    <Border.Effect><DropShadowEffect Color="#000820" ShadowDepth="4" Direction="300" BlurRadius="3" Opacity="0.6"/></Border.Effect>
+    <TextBlock x:Name="AFileText" Text="DRIMG" Foreground="White" FontSize="18" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{StaticResource Txt3DSmall}"/></Border>
+  <TextBlock Text="&#xE72E;" FontFamily="Segoe MDL2 Assets" FontSize="30" Foreground="#2B3F7A" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,10,18"/>
+</Grid><Grid x:Name="AGlyph" Width="160" Height="150" Visibility="Collapsed" RenderTransformOrigin="0.5,0.5">
+  <Grid.RenderTransform><ScaleTransform x:Name="AGlyphScale"/></Grid.RenderTransform>
+  <TextBlock x:Name="AGlyphBack2" FontFamily="Segoe MDL2 Assets" FontSize="120" Foreground="#05102E" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock.RenderTransform><TranslateTransform X="7" Y="10"/></TextBlock.RenderTransform></TextBlock>
+  <TextBlock x:Name="AGlyphBack1" FontFamily="Segoe MDL2 Assets" FontSize="120" Foreground="#2A3F86" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock.RenderTransform><TranslateTransform X="3.5" Y="5"/></TextBlock.RenderTransform></TextBlock>
+  <TextBlock x:Name="AGlyphText" FontFamily="Segoe MDL2 Assets" FontSize="120" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <TextBlock.Foreground><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#DCE6FA" Offset="0.5"/><GradientStop Color="#9FB0D4" Offset="1"/></LinearGradientBrush></TextBlock.Foreground></TextBlock>
+</Grid></Grid>
+      <TextBlock x:Name="ALetter" Foreground="White" FontSize="50" FontWeight="ExtraBold" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="300" Margin="0,2,0,0" Effect="{StaticResource Txt3D}"/>
+    </StackPanel>
+    
+  </Grid>
+  <Rectangle Grid.Row="1" Height="70" Margin="0,30,0,0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+    <Rectangle.Fill><VisualBrush Visual="{Binding ElementName=AFace}" Stretch="Fill"/></Rectangle.Fill>
+    <Rectangle.RenderTransform><ScaleTransform ScaleY="-1"/></Rectangle.RenderTransform>
+    <Rectangle.OpacityMask><LinearGradientBrush StartPoint="0,1" EndPoint="0,0"><GradientStop Color="#55000000" Offset="0"/><GradientStop Color="#00000000" Offset="1"/></LinearGradientBrush></Rectangle.OpacityMask>
+  </Rectangle>
+  <TextBlock x:Name="AInfo" Grid.Row="2" Foreground="White" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Width="340" Margin="0,-56,0,0" Effect="{StaticResource Txt3DSmall}"/>
+</Grid>
+        <Grid Grid.Column="1" VerticalAlignment="Top" Margin="6,120,6,0">
+          <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+          <Grid Height="76">
+            <Border CornerRadius="36" Background="#030718" Margin="0,18,0,-18" IsHitTestVisible="False"/><Border CornerRadius="36" Background="#060B21" Margin="0,16,0,-16" IsHitTestVisible="False"/><Border CornerRadius="36" Background="#09102B" Margin="0,14,0,-14" IsHitTestVisible="False"/><Border CornerRadius="36" Background="#0C1435" Margin="0,12,0,-12" IsHitTestVisible="False"/><Border CornerRadius="36" Background="#0F193F" Margin="0,10,0,-10" IsHitTestVisible="False"/><Border CornerRadius="36" Background="#121D48" Margin="0,8,0,-8" IsHitTestVisible="False"/><Border CornerRadius="36" Background="#152252" Margin="0,6,0,-6" IsHitTestVisible="False"/><Border CornerRadius="36" Background="#18265C" Margin="0,4,0,-4" IsHitTestVisible="False"/><Border CornerRadius="36" Background="#1B2B66" Margin="0,2,0,-2" IsHitTestVisible="False"/>
+            <Border CornerRadius="36" BorderBrush="#AA00E5FF" BorderThickness="2.5">
+              <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#050B2A" Offset="0"/><GradientStop Color="#1E3A8A" Offset="0.5"/><GradientStop Color="#050B2A" Offset="1"/></LinearGradientBrush></Border.Background>
+              <Border.Effect><DropShadowEffect x:Name="PipeGlow" Color="#00E5FF" ShadowDepth="0" BlurRadius="22" Opacity="0.55"/></Border.Effect></Border>
+            <Canvas x:Name="Flow" ClipToBounds="True" Margin="22,0,22,0"/>
+            <Border CornerRadius="36,36,0,0" Height="28" VerticalAlignment="Top" Margin="6,4,6,0" IsHitTestVisible="False">
+              <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#44FFFFFF" Offset="0"/><GradientStop Color="#05FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+          </Grid>
+          <Grid Grid.Row="1" HorizontalAlignment="Center" Margin="0,26,0,0">
+            <Grid.RenderTransform><TranslateTransform x:Name="ArrowNudge"/></Grid.RenderTransform>
+            <TextBlock Text="&#xE72A;" FontFamily="Segoe MDL2 Assets" FontSize="74" Foreground="#05102E"><TextBlock.RenderTransform><TranslateTransform X="6" Y="9"/></TextBlock.RenderTransform></TextBlock>
+            <TextBlock Text="&#xE72A;" FontFamily="Segoe MDL2 Assets" FontSize="74" Foreground="#7A5A00"><TextBlock.RenderTransform><TranslateTransform X="3" Y="4.5"/></TextBlock.RenderTransform></TextBlock>
+            <TextBlock Text="&#xE72A;" FontFamily="Segoe MDL2 Assets" FontSize="74">
+              <TextBlock.Foreground><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFF8B0" Offset="0"/><GradientStop Color="#FFE600" Offset="0.5"/><GradientStop Color="#FFB000" Offset="1"/></LinearGradientBrush></TextBlock.Foreground></TextBlock>
+          </Grid>
+        </Grid>
+        <Grid Grid.Column="2"><Grid Width="340">
+  <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+  <Ellipse Width="420" Height="420" Margin="-40,-50,-40,-40" IsHitTestVisible="False"><Ellipse.Fill><RadialGradientBrush><GradientStop x:Name="BSpotColor" Color="#664FA3FF" Offset="0"/><GradientStop Color="#004FA3FF" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
+  <Grid x:Name="BCard" Width="340" Height="350">
+    <Grid.RenderTransform><TranslateTransform x:Name="BBob"/></Grid.RenderTransform>
+    <Ellipse Width="330" Height="46" VerticalAlignment="Bottom" Margin="0,0,0,-58" IsHitTestVisible="False"><Ellipse.Fill><RadialGradientBrush><GradientStop Color="#C0000614" Offset="0"/><GradientStop Color="#00000614" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
+    <Border CornerRadius="30" Background="#030718" Margin="0,26,0,-26" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#070D23" Margin="0,24,0,-24" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#0B132E" Margin="0,22,0,-22" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#0F1939" Margin="0,20,0,-20" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#131F44" Margin="0,18,0,-18" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#18254F" Margin="0,16,0,-16" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#1C2B5A" Margin="0,14,0,-14" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#203165" Margin="0,12,0,-12" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#243770" Margin="0,10,0,-10" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#293D7B" Margin="0,8,0,-8" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#2D4386" Margin="0,6,0,-6" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#314991" Margin="0,4,0,-4" IsHitTestVisible="False"/><Border CornerRadius="30" Background="#354F9C" Margin="0,2,0,-2" IsHitTestVisible="False"/>
+    <Border x:Name="BFace" CornerRadius="30" BorderBrush="#E6FFFFFF" BorderThickness="2,2,2,0"/>
+    <Border CornerRadius="30" BorderBrush="#55000000" BorderThickness="0,0,0,5" IsHitTestVisible="False"/>
+    <Border CornerRadius="30,30,0,0" VerticalAlignment="Top" Height="92" Margin="3,3,3,0" IsHitTestVisible="False">
+      <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#77FFFFFF" Offset="0"/><GradientStop Color="#11FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+    <Border CornerRadius="30" IsHitTestVisible="False">
+      <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#40FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="0.35"/><GradientStop Color="#00FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+    <StackPanel Margin="0,16,0,0">
+      <TextBlock x:Name="BHead" Foreground="#FFE600" FontSize="23" FontWeight="ExtraBold" HorizontalAlignment="Center" Effect="{StaticResource Txt3D}"/>
+      <TextBlock x:Name="BSub" Foreground="#F2F6FF" FontSize="13.5" FontWeight="SemiBold" HorizontalAlignment="Center" Effect="{StaticResource Txt3DSmall}"/>
+      <Grid Height="170" Margin="0,10,0,0"><Grid x:Name="BHdd" Width="176" Height="150">
+  <Border CornerRadius="16" Background="#1A2036" Margin="0,12,0,-12" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#242B42" Margin="0,10,0,-10" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#2F374E" Margin="0,8,0,-8" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#3A435B" Margin="0,6,0,-6" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#444E67" Margin="0,4,0,-4" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#4F5A73" Margin="0,2,0,-2" IsHitTestVisible="False"/>
+  <Border CornerRadius="16" BorderBrush="#FFFFFF" BorderThickness="1.5,1.5,1.5,0">
+    <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#C3CCDD" Offset="0.45"/><GradientStop Color="#7C879E" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+  <Border CornerRadius="16,16,0,0" VerticalAlignment="Top" Height="40" Margin="2,2,2,0" Background="#66FFFFFF" IsHitTestVisible="False"/>
+  <Ellipse Width="120" Height="120" Margin="0,0,26,0" HorizontalAlignment="Center" VerticalAlignment="Center" Fill="#40000820"><Ellipse.RenderTransform><TranslateTransform X="3" Y="5"/></Ellipse.RenderTransform></Ellipse>
+  <Ellipse Width="116" Height="116" Margin="0,0,26,0" HorizontalAlignment="Center" VerticalAlignment="Center" Stroke="#5A6580" StrokeThickness="2.5">
+    <Ellipse.Fill><RadialGradientBrush GradientOrigin="0.3,0.25"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#D5DCEA" Offset="0.45"/><GradientStop Color="#6E7A96" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
+  <Ellipse Width="80" Height="80" Margin="0,0,26,0" HorizontalAlignment="Center" VerticalAlignment="Center" Stroke="#338090B0" StrokeThickness="1"/>
+  <Canvas Width="116" Height="116" Margin="0,0,26,0" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <Canvas.RenderTransform><RotateTransform x:Name="SpinB" CenterX="58" CenterY="58"/></Canvas.RenderTransform>
+    <Path Data="M58,58 L58,4 A54,54 0 0 1 104,30 Z" Fill="#88FFFFFF"/><Path Data="M58,58 L58,112 A54,54 0 0 1 12,86 Z" Fill="#55FFFFFF"/></Canvas>
+  <Ellipse Width="22" Height="22" Margin="0,0,26,0" HorizontalAlignment="Center" VerticalAlignment="Center" Stroke="#FFFFFF" StrokeThickness="2">
+    <Ellipse.Fill><RadialGradientBrush GradientOrigin="0.3,0.3"><GradientStop Color="#9AA6C2" Offset="0"/><GradientStop Color="#3C465E" Offset="1"/></RadialGradientBrush></Ellipse.Fill></Ellipse>
+  <Rectangle Width="11" Height="74" RadiusX="5" RadiusY="5" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,16,24,0">
+    <Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#8C97B2" Offset="0"/><GradientStop Color="#3A4460" Offset="1"/></LinearGradientBrush></Rectangle.Fill>
+    <Rectangle.RenderTransform><RotateTransform Angle="28" CenterX="5" CenterY="5"/></Rectangle.RenderTransform>
+    <Rectangle.Effect><DropShadowEffect Color="#000820" ShadowDepth="4" Direction="300" BlurRadius="3" Opacity="0.6"/></Rectangle.Effect></Rectangle>
+  <Ellipse x:Name="LedB" Width="15" Height="15" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,12,12" Fill="#39FF7A" Stroke="#FFFFFF" StrokeThickness="1">
+    <Ellipse.Effect><DropShadowEffect x:Name="LedGlowB" Color="#39FF7A" ShadowDepth="0" BlurRadius="18" Opacity="1"/></Ellipse.Effect></Ellipse>
+</Grid><Grid x:Name="BFile" Width="140" Height="160" Visibility="Collapsed">
+  <Path Data="M14,0 L96,0 L126,30 L126,146 Q126,160 112,160 L14,160 Q0,160 0,146 L0,14 Q0,0 14,0 Z" Fill="#05102E"><Path.RenderTransform><TranslateTransform X="6" Y="12"/></Path.RenderTransform></Path>
+  <Path Data="M14,0 L96,0 L126,30 L126,146 Q126,160 112,160 L14,160 Q0,160 0,146 L0,14 Q0,0 14,0 Z" Fill="#1A2A5E"><Path.RenderTransform><TranslateTransform X="3" Y="6"/></Path.RenderTransform></Path>
+  <Path Data="M14,0 L96,0 L126,30 L126,146 Q126,160 112,160 L14,160 Q0,160 0,146 L0,14 Q0,0 14,0 Z" Stroke="#FFFFFF" StrokeThickness="1.5">
+    <Path.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#DCE4F2" Offset="0.5"/><GradientStop Color="#97A4BE" Offset="1"/></LinearGradientBrush></Path.Fill></Path>
+  <Path Data="M96,0 L96,22 Q96,30 104,30 L126,30 Z" Fill="#8E9BB6" Stroke="#FFFFFF" StrokeThickness="1"/>
+  <Border Width="96" Height="34" CornerRadius="8" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="14,56,0,0">
+    <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFD54A" Offset="0"/><GradientStop Color="#E8590C" Offset="1"/></LinearGradientBrush></Border.Background>
+    <Border.Effect><DropShadowEffect Color="#000820" ShadowDepth="4" Direction="300" BlurRadius="3" Opacity="0.6"/></Border.Effect>
+    <TextBlock x:Name="BFileText" Text="DRIMG" Foreground="White" FontSize="18" FontWeight="ExtraBold" HorizontalAlignment="Center" VerticalAlignment="Center" Effect="{StaticResource Txt3DSmall}"/></Border>
+  <TextBlock Text="&#xE72E;" FontFamily="Segoe MDL2 Assets" FontSize="30" Foreground="#2B3F7A" HorizontalAlignment="Center" VerticalAlignment="Bottom" Margin="0,0,10,18"/>
+</Grid><Grid x:Name="BGlyph" Width="160" Height="150" Visibility="Collapsed" RenderTransformOrigin="0.5,0.5">
+  <Grid.RenderTransform><ScaleTransform x:Name="BGlyphScale"/></Grid.RenderTransform>
+  <TextBlock x:Name="BGlyphBack2" FontFamily="Segoe MDL2 Assets" FontSize="120" Foreground="#05102E" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock.RenderTransform><TranslateTransform X="7" Y="10"/></TextBlock.RenderTransform></TextBlock>
+  <TextBlock x:Name="BGlyphBack1" FontFamily="Segoe MDL2 Assets" FontSize="120" Foreground="#2A3F86" HorizontalAlignment="Center" VerticalAlignment="Center"><TextBlock.RenderTransform><TranslateTransform X="3.5" Y="5"/></TextBlock.RenderTransform></TextBlock>
+  <TextBlock x:Name="BGlyphText" FontFamily="Segoe MDL2 Assets" FontSize="120" HorizontalAlignment="Center" VerticalAlignment="Center">
+    <TextBlock.Foreground><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#DCE6FA" Offset="0.5"/><GradientStop Color="#9FB0D4" Offset="1"/></LinearGradientBrush></TextBlock.Foreground></TextBlock>
+</Grid></Grid>
+      <TextBlock x:Name="BLetter" Foreground="White" FontSize="50" FontWeight="ExtraBold" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="300" Margin="0,2,0,0" Effect="{StaticResource Txt3D}"/>
+    </StackPanel>
+    <Border VerticalAlignment="Bottom" Height="12" Margin="30,0,30,16" CornerRadius="6" Background="#66000000"><Border x:Name="DstFill" HorizontalAlignment="Left" Width="0" CornerRadius="6"><Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#FFE600" Offset="0"/><GradientStop Color="#FFFFFF" Offset="1"/></LinearGradientBrush></Border.Background><Border.Effect><DropShadowEffect Color="#FFE600" ShadowDepth="0" BlurRadius="10" Opacity="0.9"/></Border.Effect></Border></Border>
+  </Grid>
+  <Rectangle Grid.Row="1" Height="70" Margin="0,30,0,0" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5">
+    <Rectangle.Fill><VisualBrush Visual="{Binding ElementName=BFace}" Stretch="Fill"/></Rectangle.Fill>
+    <Rectangle.RenderTransform><ScaleTransform ScaleY="-1"/></Rectangle.RenderTransform>
+    <Rectangle.OpacityMask><LinearGradientBrush StartPoint="0,1" EndPoint="0,0"><GradientStop Color="#55000000" Offset="0"/><GradientStop Color="#00000000" Offset="1"/></LinearGradientBrush></Rectangle.OpacityMask>
+  </Rectangle>
+  <TextBlock x:Name="BInfo" Grid.Row="2" Foreground="White" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Width="340" Margin="0,-56,0,0" Effect="{StaticResource Txt3DSmall}"/>
+</Grid></Grid>
+      </Grid>
+
+      <Grid Grid.Row="1">
+        <StackPanel x:Name="Form">
+          <Grid>
+            <Grid.ColumnDefinitions><ColumnDefinition Width="480"/><ColumnDefinition Width="*"/><ColumnDefinition Width="480"/></Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock x:Name="ALabel" Foreground="#FFE600" FontWeight="Bold" FontSize="15" Margin="2,0,0,5" TextWrapping="Wrap" Effect="{StaticResource Txt3DSmall}"/>
+              <ComboBox x:Name="Src"/>
+              <Grid x:Name="APathRow" Visibility="Collapsed"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <TextBox x:Name="APath" IsReadOnly="True" VerticalAlignment="Top" Height="Auto" MinHeight="42" TextWrapping="Wrap" FontSize="13.5" Padding="8,4" VerticalContentAlignment="Center" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/><Button x:Name="ABrowse" Grid.Column="1" Content="Browse..." Style="{StaticResource Small3D}"/></Grid>
+            </StackPanel>
+            <StackPanel Grid.Column="1" Margin="12,0" VerticalAlignment="Bottom">
+              <StackPanel x:Name="ConfirmPanel"><ToggleButton x:Name="Agree" Cursor="Hand" HorizontalAlignment="Center">
+  <ToggleButton.Template><ControlTemplate TargetType="ToggleButton">
+    <Grid>
+      <Border CornerRadius="16" Background="#030718" Margin="0,10,0,-10" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#0A122E" Margin="0,8,0,-8" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#121D44" Margin="0,6,0,-6" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#1A285A" Margin="0,4,0,-4" IsHitTestVisible="False"/><Border CornerRadius="16" Background="#223370" Margin="0,2,0,-2" IsHitTestVisible="False"/>
+      <Grid x:Name="Face"><Grid.RenderTransform><TranslateTransform/></Grid.RenderTransform>
+        <Border x:Name="Bg" CornerRadius="16" BorderBrush="#CCFFFFFF" BorderThickness="2,2,2,0" Padding="18,10">
+          <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#7A92C8" Offset="0"/><GradientStop Color="#2F4583" Offset="0.5"/><GradientStop Color="#16234A" Offset="1"/></LinearGradientBrush></Border.Background>
+          <StackPanel Orientation="Horizontal">
+            <Grid Width="40" Height="40" Margin="0,0,14,0">
+              <Border CornerRadius="9" Background="#060C2C" BorderBrush="#AAFFFFFF" BorderThickness="2"/>
+              <TextBlock x:Name="Tick" Text="&#x2714;" FontSize="30" FontWeight="Black" Foreground="#5BFF95" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0"><TextBlock.Effect><DropShadowEffect Color="#5BFF95" ShadowDepth="0" BlurRadius="12"/></TextBlock.Effect></TextBlock>
+            </Grid>
+            <StackPanel VerticalAlignment="Center">
+              <ContentPresenter TextBlock.Foreground="White" TextBlock.FontSize="20" TextBlock.FontWeight="ExtraBold" Effect="{StaticResource Txt3DSmall}"/>
+              <TextBlock Text="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" Foreground="#DCE7FF" FontSize="13.5" FontWeight="SemiBold"/>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+        <Border CornerRadius="16,16,0,0" VerticalAlignment="Top" Height="22" Margin="3,3,3,0" Background="#40FFFFFF" IsHitTestVisible="False"/>
+      </Grid>
+    </Grid>
+    <ControlTemplate.Triggers>
+      <Trigger Property="IsChecked" Value="True"><Setter TargetName="Tick" Property="Opacity" Value="1"/>
+        <Setter TargetName="Face" Property="RenderTransform"><Setter.Value><TranslateTransform Y="5"/></Setter.Value></Setter>
+        <Setter TargetName="Bg" Property="Background"><Setter.Value><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#7CF5A6" Offset="0"/><GradientStop Color="#16B04F" Offset="0.5"/><GradientStop Color="#076A2A" Offset="1"/></LinearGradientBrush></Setter.Value></Setter></Trigger>
+      <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45"/></Trigger>
+    </ControlTemplate.Triggers>
+  </ControlTemplate></ToggleButton.Template>
+</ToggleButton></StackPanel>
+              <StackPanel x:Name="SpeedPanel" Visibility="Collapsed">
+                <TextBlock Text="Speed" Foreground="#FFE600" FontWeight="Bold" FontSize="15" HorizontalAlignment="Center" Effect="{StaticResource Txt3DSmall}"/>
+                <ComboBox x:Name="Speed" Margin="0,5,0,0"/>
+              </StackPanel>
+            </StackPanel>
+            <StackPanel Grid.Column="2">
+              <TextBlock x:Name="BLabel" Foreground="#FFE600" FontWeight="Bold" FontSize="15" Margin="2,0,0,5" TextWrapping="Wrap" Effect="{StaticResource Txt3DSmall}"/>
+              <ComboBox x:Name="Dst"/>
+              <Grid x:Name="BPathRow" Visibility="Collapsed"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                <TextBox x:Name="BPath" IsReadOnly="True" VerticalAlignment="Top" Height="Auto" MinHeight="42" TextWrapping="Wrap" FontSize="13.5" Padding="8,4" VerticalContentAlignment="Center" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/><Button x:Name="BBrowse" Grid.Column="1" Content="Browse..." Style="{StaticResource Small3D}"/></Grid>
+            </StackPanel>
+          </Grid>
+          <TextBlock x:Name="Warn" TextWrapping="Wrap" Foreground="#FFB4B4" FontSize="15" FontWeight="Bold" TextAlignment="Center" Margin="0,10,0,0" Effect="{StaticResource Txt3DSmall}"/>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,14,0,0">
+            <Button x:Name="Back1" Style="{StaticResource Steel3D}"><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE72B;" FontFamily="Segoe MDL2 Assets" FontSize="20" VerticalAlignment="Center" Margin="0,0,12,0"/><TextBlock Text="Back" VerticalAlignment="Center"/></StackPanel></Button>
+            <Button x:Name="Go" Style="{StaticResource Big3D}"/>
+          </StackPanel>
+        </StackPanel>
+
+        <StackPanel x:Name="Prog" Visibility="Collapsed">
+          <Grid>
+            <Grid x:Name="PctBox" HorizontalAlignment="Center">
+              <TextBlock Text="{Binding Text, ElementName=Pct}" FontSize="72" FontWeight="Black" Foreground="#05102E"><TextBlock.RenderTransform><TranslateTransform X="6" Y="8"/></TextBlock.RenderTransform></TextBlock>
+              <TextBlock Text="{Binding Text, ElementName=Pct}" FontSize="72" FontWeight="Black" Foreground="#1E3070"><TextBlock.RenderTransform><TranslateTransform X="3" Y="4"/></TextBlock.RenderTransform></TextBlock>
+              <TextBlock x:Name="Pct" Text="0%" FontSize="72" FontWeight="Black">
+                <TextBlock.Foreground><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#FFFFFF" Offset="0.5"/><GradientStop Color="#FFE97A" Offset="0.6"/><GradientStop Color="#FFC400" Offset="1"/></LinearGradientBrush></TextBlock.Foreground></TextBlock>
+            </Grid>
+            <Grid x:Name="DoneBadge" Visibility="Collapsed" HorizontalAlignment="Center" VerticalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+              <Grid.RenderTransform><ScaleTransform x:Name="DoneScale"/></Grid.RenderTransform>
+              <Border CornerRadius="22" Background="#021208" Margin="0,16,0,-16" IsHitTestVisible="False"/><Border CornerRadius="22" Background="#031B0C" Margin="0,14,0,-14" IsHitTestVisible="False"/><Border CornerRadius="22" Background="#042410" Margin="0,12,0,-12" IsHitTestVisible="False"/><Border CornerRadius="22" Background="#052D15" Margin="0,10,0,-10" IsHitTestVisible="False"/><Border CornerRadius="22" Background="#063619" Margin="0,8,0,-8" IsHitTestVisible="False"/><Border CornerRadius="22" Background="#073F1D" Margin="0,6,0,-6" IsHitTestVisible="False"/><Border CornerRadius="22" Background="#084822" Margin="0,4,0,-4" IsHitTestVisible="False"/><Border CornerRadius="22" Background="#095126" Margin="0,2,0,-2" IsHitTestVisible="False"/>
+              <Border CornerRadius="22" BorderBrush="#E6FFFFFF" BorderThickness="2,2,2,0" Padding="46,12">
+                <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#7CF5A6" Offset="0"/><GradientStop Color="#16B04F" Offset="0.5"/><GradientStop Color="#076A2A" Offset="1"/></LinearGradientBrush></Border.Background>
+                <TextBlock Text="&#x2714;  You are all done!" Foreground="White" FontSize="46" FontWeight="Black" Effect="{StaticResource Txt3D}"/></Border>
+              <Border CornerRadius="22,22,0,0" VerticalAlignment="Top" Height="32" Margin="3,3,3,0" Background="#55FFFFFF" IsHitTestVisible="False"/>
+            </Grid>
+          </Grid>
+          <Grid Height="50" Margin="0,10,0,0">
+            <Border CornerRadius="26" Background="#030718" Margin="0,12,0,-12" IsHitTestVisible="False"/><Border CornerRadius="26" Background="#070D26" Margin="0,10,0,-10" IsHitTestVisible="False"/><Border CornerRadius="26" Background="#0C1435" Margin="0,8,0,-8" IsHitTestVisible="False"/><Border CornerRadius="26" Background="#101B44" Margin="0,6,0,-6" IsHitTestVisible="False"/><Border CornerRadius="26" Background="#152252" Margin="0,4,0,-4" IsHitTestVisible="False"/><Border CornerRadius="26" Background="#192961" Margin="0,2,0,-2" IsHitTestVisible="False"/>
+            <Border x:Name="Track" CornerRadius="26" Background="#070E33" BorderBrush="#AA00E5FF" BorderThickness="2.5" ClipToBounds="True">
+              <Grid>
+                <Border x:Name="Fill" HorizontalAlignment="Left" Width="0" CornerRadius="23">
+                  <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#B4FFCB" Offset="0"/><GradientStop Color="#22C16F" Offset="0.5"/><GradientStop Color="#076A2A" Offset="1"/></LinearGradientBrush></Border.Background></Border>
+                <Rectangle Width="170" HorizontalAlignment="Left" IsHitTestVisible="False">
+                  <Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="1,0"><GradientStop Color="#00FFFFFF" Offset="0"/><GradientStop Color="#88FFFFFF" Offset="0.5"/><GradientStop Color="#00FFFFFF" Offset="1"/></LinearGradientBrush></Rectangle.Fill>
+                  <Rectangle.RenderTransform><TranslateTransform x:Name="ShineMove"/></Rectangle.RenderTransform></Rectangle>
+                <Border CornerRadius="23,23,0,0" VerticalAlignment="Top" Height="18" Margin="3,3,3,0" Background="#3CFFFFFF" IsHitTestVisible="False"/>
+              </Grid>
+            </Border>
+          </Grid>
+          <TextBlock x:Name="PText" Foreground="White" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" TextAlignment="Center" Margin="0,20,0,0" Effect="{StaticResource Txt3DSmall}"/>
+          <TextBlock x:Name="PMsg" Foreground="#FFE600" FontSize="17" FontWeight="Bold" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Margin="0,6,0,0" Effect="{StaticResource Txt3DSmall}"/>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,12,0,0"><Button x:Name="Stop" Content="Stop" Style="{StaticResource Steel3D}"/><Button x:Name="CheckNow" Visibility="Collapsed" Style="{StaticResource Big3D}" Content="&#x2714;  Check this backup now"/></StackPanel>
+        </StackPanel>
+      </Grid>
+      </Grid>
+    </Grid>
+  </Grid>
+  </Viewbox>
+</Window>
+'@
+    $w = [Windows.Markup.XamlReader]::Load((New-Object Xml.XmlNodeReader $xaml))
+    try { $w.Owner = $window } catch { }
+    try { if ($window.Icon) { $w.Icon = $window.Icon } } catch { }
+    # A comfortable size: about 60% of the screen (the picture inside scales to fit), or the size it was left at last time.
+    $drCbKey = 'HKCU:\Software\DRDirect\PC Cleaner'
+    try {
+        $wa = [Windows.SystemParameters]::WorkArea
+        $cw = [Math]::Min(1040, $wa.Width * 0.6); $ch = $cw * 940 / 1280
+        if ($ch -gt $wa.Height * 0.8) { $ch = $wa.Height * 0.8; $cw = $ch * 1280 / 940 }
+        try {
+            $saved = Get-ItemProperty -LiteralPath $drCbKey -ErrorAction Stop
+            if ($saved.CloneWinW -ge 640 -and $saved.CloneWinH -ge 470) { $cw = [Math]::Min([double]$saved.CloneWinW, $wa.Width); $ch = [Math]::Min([double]$saved.CloneWinH, $wa.Height) }
+        } catch { }
+        $w.Width = $cw; $w.Height = $ch; $w.MinWidth = 640; $w.MinHeight = 470
+    } catch { }
+    $w.Add_Closed({
+        try {
+            if (-not (Test-Path -LiteralPath $drCbKey)) { New-Item -Path $drCbKey -Force | Out-Null }
+            $b = $w.RestoreBounds
+            if ($b.Width -ge 640 -and $b.Height -ge 470) {
+                Set-ItemProperty -LiteralPath $drCbKey -Name 'CloneWinW' -Value ([int]$b.Width) -Type DWord
+                Set-ItemProperty -LiteralPath $drCbKey -Name 'CloneWinH' -Value ([int]$b.Height) -Type DWord
+            }
+        } catch { }
+    })
+    $c = @{}
+    $names = 'TitleScale', 'Title1', 'Sub1', 'HomePanel', 'JobPanel', 'Close0', 'Back1', 'Agree', 'TileCheck', 'Flow', 'PipeGlow', 'ArrowNudge', 'DstFill',
+        'Form', 'ALabel', 'Src', 'APathRow', 'APath', 'ABrowse', 'ConfirmPanel', 'SpeedPanel', 'Speed', 'BLabel', 'Dst', 'BPathRow', 'BPath', 'BBrowse',
+        'Warn', 'Go', 'Prog', 'PctBox', 'Pct', 'DoneBadge', 'DoneScale', 'Track', 'Fill', 'ShineMove', 'PText', 'PMsg', 'Stop', 'CheckNow'
+    foreach ($p in 'A', 'B') { foreach ($n in 'Card', 'Bob', 'SpotColor', 'Face', 'Head', 'Sub', 'Hdd', 'File', 'FileText', 'Glyph', 'GlyphScale', 'GlyphText', 'GlyphBack1', 'GlyphBack2', 'Letter', 'Info', 'Led', 'LedGlow', 'Spin') { $names += "$n$p"; $names += "$p$n" } }
+    foreach ($t in 'clone', 'create', 'restore', 'rescue') { foreach ($n in '', 'Scale', 'Bob', 'Shine', 'Wobble') { $names += "Tile$t$n" } }
+    foreach ($n in $names) { $o = $w.FindName($n); if ($o) { $c[$n] = $o } }
+    # Each card part can be reached as AHead or HeadA, whichever reads better.
+    foreach ($k in @($c.Keys)) { if ($k -match '^([AB])([A-Z][A-Za-z0-9]*)$') { $c["$($Matches[2])$($Matches[1])"] = $c[$k] } elseif ($k -match '^([A-Z][A-Za-z0-9]*?)([AB])$' -and -not $c.ContainsKey("$($Matches[2])$($Matches[1])")) { $c["$($Matches[2])$($Matches[1])"] = $c[$k] } }
+    $state = @{ Mode = $Mode; Job = $null; Timer = $null; Clock = $null; Disks = @(); Usb = @(); Target = -1; Busy = $false; Demo = [bool]$TestMode; Home = (Resolve-DRImagerHome); Sync = $null; Ps = $null }
+    $bc = New-Object Windows.Media.BrushConverter
+
+    # ---- animation helpers ----
+    $anim = {
+        param($target, $prop, [double]$from, [double]$to, [double]$secs, [switch]$Forever, [switch]$Reverse, [double]$delay = 0, $ease = $null)
+        $a = New-Object Windows.Media.Animation.DoubleAnimation($from, $to, (New-Object Windows.Duration([TimeSpan]::FromSeconds($secs))))
+        if ($Forever) { $a.RepeatBehavior = [Windows.Media.Animation.RepeatBehavior]::Forever }
+        if ($Reverse) { $a.AutoReverse = $true }
+        if ($delay -gt 0) { $a.BeginTime = [TimeSpan]::FromSeconds($delay) }
+        if ($ease) { $a.EasingFunction = $ease }
+        $target.BeginAnimation($prop, $a)
+    }
+    $sine = New-Object Windows.Media.Animation.SineEase
+    $rotP = [Windows.Media.RotateTransform]::AngleProperty
+    $txP = [Windows.Media.TranslateTransform]::XProperty
+    $tyP = [Windows.Media.TranslateTransform]::YProperty
+    $opP = [Windows.UIElement]::OpacityProperty
+    $sxP = [Windows.Media.ScaleTransform]::ScaleXProperty
+    $syP = [Windows.Media.ScaleTransform]::ScaleYProperty
+
+    # 3D data cubes (front, lit top, shaded side) that fly through the tube, tumbling a little as they go
+    $cubeColors = @(@('#FFE600', '#FFF6A8', '#B8A000'), @('#00E5FF', '#A8F6FF', '#0090A8'), @('#5BEA8C', '#C4FFD8', '#16843F'), @('#FFFFFF', '#FFFFFF', '#9AA6C2'), @('#FF9A3C', '#FFD2A6', '#B85A10'))
+    $blocks = New-Object System.Collections.ArrayList
+    for ($i = 0; $i -lt 12; $i++) {
+        $cc = $cubeColors[$i % $cubeColors.Count]
+        $cube = New-Object Windows.Controls.Canvas
+        $cube.Width = 40; $cube.Height = 40
+        foreach ($face in @(@('M0,10 L30,10 L30,40 L0,40 Z', $cc[0]), @('M0,10 L10,0 L40,0 L30,10 Z', $cc[1]), @('M30,10 L40,0 L40,30 L30,40 Z', $cc[2]))) {
+            $pth = New-Object Windows.Shapes.Path
+            $pth.Data = [Windows.Media.Geometry]::Parse($face[0]); $pth.Fill = $bc.ConvertFromString($face[1])
+            $pth.Stroke = $bc.ConvertFromString('#55000814'); $pth.StrokeThickness = 1
+            [void]$cube.Children.Add($pth)
+        }
+        $fx = New-Object Windows.Media.Effects.DropShadowEffect; $fx.Color = [Windows.Media.Colors]::Black; $fx.ShadowDepth = 5; $fx.Direction = 300; $fx.BlurRadius = 5; $fx.Opacity = 0.7
+        $cube.Effect = $fx
+        $grp = New-Object Windows.Media.TransformGroup
+        $rot = New-Object Windows.Media.RotateTransform; $rot.CenterX = 20; $rot.CenterY = 20
+        $mov = New-Object Windows.Media.TranslateTransform
+        [void]$grp.Children.Add($rot); [void]$grp.Children.Add($mov)
+        $cube.RenderTransform = $grp
+        [Windows.Controls.Canvas]::SetTop($cube, 18); [Windows.Controls.Canvas]::SetLeft($cube, -50)
+        [void]$c.Flow.Children.Add($cube)
+        [void]$blocks.Add(@{ B = $cube; T = $mov; R = $rot })
+    }
+    # Idle: slow, faint flow. Working: fast and bright. Done or stopped: the tube empties.
+    $setFlow = {
+        param([string]$speed)
+        $width = [Math]::Max($c.Flow.ActualWidth, 300)
+        for ($i = 0; $i -lt $blocks.Count; $i++) {
+            $bl = $blocks[$i]
+            if ($speed -eq 'off') { $bl.T.BeginAnimation($txP, $null); $bl.R.BeginAnimation($rotP, $null); $bl.B.Opacity = 0; continue }
+            $secs = if ($speed -eq 'fast') { 1.4 } else { 4.4 }
+            $bl.B.Opacity = if ($speed -eq 'fast') { 1 } else { 0.45 }
+            & $anim $bl.T $txP 0 ($width + 100) $secs -Forever -delay ($secs * $i / $blocks.Count)
+            & $anim $bl.R $rotP -12 12 ($secs / 3) -Forever -Reverse -delay ($secs * $i / $blocks.Count)
+        }
+        $spin = if ($speed -eq 'fast') { 0.4 } elseif ($speed -eq 'off') { 0 } else { 3.6 }
+        foreach ($s in $c.SpinA, $c.SpinB) { if ($spin -gt 0) { & $anim $s $rotP 0 360 $spin -Forever } else { $s.BeginAnimation($rotP, $null) } }
+        if ($speed -eq 'fast') {
+            & $anim $c.LedA $opP 1 0.15 0.12 -Forever -Reverse
+            & $anim $c.LedB $opP 1 0.15 0.17 -Forever -Reverse
+            & $anim $c.PipeGlow ([Windows.Media.Effects.DropShadowEffect]::OpacityProperty) 0.4 1 0.5 -Forever -Reverse
+            & $anim $c.GlyphScaleB $sxP 1 1.08 0.5 -Forever -Reverse; & $anim $c.GlyphScaleB $syP 1 1.08 0.5 -Forever -Reverse
+        } else {
+            $c.LedA.BeginAnimation($opP, $null); $c.LedB.BeginAnimation($opP, $null)
+            $c.PipeGlow.BeginAnimation([Windows.Media.Effects.DropShadowEffect]::OpacityProperty, $null)
+            $c.GlyphScaleB.BeginAnimation($sxP, $null); $c.GlyphScaleB.BeginAnimation($syP, $null)
+        }
+    }
+    # always-on touches: the title breathes, the cards float, the arrow nudges, the bar shine runs
+    & $anim $c.TitleScale $sxP 1 1.03 1.6 -Forever -Reverse -ease $sine
+    & $anim $c.TitleScale $syP 1 1.03 1.6 -Forever -Reverse -ease $sine
+    & $anim $c.BobA $tyP -7 7 2.2 -Forever -Reverse -ease $sine
+    & $anim $c.BobB $tyP 7 -7 2.2 -Forever -Reverse -ease $sine
+    & $anim $c.ArrowNudge $txP -16 16 0.8 -Forever -Reverse -ease $sine
+    $w.Add_ContentRendered({ if ($c.JobPanel.Visibility -eq 'Visible') { & $setFlow 'slow' }; & $anim $c.ShineMove $txP -180 ([Math]::Max($c.Track.ActualWidth, 600) + 10) 1.8 -Forever })
+
+    # ---- looks for each job ----
+    $faces = @{
+        blue = @('#8CBAFF', '#2B5FE3', '#142C80', '#664FA3FF'); green = @('#7CF5A6', '#16B04F', '#076A2A', '#5539FF7A'); gold = @('#FFE98A', '#F2A516', '#9A5600', '#55FFC400')
+        cyan = @('#8CF6FF', '#10B8D6', '#055E73', '#5500E5FF'); purple = @('#D3B2FF', '#8B5CF6', '#43198C', '#558B5CF6'); orange = @('#FFC29E', '#E8590C', '#8E2C03', '#55FF7A2E')
+    }
+    $paint = {
+        param([string]$p, [string]$look)
+        $f = $faces[$look]
+        $br = New-Object Windows.Media.LinearGradientBrush; $br.StartPoint = '0,0'; $br.EndPoint = '0,1'
+        $br.GradientStops.Add((New-Object Windows.Media.GradientStop ([Windows.Media.ColorConverter]::ConvertFromString($f[0])), 0))
+        $br.GradientStops.Add((New-Object Windows.Media.GradientStop ([Windows.Media.ColorConverter]::ConvertFromString($f[1])), 0.48))
+        $br.GradientStops.Add((New-Object Windows.Media.GradientStop ([Windows.Media.ColorConverter]::ConvertFromString($f[2])), 1))
+        $c["${p}Face"].Background = $br
+        try { $c["${p}SpotColor"].Color = [Windows.Media.ColorConverter]::ConvertFromString($f[3]) } catch { }
+    }
+    $icon = {
+        param([string]$p, [string]$kind, [string]$text)
+        $c["${p}Hdd"].Visibility = if ($kind -eq 'hdd') { 'Visible' } else { 'Collapsed' }
+        $c["${p}File"].Visibility = if ($kind -eq 'file') { 'Visible' } else { 'Collapsed' }
+        $c["${p}Glyph"].Visibility = if ($kind -eq 'glyph') { 'Visible' } else { 'Collapsed' }
+        if ($kind -eq 'file') { $c["${p}FileText"].Text = $text }
+        if ($kind -eq 'glyph') { foreach ($g in 'GlyphText', 'GlyphBack1', 'GlyphBack2') { $c["${p}$g"].Text = $text } }
+    }
+    $jobs = @{
+        clone   = @{ Title = 'SmartCopy'; Sub = 'Makes an exact copy of one drive on another drive: Windows, programs and files. Only the used parts are copied, so it is fast.'; Go = '&#x25B6;  Start the copy' }
+        create  = @{ Title = 'Secure'; Sub = 'Saves a whole drive into one backup file that you can put back later. The drive itself is not changed.'; Go = '&#x25B6;  Save the backup' }
+        check   = @{ Title = 'Check a backup'; Sub = 'Makes sure a backup file is complete and not damaged. Nothing is changed.'; Go = '&#x25B6;  Check it' }
+        restore = @{ Title = 'Restore'; Sub = 'Puts a backup file back onto a drive, so the drive is just like it was when you saved it.'; Go = '&#x25B6;  Put it back' }
+        rescue  = @{ Title = 'Create a Rescue USB'; Sub = 'Makes a USB stick that can start this PC even when Windows will not start, so you can still copy, save or put back your drive.'; Go = '&#x25B6;  Make the Rescue USB' }
+    }
+    $driveLabel = { param($d)
+        $tag = if ($d.IsWindows) { '   [Windows drive]' } else { '' }
+        $ltr = if ($d.Letters) { "$($d.Letters)  -  " } else { '' }
+        "{0}{1}  -  {2}  (drive {3}){4}" -f $ltr, $d.Name, (Format-ImgSize $d.Size), $d.Number, $tag
+    }
+    $letterOf = { param($d) if ($d.Letters) { ($d.Letters -split ' ')[0] } else { "Drive $($d.Number)" } }
+    $fillDisks = {
+        param($combo, [switch]$NoWindows)
+        $combo.Items.Clear()
+        foreach ($d in $state.Disks) { [void]$combo.Items.Add((& $driveLabel $d)) }
+    }
+    $setBig = { param([string]$p, [string]$t) $c["${p}Letter"].Text = $t; $c["${p}Letter"].FontSize = $(if ($t.Length -le 8) { 50 } elseif ($t.Length -le 16) { 30 } else { 22 }) }
+
+    $setMode = {
+        param([string]$m)
+        $state.Mode = $m
+        $j = $jobs[$m]
+        $c.Title1.Text = $j.Title
+        $c.Sub1.Text = $j.Sub
+        $c.Go.Content = [Net.WebUtility]::HtmlDecode($j.Go)
+        $state.AgreeFor = $null; $state.InRefresh = $true; $c.Agree.IsChecked = $false; $state.InRefresh = $false
+        $c.Warn.Text = ''
+        $c.Src.Visibility = 'Collapsed'; $c.APathRow.Visibility = 'Collapsed'
+        $c.Dst.Visibility = 'Collapsed'; $c.BPathRow.Visibility = 'Collapsed'
+        $c.ConfirmPanel.Visibility = 'Collapsed'; $c.SpeedPanel.Visibility = 'Collapsed'
+        $c.BLabel.Text = ''
+        switch ($m) {
+            'clone' {
+                & $paint 'A' 'blue'; & $paint 'B' 'green'; & $icon 'A' 'hdd'; & $icon 'B' 'hdd'
+                $c.HeadA.Text = 'COPY FROM'; $c.SubA.Text = '(only read, nothing changes)'
+                $c.HeadB.Text = 'COPY ONTO'; $c.SubB.Text = '(gets the copy)'
+                $c.ALabel.Text = '1.  Pick the drive to copy'; $c.BLabel.Text = '2.  Pick the drive that gets the copy'
+                $c.Src.Visibility = 'Visible'; $c.Dst.Visibility = 'Visible'; $c.ConfirmPanel.Visibility = 'Visible'
+                & $fillDisks $c.Src; & $fillDisks $c.Dst
+                $si = 0; for ($i = 0; $i -lt $state.Disks.Count; $i++) { if (($state.Disks[$i].Letters -split ' ') -contains 'H:') { $si = $i; break } }
+                if ($state.Disks.Count) { $c.Src.SelectedIndex = $si }
+                $di = -1; for ($i = 0; $i -lt $state.Disks.Count; $i++) { $x = $state.Disks[$i]; if ($i -ne $si -and -not $x.IsWindows -and $x.Size -ge $state.Disks[$si].Size) { $di = $i; break } }
+                if ($di -lt 0) { for ($i = 0; $i -lt $state.Disks.Count; $i++) { if ($i -ne $si -and -not $state.Disks[$i].IsWindows) { $di = $i; break } } }
+                $c.Dst.SelectedIndex = $di
+            }
+            'create' {
+                & $paint 'A' 'blue'; & $paint 'B' 'gold'; & $icon 'A' 'hdd'; & $icon 'B' 'file' 'DRIMG'
+                $c.HeadA.Text = 'SAVE THIS DRIVE'; $c.SubA.Text = '(only read, nothing changes)'
+                $c.HeadB.Text = 'BACKUP FILE'; $c.SubB.Text = '(one file, opens only on this PC)'
+                $c.ALabel.Text = '1.  Pick the drive to save'; $c.BLabel.Text = '2.  Where the backup goes (picked for you - Browse only to change it)'
+                $c.Src.Visibility = 'Visible'; $c.BPathRow.Visibility = 'Visible'; $c.SpeedPanel.Visibility = 'Visible'
+                & $fillDisks $c.Src
+                $state.AutoPath = $true
+                if ($state.Disks.Count) { $c.Src.SelectedIndex = 0 }
+                & $autoPlace
+            }
+            'check' {
+                & $paint 'A' 'gold'; & $paint 'B' 'cyan'; & $icon 'A' 'file' 'DRIMG'; & $icon 'B' 'glyph' ([string][char]0xE73E)
+                $c.HeadA.Text = 'BACKUP FILE'; $c.SubA.Text = '(only read, nothing changes)'
+                $c.HeadB.Text = 'CHECK IT'; $c.SubB.Text = '(every block is tested)'
+                $c.ALabel.Text = '1.  Pick the backup file to check'
+                $c.APathRow.Visibility = 'Visible'
+            }
+            'restore' {
+                & $paint 'A' 'gold'; & $paint 'B' 'orange'; & $icon 'A' 'file' 'DRIMG'; & $icon 'B' 'hdd'
+                $c.HeadA.Text = 'BACKUP FILE'; $c.SubA.Text = '(what you saved before)'
+                $c.HeadB.Text = 'PUT IT BACK ON'; $c.SubB.Text = '(gets the image back)'
+                $c.ALabel.Text = '1.  Pick the backup file'; $c.BLabel.Text = '2.  Pick the drive to put it back on'
+                $c.APathRow.Visibility = 'Visible'; $c.Dst.Visibility = 'Visible'; $c.ConfirmPanel.Visibility = 'Visible'
+                & $fillDisks $c.Dst
+                $di = -1; for ($i = 0; $i -lt $state.Disks.Count; $i++) { if (-not $state.Disks[$i].IsWindows) { $di = $i; break } }
+                $c.Dst.SelectedIndex = $di
+            }
+            'rescue' {
+                & $paint 'A' 'purple'; & $paint 'B' 'purple'; & $icon 'A' 'file' 'RESCUE'; & $icon 'B' 'glyph' ([string][char]0xE88E)
+                $c.HeadA.Text = 'RESCUE SYSTEM'; $c.SubA.Text = '(starts this PC without Windows)'
+                $c.HeadB.Text = 'USB FLASH DRIVE'; $c.SubB.Text = '(becomes the Rescue USB)'
+                $last = Get-DRRescueUsbRecord
+                $c.ALabel.Text = if (-not $state.Home -and -not $state.Demo) { 'The Rescue system is not on this PC. Ask DRDirect for a Rescue USB.' }
+                    elseif ($last) { "Your last Rescue USB was made on $($last.When.ToString('d MMMM yyyy')) ($($last.What)).`nLost it or broken? Make a new one here, any time." }
+                    else { "You do not have a Rescue USB yet. Make one now and keep it somewhere safe.`nLost it or broken later? Come back here and make a new one." }
+                if ($last) { $c.HeadA.Text = 'NEW RESCUE USB'; $c.Go.Content = [Net.WebUtility]::HtmlDecode('&#x25B6;  Make a new Rescue USB') }
+                $c.BLabel.Text = '1.  Pick the USB stick'
+                $c.Dst.Visibility = 'Visible'; $c.ConfirmPanel.Visibility = 'Visible'
+                $c.Dst.Items.Clear()
+                $state.Usb = @(Get-DRRescueUsbDisks)
+                foreach ($s in $state.Usb) {
+                    $l = if ($s.Letters.Count) { ($s.Letters | ForEach-Object { "$($_):" }) -join ' ' } else { 'no letter' }
+                    [void]$c.Dst.Items.Add(("{0}  -  {1}  -  {2}  -  {3} file(s)" -f $l, $s.Name, (Format-ImgSize $s.Size), $s.Files))
+                }
+                $c.Dst.SelectedIndex = $(if ($state.Usb.Count -eq 1) { 0 } else { -1 })
+            }
+        }
+        $state.LookAgain = $false
+        & $refresh
+    }
+
+    # Secure: choose the place for the backup by itself, unless the person picked one with Browse.
+    $autoPlace = {
+        if ($state.Mode -ne 'create' -or -not $state.AutoPath) { return }
+        $d = if ($c.Src.SelectedIndex -ge 0) { $state.Disks[$c.Src.SelectedIndex] } else { $null }
+        $state.AutoFree = $null
+        if (-not $d) { return }
+        $place = $null; try { $place = Get-DRAutoBackupPlace $d } catch { }
+        $state.InRefresh = $true
+        $c.BPath.Text = if ($place) { $place.Path } else { '' }
+        $state.InRefresh = $false
+        if ($place) { $state.AutoFree = $place.Free }
+        & $refresh
+    }
+    $tip = { param([string]$t) $c.Warn.Foreground = $bc.ConvertFromString('#CFE3FF'); $c.Warn.Text = $t }
+    $block = { param([string]$t) $c.Warn.Foreground = $bc.ConvertFromString('#FFB4B4'); $c.Warn.Text = $t }
+    # The tick button: one friendly "yes", reset whenever the target changes so it always matches what is shown.
+    $agree = {
+        param([string]$key, [string]$yes, [string]$note)
+        $c.Agree.Visibility = 'Visible'
+        $c.Agree.Content = $yes; $c.Agree.Tag = $note
+        if ($state.AgreeFor -ne $key) { $state.AgreeFor = $key; $state.InRefresh = $true; $c.Agree.IsChecked = $false; $state.InRefresh = $false }
+        return [bool]$c.Agree.IsChecked
+    }
+    $refresh = {
+        if ($state.InRefresh) { return }
+        $c.Warn.Text = ''; $c.Go.IsEnabled = $false; $c.Agree.Visibility = 'Collapsed'
+        $m = $state.Mode
+        $d = if ($c.Src.Visibility -eq 'Visible' -and $c.Src.SelectedIndex -ge 0) { $state.Disks[$c.Src.SelectedIndex] } else { $null }
+        $d2 = if ($m -ne 'rescue' -and $c.Dst.Visibility -eq 'Visible' -and $c.Dst.SelectedIndex -ge 0) { $state.Disks[$c.Dst.SelectedIndex] } else { $null }
+        $aFile = $c.APath.Text; $bFile = $c.BPath.Text
+        $c.DstFill.Width = 0
+        switch ($m) {
+            'clone' {
+                & $setBig 'A' $(if ($d) { & $letterOf $d } else { '?' }); & $setBig 'B' $(if ($d2) { & $letterOf $d2 } else { '?' })
+                $c.InfoA.Text = if ($d) { "$($d.Name)`n$(Format-ImgSize $d.Size)$(if ($d.IsWindows) { '  -  Windows drive' })" } else { '' }
+                $c.InfoB.Text = if ($d2) { "$($d2.Name)`n$(Format-ImgSize $d2.Size)$(if ($d2.IsWindows) { '  -  Windows drive' })" } else { 'Plug in the drive to copy onto.' }
+                if (-not $d -or -not $d2) { & $tip 'Choose a drive to copy from and a drive to copy onto.'; return }
+                $why = Get-CloneBlockReason $d.Number $d2.Number
+                if ($why) { & $block $why; return }
+                if ($d.IsWindows) { & $tip "Tip: Windows is running from $(& $letterOf $d), so it is copied while in use. For a perfect copy, start the PC from the Rescue USB." }
+                $t2 = & $letterOf $d2
+                $c.Go.IsEnabled = (& $agree "clone|$($d.Number)|$($d2.Number)" "3.  Yes, put the copy on $t2" "What is on $t2 now will be replaced by the copy.")
+            }
+            'create' {
+                & $setBig 'A' $(if ($d) { & $letterOf $d } else { '?' })
+                & $setBig 'B' $(if ($bFile) { [IO.Path]::GetFileName($bFile) } else { '.drimg' })
+                $c.InfoA.Text = if ($d) { "$($d.Name)`n$(Format-ImgSize $d.Size)$(if ($d.IsWindows) { '  -  Windows drive' })" } else { '' }
+                $c.InfoB.Text = if ($bFile) { $bFile } else { 'No other drive to save on.' }
+                if (-not $d) { & $tip 'Choose the drive to secure.'; return }
+                if ($d.IsWindows) { & $tip "Tip: Windows is running from $(& $letterOf $d), so the image is made while it is in use. For a perfect image, make it from the Rescue USB." }
+                if (-not $bFile) { & $block 'There is no other drive to save the backup on. Plug in an external drive (USB), then come back to Secure.'; return }
+                $why = Get-ImageBlockReason $d.Number $bFile
+                if ($why) { & $block $why; return }
+                # Will it fit? A backup is usually well under the used space on the drive; warn if it might not fit.
+                try {
+                    $used = 0.0
+                    foreach ($l in (Get-DiskLetters $d.Number)) { $v = Get-Volume -DriveLetter $l -ErrorAction SilentlyContinue; if ($v) { $used += [double]($v.Size - $v.SizeRemaining) } }
+                    $rootL = ([IO.Path]::GetPathRoot($bFile)).Substring(0, 1)
+                    $fv = Get-Volume -DriveLetter $rootL -ErrorAction SilentlyContinue
+                    if ($fv -and $used -gt 0) {
+                        $c.InfoB.Text = "$bFile`n$(Format-ImgSize $fv.SizeRemaining) free on $($rootL):"
+                        if ([double]$fv.SizeRemaining -lt $used * 0.7) { & $tip "The backup may not fit on $($rootL): (about $(Format-ImgSize ($used * 0.6)) needed, $(Format-ImgSize $fv.SizeRemaining) free). Free some space or plug in a bigger drive." }
+                    }
+                } catch { }
+                $c.Go.IsEnabled = $true
+            }
+            'check' {
+                & $setBig 'A' $(if ($aFile) { [IO.Path]::GetFileName($aFile) } else { '.drimg' }); & $setBig 'B' 'OK?'
+                $c.InfoA.Text = if ($aFile) { $aFile } else { 'Press Browse to pick the backup file.' }
+                $c.InfoB.Text = 'Every part of the image is read and tested.'
+                $c.Go.IsEnabled = ($aFile -and (Test-Path -LiteralPath $aFile -PathType Leaf))
+            }
+            'restore' {
+                & $setBig 'A' $(if ($aFile) { [IO.Path]::GetFileName($aFile) } else { '.drimg' }); & $setBig 'B' $(if ($d2) { & $letterOf $d2 } else { '?' })
+                $c.InfoA.Text = if ($aFile) { $aFile } else { 'Press Browse to pick the backup file.' }
+                $c.InfoB.Text = if ($d2) { "$($d2.Name)`n$(Format-ImgSize $d2.Size)$(if ($d2.IsWindows) { '  -  Windows drive' })" } else { 'Plug in the drive to restore onto.' }
+                if (-not $d2) { & $tip 'Choose the drive to restore onto.'; return }
+                if (-not $aFile) { & $tip 'Press Browse to pick the backup file.'; return }
+                $why = Get-RestoreBlockReason $d2.Number $aFile
+                if ($why) { & $block $why; return }
+                $t2 = & $letterOf $d2
+                $c.Go.IsEnabled = (& $agree "restore|$aFile|$($d2.Number)" "3.  Yes, put it back on $t2" "What is on $t2 now will be replaced.")
+            }
+            'rescue' {
+                $u = if ($c.Dst.SelectedIndex -ge 0) { $state.Usb[$c.Dst.SelectedIndex] } else { $null }
+                & $setBig 'A' 'ISO'; & $setBig 'B' $(if ($u -and $u.Letters.Count) { "$($u.Letters[0]):" } elseif ($u) { 'USB' } else { '?' })
+                $c.InfoA.Text = if ($state.Home) { 'DRDirect Rescue system' } else { 'Not found on this PC' }
+                $c.InfoB.Text = if ($u) { "$($u.Name)`n$(Format-ImgSize $u.Size)" } else { 'Plug in a USB flash drive you do not need.' }
+                if (-not $state.Home -and -not $state.Demo) { & $block 'The Rescue system (DRDirect Imager Rescue.iso) is not on this PC, so a Rescue USB cannot be created here.'; return }
+                if (-not $state.Usb.Count) { & $tip 'Plug in a USB stick (any size from 1 GB), then press Look again. A new one replaces a lost or broken Rescue USB.'; $c.Go.Content = [string][char]0x21BB + '  Look again'; $c.Go.IsEnabled = $true; $state.LookAgain = $true; return }
+                if (-not $u) { & $tip 'More than one USB flash drive is plugged in. Pick the one to use.'; return }
+                $ul = if ($u.Letters.Count) { "$($u.Letters[0]):" } else { 'the USB' }
+                if ($u.Files -gt 0) { & $tip "The USB holds $($u.Files) file(s), about $(Format-ImgSize $u.UsedBytes). Copy anything you want to keep first." }
+                $c.Go.IsEnabled = (& $agree "rescue|$($u.Number)" "2.  Yes, make the Rescue USB on $ul" "What is on the USB now will be replaced. It starts this PC only.")
+            }
+        }
+    }
+
+    # ---- speed choices (Secure) ----
+    $cores = [Environment]::ProcessorCount
+    $state.Speeds = @($cores, [Math]::Max(1, [int]($cores / 2)), [Math]::Max(1, [int]($cores / 4)), $cores)
+    [void]$c.Speed.Items.Add(('{0}X  -  fastest (every CPU thread)' -f $state.Speeds[0]))
+    [void]$c.Speed.Items.Add(('{0}X  -  fast' -f $state.Speeds[1]))
+    [void]$c.Speed.Items.Add(('{0}X  -  gentle (the PC stays responsive)' -f $state.Speeds[2]))
+    [void]$c.Speed.Items.Add('Smallest file  -  slower')
+    $c.Speed.SelectedIndex = 0
+
+    $state.Disks = @(Get-ImagerDisks)
+    $c.Src.Add_SelectionChanged({ if ($state.Mode -eq 'create' -and $state.AutoPath) { & $autoPlace } else { & $refresh } })
+    $c.Dst.Add_SelectionChanged({ & $refresh })
+    $c.APath.Add_TextChanged({ & $refresh })
+    $c.BPath.Add_TextChanged({ & $refresh })
+    $c.ABrowse.Add_Click({
+        $dlg = New-Object Microsoft.Win32.OpenFileDialog
+        $dlg.Filter = 'DRDirect backup file (*.drimg)|*.drimg'
+        $from = if ($c.APath.Text) { [IO.Path]::GetDirectoryName($c.APath.Text) } else { Get-DRLastBackupFolder }
+        if ($from -and (Test-Path -LiteralPath $from -PathType Container)) { $dlg.InitialDirectory = $from }
+        $last = Get-DRLastBackupFile
+        if ($last -and (Test-Path -LiteralPath $last -PathType Leaf)) { $dlg.FileName = [IO.Path]::GetFileName($last) }
+        if ($dlg.ShowDialog($w)) { $c.APath.Text = $dlg.FileName; Set-DRLastBackupFile $dlg.FileName }
+    })
+    $c.BBrowse.Add_Click({
+        $dlg = New-Object Microsoft.Win32.SaveFileDialog
+        $dlg.Filter = 'DRDirect image (*.drimg)|*.drimg'; $dlg.DefaultExt = 'drimg'
+        $dlg.FileName = (Get-Date -Format 'yyyyMMdd') + ' Image.drimg'
+        $from = Get-DRLastBackupFolder
+        if ($from) { $dlg.InitialDirectory = $from }
+        if ($dlg.ShowDialog($w)) { $state.AutoPath = $false; $state.AutoFree = $null; $c.BPath.Text = $dlg.FileName }
+    })
+    $showHome = {
+        $c.JobPanel.Visibility = 'Collapsed'; $c.HomePanel.Visibility = 'Visible'
+        $c.Title1.Text = 'Clone & Backup'; $c.Sub1.Text = 'Pick what you want to do. Each one shows you the steps.'
+        & $setFlow 'off'
+    }
+    $showJob = {
+        param([string]$m)
+        $c.HomePanel.Visibility = 'Collapsed'; $c.JobPanel.Visibility = 'Visible'
+        $c.Form.Visibility = 'Visible'; $c.Prog.Visibility = 'Collapsed'
+        $state.Disks = @(Get-ImagerDisks); $c.APath.Text = ''; $c.BPath.Text = ''
+        & $setMode $m
+        if ($m -eq 'check' -or $m -eq 'restore') { $last = Get-DRLastBackupFile; if ($last -and (Test-Path -LiteralPath $last -PathType Leaf)) { $c.APath.Text = $last } }
+        $w.Dispatcher.BeginInvoke([Action]{ & $setFlow 'slow' }, [Windows.Threading.DispatcherPriority]::Loaded) | Out-Null
+    }
+    # the big choice tiles: they float, their pictures sway, a shine sweeps across, and they grow under the mouse
+    $k = 0
+    foreach ($t in 'clone', 'create', 'restore', 'rescue') {
+        $tile = $c["Tile$t"]
+        & $anim $c["Tile${t}Bob"] $tyP -9 9 (2.0 + 0.25 * $k) -Forever -Reverse -ease $sine -delay (0.3 * $k)
+        & $anim $c["Tile${t}Wobble"] $rotP -5 5 (1.7 + 0.2 * $k) -Forever -Reverse -ease $sine -delay (0.2 * $k)
+        & $anim $c["Tile${t}Shine"] $txP -320 900 3.4 -Forever -delay (0.6 * $k)
+        $tile.Add_MouseEnter({ param($s, $e) $sc = $c["$($s.Name)Scale"]; & $anim $sc $sxP $sc.ScaleX 1.1 0.18; & $anim $sc $syP $sc.ScaleY 1.1 0.18 })
+        $tile.Add_MouseLeave({ param($s, $e) $sc = $c["$($s.Name)Scale"]; & $anim $sc $sxP $sc.ScaleX 1 0.25; & $anim $sc $syP $sc.ScaleY 1 0.25 })
+        $tile.Add_Click({ param($s, $e) try { & $showJob ([string]$s.Name.Substring(4)) } catch { [Windows.MessageBox]::Show($w, "Clone & Backup could not open that screen:`n$($_.Exception.Message)`n$($_.InvocationInfo.PositionMessage)", 'DRDirect Clone & Backup', 'OK', 'Error') | Out-Null } })
+        $k++
+    }
+    $c.TileCheck.Add_Click({ try { & $showJob 'check' } catch { [Windows.MessageBox]::Show($w, "Clone & Backup could not open that screen:`n$($_.Exception.Message)`n$($_.InvocationInfo.PositionMessage)", 'DRDirect Clone & Backup', 'OK', 'Error') | Out-Null } })
+    $c.Close0.Add_Click({ $w.Close() })
+    $c.Back1.Add_Click({ & $showHome })
+    $c.CheckNow.Add_Click({
+        $f = $state.JustSaved; $state.Job = $null
+        & $backToForm; & $showJob 'check'
+        if ($f) { $c.APath.Text = $f }
+    })
+    $c.Agree.Add_Checked({ & $refresh })
+    $c.Agree.Add_Unchecked({ & $refresh })
+
+    $showProgress = {
+        $c.Form.Visibility = 'Collapsed'; $c.Prog.Visibility = 'Visible'
+        $c.DoneBadge.Visibility = 'Collapsed'; $c.PctBox.Visibility = 'Visible'
+        $c.PMsg.Text = ''; $c.PMsg.Foreground = $bc.ConvertFromString('#FFE600')
+        $c.Fill.Width = 0; $c.DstFill.Width = 0; $c.Pct.Text = '0%'; $c.CheckNow.Visibility = 'Collapsed'
+        $w.Dispatcher.Invoke([Action]{}, [Windows.Threading.DispatcherPriority]::Render)
+    }
+    $backToForm = {
+        $c.Prog.Visibility = 'Collapsed'; $c.Form.Visibility = 'Visible'
+    }
+    $ask = { param([string]$text, [string]$title) ([Windows.MessageBox]::Show($w, $text, $title, 'YesNo', 'Question') -eq 'Yes') }
+
+    $c.Go.Add_Click({
+        $m = $state.Mode
+        if ($state.LookAgain) { $state.LookAgain = $false; & $setMode 'rescue'; return }
+        $d = if ($c.Src.SelectedIndex -ge 0) { $state.Disks[$c.Src.SelectedIndex] } else { $null }
+        $d2 = if ($m -ne 'rescue' -and $c.Dst.SelectedIndex -ge 0) { $state.Disks[$c.Dst.SelectedIndex] } else { $null }
+        $demoNote = if ($state.Demo) { "`n`n(Test mode: nothing is read or written. This only shows the animation.)" } else { '' }
+        $job = $null; $state.Sync = $null
+        try {
+            & $showProgress
+            $c.Stop.IsEnabled = $false
+            switch ($m) {
+                'clone' {
+                    $c.PText.Text = 'Looking at the drive to see how long it will take...'
+                    $w.Dispatcher.Invoke([Action]{}, [Windows.Threading.DispatcherPriority]::Render)
+                    $bytes = [double]$d.Size; $ext = $null; $sp = 150MB
+                    if (-not $state.Demo) {
+                        $ext = Get-SmartExtents $d.Number $d.Size
+                        if ($ext) { $bytes = 2MB; for ($i = 1; $i -lt $ext.Data.Count; $i += 2) { $bytes += $ext.Data[$i] } }
+                        $sp = [DRImgJob]::MeasureSpeed($d.Path, $d.Size, $false)
+                    }
+                    $est = Format-Duration ($bytes / [Math]::Max($sp, 1))
+                    if (-not (& $ask "Ready to copy?`n`nFrom:  $(Get-DriveWords $d)`nOnto:  $(Get-DriveWords $d2)`n`nWhat is on $(& $letterOf $d2) now will be replaced by the copy.`nAbout $(Format-ImgSize $bytes) to copy, about $est.$demoNote`n`nStart now?" 'SmartCopy')) { & $backToForm; return }
+                    if ($state.Demo) { $job = [pscustomobject]@{ Done = [long]0; Total = [long][Math]::Max($bytes, 1GB); FileDone = 0; FileTotal = 0; Finished = $false; Ok = $false; Error = $null; Cancel = $false } }
+                    else {
+                        $job = New-Object DRImgJob
+                        $state.Target = $d2.Number
+                        Sync-DiskVolumes $d.Number
+                        Initialize-RestoreTarget $d2.Number
+                        if ($ext) { $job.StartSmartClone($d.Path, $d2.Path, $d.Size, $ext.Data, $ext.Tail) } else { $job.StartClone($d.Path, $d2.Path, $d.Size) }
+                    }
+                }
+                'create' {
+                    $c.PText.Text = 'Looking at the drive to see how long it will take...'
+                    $w.Dispatcher.Invoke([Action]{}, [Windows.Threading.DispatcherPriority]::Render)
+                    $workers = $state.Speeds[[Math]::Max(0, $c.Speed.SelectedIndex)]
+                    $smallest = ($c.Speed.SelectedIndex -eq 3)
+                    $bytes = [double]$d.Size; $ext = $null; $sp = 300MB
+                    if (-not $state.Demo) {
+                        $ext = Get-SmartExtents $d.Number $d.Size
+                        $sp = if ($ext) { [DRImgJob]::MeasureQuick($d.Path, $ext.Data, $workers, $smallest) } else { [DRImgJob]::MeasureSpeed($d.Path, $d.Size, $true) }
+                        if ($ext) { $bytes = 2MB; for ($i = 1; $i -lt $ext.Data.Count; $i += 2) { $bytes += $ext.Data[$i] } }
+                    }
+                    $est = Format-Duration ($bytes / [Math]::Max($sp, 1))
+                    $whole = if ($ext -and $ext.Whole.Count) { "`n`nCopied whole, because they cannot be mapped: " + ($ext.Whole -join ', ') + '.' } else { '' }
+                    if (-not (& $ask "Secure $(Get-DriveWords $d) into:`n$($c.BPath.Text)`n`nOnly the used parts are read (about $(Format-ImgSize $bytes) of $(Format-ImgSize $d.Size)).$whole`nEstimated time: about $est.$demoNote`n`nStart?" 'Secure')) { & $backToForm; return }
+                    if ($state.Demo) { $job = [pscustomobject]@{ Done = [long]0; Total = [long][Math]::Max($bytes, 1GB); FileDone = 0; FileTotal = 0; Finished = $false; Ok = $false; Error = $null; Cancel = $false } }
+                    else {
+                        $job = New-ImagerJob
+                        $dir = Split-Path -Parent $c.BPath.Text
+                        if ($dir -and -not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+                        Sync-DiskVolumes $d.Number
+                        $job.Quick = (-not $smallest); $job.Fast = $false; $job.Workers = $workers
+                        if ($ext) { $job.StartSmartImage($d.Path, $c.BPath.Text, $d.Size, "$($d.Name)", $ext.Data, $ext.Tail) } else { $job.StartImage($d.Path, $c.BPath.Text, $d.Size, "$($d.Name)") }
+                    }
+                }
+                'check' {
+                    if ($state.Demo) { $job = [pscustomobject]@{ Done = [long]0; Total = [long]100GB; FileDone = 0; FileTotal = 0; Finished = $false; Ok = $false; Error = $null; Cancel = $false } }
+                    else { $job = New-ImagerJob; $job.StartVerify($c.APath.Text) }
+                }
+                'restore' {
+                    if (-not (& $ask "Ready to restore?`n`nImage:  $($c.APath.Text)`nOnto:    $(Get-DriveWords $d2)`n`nWhat is on $(& $letterOf $d2) now will be replaced.$demoNote`n`nStart now?" 'Restore')) { & $backToForm; return }
+                    if ($state.Demo) { $job = [pscustomobject]@{ Done = [long]0; Total = [long]100GB; FileDone = 0; FileTotal = 0; Finished = $false; Ok = $false; Error = $null; Cancel = $false } }
+                    else {
+                        $job = New-ImagerJob
+                        $state.Target = $d2.Number
+                        Initialize-RestoreTarget $d2.Number
+                        $job.StartRestore($c.APath.Text, $d2.Path)
+                    }
+                }
+                'rescue' {
+                    $u = $state.Usb[$c.Dst.SelectedIndex]
+                    $ul = if ($u.Letters.Count) { "$($u.Letters[0]):" } else { 'the USB' }
+                    $state.RescueWhat = "$($u.Name), $(Format-ImgSize $u.Size)"
+                    if (-not (& $ask "Ready to create the Rescue USB on $($ul)?`n`n$($u.Name), $(Format-ImgSize $u.Size)`nWhat is on it now will be replaced. It takes a few minutes.$demoNote`n`nStart now?" 'Rescue USB')) { & $backToForm; return }
+                    $sync = [hashtable]::Synchronized(@{ Step = 'Starting...'; N = 0; Done = $false; Result = $null })
+                    $state.Sync = $sync
+                    $job = [pscustomobject]@{ Done = [long]0; Total = [long]5; FileDone = 0; FileTotal = 0; Finished = $false; Ok = $false; Error = $null; Cancel = $false }
+                    if (-not $state.Demo) {
+                        $rs = [runspacefactory]::CreateRunspace(); $rs.Open()
+                        foreach ($kv in @{ sync = $sync; DRImagerHome = $state.Home; DiskNumber = $u.Number; IsoPath = (Join-Path $state.Home 'DRDirect Imager Rescue.iso'); ExpectLetter = $(if ($u.Letters.Count) { [string]$u.Letters[0] } else { '' }) }.GetEnumerator()) {
+                            $rs.SessionStateProxy.SetVariable($kv.Key, $kv.Value)
+                        }
+                        $ps = [powershell]::Create(); $ps.Runspace = $rs
+                        $body = "try {`n" + (Get-DRImagerEngineText) + "`n" + $script:DRRescueUsbWriter.Replace('$PSScriptRoot', '$DRImagerHome') + "`n" +
+                            '$sync.Result = Write-RescueUsb -DiskNumber $DiskNumber -IsoPath $IsoPath -ExpectLetter $ExpectLetter -Say { param($t) $sync.Step = $t; $sync.N = $sync.N + 1 }' +
+                            "`n} catch { `$sync.Result = @{ Ok = `$false; Message = ""It did not finish: `$(`$_.Exception.Message)"" } } finally { `$sync.Done = `$true }"
+                        [void]$ps.AddScript($body)
+                        $state.Ps = @{ Ps = $ps; Rs = $rs; Handle = $ps.BeginInvoke() }
+                    }
+                }
+            }
+        }
+        catch {
+            [Windows.MessageBox]::Show($w, $_.Exception.Message, $jobs[$m].Title, 'OK', 'Error') | Out-Null
+            & $backToForm; return
+        }
+
+        $state.Job = $job; $state.Busy = $true
+        $state.Clock = [Diagnostics.Stopwatch]::StartNew()
+        $c.Stop.Content = 'Stop'; $c.Stop.Tag = $null; $c.Stop.IsEnabled = ($m -ne 'rescue')
+        & $setFlow 'fast'
+        $c.LedB.Fill = $bc.ConvertFromString('#FFB020'); $c.LedGlowB.Color = [Windows.Media.ColorConverter]::ConvertFromString('#FFB020')
+        $t = New-Object Windows.Threading.DispatcherTimer
+        $t.Interval = [TimeSpan]::FromMilliseconds(250)
+        $t.Add_Tick({
+            $j = $state.Job; $m = $state.Mode
+            if ($m -eq 'rescue' -and -not $j.Finished) {
+                $s = $state.Sync
+                if ($state.Demo) {
+                    $steps = 'Erasing the USB flash drive...', 'Formatting...', 'Copying the rescue system...', 'Setting up the stick...', 'Checking...'
+                    $n = [int][Math]::Min(5, [Math]::Floor($state.Clock.Elapsed.TotalSeconds / 2.5))
+                    $s.N = $n; if ($n -lt 5) { $s.Step = $steps[$n] } else { $s.Done = $true; $s.Result = @{ Ok = $true; Message = 'The Rescue USB is ready. (Test mode: nothing was written.)' } }
+                }
+                $j.Done = [long][Math]::Min(5, $s.N)
+                if ($s.Done) { $j.Finished = $true; $j.Ok = [bool]$s.Result.Ok; $j.Error = [string]$s.Result.Message; $j.Done = 5 }
+            }
+            elseif ($state.Demo -and -not $j.Finished) {
+                if ($j.Cancel) { $j.Finished = $true; $j.Error = 'Cancelled.' }
+                else { $j.Done = [long][Math]::Min([double]$j.Total, [double]$j.Done + [double]$j.Total / 60); if ($j.Done -ge $j.Total) { $j.Finished = $true; $j.Ok = $true } }
+            }
+            $sec = [Math]::Max($state.Clock.Elapsed.TotalSeconds, 0.5)
+            # Restore and check follow the saved data actually read; empty space in an image is skipped at once.
+            $real = ([double]$j.FileTotal -gt 0)
+            $done = if ($real) { [double]$j.FileDone } else { [double]$j.Done }
+            $total = if ($real) { [double]$j.FileTotal } else { [double][Math]::Max($j.Total, 1) }
+            $pct = [Math]::Min(100, 100 * $done / $total)
+            $c.Pct.Text = ('{0:N0}%' -f [Math]::Floor($pct))
+            $c.Fill.Width = [Math]::Max(0, ($c.Track.ActualWidth - 5) * $pct / 100)
+            $c.DstFill.Width = [Math]::Max(0, 280 * $pct / 100)
+            if ($m -eq 'rescue') { $c.PText.Text = "$($state.Sync.Step)   Please do not remove the USB." }
+            else {
+                $rate = $done / $sec
+                $eta = if ($rate -gt 0 -and -not $j.Finished) { [TimeSpan]::FromSeconds(($total - $done) / $rate).ToString('hh\:mm\:ss') } else { '' }
+                $c.PText.Text = ('{0} of {1}   -   {2}/s   -   {3}' -f (Format-ImgSize $done), (Format-ImgSize $total), (Format-ImgSize $rate), $(if ($eta) { "about $eta left" } else { 'finishing...' }))
+            }
+            if ($j.Finished) {
+                $state.Timer.Stop(); $state.Busy = $false
+                if ($state.Ps) { try { $state.Ps.Ps.EndInvoke($state.Ps.Handle) | Out-Null } catch { }; try { $state.Ps.Ps.Dispose(); $state.Ps.Rs.Dispose() } catch { }; $state.Ps = $null }
+                $c.Stop.Content = 'Back'; $c.Stop.Tag = 'done'; $c.Stop.IsEnabled = $true
+                & $setFlow 'off'
+                if ($j.Ok) {
+                    if (-not $state.Demo) {
+                        if ($m -eq 'clone' -or $m -eq 'restore') { Complete-RestoreTarget $state.Target }
+                        if ($m -eq 'create') { Write-ImagerTiming $j $state.Clock.Elapsed.TotalSeconds $c.BPath.Text; Set-DRLastBackupFile $c.BPath.Text }
+                        if ($m -eq 'rescue' -and $state.RescueWhat) { Set-DRRescueUsbRecord $state.RescueWhat }
+                    }
+                    $c.Fill.Width = [Math]::Max(0, $c.Track.ActualWidth - 5); $c.DstFill.Width = 280
+                    $c.PctBox.Visibility = 'Collapsed'; $c.DoneBadge.Visibility = 'Visible'
+                    if ($m -eq 'create') { $state.JustSaved = $c.BPath.Text; if ($state.Demo) { Set-DRLastBackupFile $c.BPath.Text }; $c.CheckNow.Visibility = 'Visible' }
+                    $bounce = New-Object Windows.Media.Animation.DoubleAnimation(0.2, 1, (New-Object Windows.Duration([TimeSpan]::FromSeconds(0.9))))
+                    $bounce.EasingFunction = New-Object Windows.Media.Animation.ElasticEase -Property @{ Oscillations = 2; Springiness = 4 }
+                    $c.DoneScale.BeginAnimation($sxP, $bounce); $c.DoneScale.BeginAnimation($syP, $bounce.Clone())
+                    $c.LedB.Fill = $bc.ConvertFromString('#39FF7A'); $c.LedGlowB.Color = [Windows.Media.ColorConverter]::ConvertFromString('#39FF7A')
+                    $took = Format-Duration $state.Clock.Elapsed.TotalSeconds
+                    $c.PMsg.Text = switch ($m) {
+                        'clone' { "The drive has been copied in $took." }
+                        'create' { "Backup file saved in $($took):`n$($c.BPath.Text)" }
+                        'check' { 'The backup file is complete and not damaged.' }
+                        'restore' { "The drive has been restored in $took." }
+                        'rescue' { "$($j.Error)`nKeep it somewhere safe. If you lose it or it breaks, come back here and make a new one." }
+                    }
+                    try { [System.Media.SystemSounds]::Asterisk.Play() } catch { }
+                } else {
+                    $c.PMsg.Foreground = $bc.ConvertFromString('#FFB4B4')
+                    $c.PMsg.Text = if ($m -eq 'rescue') { $j.Error } else { "Stopped: $($j.Error)" }
+                    if ($m -eq 'restore' -or $m -eq 'clone') { $c.PMsg.Text += "`nThe target drive was only partly written. Run it again before using that drive." }
+                }
+            }
+        })
+        $state.Timer = $t
+        $t.Start()
+    })
+
+    $c.Stop.Add_Click({
+        if ($c.Stop.Tag -eq 'done') {
+            & $backToForm; & $setFlow 'slow'
+            $state.Job = $null; $state.Disks = @(Get-ImagerDisks); & $setMode $state.Mode
+            return
+        }
+        if (-not $state.Job) { return }
+        $msg = if ($state.Mode -eq 'restore' -or $state.Mode -eq 'clone') { 'Stop now? The target drive will be left only partly written.' } else { 'Stop now?' }
+        if ([Windows.MessageBox]::Show($w, $msg, $jobs[$state.Mode].Title, 'YesNo', 'Question') -eq 'Yes') { $state.Job.Cancel = $true }
+    })
+    $w.Add_Closing({
+        param($s, $e)
+        if ($state.Job -and -not $state.Job.Finished) {
+            $e.Cancel = $true
+            [Windows.MessageBox]::Show($w, 'The job is still running. Press Stop first, or wait until it is done.', 'DRDirect Clone & Backup', 'OK', 'Information') | Out-Null
+        }
+    })
+    if ($Mode) { & $showJob $Mode } else { & $showHome }
+    [void]$w.ShowDialog()
+}
 # 3D buttons on the Dashboard: on unless the person switched them off.
 $script:DR3DKey = 'HKCU:\Software\DRDirect\PC Cleaner'
 # The 3D effects come from the XAML; keep them so they can be put back. They
@@ -6374,6 +7720,7 @@ $ui.HeroUninstallButton.Add_Click({ Open-DRUninstaller })
 $ui.UpdateAllAppsButton.Add_Click({ Invoke-DRUpdateAllApps })
 # The sidebar item runs the update straight away (after confirming) instead of opening a page first.
 $ui.NavAppUpdates.Add_Click({ Invoke-DRUpdateAllApps })
+$ui.NavDriveCopy.Add_Click({ Show-DRDriveCopy })
 
 $ui.PCManagerButton.Add_Click({
     # Opens PC Manager if it is installed, otherwise its Store page. Nothing is

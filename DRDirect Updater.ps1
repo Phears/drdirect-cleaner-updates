@@ -63,6 +63,8 @@ $script:DRUpdatableFiles = @(
     'DRDirect Cleaner Engine.ps1',
     'DRDirect Updater.ps1',
     'DRDirect Activation.ps1',
+    # Clone & Backup (SmartCopy, Secure, Restore, Rescue USB): the GUI loads it from beside itself.
+    'DRDirect Imager Engine.ps1',
     # The Uninstaller is a separate program, so it travels as one package. It is
     # only stored here; Update-DRUninstallerFromFeed puts it in place.
     'DRDirect Uninstaller.zip'

@@ -1,7 +1,7 @@
 {
-  "version": "1.4.426",
-  "notes": "Update my apps now keeps Adobe Acrobat Reader up to date for you, if you have it.",
-  "published": "2026-11-05T09:08:27.4582009-05:00",
+  "version": "1.4.427",
+  "notes": "New: Clone & Backup - copy, back up and restore your drive.",
+  "published": "2026-11-05T22:46:56.1696259-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "E08B690ECFD0D598A955EA45901534318AF8BD9E9E5718B01DF067B75555C6AD",
-      "size": 775072
+      "sha256": "E2F2F7054F315D704162826B7C5E79F0040446776F135226A750FB7E32B136B3",
+      "size": 918351
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -20,13 +20,18 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "D988E674AA51BD70DD54684BDEA52A5300C695436FFE8C8008E32D268C6F7114",
-      "size": 60826
+      "sha256": "0B3DB320D2658C904B133CDD1AAEB71BC1140AFF013E1DC1BD11DD607DEABBE1",
+      "size": 60962
     },
     {
       "name": "DRDirect Activation.ps1",
       "sha256": "024DB08DD669550335220AC38D7A07A87965E3EAAFEBFA73174732B7C0DE83AC",
       "size": 23727
+    },
+    {
+      "name": "DRDirect Imager Engine.ps1",
+      "sha256": "070C653FB80B7DA7B6335BA7DBE4F1B9842B846787166F4FA99648C5EE215972",
+      "size": 79540
     },
     {
       "name": "DRDirectCleaner.ico",
