@@ -2909,9 +2909,15 @@ function Get-DRTaskEstimateSeconds {
     # One task's expected time on this PC: how long it really took here last time, or its listed time scaled by the
     # drive test. The level estimates and the running countdown both use this, so they always agree.
     param([string]$TaskId)
+    $lastReal = 0.0
     try {
         $last = [int](Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('Last_' + $TaskId) -ErrorAction Stop).('Last_' + $TaskId)
-        if ($last -gt 0) { return [double]$last }
+        if ($last -gt 0) {
+            # DISM, SFC, scans and checks can be quick one day and slow the next, so for those the time shown is
+            # never less than their listed time. Cleanup items keep how long they really took here.
+            if ($TaskId -notmatch '^(repair|security|health)\.') { return [double]$last }
+            $lastReal = [double]$last
+        }
     } catch { }
     # Defender scans: Windows keeps how long the last quick and full scan really took on this PC, so use that.
     # A PC that never ran a full scan gets a guess from how much data is on its drives (a full scan reads every file).
@@ -2922,15 +2928,19 @@ function Get-DRTaskEstimateSeconds {
                 $script:DRMpTimes = @{ Quick = ($mp.QuickScanEndTime - $mp.QuickScanStartTime).TotalSeconds; Full = ($mp.FullScanEndTime - $mp.FullScanStartTime).TotalSeconds }
             }
             $took = if ($TaskId -eq 'security.full-scan') { [double]$script:DRMpTimes.Full } else { [double]$script:DRMpTimes.Quick }
-            if ($took -ge 30 -and $took -le 86400) { return $took }
+            if ($took -ge 30 -and $took -le 86400 -and $TaskId -ne 'security.full-scan') { return [Math]::Max($took, $lastReal) }
         } catch { }
         if ($TaskId -eq 'security.full-scan') {
             try {
                 $usedGB = 0.0
                 foreach ($v in @(Get-Volume -ErrorAction Stop | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter -and $_.Size -gt 0 })) { $usedGB += ($v.Size - $v.SizeRemaining) / 1GB }
                 $perGB = switch (Get-DRSystemDriveType) { 'NVMe SSD' { 4.0 } 'SSD' { 6.0 } 'HDD' { 15.0 } 'eMMC' { 12.0 } default { 8.0 } }
-                if ($usedGB -gt 1) { return [Math]::Max(600.0, $usedGB * $perGB) }
-            } catch { }
+                $dataGuess = $usedGB * $perGB
+            } catch { $dataGuess = 0.0 }
+            # A full scan reads every file: never shown as less than an hour (its own label says 1+ hours).
+            $recorded = 0.0; try { $recorded = [double]$script:DRMpTimes.Full } catch { }
+            if ($recorded -gt 86400) { $recorded = 0.0 }
+            return [Math]::Max(3600.0, [Math]::Max($dataGuess, [Math]::Max($recorded, $lastReal)))
         }
     }
     if (-not (Get-Variable -Name DRSpeedFactor -Scope Script -ErrorAction SilentlyContinue) -or -not $script:DRSpeedFactor) {
@@ -2949,7 +2959,7 @@ function Get-DRTaskEstimateSeconds {
     }
     $task = @($catalog | Where-Object { $_.Id -eq $TaskId } | Select-Object -First 1)
     $listed = if ($task.Count) { [string]$task[0].Duration } else { '' }
-    return [Math]::Max(5.0, (Get-DRDurationGuessSeconds -Duration $listed) * $script:DRSpeedFactor)
+    return [Math]::Max([Math]::Max(5.0, $lastReal), (Get-DRDurationGuessSeconds -Duration $listed) * $script:DRSpeedFactor)
 }
 function Get-DRExtraTickedSeconds {
     # Items ticked on other pages (a Defender full scan, a drive check...) run together with a scan level, so
