@@ -1706,8 +1706,85 @@ function Update-DRDiskWarning {
     }
 }
 
+# ---------- 3D look off: a flat look for every window ----------
+# Hides drop shadows, glows, gloss bands, thick 3D bases and the shadow copies of text. Every change in the main
+# window is remembered, so turning the 3D look back on puts each one back exactly. Pictures (drawn in a Viewbox:
+# the house, broom, clock, robot, the Clone & Backup logo) are left alone, because flattening them would break them.
+$script:DRFlatUndo = New-Object System.Collections.Generic.List[object]
+$script:DRFlatOn = $false
+function Set-DRFlatProp {
+    param($Node, [Windows.DependencyProperty]$Property, $Value, [switch]$NoUndo)
+    if (-not $NoUndo) { $script:DRFlatUndo.Add(@($Node, $Property, $Node.ReadLocalValue($Property))) }
+    $Node.SetValue($Property, $Value)
+}
+function Invoke-DRFlatWalk {
+    param($Node, [switch]$Clone, [switch]$NoUndo)
+    if ($null -eq $Node -or -not ($Node -is [Windows.DependencyObject])) { return }
+    if ($Node -is [Windows.Controls.Viewbox]) { return }
+    # Hidden parts are not drawn, so they are skipped; this keeps the walk quick. They are done once they show.
+    if ($Node -is [Windows.UIElement] -and $Node.Visibility -eq 'Collapsed') { return }
+    try {
+        if ($Node -is [Windows.UIElement] -and $null -ne $Node.Effect) { Set-DRFlatProp $Node ([Windows.UIElement]::EffectProperty) $null -NoUndo:$NoUndo }
+        if ($Node -is [Windows.FrameworkElement] -and -not $Node.IsHitTestVisible -and [string]::IsNullOrEmpty($Node.Name) -and $Node.Visibility -ne 'Collapsed') {
+            $m = $Node.Margin
+            $hide = $false
+            if ($Node -is [Windows.Controls.Border] -and $m.Top -gt 0 -and $m.Bottom -lt 0) { $hide = $true }
+            elseif ($Node -is [Windows.Shapes.Ellipse] -and ($Node.Fill -is [Windows.Media.RadialGradientBrush] -or ($Node.Fill -is [Windows.Media.SolidColorBrush] -and $Node.Fill.Color.A -lt 255 -and $Node.Fill.Color.R -eq 255 -and $Node.Fill.Color.G -eq 255 -and $Node.Fill.Color.B -eq 255))) { $hide = $true }
+            elseif ($Node -is [Windows.Controls.Border] -and $Node.Background -is [Windows.Media.SolidColorBrush]) {
+                $col = $Node.Background.Color
+                if ($col.A -lt 255 -and (($col.R -eq 255 -and $col.G -eq 255 -and $col.B -eq 255) -or ($col.R -eq 0 -and $col.G -eq 0 -and $col.B -eq 0))) { $hide = $true }
+            }
+            elseif ($Node -is [Windows.Controls.Border] -and $Node.Background -is [Windows.Media.LinearGradientBrush]) {
+                $allWhite = $true
+                foreach ($gs in $Node.Background.GradientStops) { if (-not ($gs.Color.R -eq 255 -and $gs.Color.G -eq 255 -and $gs.Color.B -eq 255 -and $gs.Color.A -lt 255)) { $allWhite = $false } }
+                if ($allWhite) { $hide = $true }
+            }
+            if ($hide) { Set-DRFlatProp $Node ([Windows.UIElement]::VisibilityProperty) ([Windows.Visibility]::Collapsed) -NoUndo:$NoUndo }
+        }
+        # Shadow copies of text: the same TextBlock drawn again a few pixels lower and to the right.
+        if ($Node -is [Windows.Controls.TextBlock] -and [string]::IsNullOrEmpty($Node.Name) -and $Node.Visibility -ne 'Collapsed' -and $Node.RenderTransform -is [Windows.Media.TranslateTransform]) {
+            $tt = $Node.RenderTransform
+            if ($tt.X -ne 0 -or $tt.Y -ne 0) { Set-DRFlatProp $Node ([Windows.UIElement]::VisibilityProperty) ([Windows.Visibility]::Collapsed) -NoUndo:$NoUndo }
+        }
+        if ($Clone -and $Node -is [Windows.Controls.Border] -and $Node.BorderThickness.Left -eq 3 -and $Node.BorderBrush -is [Windows.Media.LinearGradientBrush]) {
+            Set-DRFlatProp $Node ([Windows.Controls.Border]::BorderBrushProperty) ([Windows.Media.SolidColorBrush]::new([Windows.Media.Color]::FromArgb(110, 255, 255, 255))) -NoUndo:$NoUndo
+        }
+    } catch { }
+    $count = 0
+    try { $count = [Windows.Media.VisualTreeHelper]::GetChildrenCount($Node) } catch { $count = 0 }
+    for ($ci = 0; $ci -lt $count; $ci++) { Invoke-DRFlatWalk ([Windows.Media.VisualTreeHelper]::GetChild($Node, $ci)) -Clone:$Clone -NoUndo:$NoUndo }
+}
+function Restore-DRFlat {
+    for ($i = $script:DRFlatUndo.Count - 1; $i -ge 0; $i--) {
+        $e = $script:DRFlatUndo[$i]
+        try {
+            if ([object]::ReferenceEquals($e[2], [Windows.DependencyProperty]::UnsetValue)) { $e[0].ClearValue($e[1]) } else { $e[0].SetValue($e[1], $e[2]) }
+        } catch { try { $e[0].ClearValue($e[1]) } catch { } }
+    }
+    $script:DRFlatUndo.Clear()
+}
+$script:DRFlatTimer = $null
+function Set-DRFlatMain {
+    param([bool]$Flat)
+    $script:DRFlatOn = $Flat
+    if ($Flat) {
+        try { Invoke-DRFlatWalk $window } catch { }
+        if (-not $script:DRFlatTimer) {
+            $script:DRFlatTimer = New-Object Windows.Threading.DispatcherTimer
+            $script:DRFlatTimer.Interval = [TimeSpan]::FromSeconds(5)
+            $script:DRFlatTimer.Add_Tick({ if ($script:DRFlatOn) { try { Invoke-DRFlatWalk $window } catch { } } })
+        }
+        $script:DRFlatTimer.Start()
+    } else {
+        if ($script:DRFlatTimer) { $script:DRFlatTimer.Stop() }
+        Restore-DRFlat
+    }
+}
+
 function Set-Page {
     param([string]$Name)
+    # 3D look off: flatten the new page once it has been laid out.
+    if ($script:DRFlatOn) { try { $window.Dispatcher.BeginInvoke([Action]{ try { Invoke-DRFlatWalk $window } catch { } }, [Windows.Threading.DispatcherPriority]::Background) | Out-Null } catch { } }
     $ui.PageDashboard.Visibility = if ($Name -eq 'Dashboard') { 'Visible' } else { 'Collapsed' }
     if ($Name -eq 'Dashboard') { Update-DRDiskWarning }
     $ui.PageTasks.Visibility = if ($Name -in @('Cleanup','Repair','Security','Health','Memory','Speed','Hibernate','AI')) { 'Visible' } else { 'Collapsed' }
@@ -6648,6 +6725,18 @@ function Show-DRDriveCopy {
   </Viewbox>
 </Window>
 '@
+    # 3D look off: the window is built flat from the start - no text shadows, no thick 3D bases under buttons
+    # and tiles, no shadow copies of titles, names and pictures, no gloss bands.
+    if (-not [bool]$ui.Buttons3DSwitch.IsChecked) {
+        try {
+            $flatXaml = $xaml.OuterXml
+            $flatXaml = $flatXaml -replace '(x:Key="Txt3D(Small)?"[^>]*?)Opacity="[0-9.]+"', '$1Opacity="0"'
+            $flatXaml = $flatXaml -replace '<Border(?![^>]*x:Name)(?=[^>]*Margin="0,\d+(\.\d+)?,0,-\d+(\.\d+)?")(?=[^>]*IsHitTestVisible="False")[^>]*/>', ''
+            $flatXaml = $flatXaml -replace '<Border(?![^>]*x:Name)(?=[^>]*IsHitTestVisible="False")(?=[^>]*Background="#[0-9A-Fa-f]{2}(FFFFFF|ffffff|000000)")[^>]*/>', ''
+            $flatXaml = $flatXaml -replace '<TextBlock(?![^>]*x:Name)[^>]*><TextBlock\.RenderTransform><TranslateTransform X="[^"]+" Y="[^"]+"\s*/></TextBlock\.RenderTransform></TextBlock>', ''
+            $xaml = [xml]$flatXaml
+        } catch { }
+    }
     $w = [Windows.Markup.XamlReader]::Load((New-Object Xml.XmlNodeReader $xaml))
     try { $w.Owner = $window } catch { }
     try { if ($window.Icon) { $w.Icon = $window.Icon } } catch { }
@@ -7059,6 +7148,16 @@ function Show-DRDriveCopy {
         $tile.Add_Click({ param($s, $e) try { & $showJob ([string]$s.Name.Substring(4)) } catch { [Windows.MessageBox]::Show($w, "Clone & Backup could not open that screen:`n$($_.Exception.Message)`n$($_.InvocationInfo.PositionMessage)", 'DRDirect Clone & Backup', 'OK', 'Error') | Out-Null } })
         $k++
     }
+    # 3D look off: flatten the whole window - drop shadows and glows off, the thick 3D bases under buttons and tiles,
+    # the gloss and the shadow copies of titles, names and pictures hidden. Screens and buttons only get their parts
+    # when first shown, so this runs once a second while the window is open; it only hides, so running it again is harmless.
+    if ($script:DRLiteCopy) {
+        $flatTimer = New-Object Windows.Threading.DispatcherTimer
+        $flatTimer.Interval = [TimeSpan]::FromSeconds(1)
+        $flatTimer.Add_Tick({ try { Invoke-DRFlatWalk $w -Clone -NoUndo } catch { } })
+        $w.Add_ContentRendered({ try { Invoke-DRFlatWalk $w -Clone -NoUndo } catch { }; $flatTimer.Start() })
+        $w.Add_Closed({ try { $flatTimer.Stop() } catch { } })
+    }
     $c.TileCheck.Add_Click({ try { & $showJob 'check' } catch { [Windows.MessageBox]::Show($w, "Clone & Backup could not open that screen:`n$($_.Exception.Message)`n$($_.InvocationInfo.PositionMessage)", 'DRDirect Clone & Backup', 'OK', 'Error') | Out-Null } })
     $c.Close0.Add_Click({ $w.Close() })
     $c.Back1.Add_Click({ & $showHome })
@@ -7370,6 +7469,8 @@ $ui.Max3DSwitch.IsChecked = $dr3dMax
 # Max 3D is only offered once the 3D look is on, so a first start shows just the plain look and its one switch.
 function Update-DRMaxSwitchVisibility { $ui.Max3DSwitch.Visibility = $(if ([bool]$ui.Buttons3DSwitch.IsChecked) { 'Visible' } else { 'Collapsed' }) }
 Update-DRMaxSwitchVisibility
+# Started with the 3D look off: flatten once the window is drawn.
+if (-not $dr3dOn) { $window.Add_ContentRendered({ try { Set-DRFlatMain -Flat $true } catch { } }) }
 function Save-DR3DChoice {
     if ($TestMode) { return }
     try {
@@ -7393,6 +7494,9 @@ $ui.Buttons3DSwitch.Add_Click({
     Set-DR3DButtons -On ([bool]$ui.Buttons3DSwitch.IsChecked) -Max ([bool]$ui.Max3DSwitch.IsChecked)
     Update-DRMaxSwitchVisibility
     Save-DR3DChoice
+    # The rest of the 3D (text shadows, gloss, glows) goes flat with it, and comes back when it is turned on.
+    $script:DRFlatWanted = -not [bool]$ui.Buttons3DSwitch.IsChecked
+    $window.Dispatcher.BeginInvoke([Action]{ try { Set-DRFlatMain -Flat $script:DRFlatWanted } catch { } }, [Windows.Threading.DispatcherPriority]::Background) | Out-Null
 })
 # Just for fun: there is nothing deeper than Max 3D, so this switch only asks, then turns itself back off.
 if ($ui.CrazyNuttySwitch) {
