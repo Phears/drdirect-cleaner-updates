@@ -1753,7 +1753,7 @@ function Get-CleanupPresetDescription {
     }
 
     if ($Preset -eq 'Advanced') {
-        return 'Everything in Medium plus developer caches, the previous Windows installation (Windows.old), icon cache, jump lists, memory dumps, old restore points, event logs, a Defender quick scan, a Defender full scan (can take 1 hour or more), and full Windows repair: restore point, DISM, SFC, and Windows Update repair. Cookies and the network reset stay manual.'
+        return 'Everything in Medium plus developer caches, the previous Windows installation (Windows.old), icon cache, jump lists, memory dumps, old restore points, event logs, everything on the Security and privacy page (security checkup, Defender update, quick and full scan - the full scan can take 1 hour or more - spyware sweep, telemetry, ads and typing data off), and full Windows repair: restore point, DISM, SFC, and Windows Update repair. Cookies and the network reset stay manual.'
     }
 
     return 'Custom selection. Security and drive-health operations remain manual.'
@@ -1847,11 +1847,15 @@ function Test-TaskInOrderedPreset {
         # has to have those re-entered afterwards, and a remote session drops
         # while the address renews. It stays on the Repair page to tick by hand.
         #
-        # Advanced also runs a Defender full scan. It can take an hour or more; the time on the button includes it.
+        # Advanced also runs everything on the Security and privacy page that does something, including the
+        # Defender full scan (an hour or more; the time on the button includes it). The 'put it back' items are
+        # left out, because they would undo the others.
+        $advancedSecurityIds = @('security.checkup', 'security.checkup-fix', 'security.defender-update', 'security.quick-scan',
+            'security.full-scan', 'security.remove-exclusions', 'security.network-files', 'security.typing-privacy',
+            'security.win11-extras', 'security.telemetry-off', 'security.compat-task-off', 'security.sweep')
         return (($advancedIds -contains $Task.Id) -or
                 ($Task.Category -eq 'Repair' -and $Task.Id -notin @('repair.network-reset','repair.font-cache','health.chkdsk','health.ram-test','cleanup.hibernate-off','cleanup.hibernate-on')) -or
-                $Task.Id -eq 'security.quick-scan' -or
-                $Task.Id -eq 'security.full-scan')
+                ($advancedSecurityIds -contains $Task.Id))
     }
 
     return $false
