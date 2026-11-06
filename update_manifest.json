@@ -1,7 +1,7 @@
 {
-  "version": "1.4.438",
-  "notes": "Update all apps skips Logitech G HUB (it updates itself) and gives each app up to 45 minutes.",
-  "published": "2026-11-06T13:49:57.6615556-05:00",
+  "version": "1.4.439",
+  "notes": "Check my PC now also checks security, spyware, Defender exclusions, startup apps, large files and PHP.",
+  "published": "2026-11-06T14:12:39.6997233-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "0996B8AD490D08307226436683E1906246FD3433251F46799446849764607B9F",
-      "size": 920362
+      "sha256": "0B9B6EE4937A6B80A32FCCD0E00627DE5E2449AF7178B5BAA7D9D321B193A879",
+      "size": 920472
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

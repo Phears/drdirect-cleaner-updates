@@ -5300,8 +5300,8 @@ function Start-DRFlashyUpgrade {
     # The script is written to %TEMP% as UTF-8 with BOM so Windows PowerShell reads the emoji correctly.
     $flashy = @'
 # Flashy winget upgrade --all  (live progress, per-package timeout)
-# Usage: .\winget-upgrade-all.ps1 [-IncludeUnknown] [-NoAnim] [-TimeoutMinutes 0]  (0 = no limit: each app gets as long as it needs)
-param([switch]$IncludeUnknown, [switch]$NoAnim, [int]$TimeoutMinutes = 0)
+# Usage: .\winget-upgrade-all.ps1 [-IncludeUnknown] [-NoAnim] [-TimeoutMinutes 45]  (0 = no limit)
+param([switch]$IncludeUnknown, [switch]$NoAnim, [int]$TimeoutMinutes = 45)
 
 $ESC = [char]27
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -5462,8 +5462,9 @@ foreach ($ps7 in @($pkgs | Where-Object { $_.Id -eq 'Microsoft.PowerShell' -and 
     } catch { }
 }
 
-# Apps left out on purpose (Warp updates itself and its download stalls).
-$skipIds = @('Warp.Warp')
+# Apps left out on purpose: Warp updates itself and its download stalls; Logitech G HUB updates itself and
+# winget misreads its version, so it was offered again right after every successful update.
+$skipIds = @('Warp.Warp', 'Logitech.GHUB')
 # Adobe Express Photos is not used here and its download keeps failing winget's checksum check.
 $skipName = 'Adobe Express*'
 foreach ($s in @($pkgs | Where-Object { ($skipIds -contains $_.Id) -or ($_.Name -like $skipName) })) {
@@ -5494,7 +5495,7 @@ foreach ($p in $pkgs) {
     $i++
     Write-Host (RGB 0 255 80 ('-' * 90))
     Write-Host (RGB 255 230 0 "⚡ [$i/$($pkgs.Count)] $($p.Name)") -NoNewline
-    Write-Host (RGB 150 150 255 "  [$($p.Id)]  ($(if ($TimeoutMinutes -gt 0) { "timeout ${TimeoutMinutes}m" } else { 'no time limit' }))")
+    Write-Host (RGB 150 150 255 "  [$($p.Id)]  ($(if ($TimeoutMinutes -gt 0) { "up to ${TimeoutMinutes} min" } else { 'no time limit' }))")
 
     $a = @('upgrade', '--id', $p.Id, '--exact', '--silent', '--accept-source-agreements', '--accept-package-agreements')
     if ($p.Id -eq $acroId) { $a += @('--source', 'winget') }
