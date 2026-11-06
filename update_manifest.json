@@ -1,7 +1,7 @@
 {
-  "version": "1.4.434",
-  "notes": "Clone & Backup is now beside the Make my PC cleaner button.",
-  "published": "2026-11-06T13:15:38.0801402-05:00",
+  "version": "1.4.435",
+  "notes": "Clone & Backup moved to the left side of the dashboard.",
+  "published": "2026-11-06T13:17:49.5327902-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "2A87914B26DEA81C85CC2A708322F5FEF0F190B10EF7EAE37A294DC727EAD50F",
-      "size": 920048
+      "sha256": "70FDF020F428E80EE335C1999B7E06057028B20E61E97D720E9EA491D6590790",
+      "size": 920114
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
