@@ -7036,9 +7036,24 @@ function Show-DRDriveCopy {
     $k = 0
     foreach ($t in 'clone', 'create', 'restore', 'rescue') {
         $tile = $c["Tile$t"]
-        & $anim $c["Tile${t}Bob"] $tyP -9 9 (2.0 + 0.25 * $k) -Forever -Reverse -ease $sine -delay (0.3 * $k)
-        & $anim $c["Tile${t}Wobble"] $rotP -5 5 (1.7 + 0.2 * $k) -Forever -Reverse -ease $sine -delay (0.2 * $k)
-        & $anim $c["Tile${t}Shine"] $txP -320 900 3.4 -Forever -delay (0.6 * $k)
+        if (-not $script:DRLiteCopy) {
+            & $anim $c["Tile${t}Bob"] $tyP -9 9 (2.0 + 0.25 * $k) -Forever -Reverse -ease $sine -delay (0.3 * $k)
+            & $anim $c["Tile${t}Wobble"] $rotP -5 5 (1.7 + 0.2 * $k) -Forever -Reverse -ease $sine -delay (0.2 * $k)
+            & $anim $c["Tile${t}Shine"] $txP -320 900 3.4 -Forever -delay (0.6 * $k)
+        } else {
+            # 3D look off: a flat tile. Only its coloured face and its picture stay; the depth slabs, gloss, shine,
+            # glow, shadow and the shadow copies of the picture and the name are hidden.
+            try {
+                $face = $tile.Content.Children[0]
+                foreach ($part in @($face.Children)) {
+                    $keep = ($part -is [Windows.Controls.Border] -and $part.BorderThickness.Left -eq 3) -or ($part -is [Windows.Controls.Grid] -and $part.RenderTransform -is [Windows.Media.RotateTransform])
+                    if (-not $keep) { $part.Visibility = 'Collapsed' }
+                    elseif ($part -is [Windows.Controls.Grid] -and $part.Children.Count -gt 1) { $part.Children[0].Visibility = 'Collapsed' }
+                }
+                $label = $tile.Content.Children[1]
+                for ($j = 0; $j -lt $label.Children.Count - 1; $j++) { $label.Children[$j].Visibility = 'Collapsed' }
+            } catch { }
+        }
         $tile.Add_MouseEnter({ param($s, $e) $sc = $c["$($s.Name)Scale"]; & $anim $sc $sxP $sc.ScaleX 1.1 0.18; & $anim $sc $syP $sc.ScaleY 1.1 0.18 })
         $tile.Add_MouseLeave({ param($s, $e) $sc = $c["$($s.Name)Scale"]; & $anim $sc $sxP $sc.ScaleX 1 0.25; & $anim $sc $syP $sc.ScaleY 1 0.25 })
         $tile.Add_Click({ param($s, $e) try { & $showJob ([string]$s.Name.Substring(4)) } catch { [Windows.MessageBox]::Show($w, "Clone & Backup could not open that screen:`n$($_.Exception.Message)`n$($_.InvocationInfo.PositionMessage)", 'DRDirect Clone & Backup', 'OK', 'Error') | Out-Null } })
