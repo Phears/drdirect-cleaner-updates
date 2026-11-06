@@ -1,7 +1,7 @@
 {
-  "version": "1.4.428",
-  "notes": "Clone & Backup now opens for everyone who updated to 1.4.427.",
-  "published": "2026-11-05T23:01:17.8961841-05:00",
+  "version": "1.4.429",
+  "notes": "New 3D logo on the Clone & Backup button.",
+  "published": "2026-11-05T23:13:55.7249877-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "E2F2F7054F315D704162826B7C5E79F0040446776F135226A750FB7E32B136B3",
-      "size": 918351
+      "sha256": "AA0C62784D86D824813E0480A2D88F969EE0E3F2F34127B236E60F350429D641",
+      "size": 921567
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
