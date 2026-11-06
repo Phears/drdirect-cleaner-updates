@@ -4339,33 +4339,9 @@ function Get-DRRefusalLedger {
     }
 }
 function Test-DRRefusalLocked {
-    # A refusal note stays for good; nobody can delete it from the Cleaning history.
+    # Refusal notes can be deleted like any other report. The hidden record still keeps every refusal for the owner menu.
     param($File)
-    return ($File.Name -like '*-scan-refused.txt')
-}
-function Restore-DRRefusalNotes {
-    # A refusal note removed outside the Cleaner (File Explorer, etc.) is written back from the hidden record.
-    try {
-        $reportRoot = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Reports'
-        [void][IO.Directory]::CreateDirectory($reportRoot)
-        foreach ($r in @(Get-DRRefusalLedger)) {
-            $name = [IO.Path]::GetFileName([string]$r.NoteName)
-            if ($name -notlike 'Maintenance_Report_*-scan-refused.txt') { continue }
-            $path = Join-Path $reportRoot $name
-            if (Test-Path -LiteralPath $path -PathType Leaf) { continue }
-            $body = @(
-                'DRDirect PC Cleaner - Scan refused',
-                ('Time:      {0}' -f $r.Time.ToString('yyyy-MM-dd HH:mm:ss')),
-                ('Scan:      Windows Defender {0} scan' -f ([string]$r.Which).ToLowerInvariant()),
-                ('Ignored:   {0}' -f $r.Ignored),
-                '',
-                'The scan was overdue. The Cleaner asked to run it and the customer chose not to. Nothing was scanned.',
-                'This note was removed from the Cleaning history and has been put back.'
-            ) -join [Environment]::NewLine
-            [IO.File]::WriteAllText($path, $body, (New-Object Text.UTF8Encoding($false)))
-            try { [IO.File]::SetLastWriteTime($path, $r.Time) } catch { }
-        }
-    } catch { }
+    return $false
 }
 function Request-DRScanNow {
     param([string]$Which, $Since)
@@ -4767,7 +4743,6 @@ function Show-History {
     if (-not (Test-Path -LiteralPath $reportRoot -PathType Container)) {
         [void][System.IO.Directory]::CreateDirectory($reportRoot)
     }
-    Restore-DRRefusalNotes
 
     $files = @(
         Get-ChildItem `
@@ -8994,7 +8969,6 @@ $ui.ClearHistoryButton.Add_Click({
     if ([string]::IsNullOrWhiteSpace($localAppData)) { return }
 
     $reportRoot = Join-Path -Path $localAppData -ChildPath 'DRDirect PC Cleaner\Reports'
-    # Refusal notes always stay; everything else can go.
     $all = @(Get-ChildItem -LiteralPath $reportRoot -Filter 'Maintenance_Report_*.txt' -File -ErrorAction SilentlyContinue | Where-Object { -not (Test-DRRefusalLocked $_) })
     if (-not $all) {
         [void][Windows.MessageBox]::Show('There are no reports to delete.', 'DRDirect PC Cleaner', 'OK', 'Information')

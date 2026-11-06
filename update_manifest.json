@@ -1,7 +1,7 @@
 {
-  "version": "1.4.441",
-  "notes": "Scan refused notes in the Cleaning history are now kept for good.",
-  "published": "2026-11-06T14:33:47.6609315-05:00",
+  "version": "1.4.442",
+  "notes": "Scan refused notes in the Cleaning history can now be deleted.",
+  "published": "2026-11-06T14:37:06.7241841-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "BA848B7C6DA09DA99673CE28C60D86A983327BA37BCE818A58FFE7F55DA2738E",
-      "size": 922175
+      "sha256": "2957981B2F1CAC8F49B74375AFB94FF9C07B7A7F1C06540142D73C0F394E15AE",
+      "size": 920711
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
