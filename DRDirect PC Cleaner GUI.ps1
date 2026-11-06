@@ -5300,8 +5300,8 @@ function Start-DRFlashyUpgrade {
     # The script is written to %TEMP% as UTF-8 with BOM so Windows PowerShell reads the emoji correctly.
     $flashy = @'
 # Flashy winget upgrade --all  (live progress, per-package timeout)
-# Usage: .\winget-upgrade-all.ps1 [-IncludeUnknown] [-NoAnim] [-TimeoutMinutes 45]
-param([switch]$IncludeUnknown, [switch]$NoAnim, [int]$TimeoutMinutes = 45)
+# Usage: .\winget-upgrade-all.ps1 [-IncludeUnknown] [-NoAnim] [-TimeoutMinutes 0]  (0 = no limit: each app gets as long as it needs)
+param([switch]$IncludeUnknown, [switch]$NoAnim, [int]$TimeoutMinutes = 0)
 
 $ESC = [char]27
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
@@ -5393,7 +5393,7 @@ foreach ($e in $essentials) {
     $a = @('install', '--id', $e.Id, '--exact', '--silent', '--accept-source-agreements', '--accept-package-agreements')
     $proc = Start-Process $wingetPath -ArgumentList $a -NoNewWindow -PassThru
     $null = $proc.Handle
-    if (-not $proc.WaitForExit($TimeoutMinutes * 60000)) {
+    if (-not $proc.WaitForExit($(if ($TimeoutMinutes -gt 0) { $TimeoutMinutes * 60000 } else { -1 }))) {
         try { Stop-Process -Id $proc.Id -Force } catch {}
         Write-Host (RGB 255 60 90 "⏰ $($e.Name) timed out after ${TimeoutMinutes}m - skipped")
         $fail += "$($e.Name) (timeout)"
@@ -5494,13 +5494,13 @@ foreach ($p in $pkgs) {
     $i++
     Write-Host (RGB 0 255 80 ('-' * 90))
     Write-Host (RGB 255 230 0 "⚡ [$i/$($pkgs.Count)] $($p.Name)") -NoNewline
-    Write-Host (RGB 150 150 255 "  [$($p.Id)]  (timeout ${TimeoutMinutes}m)")
+    Write-Host (RGB 150 150 255 "  [$($p.Id)]  ($(if ($TimeoutMinutes -gt 0) { "timeout ${TimeoutMinutes}m" } else { 'no time limit' }))")
 
     $a = @('upgrade', '--id', $p.Id, '--exact', '--silent', '--accept-source-agreements', '--accept-package-agreements')
     if ($p.Id -eq $acroId) { $a += @('--source', 'winget') }
     $proc = Start-Process $wingetExe -ArgumentList $a -NoNewWindow -PassThru   # shares console => real progress bar
     $null = $proc.Handle   # without this, ExitCode comes back empty after a timed WaitForExit
-    $done = $proc.WaitForExit($TimeoutMinutes * 60000)
+    $done = $proc.WaitForExit($(if ($TimeoutMinutes -gt 0) { $TimeoutMinutes * 60000 } else { -1 }))
     if (-not $done) {
         try { Stop-Process -Id $proc.Id -Force } catch {}
         Write-Host (RGB 255 60 90 "⏰ $($p.Name) timed out after ${TimeoutMinutes}m - skipped")
@@ -5527,7 +5527,7 @@ foreach ($p in $pkgs) {
         $ia = @('install', '--id', 'Microsoft.PowerShell', '--exact', '--silent', '--accept-source-agreements', '--accept-package-agreements')
         $iproc = Start-Process $wingetExe -ArgumentList $ia -NoNewWindow -PassThru
         $null = $iproc.Handle
-        if (-not $iproc.WaitForExit($TimeoutMinutes * 60000)) {
+        if (-not $iproc.WaitForExit($(if ($TimeoutMinutes -gt 0) { $TimeoutMinutes * 60000 } else { -1 }))) {
             try { Stop-Process -Id $iproc.Id -Force } catch {}
             Write-Host (RGB 255 60 90 "⏰ PowerShell 7 timed out after ${TimeoutMinutes}m - skipped")
             $fail += 'PowerShell 7 (timeout)'
