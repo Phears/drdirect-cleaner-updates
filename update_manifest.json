@@ -1,7 +1,7 @@
 {
-  "version": "1.4.443",
-  "notes": "Rescue USB: make new ones any time from a saved copy, with your DRDirect logo on every stick.",
-  "published": "2026-11-06T16:16:52.0162505-05:00",
+  "version": "1.4.444",
+  "notes": "Advanced scan now also runs a Defender full scan (can take 1 hour or more).",
+  "published": "2026-11-06T16:26:13.9960158-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "972C1295E64C2095F04B25C482D2D3B316096F1FC607C531D220CBF7CD97691F",
-      "size": 924999
+      "sha256": "FF3C2CC87336EE55D745A05BC2E4CA8518A1870744924266D0ADD6DB6EDAB359",
+      "size": 926697
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

@@ -1753,7 +1753,7 @@ function Get-CleanupPresetDescription {
     }
 
     if ($Preset -eq 'Advanced') {
-        return 'Everything in Medium plus developer caches, the previous Windows installation (Windows.old), icon cache, jump lists, memory dumps, old restore points, event logs, a Defender quick scan, and full Windows repair: restore point, DISM, SFC, and Windows Update repair. Cookies and the network reset stay manual.'
+        return 'Everything in Medium plus developer caches, the previous Windows installation (Windows.old), icon cache, jump lists, memory dumps, old restore points, event logs, a Defender quick scan, a Defender full scan (can take 1 hour or more), and full Windows repair: restore point, DISM, SFC, and Windows Update repair. Cookies and the network reset stay manual.'
     }
 
     return 'Custom selection. Security and drive-health operations remain manual.'
@@ -1846,9 +1846,12 @@ function Test-TaskInOrderedPreset {
         # The network reset is left out. A PC on a static address or manual DNS
         # has to have those re-entered afterwards, and a remote session drops
         # while the address renews. It stays on the Repair page to tick by hand.
+        #
+        # Advanced also runs a Defender full scan. It can take an hour or more; the time on the button includes it.
         return (($advancedIds -contains $Task.Id) -or
                 ($Task.Category -eq 'Repair' -and $Task.Id -notin @('repair.network-reset','repair.font-cache','health.chkdsk','health.ram-test','cleanup.hibernate-off','cleanup.hibernate-on')) -or
-                $Task.Id -eq 'security.quick-scan')
+                $Task.Id -eq 'security.quick-scan' -or
+                $Task.Id -eq 'security.full-scan')
     }
 
     return $false
@@ -2906,6 +2909,26 @@ function Get-DRTaskEstimateSeconds {
         $last = [int](Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('Last_' + $TaskId) -ErrorAction Stop).('Last_' + $TaskId)
         if ($last -gt 0) { return [double]$last }
     } catch { }
+    # Defender scans: Windows keeps how long the last quick and full scan really took on this PC, so use that.
+    # A PC that never ran a full scan gets a guess from how much data is on its drives (a full scan reads every file).
+    if ($TaskId -in @('security.quick-scan', 'security.full-scan')) {
+        try {
+            if (-not (Get-Variable -Name DRMpTimes -Scope Script -ErrorAction SilentlyContinue) -or -not $script:DRMpTimes) {
+                $mp = Get-MpComputerStatus -ErrorAction Stop
+                $script:DRMpTimes = @{ Quick = ($mp.QuickScanEndTime - $mp.QuickScanStartTime).TotalSeconds; Full = ($mp.FullScanEndTime - $mp.FullScanStartTime).TotalSeconds }
+            }
+            $took = if ($TaskId -eq 'security.full-scan') { [double]$script:DRMpTimes.Full } else { [double]$script:DRMpTimes.Quick }
+            if ($took -ge 30 -and $took -le 86400) { return $took }
+        } catch { }
+        if ($TaskId -eq 'security.full-scan') {
+            try {
+                $usedGB = 0.0
+                foreach ($v in @(Get-Volume -ErrorAction Stop | Where-Object { $_.DriveType -eq 'Fixed' -and $_.DriveLetter -and $_.Size -gt 0 })) { $usedGB += ($v.Size - $v.SizeRemaining) / 1GB }
+                $perGB = switch (Get-DRSystemDriveType) { 'NVMe SSD' { 4.0 } 'SSD' { 6.0 } 'HDD' { 15.0 } 'eMMC' { 12.0 } default { 8.0 } }
+                if ($usedGB -gt 1) { return [Math]::Max(600.0, $usedGB * $perGB) }
+            } catch { }
+        }
+    }
     if (-not (Get-Variable -Name DRSpeedFactor -Scope Script -ErrorAction SilentlyContinue) -or -not $script:DRSpeedFactor) {
         # The 2-second drive test runs at most once a week; its result is saved like the drive type.
         try {
