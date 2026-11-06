@@ -1,7 +1,7 @@
 {
-  "version": "1.4.427",
-  "notes": "New: Clone & Backup - copy, back up and restore your drive.",
-  "published": "2026-11-05T22:46:56.1696259-05:00",
+  "version": "1.4.428",
+  "notes": "Clone & Backup now opens for everyone who updated to 1.4.427.",
+  "published": "2026-11-05T23:01:17.8961841-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
