@@ -1,7 +1,7 @@
 {
   "version": "1.4.447",
   "notes": "The Defender quick scan and full scan now show on the Clean my PC page too (full scan on Advanced).",
-  "published": "2026-11-06T17:14:41.1495038-05:00",
+  "published": "2026-11-06T17:17:26.6665086-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
