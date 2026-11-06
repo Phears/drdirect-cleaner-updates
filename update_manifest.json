@@ -1,7 +1,7 @@
 {
-  "version": "1.4.451",
-  "notes": "Rescue USBs now show the DRDirect logo and name in File Explorer.",
-  "published": "2026-11-06T18:09:02.3584131-05:00",
+  "version": "1.4.452",
+  "notes": "One switch for all 3D: turning 3D look off turns Max 3D off too (and Clone & Backup runs without animations, for faster copies); turning it back on brings both back.",
+  "published": "2026-11-06T18:24:37.7141053-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "1E22D567F712E90EBBE82BD61DD62A93E959BEAC5A300199DC73B00ACC450EB1",
-      "size": 932280
+      "sha256": "5F3AFAA1618A4D5851B7F6D69D555282F30FC8DBA95FEAF281909034EDF83779",
+      "size": 933370
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

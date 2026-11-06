@@ -6727,9 +6727,13 @@ function Show-DRDriveCopy {
         [void]$c.Flow.Children.Add($cube)
         [void]$blocks.Add(@{ B = $cube; T = $mov; R = $rot })
     }
+    # With the 3D look switched off on the Dashboard, this window runs without its moving parts, so a copy
+    # gets the whole processor. The percentage, speed and time left still update.
+    $script:DRLiteCopy = -not [bool]$ui.Buttons3DSwitch.IsChecked
     # Idle: slow, faint flow. Working: fast and bright. Done or stopped: the tube empties.
     $setFlow = {
         param([string]$speed)
+        if ($script:DRLiteCopy) { $speed = 'off' }
         $width = [Math]::Max($c.Flow.ActualWidth, 300)
         for ($i = 0; $i -lt $blocks.Count; $i++) {
             $bl = $blocks[$i]
@@ -6752,13 +6756,15 @@ function Show-DRDriveCopy {
             $c.GlyphScaleB.BeginAnimation($sxP, $null); $c.GlyphScaleB.BeginAnimation($syP, $null)
         }
     }
-    # always-on touches: the title breathes, the cards float, the arrow nudges, the bar shine runs
-    & $anim $c.TitleScale $sxP 1 1.03 1.6 -Forever -Reverse -ease $sine
-    & $anim $c.TitleScale $syP 1 1.03 1.6 -Forever -Reverse -ease $sine
-    & $anim $c.BobA $tyP -7 7 2.2 -Forever -Reverse -ease $sine
-    & $anim $c.BobB $tyP 7 -7 2.2 -Forever -Reverse -ease $sine
-    & $anim $c.ArrowNudge $txP -16 16 0.8 -Forever -Reverse -ease $sine
-    $w.Add_ContentRendered({ if ($c.JobPanel.Visibility -eq 'Visible') { & $setFlow 'slow' }; & $anim $c.ShineMove $txP -180 ([Math]::Max($c.Track.ActualWidth, 600) + 10) 1.8 -Forever })
+    # always-on touches: the title breathes, the cards float, the arrow nudges, the bar shine runs (not with 3D off)
+    if (-not $script:DRLiteCopy) {
+        & $anim $c.TitleScale $sxP 1 1.03 1.6 -Forever -Reverse -ease $sine
+        & $anim $c.TitleScale $syP 1 1.03 1.6 -Forever -Reverse -ease $sine
+        & $anim $c.BobA $tyP -7 7 2.2 -Forever -Reverse -ease $sine
+        & $anim $c.BobB $tyP 7 -7 2.2 -Forever -Reverse -ease $sine
+        & $anim $c.ArrowNudge $txP -16 16 0.8 -Forever -Reverse -ease $sine
+        $w.Add_ContentRendered({ if ($c.JobPanel.Visibility -eq 'Visible') { & $setFlow 'slow' }; & $anim $c.ShineMove $txP -180 ([Math]::Max($c.Track.ActualWidth, 600) + 10) 1.8 -Forever })
+    }
 
     # ---- looks for each job ----
     $faces = @{
@@ -7358,8 +7364,17 @@ function Save-DR3DChoice {
     } catch { }
 }
 $ui.Buttons3DSwitch.Add_Click({
-    # Turning the 3D look off also turns Max 3D off, since Max is only a deeper version of it.
-    if (-not [bool]$ui.Buttons3DSwitch.IsChecked) { $ui.Max3DSwitch.IsChecked = $false }
+    # One switch for all 3D: turning the 3D look off also turns Max 3D off, and remembers whether Max 3D was on,
+    # so turning the 3D look back on brings Max 3D back too (handy for a faster copy, then everything back).
+    if (-not [bool]$ui.Buttons3DSwitch.IsChecked) {
+        $wasMax = [bool]$ui.Max3DSwitch.IsChecked
+        $ui.Max3DSwitch.IsChecked = $false
+        if (-not $TestMode) { try { if (-not (Test-Path -LiteralPath $script:DR3DKey)) { New-Item -Path $script:DR3DKey -Force | Out-Null }; Set-ItemProperty -LiteralPath $script:DR3DKey -Name 'Max3DBeforeOff' -Value ([int]$wasMax) -Type DWord } catch { } }
+    } else {
+        $bringMax = $false
+        try { $bringMax = [int](Get-ItemProperty -LiteralPath $script:DR3DKey -Name 'Max3DBeforeOff' -ErrorAction Stop).Max3DBeforeOff -ne 0 } catch { }
+        if ($bringMax) { $ui.Max3DSwitch.IsChecked = $true }
+    }
     Set-DR3DButtons -On ([bool]$ui.Buttons3DSwitch.IsChecked) -Max ([bool]$ui.Max3DSwitch.IsChecked)
     Update-DRMaxSwitchVisibility
     Save-DR3DChoice
