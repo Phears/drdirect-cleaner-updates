@@ -1,7 +1,7 @@
 {
-  "version": "1.4.440",
-  "notes": "Check my PC now also checks security, spyware, Defender exclusions, startup apps, large files and PHP.",
-  "published": "2026-11-06T14:16:29.2436700-05:00",
+  "version": "1.4.441",
+  "notes": "Scan refused notes in the Cleaning history are now kept for good.",
+  "published": "2026-11-06T14:33:47.6609315-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "73362A3F4ACF63C5D71E65E3E9ECCCCAB6862C2DF1661522C763668A1875535C",
-      "size": 920867
+      "sha256": "BA848B7C6DA09DA99673CE28C60D86A983327BA37BCE818A58FFE7F55DA2738E",
+      "size": 922175
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

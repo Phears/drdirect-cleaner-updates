@@ -4339,9 +4339,33 @@ function Get-DRRefusalLedger {
     }
 }
 function Test-DRRefusalLocked {
-    # A refusal note stays for 30 days; nobody can delete it from the Cleaning history before then.
+    # A refusal note stays for good; nobody can delete it from the Cleaning history.
     param($File)
-    return ($File.Name -like '*-scan-refused.txt' -and ((Get-Date) - $File.LastWriteTime).TotalDays -lt 30)
+    return ($File.Name -like '*-scan-refused.txt')
+}
+function Restore-DRRefusalNotes {
+    # A refusal note removed outside the Cleaner (File Explorer, etc.) is written back from the hidden record.
+    try {
+        $reportRoot = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Reports'
+        [void][IO.Directory]::CreateDirectory($reportRoot)
+        foreach ($r in @(Get-DRRefusalLedger)) {
+            $name = [IO.Path]::GetFileName([string]$r.NoteName)
+            if ($name -notlike 'Maintenance_Report_*-scan-refused.txt') { continue }
+            $path = Join-Path $reportRoot $name
+            if (Test-Path -LiteralPath $path -PathType Leaf) { continue }
+            $body = @(
+                'DRDirect PC Cleaner - Scan refused',
+                ('Time:      {0}' -f $r.Time.ToString('yyyy-MM-dd HH:mm:ss')),
+                ('Scan:      Windows Defender {0} scan' -f ([string]$r.Which).ToLowerInvariant()),
+                ('Ignored:   {0}' -f $r.Ignored),
+                '',
+                'The scan was overdue. The Cleaner asked to run it and the customer chose not to. Nothing was scanned.',
+                'This note was removed from the Cleaning history and has been put back.'
+            ) -join [Environment]::NewLine
+            [IO.File]::WriteAllText($path, $body, (New-Object Text.UTF8Encoding($false)))
+            try { [IO.File]::SetLastWriteTime($path, $r.Time) } catch { }
+        }
+    } catch { }
 }
 function Request-DRScanNow {
     param([string]$Which, $Since)
@@ -4743,6 +4767,7 @@ function Show-History {
     if (-not (Test-Path -LiteralPath $reportRoot -PathType Container)) {
         [void][System.IO.Directory]::CreateDirectory($reportRoot)
     }
+    Restore-DRRefusalNotes
 
     $files = @(
         Get-ChildItem `
@@ -4854,7 +4879,7 @@ function Show-History {
             if ([string]::IsNullOrWhiteSpace($target)) { return }
 
             if ((Test-Path -LiteralPath $target -PathType Leaf) -and (Test-DRRefusalLocked (Get-Item -LiteralPath $target))) {
-                [void][Windows.MessageBox]::Show('This note is kept for 30 days and cannot be deleted before then.', 'DRDirect PC Cleaner', 'OK', 'Information')
+                [void][Windows.MessageBox]::Show('This note is kept for good and cannot be deleted.', 'DRDirect PC Cleaner', 'OK', 'Information')
                 return
             }
 
@@ -8969,7 +8994,7 @@ $ui.ClearHistoryButton.Add_Click({
     if ([string]::IsNullOrWhiteSpace($localAppData)) { return }
 
     $reportRoot = Join-Path -Path $localAppData -ChildPath 'DRDirect PC Cleaner\Reports'
-    # Refusal notes under 30 days old stay; everything else can go.
+    # Refusal notes always stay; everything else can go.
     $all = @(Get-ChildItem -LiteralPath $reportRoot -Filter 'Maintenance_Report_*.txt' -File -ErrorAction SilentlyContinue | Where-Object { -not (Test-DRRefusalLocked $_) })
     if (-not $all) {
         [void][Windows.MessageBox]::Show('There are no reports to delete.', 'DRDirect PC Cleaner', 'OK', 'Information')
