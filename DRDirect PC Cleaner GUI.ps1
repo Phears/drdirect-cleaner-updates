@@ -3011,6 +3011,16 @@ function Format-DRApproxTime {
     return ('{0} hr {1} min' -f $h, (5 * [int][Math]::Round($m / 5)))
 }
 
+function Test-DRMeasuredTask {
+    # Only items whose time comes from deleting files are timed from the check of the PC. The shred (it tells the
+    # SSD to wipe its free space) and Hibernate have no files to count, so they keep how long they really took here.
+    param([string]$TaskId)
+    if ($TaskId -notlike 'cleanup.*' -or $TaskId -in @('cleanup.ssd-shred', 'cleanup.hibernate-off')) { return $false }
+    if (-not $script:DRWork -or -not $script:DRWork.ContainsKey($TaskId)) { return $false }
+    $w = $script:DRWork[$TaskId]
+    return ([double]$w.FileCount -gt 0 -or [double]$w.Bytes -gt 0)
+}
+
 function Get-DRTaskEstimateSeconds {
     # One task's expected time on this PC: how long it really took here last time, or its listed time scaled by the
     # drive test. The level estimates and the running countdown both use this, so they always agree.
@@ -3023,7 +3033,7 @@ function Get-DRTaskEstimateSeconds {
             $last = [Math]::Max(1, $last)
             # Windows repairs (DISM, SFC) can be quick one day and slow the next, so for those the time shown is
             # never less than their listed time. Everything else keeps how long it really took here.
-            $measured = $TaskId -like 'cleanup.*' -and $script:DRWork -and $script:DRWork.ContainsKey($TaskId)
+            $measured = Test-DRMeasuredTask -TaskId $TaskId
             if ($TaskId -notmatch '^repair\.' -and -not $measured) { return [double]$last }
             $lastReal = [double]$last
         }
@@ -3070,7 +3080,7 @@ function Get-DRTaskEstimateSeconds {
     }
     # A cleanup item this PC was just measured for: the time comes from how many files and how much data it has
     # right now, at the speed of this PC's drive. Deleting is mostly per file, so the file count matters most.
-    if ($TaskId -like 'cleanup.*' -and $script:DRWork -and $script:DRWork.ContainsKey($TaskId)) {
+    if (Test-DRMeasuredTask -TaskId $TaskId) {
         $w = $script:DRWork[$TaskId]
         $f = [double]$script:DRSpeedFactor
         return [Math]::Max(1.0, 1.0 + [double]$w.FileCount * 0.002 * $f + ([double]$w.Bytes / 1GB) * 0.5 * $f)
