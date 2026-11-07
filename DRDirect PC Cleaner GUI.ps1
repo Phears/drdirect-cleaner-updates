@@ -1472,7 +1472,7 @@ $window.Add_Closing({
             $finderOpen = Get-Process -Name 'powershell', 'DRDirect*' -ErrorAction SilentlyContinue |
                 Where-Object { $_.Id -ne $PID -and $_.MainWindowTitle -eq 'DRDirect Duplicate Finder' } | Select-Object -First 1
             if ($finderOpen) { [void]$openTools.Add('the Duplicate Finder') }
-            $uninstallerOpen = Get-Process -Name 'BCUninstaller' -ErrorAction SilentlyContinue |
+            $uninstallerOpen = Get-Process -Name 'BCUninstaller', 'DRDirect Uninstaller' -ErrorAction SilentlyContinue |
                 Where-Object { $_.MainWindowHandle -ne [IntPtr]::Zero } | Select-Object -First 1
             if ($uninstallerOpen) { [void]$openTools.Add('the Uninstaller') }
             if ($openTools.Count) {
@@ -3871,7 +3871,7 @@ function Test-DROtherToolBusy {
         if ($finder) { [void]$busy.Add('the Duplicate Finder'); $window = $finder }
     }
     if ($Opening -ne 'Uninstaller') {
-        $uninstaller = Get-Process -Name 'BCUninstaller' -ErrorAction SilentlyContinue |
+        $uninstaller = Get-Process -Name 'BCUninstaller', 'DRDirect Uninstaller' -ErrorAction SilentlyContinue |
             Where-Object { $_.MainWindowHandle -ne [IntPtr]::Zero } | Select-Object -First 1
         if ($uninstaller) { [void]$busy.Add('the Uninstaller'); if (-not $window) { $window = $uninstaller } }
     }
@@ -5850,13 +5850,18 @@ function Resolve-DRUninstallerExe {
     } catch { }
     # The Cleaner unpacks its own copy here the first time it starts, so this is the usual place.
     if (-not [string]::IsNullOrWhiteSpace($env:LOCALAPPDATA)) {
-        $unpacked = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Uninstaller\BCUninstaller.exe'
-        if (Test-Path -LiteralPath $unpacked -PathType Leaf) { return $unpacked }
+        # Its proper name first; older packages only have BCUninstaller.exe.
+        foreach ($exeName in 'DRDirect Uninstaller.exe', 'BCUninstaller.exe') {
+            $unpacked = Join-Path $env:LOCALAPPDATA ('DRDirect PC Cleaner\Uninstaller\' + $exeName)
+            if (Test-Path -LiteralPath $unpacked -PathType Leaf) { return $unpacked }
+        }
     }
     foreach ($root in @($roots | Select-Object -Unique)) {
         if ([string]::IsNullOrWhiteSpace($root)) { continue }
-        $candidate = Join-Path -Path $root -ChildPath 'DRDirect Uninstaller\BCUninstaller.exe'
-        if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
+        foreach ($exeName in 'DRDirect Uninstaller.exe', 'BCUninstaller.exe') {
+            $candidate = Join-Path -Path $root -ChildPath ('DRDirect Uninstaller\' + $exeName)
+            if (Test-Path -LiteralPath $candidate -PathType Leaf) { return $candidate }
+        }
     }
     return $null
 }
@@ -5867,7 +5872,7 @@ function Show-DRRunningUninstaller {
     # that would have to scan every program again.
     param([string]$UninstallerPath)
     try {
-        $ours = @(Get-CimInstance -ClassName Win32_Process -Filter "Name='BCUninstaller.exe'" -ErrorAction Stop |
+        $ours = @(Get-CimInstance -ClassName Win32_Process -Filter "Name='BCUninstaller.exe' OR Name='DRDirect Uninstaller.exe'" -ErrorAction Stop |
             Where-Object { $_.ExecutablePath -and ($_.ExecutablePath -ieq $UninstallerPath) })
     } catch { return $false }
     foreach ($candidate in $ours) {
@@ -5965,6 +5970,27 @@ function Start-DRUninstallerUpdate {
     return $true
 }
 
+function Grant-DRUninstallerFolderAccess {
+    # Windows "Controlled folder access" (ransomware protection) blocks programs it does not
+    # know from changing files in Documents, Desktop and so on, so the Uninstaller could not
+    # remove leftovers there. When it is on and the Uninstaller is not allowed yet, ask once.
+    param([string]$UninstallerPath)
+    try {
+        if ($script:DRCfaAsked) { return }
+        $pref = Get-MpPreference -ErrorAction Stop
+        if ([int]$pref.EnableControlledFolderAccess -ne 1) { return }
+        $allowed = @($pref.ControlledFolderAccessAllowedApplications) | Where-Object { $_ }
+        if ($allowed | Where-Object { $_ -ieq $UninstallerPath }) { return }
+        $script:DRCfaAsked = $true
+        $answer = [Windows.MessageBox]::Show(
+            "Windows ransomware protection (Controlled folder access) is on, so it will stop the DRDirect Uninstaller from removing leftovers in folders like Documents and Desktop." +
+            [Environment]::NewLine + [Environment]::NewLine + "Allow the DRDirect Uninstaller through Controlled folder access?",
+            'DRDirect PC Cleaner', [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Question)
+        if ($answer -ne [Windows.MessageBoxResult]::Yes) { return }
+        Add-MpPreference -ControlledFolderAccessAllowedApplications $UninstallerPath -ErrorAction Stop
+    } catch { }
+}
+
 function Open-DRUninstaller {
     if (Test-DROtherToolBusy -Opening 'Uninstaller') { return }
     if ($TestMode) {
@@ -5995,6 +6021,7 @@ function Open-DRUninstaller {
         return
     }
     if (Show-DRRunningUninstaller -UninstallerPath $uninstaller) { return }
+    Grant-DRUninstallerFolderAccess -UninstallerPath $uninstaller
     try {
         $launcher = Get-DRCleanerLauncherPath
         if ($launcher) { $env:DRDIRECT_CLEANER_EXE = $launcher }

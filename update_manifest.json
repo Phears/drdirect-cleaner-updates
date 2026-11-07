@@ -1,7 +1,7 @@
 {
-  "version": "1.4.464",
-  "notes": "Uninstaller no longer asks to close Windows Explorer and other unrelated programs when removing leftovers.",
-  "published": "2026-11-07T18:41:33.1624548-05:00",
+  "version": "1.4.465",
+  "notes": "The Uninstaller now shows as DRDirect Uninstaller in Windows, and the Cleaner offers to let it through Windows ransomware protection.",
+  "published": "2026-11-07T18:46:35.8699826-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "E1F9CA7E44F59CC4842DD43E5CA32E23DCF1EEE8B53BAD7CB1FDABCA620AC2E4",
-      "size": 950454
+      "sha256": "6E20A0DFA34163C46EDDC43A9C4763DE8AEAA764F0DDFD63C1F175B47988B403",
+      "size": 952262
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -20,8 +20,8 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "9116447A86173CDCBC3412EFB650D6D1F3544CC0D8D971F7B157C8059BF75651",
-      "size": 64027
+      "sha256": "1DCD80513F4BCDDBC19C3EEC755EB441DAB5366FDF4E76F5419E67D5712D1002",
+      "size": 64051
     },
     {
       "name": "DRDirect Activation.ps1",
@@ -45,8 +45,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "34FF9B385BFCF947A1937DEEBA9BBD1381617A102E3A68DCDB419AABFAFF57BD",
-      "size": 10465207
+      "sha256": "6BE7F9413A15D1B3490DB6ED680BF5F247E2AEEBB8327125C4711349EDF3007F",
+      "size": 10543820
     }
   ],
   "blocked": [],

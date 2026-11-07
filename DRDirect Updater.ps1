@@ -658,7 +658,7 @@ function Update-DRUninstallerFromFeed {
             ([System.IO.File]::ReadAllText($stamp).Trim() -eq $expected)) { return }
 
         # Files in use cannot be replaced. It is tried again the next time it is opened.
-        $running = @(Get-Process -Name 'BCUninstaller' -ErrorAction SilentlyContinue | Where-Object {
+        $running = @(Get-Process -Name 'BCUninstaller', 'DRDirect Uninstaller' -ErrorAction SilentlyContinue | Where-Object {
             try { $_.Path -and $_.Path.StartsWith($target, [StringComparison]::OrdinalIgnoreCase) } catch { $false }
         })
         if ($running.Count) { return }
