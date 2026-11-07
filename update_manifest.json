@@ -1,7 +1,7 @@
 {
-  "version": "1.4.443",
+  "version": "1.4.463",
   "notes": "Uninstaller no longer asks to close Windows Explorer and other unrelated programs when removing leftovers.",
-  "published": "2026-11-07T18:29:48.3465391-05:00",
+  "published": "2026-11-07T18:32:52.1479793-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
