@@ -3034,7 +3034,9 @@ function Get-DRTaskEstimateSeconds {
             # Windows repairs (DISM, SFC) can be quick one day and slow the next, so for those the time shown is
             # never less than their listed time. Everything else keeps how long it really took here.
             $measured = Test-DRMeasuredTask -TaskId $TaskId
-            if ($TaskId -notmatch '^repair\.' -and -not $measured) { return [double]$last }
+            # The Defender quick and full scans go on below, where Windows' own record of how long they take here
+            # is weighed too (a full scan is never shown as under an hour).
+            if ($TaskId -notmatch '^repair\.' -and $TaskId -notin @('security.quick-scan', 'security.full-scan') -and -not $measured) { return [double]$last }
             $lastReal = [double]$last
         }
     } catch { }
