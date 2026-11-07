@@ -1,7 +1,7 @@
 {
-  "version": "1.4.461",
-  "notes": "Before showing the Safe, Medium and Advanced times, the Cleaner checks this PC, so the times are close to the real time on every PC.",
-  "published": "2026-11-07T13:35:08.4976025-05:00",
+  "version": "1.4.462",
+  "notes": "The time for Cookies and website traces is now closer, because it includes wiping the free space afterwards.",
+  "published": "2026-11-07T13:35:52.3482084-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
