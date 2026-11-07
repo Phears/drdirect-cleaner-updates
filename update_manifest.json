@@ -1,7 +1,7 @@
 {
-  "version": "1.4.456",
-  "notes": "Clone & Backup: Check and Restore of a saved image are about twice as fast.",
-  "published": "2026-11-06T22:16:36.0581148-05:00",
+  "version": "1.4.457",
+  "notes": "Clone & Backup: saving an image is about 28 percent faster.",
+  "published": "2026-11-06T22:58:30.5065729-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -30,8 +30,8 @@
     },
     {
       "name": "DRDirect Imager Engine.ps1",
-      "sha256": "B8D75C3F64444F7F5B44AE416DCDA8F446D2D30B094DED330EB54566E9E39FEF",
-      "size": 81645
+      "sha256": "63078E31AB75AD9D113B6D0A1845E4696910194E8076E2C79B6F0BC82290C9A8",
+      "size": 83401
     },
     {
       "name": "DRDirectCleaner.ico",

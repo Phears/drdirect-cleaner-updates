@@ -29,7 +29,7 @@ public class DRImgJob
     const string Magic3 = "DRIMG003";
     const string Magic4 = "DRIMG004";
     const int Chunk = 4 * 1024 * 1024;
-    const int Batch = 16;
+    const int Batch = 32;
 
     delegate void Work();
 
@@ -176,14 +176,17 @@ public class DRImgJob
             if (Quick) bw.Write(1);
             bw.Flush();
             BlockingCollection<SmartItem[]> q = new BlockingCollection<SmartItem[]>(4);
-            BlockingCollection<List<byte[]>> wq = new BlockingCollection<List<byte[]>>(6);
+            BlockingCollection<List<ArraySegment<byte>>> wq = new BlockingCollection<List<ArraySegment<byte>>>(6);
             Exception readErr = null; Exception writeErr = null;
             Thread wt = new Thread(delegate() {
                 System.Diagnostics.Stopwatch w = new System.Diagnostics.Stopwatch();
-                foreach (List<byte[]> segs in wq.GetConsumingEnumerable())
+                foreach (List<ArraySegment<byte>> segs in wq.GetConsumingEnumerable())
                 {
-                    if (writeErr != null) continue;
-                    try { w.Restart(); foreach (byte[] r in segs) o.Write(r, 0, r.Length); SecWrite += w.Elapsed.TotalSeconds; } catch (Exception ex) { writeErr = ex; }
+                    if (writeErr == null)
+                    {
+                        try { w.Restart(); foreach (ArraySegment<byte> r in segs) o.Write(r.Array, r.Offset, r.Count); SecWrite += w.Elapsed.TotalSeconds; } catch (Exception ex) { writeErr = ex; }
+                    }
+                    foreach (ArraySegment<byte> r in segs) if (r.Array.Length == Chunk + 64) encPool.Add(r.Array);
                 }
             });
             wt.IsBackground = true; wt.Start();
@@ -241,7 +244,7 @@ public class DRImgJob
                     if (Cancel) throw new OperationCanceledException();
                     if (writeErr != null) throw writeErr;
                     int n = batch.Length;
-                    byte[][] ivs = new byte[n][]; byte[][] cts = new byte[n][]; int[] clen = new int[n]; bool[] zero = new bool[n]; byte[][] ch = new byte[n][];
+                    byte[][] ivs = new byte[n][]; byte[][] cts = new byte[n][]; int[] ctl = new int[n]; int[] clen = new int[n]; bool[] zero = new bool[n]; byte[][] ch = new byte[n][];
                     sw.Restart();
                     Parallel.For(0, n, pc, delegate(int i) {
                         SmartItem it = batch[i];
@@ -259,17 +262,18 @@ public class DRImgJob
                             packed = c.Length < it.Len; plain = packed ? c : it.B; plainLen = packed ? c.Length : it.Len;
                         }
                         clen[i] = plainLen;
-                        byte[] iv; byte[] ct = EncryptParts(key, plain, plainLen, out iv);
-                        ivs[i] = iv; cts[i] = ct;
+                        byte[] iv; byte[] ct = GetEncBuf(); int ctLen = EncryptInto(key, plain, plainLen, ct, out iv);
+                        ivs[i] = iv; cts[i] = ct; ctl[i] = ctLen;
+                        SHA256CryptoServiceProvider hc = encSha; if (hc == null) { hc = new SHA256CryptoServiceProvider(); encSha = hc; }
                         if (Quick)
                         {
                             // fast images hash the stored (encrypted) bytes; older ones hash the raw chunk, as before
-                            using (SHA256CryptoServiceProvider hc = new SHA256CryptoServiceProvider()) { hc.TransformBlock(iv, 0, iv.Length, null, 0); hc.TransformFinalBlock(ct, 0, ct.Length); ch[i] = hc.Hash; }
+                            hc.Initialize(); hc.TransformBlock(iv, 0, iv.Length, null, 0); hc.TransformFinalBlock(ct, 0, ctLen); ch[i] = (byte[])hc.Hash.Clone();
                         }
-                        else { ch[i] = SHA256.Create().ComputeHash(it.B, 0, it.Len); }
+                        else { ch[i] = hc.ComputeHash(it.B, 0, it.Len); }
                     });
                     SecComp += sw.Elapsed.TotalSeconds;
-                    List<byte[]> segs = new List<byte[]>();
+                    List<ArraySegment<byte>> segs = new List<ArraySegment<byte>>();
                     MemoryStream hs = new MemoryStream(4096);
                     BinaryWriter hw = new BinaryWriter(hs);
                     for (int i = 0; i < n; i++)
@@ -280,9 +284,9 @@ public class DRImgJob
                         else
                         {
                             hw.Write(pos); hw.Write(len);
-                            hw.Write(clen[i]); hw.Write(ivs[i].Length + cts[i].Length);
-                            hw.Flush(); segs.Add(hs.ToArray()); hs.SetLength(0);
-                            segs.Add(ivs[i]); segs.Add(cts[i]);
+                            hw.Write(clen[i]); hw.Write(ivs[i].Length + ctl[i]);
+                            hw.Flush(); segs.Add(new ArraySegment<byte>(hs.ToArray())); hs.SetLength(0);
+                            segs.Add(new ArraySegment<byte>(ivs[i])); segs.Add(new ArraySegment<byte>(cts[i], 0, ctl[i]));
                             outer.TransformBlock(BitConverter.GetBytes(pos), 0, 8, null, 0);
                             outer.TransformBlock(BitConverter.GetBytes(len), 0, 4, null, 0);
                             outer.TransformBlock(ch[i], 0, 32, null, 0);
@@ -291,7 +295,7 @@ public class DRImgJob
                         done += len;
                         bufPool.Add(batch[i].B); batch[i].B = null;
                     }
-                    hw.Flush(); if (hs.Length > 0) { segs.Add(hs.ToArray()); }
+                    hw.Flush(); if (hs.Length > 0) { segs.Add(new ArraySegment<byte>(hs.ToArray())); }
                     sw.Restart();
                     wq.Add(segs);
                     SecBlocked += sw.Elapsed.TotalSeconds;
@@ -306,7 +310,7 @@ public class DRImgJob
                 tw.Write(-1L);
                 tw.Write(outer.Hash);
                 tw.Flush();
-                List<byte[]> last = new List<byte[]>(); last.Add(tail.ToArray());
+                List<ArraySegment<byte>> last = new List<ArraySegment<byte>>(); last.Add(new ArraySegment<byte>(tail.ToArray()));
                 wq.Add(last);
                 Hash = Hex(outer.Hash);
             }
@@ -814,6 +818,30 @@ public class DRImgJob
     static byte[] GetBuf() { byte[] b; if (bufPool.TryTake(out b)) return b; return new byte[Chunk]; }
 
     // AES-256-CBC, returning the IV and the cipher text separately (no extra copies).
+    // Image saving: locks one block into a reused buffer (no new memory per block). Same bytes as EncryptParts.
+    [ThreadStatic] static Aes encAes;
+    [ThreadStatic] static SHA256CryptoServiceProvider encSha;
+    static readonly ConcurrentBag<byte[]> encPool = new ConcurrentBag<byte[]>();
+    static byte[] GetEncBuf() { byte[] b; if (encPool.TryTake(out b)) return b; return new byte[Chunk + 64]; }
+    static int EncryptInto(byte[] key, byte[] data, int len, byte[] dst, out byte[] iv)
+    {
+        Aes a = encAes;
+        if (a == null) { a = Aes.Create(); a.KeySize = 256; a.Mode = CipherMode.CBC; a.Padding = PaddingMode.None; encAes = a; }
+        a.Key = key; a.GenerateIV(); iv = a.IV;
+        int full = len - (len % 16);
+        int pad = 16 - (len % 16);
+        byte[] last = new byte[16];
+        Buffer.BlockCopy(data, full, last, 0, len - full);
+        for (int i = len - full; i < 16; i++) last[i] = (byte)pad;
+        using (ICryptoTransform t = a.CreateEncryptor(key, iv))
+        {
+            int w = 0;
+            if (full > 0) w = t.TransformBlock(data, 0, full, dst, 0);
+            w += t.TransformBlock(last, 0, 16, dst, full);
+            return w;
+        }
+    }
+
     static byte[] EncryptParts(byte[] key, byte[] data, int len, out byte[] iv)
     {
         using (Aes a = Aes.Create())
