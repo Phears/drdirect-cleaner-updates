@@ -1,7 +1,7 @@
 {
-  "version": "1.4.458",
-  "notes": "The cleaning report now shows the real time it took. Safe, Medium and Advanced show how long they took last time on this PC.",
-  "published": "2026-11-07T12:57:37.5014584-05:00",
+  "version": "1.4.459",
+  "notes": "The cleaning report now shows the real time it took. Safe, Medium and Advanced estimates are much closer, show how long they took last time on this PC, and the countdown follows the real speed of the clean.",
+  "published": "2026-11-07T13:17:01.6358409-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "226F5B65C776940BDEC583E5A541067DD263D8DFEF60ED084E7E476F5926BBFB",
-      "size": 944728
+      "sha256": "6EE646469E25416B9FB49DE63E2C3E426CA1078C579B4FDD593C9B3B094F59CC",
+      "size": 949695
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "FA7F3AB289359ADB627B7F62C874269C70FA115C4202170E3C04BA57264425F6",
-      "size": 352298
+      "sha256": "EE44C2F59355F4BDF80A6E166FDE943B18F022A005D898DD5ACF0F005E3C6B86",
+      "size": 353171
     },
     {
       "name": "DRDirect Updater.ps1",

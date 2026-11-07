@@ -1593,7 +1593,7 @@ $childPidFile = Join-Path $env:TEMP ('DRDirect_child_{0}.pid' -f $PID)
 $env:DRDIRECT_CHILD_PID_FILE = $childPidFile
 $script:restartCountdownTimer = $null
 $script:restartSecondsLeft = 0
-$script:DRToolLimit = $null; $script:DRScanStart = $null; $script:DRScanTask = $null; $script:DRScanGuess = 1200.0; $script:DRRunTotal = $null; $script:DRQueueRest = 0.0; $script:DRLeftShown = 0.0; $script:DRLeftTick = Get-Date; $script:DRSpeedFactor = $null; $script:DRRunBadgeLevel = $null; $script:DRDriveKindCache = $null; $script:DRBroomColour = $null; $script:DRBroomIdleBrush = $null
+$script:DRToolLimit = $null; $script:DRScanStart = $null; $script:DRScanTask = $null; $script:DRScanGuess = 1200.0; $script:DRRunTotal = $null; $script:DRPaceGuess = 0.0; $script:DRPaceReal = 0.0; $script:DRQueueRest = 0.0; $script:DRLeftShown = 0.0; $script:DRLeftTick = Get-Date; $script:DRSpeedFactor = $null; $script:DRRunBadgeLevel = $null; $script:DRDriveKindCache = $null; $script:DRBroomColour = $null; $script:DRBroomIdleBrush = $null
 $script:restartDelaySeconds = 0
 $script:DRShutdownMode = $false
 $script:DRAdvancedShutdownOffered = $false
@@ -2832,7 +2832,7 @@ function Show-TaskCategory {
     $ui.TaskList.Children.Clear()
     $ui.CleanupPresetPanel.Visibility = if ($Category -eq 'Cleanup') { 'Visible' } else { 'Collapsed' }
     # Items ticked on other pages count towards the scan times, so refresh them each time this page shows.
-    if ($Category -eq 'Cleanup') { try { Set-DRLevelDates } catch { } }
+    if ($Category -eq 'Cleanup') { try { Set-DRLevelDates } catch { }; try { Start-DRMeasureWork } catch { } }
     $ui.TaskIntro.Text = switch ($Category) {
         'Cleanup' { 'Select cleanup items after reviewing the estimated impact. Passwords, bookmarks, personal documents, and active sessions remain protected unless cookie cleanup is explicitly selected.' }
         'Repair' { 'Windows repairs are separate from cleanup. Creating a restore point is recommended before repair operations.' }
@@ -2929,8 +2929,10 @@ function Get-DRDurationGuessSeconds {
     param([string]$Duration)
     $d = ([string]$Duration).ToLowerInvariant()
     $unit = if ($d -match 'hour') { 3600 } else { 60 }
-    if ($d -match '(\d+)\s*-\s*(\d+)') { return [int](([double]$Matches[1] + [double]$Matches[2]) / 2 * $unit) }
-    if ($d -match '<\s*(\d+)') { return [int]([double]$Matches[1] * 0.6 * $unit) }
+    # Real runs finish near the bottom of a listed range far more often than the middle (a Safe scan listed as
+    # 16 min took 1 min 39 s), so a first guess sits a quarter of the way into the range.
+    if ($d -match '(\d+)\s*-\s*(\d+)') { return [int](([double]$Matches[1] + ([double]$Matches[2] - [double]$Matches[1]) * 0.25) * $unit) }
+    if ($d -match '<\s*(\d+)') { return [int]([double]$Matches[1] * 0.3 * $unit) }
     if ($d -match '(\d+)\s*\+') { return [int]([double]$Matches[1] * $unit) }
     if ($d -match '(\d+)') { return [int]([double]$Matches[1] * $unit) }
     return 60
@@ -3016,10 +3018,13 @@ function Get-DRTaskEstimateSeconds {
     $lastReal = 0.0
     try {
         $last = [int](Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('Last_' + $TaskId) -ErrorAction Stop).('Last_' + $TaskId)
-        if ($last -gt 0) {
-            # DISM, SFC, scans and checks can be quick one day and slow the next, so for those the time shown is
-            # never less than their listed time. Cleanup items keep how long they really took here.
-            if ($TaskId -notmatch '^(repair|security|health)\.') { return [double]$last }
+        if ($last -ge 0) {
+            # A task that finished in under a second is saved as 1 (older versions saved 0 and then ignored it).
+            $last = [Math]::Max(1, $last)
+            # Windows repairs (DISM, SFC) can be quick one day and slow the next, so for those the time shown is
+            # never less than their listed time. Everything else keeps how long it really took here.
+            $measured = $TaskId -like 'cleanup.*' -and $script:DRWork -and $script:DRWork.ContainsKey($TaskId)
+            if ($TaskId -notmatch '^repair\.' -and -not $measured) { return [double]$last }
             $lastReal = [double]$last
         }
     } catch { }
@@ -3063,6 +3068,13 @@ function Get-DRTaskEstimateSeconds {
             } catch { }
         }
     }
+    # A cleanup item this PC was just measured for: the time comes from how many files and how much data it has
+    # right now, at the speed of this PC's drive. Deleting is mostly per file, so the file count matters most.
+    if ($TaskId -like 'cleanup.*' -and $script:DRWork -and $script:DRWork.ContainsKey($TaskId)) {
+        $w = $script:DRWork[$TaskId]
+        $f = [double]$script:DRSpeedFactor
+        return [Math]::Max(1.0, 1.0 + [double]$w.FileCount * 0.002 * $f + ([double]$w.Bytes / 1GB) * 0.5 * $f)
+    }
     $task = @($catalog | Where-Object { $_.Id -eq $TaskId } | Select-Object -First 1)
     $listed = if ($task.Count) { [string]$task[0].Duration } else { '' }
     return [Math]::Max([Math]::Max(5.0, $lastReal), (Get-DRDurationGuessSeconds -Duration $listed) * $script:DRSpeedFactor)
@@ -3078,6 +3090,41 @@ function Get-DRExtraTickedSeconds {
         try { $secs += Get-DRTaskEstimateSeconds -TaskId ([string]$task.Id) } catch { }
     }
     return $secs
+}
+$script:DRWork = @{}; $script:DRWorkPs = $null; $script:DRWorkRs = $null; $script:DRWorkAsync = $null; $script:DRWorkTimer = $null; $script:DRWorkAt = [datetime]::MinValue
+function Start-DRMeasureWork {
+    # Every PC is different, so before the Safe, Medium and Advanced times are shown, this PC is checked: how many
+    # files and how much data each cleanup item would remove right now. It runs in the background, changes nothing,
+    # and is done again each time the times are shown (at most once a minute) and after every clean.
+    param([switch]$Force)
+    if ($script:DRWorkPs) { return }
+    if (-not $Force -and ((Get-Date) - $script:DRWorkAt).TotalSeconds -lt 60) { return }
+    try { if (Test-DRRunBusy) { return } } catch { }
+    try {
+        $source = [System.IO.File]::ReadAllText($script:DREnginePath)
+        $safeRoot = if ($TestRoot) { $TestRoot.Replace("'","''") } else { '' }
+        $ids = @($catalog | Where-Object { $_.SupportsAnalysis -and $_.Id -like 'cleanup.*' } | ForEach-Object { "'" + $_.Id + "'" }) -join ','
+        $rs = [RunspaceFactory]::CreateRunspace(); $rs.ApartmentState = 'MTA'; $rs.Open()
+        $ps = [PowerShell]::Create(); $ps.Runspace = $rs
+        [void]$ps.AddScript($source + "`r`nGet-DRAnalysis -TaskId @($ids) -TestRoot '$safeRoot'")
+        $script:DRWorkRs = $rs; $script:DRWorkPs = $ps; $script:DRWorkAsync = $ps.BeginInvoke()
+    } catch { $script:DRWorkPs = $null; return }
+    try { Set-DRLevelDates } catch { }
+    if (-not $script:DRWorkTimer) {
+        $script:DRWorkTimer = New-Object Windows.Threading.DispatcherTimer
+        $script:DRWorkTimer.Interval = [TimeSpan]::FromMilliseconds(400)
+        $script:DRWorkTimer.Add_Tick({
+            if (-not $script:DRWorkPs -or -not $script:DRWorkAsync.IsCompleted) { return }
+            $script:DRWorkTimer.Stop()
+            $found = @{}
+            try { foreach ($item in @($script:DRWorkPs.EndInvoke($script:DRWorkAsync))) { if ($item.TaskId -and -not $item.Error -and $item.PSObject.Properties['FileCount']) { $found[[string]$item.TaskId] = $item } } } catch { }
+            try { $script:DRWorkPs.Dispose() } catch { }; try { $script:DRWorkRs.Close(); $script:DRWorkRs.Dispose() } catch { }
+            $script:DRWorkPs = $null; $script:DRWorkRs = $null; $script:DRWorkAsync = $null
+            $script:DRWork = $found; $script:DRWorkAt = Get-Date
+            try { [void](Update-DRLevelEstimates) } catch { try { Set-DRLevelDates } catch { } }
+        })
+    }
+    $script:DRWorkTimer.Start()
 }
 function Update-DRLevelEstimates {
     # How long Safe, Medium and Advanced would take on this PC. A task that has run before uses how long it
@@ -3131,7 +3178,10 @@ function Set-DRLevelDates {
             $tookSecs = [int](Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('LevelTime_' + $level) -ErrorAction Stop).('LevelTime_' + $level)
             if ($tookSecs -gt 0) { $ui["Preset${level}Date"].Text += "`n" + 'Last time took ' + (Format-DRElapsed -Span ([TimeSpan]::FromSeconds($tookSecs))) }
         } catch { }
-        if ((Get-Variable -Name DRLevelEstimate -Scope Script -ErrorAction SilentlyContinue) -and $script:DRLevelEstimate) {
+        if ($script:DRWorkPs) {
+            $ui["Preset${level}Date"].Text += "`n" + [char]0x23F1 + ' Checking this PC...'
+            $ui["Preset${level}Date"].TextAlignment = 'Center'
+        } elseif ((Get-Variable -Name DRLevelEstimate -Scope Script -ErrorAction SilentlyContinue) -and $script:DRLevelEstimate) {
             $ui["Preset${level}Date"].Text += "`n" + [char]0x23F1 + ' About ' + (Format-DRApproxTime -Seconds ($script:DRLevelEstimate[$level] + (Get-DRExtraTickedSeconds -Level $level)))
             $driveType = Get-DRSystemDriveType
             if ($driveType) { $ui["Preset${level}Date"].Text += ' on ' + $driveType }
@@ -3928,6 +3978,7 @@ function Start-RunPlan {
     $ui.ProgressList.Children.Clear(); foreach ($task in $selected) { $ui.ProgressList.Children.Add((New-ProgressRow $task)) | Out-Null }
     if ($ui.CleaningAnimation) { $ui.CleaningAnimation.Visibility='Visible' }
     $script:runScanLevel = Get-DRRunScanLevel -Preset $script:cleanupPreset
+    $script:DRRunStartPreset = [string]$script:cleanupPreset
     Set-DRScanBroomsAlive $true -Preset $script:runScanLevel
     if ($ui.CleanDone) { $ui.CleanDone.Visibility='Collapsed' }
     if ($ui.ProgressList) {
@@ -4173,9 +4224,9 @@ function Complete-RunPlan {
     # A full Safe, Medium or Advanced run that was not stopped saves how long it really took, start to finish,
     # so the next time the level shows "Last time took ..." and its estimate can be trusted.
     try {
-        if (-not $cancelAfterTask -and -not $TestRoot -and $runStartedAt -and $script:cleanupPreset -in @('Safe','Medium','Advanced')) {
+        if (-not $cancelAfterTask -and -not $TestRoot -and $runStartedAt -and $script:DRRunStartPreset -in @('Safe','Medium','Advanced')) {
             $levelSecs = [int][Math]::Floor(((Get-Date) - [datetime]$runStartedAt).TotalSeconds)
-            if ($levelSecs -gt 0) { Set-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('LevelTime_' + $script:cleanupPreset) -Value $levelSecs -Type DWord }
+            if ($levelSecs -gt 0) { Set-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('LevelTime_' + $script:DRRunStartPreset) -Value $levelSecs -Type DWord }
         }
     } catch { }
 
@@ -5058,12 +5109,16 @@ $pollTimer.Add_Tick({
         $curTaskId = if ($busyNow -and -not $script:analysisMode -and $activeTaskId) { [string]$activeTaskId } else { '' }
         if ($curTaskId -ne [string]$script:DRScanTask) {
             if ($script:DRScanTask -and $script:DRScanStart) {
+                # How fast this run is going compared with the guesses: the time still to go is scaled by it, so the
+                # countdown catches up after a few tasks instead of showing 20 minutes for a 2 minute clean.
+                $script:DRPaceGuess += [Math]::Max(1.0, [double]$script:DRScanGuess)
+                $script:DRPaceReal += [Math]::Max(0.5, ((Get-Date) - $script:DRScanStart).TotalSeconds)
                 # The task before this one ended. One that finished on its own teaches the next run how long it takes.
                 try {
                     $taskDone = @($runEvents | Where-Object { $_.TaskId -eq $script:DRScanTask -and $_.State -eq 'Completed' }).Count -gt 0
                     if ($taskDone) {
                         if (-not (Test-Path -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner')) { New-Item -Path 'HKCU:\Software\DRDirect\PC Cleaner' -Force | Out-Null }
-                        Set-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('Last_' + $script:DRScanTask) -Value ([int]((Get-Date) - $script:DRScanStart).TotalSeconds) -Type DWord
+                        Set-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('Last_' + $script:DRScanTask) -Value ([int][Math]::Max(1, [Math]::Ceiling(((Get-Date) - $script:DRScanStart).TotalSeconds))) -Type DWord
                     }
                 } catch { }
             }
@@ -5075,6 +5130,10 @@ $pollTimer.Add_Tick({
             if ($curTaskId) {
                 foreach ($queuedId in @($runQueue)) { $script:DRQueueRest += Get-DRTaskEstimateSeconds -TaskId $queuedId }
                 $script:DRScanGuess = Get-DRTaskEstimateSeconds -TaskId $curTaskId
+                if ($script:DRPaceGuess -ge 20) {
+                    $pace = [Math]::Min(2.0, [Math]::Max(0.15, $script:DRPaceReal / $script:DRPaceGuess))
+                    $script:DRQueueRest *= $pace; $script:DRScanGuess = [Math]::Max(3.0, $script:DRScanGuess * $pace)
+                }
                 if (-not $script:DRRunTotal) {
                     $script:DRRunTotal = [Math]::Max(1.0, $script:DRScanGuess + $script:DRQueueRest)
                     $script:DRLeftShown = $script:DRRunTotal
@@ -5157,7 +5216,9 @@ $pollTimer.Add_Tick({
         if ($busyNow) { $script:DRWasBusy = $true }
         elseif ($script:DRWasBusy) {
             $script:DRWasBusy = $false; $script:DRFinishedUnseen = $true
-            $script:DRRunTotal = $null
+            $script:DRRunTotal = $null; $script:DRPaceGuess = 0.0; $script:DRPaceReal = 0.0
+            # The PC is checked again (the clean changed what is left) and the times are worked out from that.
+            try { Start-DRMeasureWork -Force } catch { try { [void](Update-DRLevelEstimates) } catch { } }
             if ($ui.RunLevelPanel) { $ui.RunLevelPanel.Visibility = 'Collapsed' }; $script:DRRunBadgeLevel = $null
             foreach ($lvDone in 'Safe','Medium','Advanced') { foreach ($suffix in 'Bar','Left') { if ($ui["Preset$lvDone$suffix"]) { $ui["Preset$lvDone$suffix"].Visibility = 'Collapsed' } } }
             if ($script:DRSavedSelection) {
@@ -8078,7 +8139,7 @@ if ($ui.EstimateTimeButton) {
     $ui.EstimateTimeButton.Add_Click({
         # Work out the times, open Clean my PC, and make each time flash above its scan button.
         $window.Cursor = [Windows.Input.Cursors]::Wait
-        try { [void](Update-DRLevelEstimates) } finally { $window.Cursor = $null }
+        try { [void](Update-DRLevelEstimates); Start-DRMeasureWork -Force } finally { $window.Cursor = $null }
         Set-Page 'Cleanup'
         foreach ($level in 'Safe','Medium','Advanced') {
             $label = $ui["Preset${level}Date"]
@@ -9529,6 +9590,7 @@ if ($NoShow) {
     try { Set-DRLastCleanCard } catch { }
     try { Set-DRScanLines } catch { }
     try { Set-DRLevelDates } catch { }
+    try { Start-DRMeasureWork -Force } catch { }
     # Open tall enough that the start card and the three status cards show without scrolling,
     # but never taller than the screen.
     try {

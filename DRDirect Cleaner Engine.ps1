@@ -321,8 +321,11 @@ function Get-DRPathSize {
     try {
         if (-not (Test-Path -LiteralPath $Path)) { return [int64]0 }
         $item = Get-Item -LiteralPath $Path -Force -ErrorAction Stop
-        if (-not $item.PSIsContainer) { return [int64]$item.Length }
-        $sum = (Get-ChildItem -LiteralPath $Path -File -Force -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
+        if (-not $item.PSIsContainer) { $script:DRMeasuredFiles++; return [int64]$item.Length }
+        $measure = Get-ChildItem -LiteralPath $Path -File -Force -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum
+        # How many files there are decides how long deleting them takes, so the analysis keeps the count too.
+        $script:DRMeasuredFiles += [int]$measure.Count
+        $sum = $measure.Sum
         if ($null -eq $sum) { return [int64]0 }
         return [int64]$sum
     } catch { return [int64]0 }
@@ -705,6 +708,7 @@ function Get-DRAnalysis {
         $bytes = [int64]0
         $items = 0
         $detail = ''
+        $script:DRMeasuredFiles = 0
         try {
             switch ($id) {
                 'cleanup.windows-temp' {
@@ -769,7 +773,14 @@ function Get-DRAnalysis {
                     $detail = 'Advanced; Windows rebuilds this cache'
                 }
                 'cleanup.recycle-bin' {
-                    $detail = 'Size is calculated by Windows during cleanup'
+                    # What is in the Recycle Bin on each fixed drive, so the time to empty it is known before it runs.
+                    if (-not $TestRoot) {
+                        foreach ($vol in @(Get-PSDrive -PSProvider FileSystem -ErrorAction SilentlyContinue | Where-Object { $_.Root -match '^[A-Z]:\\$' -and $_.Used -gt 0 })) {
+                            $bin = Join-Path $vol.Root '$Recycle.Bin'
+                            if (Test-Path -LiteralPath $bin) { $bytes += Get-DRPathSize $bin; $items++ }
+                        }
+                    }
+                    $detail = 'Everything in the Recycle Bin on your fixed drives'
                 }
                 'cleanup.ssd-shred' {
                     $detail = 'Wipes free space on SSD and NVMe drives; files you keep are not touched'
@@ -881,7 +892,7 @@ function Get-DRAnalysis {
                     $detail = "$items Defender exclusion(s) configured"
                 }
             }
-            [pscustomobject]@{ TaskId=$id; Bytes=$bytes; ItemCount=$items; Detail=$detail; Error=$null }
+            [pscustomobject]@{ TaskId=$id; Bytes=$bytes; ItemCount=$items; FileCount=[int]$script:DRMeasuredFiles; Detail=$detail; Error=$null }
         } catch {
             [pscustomobject]@{ TaskId=$id; Bytes=[int64]0; ItemCount=0; Detail='Analysis unavailable'; Error=$_.Exception.Message }
         }
