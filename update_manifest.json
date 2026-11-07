@@ -1,7 +1,7 @@
 {
-  "version": "1.4.457",
-  "notes": "Clone & Backup: saving an image is about 28 percent faster.",
-  "published": "2026-11-06T22:58:30.5065729-05:00",
+  "version": "1.4.458",
+  "notes": "The cleaning report now shows the real time it took. Safe, Medium and Advanced show how long they took last time on this PC.",
+  "published": "2026-11-07T12:57:37.5014584-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "7895ABD8A690B13FB211110348D45C21BE03731E50519129CB084A81835EE766",
-      "size": 943468
+      "sha256": "226F5B65C776940BDEC583E5A541067DD263D8DFEF60ED084E7E476F5926BBFB",
+      "size": 944728
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "7E8ECF2BF53FB8DAE6F726C593B38562E48414BD775691732A25589157942B2F",
-      "size": 352283
+      "sha256": "FA7F3AB289359ADB627B7F62C874269C70FA115C4202170E3C04BA57264425F6",
+      "size": 352298
     },
     {
       "name": "DRDirect Updater.ps1",

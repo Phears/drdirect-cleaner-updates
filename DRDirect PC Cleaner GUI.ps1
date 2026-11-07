@@ -3126,6 +3126,11 @@ function Set-DRLevelDates {
     foreach ($level in 'Safe','Medium','Advanced') {
         $when = $found[$level]
         $ui["Preset${level}Date"].Text = if (-not $when) { 'Not done yet' } else { 'Done ' + $when.ToString('dddd d MMMM') }
+        # How long this level really took the last time it ran here, start to finish (saved when the run ended).
+        try {
+            $tookSecs = [int](Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('LevelTime_' + $level) -ErrorAction Stop).('LevelTime_' + $level)
+            if ($tookSecs -gt 0) { $ui["Preset${level}Date"].Text += "`n" + 'Last time took ' + (Format-DRElapsed -Span ([TimeSpan]::FromSeconds($tookSecs))) }
+        } catch { }
         if ((Get-Variable -Name DRLevelEstimate -Scope Script -ErrorAction SilentlyContinue) -and $script:DRLevelEstimate) {
             $ui["Preset${level}Date"].Text += "`n" + [char]0x23F1 + ' About ' + (Format-DRApproxTime -Seconds ($script:DRLevelEstimate[$level] + (Get-DRExtraTickedSeconds -Level $level)))
             $driveType = Get-DRSystemDriveType
@@ -3992,9 +3997,9 @@ function Stop-DRActiveChildProcess {
 
 function Format-DRElapsed {
     param([TimeSpan]$Span)
-    if ($Span.TotalHours -ge 1) { return ('{0}h {1:00}m' -f [int]$Span.TotalHours, $Span.Minutes) }
-    if ($Span.TotalMinutes -ge 1) { return ('{0}m {1:00}s' -f [int]$Span.TotalMinutes, $Span.Seconds) }
-    return ('{0}s' -f [int]$Span.TotalSeconds)
+    if ($Span.TotalHours -ge 1) { return ('{0}h {1:00}m {2:00}s' -f [int][Math]::Floor($Span.TotalHours), $Span.Minutes, $Span.Seconds) }
+    if ($Span.TotalMinutes -ge 1) { return ('{0}m {1:00}s' -f [int][Math]::Floor($Span.TotalMinutes), $Span.Seconds) }
+    return ('{0}s' -f [int][Math]::Floor($Span.TotalSeconds))
 }
 
 function Update-DRElapsedDisplay {
@@ -4070,7 +4075,7 @@ function Write-DRSafeRunReport {
     [void]$builder.AppendLine(('Started:  {0}' -f $StartedAt.ToString('yyyy-MM-dd HH:mm:ss')))
     [void]$builder.AppendLine(('Finished: {0}' -f $finishedAt.ToString('yyyy-MM-dd HH:mm:ss')))
     $elapsed = $finishedAt - $StartedAt
-    [void]$builder.AppendLine(('Total time it took: {0:00}:{1:00}:{2:00}' -f [int]$elapsed.TotalHours, $elapsed.Minutes, $elapsed.Seconds))
+    [void]$builder.AppendLine(('Total time it took: {0:00}:{1:00}:{2:00}' -f [int][Math]::Floor($elapsed.TotalHours), $elapsed.Minutes, $elapsed.Seconds))
     [void]$builder.AppendLine('')
 
     [void]$builder.AppendLine('Selected tasks:')
@@ -4164,6 +4169,15 @@ function Complete-RunPlan {
     $failed = @(
         $eventSnapshot | Where-Object { $_.State -eq 'Failed' }
     ).Count
+
+    # A full Safe, Medium or Advanced run that was not stopped saves how long it really took, start to finish,
+    # so the next time the level shows "Last time took ..." and its estimate can be trusted.
+    try {
+        if (-not $cancelAfterTask -and -not $TestRoot -and $runStartedAt -and $script:cleanupPreset -in @('Safe','Medium','Advanced')) {
+            $levelSecs = [int][Math]::Floor(((Get-Date) - [datetime]$runStartedAt).TotalSeconds)
+            if ($levelSecs -gt 0) { Set-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('LevelTime_' + $script:cleanupPreset) -Value $levelSecs -Type DWord }
+        }
+    } catch { }
 
     $report = $null
     $reportWarning = $null
@@ -4708,9 +4722,9 @@ function Show-DashboardHistory {
             Text = $when.ToString('dddd d MMMM, HH:mm'); FontWeight = 'SemiBold'
         }
         $ago = (Get-Date) - $when
-        $agoText = if ($ago.TotalDays -ge 2) { ('{0} days ago' -f [int]$ago.TotalDays) }
+        $agoText = if ($ago.TotalDays -ge 2) { ('{0} days ago' -f [int][Math]::Floor($ago.TotalDays)) }
                    elseif ($ago.TotalDays -ge 1) { 'yesterday' }
-                   elseif ($ago.TotalHours -ge 1) { ('{0} hours ago' -f [int]$ago.TotalHours) }
+                   elseif ($ago.TotalHours -ge 1) { ('{0} hours ago' -f [int][Math]::Floor($ago.TotalHours)) }
                    else { 'less than an hour ago' }
         $right = New-Object Windows.Controls.TextBlock -Property @{
             Text = $agoText; Foreground = '#667085'; VerticalAlignment = 'Center'
@@ -8528,7 +8542,7 @@ function Stop-DRRestartCountdown {
 function Format-DRCountdown {
     param([int]$Seconds)
     $span = [TimeSpan]::FromSeconds($Seconds)
-    if ($span.TotalHours -ge 1) { return ('{0}:{1:00}:{2:00}' -f [int]$span.TotalHours, $span.Minutes, $span.Seconds) }
+    if ($span.TotalHours -ge 1) { return ('{0}:{1:00}:{2:00}' -f [int][Math]::Floor($span.TotalHours), $span.Minutes, $span.Seconds) }
     if ($Seconds -ge 60) { return ('{0}:{1:00}' -f [int][Math]::Floor($Seconds / 60), ($Seconds % 60)) }
     return ('{0}s' -f $Seconds)
 }
