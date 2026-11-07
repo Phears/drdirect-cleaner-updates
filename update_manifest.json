@@ -1,7 +1,7 @@
 {
-  "version": "1.4.454",
-  "notes": "3D look off now makes everything flat - the main window and Clone & Backup - and turning it back on brings all the 3D back.",
-  "published": "2026-11-06T18:37:01.2731277-05:00",
+  "version": "1.4.455",
+  "notes": "Fixed: Safe, Medium and Advanced scans no longer close the Cleaner when 3D look is off.",
+  "published": "2026-11-06T21:29:23.5733458-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "AE9CAC53D13BB2549D7B8297AD0169D6490DA547730C8CBF60D7E092F7125C54",
-      "size": 942050
+      "sha256": "7895ABD8A690B13FB211110348D45C21BE03731E50519129CB084A81835EE766",
+      "size": 943468
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

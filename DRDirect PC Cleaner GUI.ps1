@@ -1724,7 +1724,17 @@ function Invoke-DRFlatWalk {
     # Hidden parts are not drawn, so they are skipped; this keeps the walk quick. They are done once they show.
     if ($Node -is [Windows.UIElement] -and $Node.Visibility -eq 'Collapsed') { return }
     try {
-        if ($Node -is [Windows.UIElement] -and $null -ne $Node.Effect) { Set-DRFlatProp $Node ([Windows.UIElement]::EffectProperty) $null -NoUndo:$NoUndo }
+        # Glows and shadows are made invisible, not removed: the Cleaner's animations still point at them, and a missing one stops the Cleaner.
+        if ($Node -is [Windows.UIElement] -and $null -ne $Node.Effect -and -not ($Node.Effect.PSObject.Properties['DRFlat'])) {
+            $fx = $Node.Effect
+            $quiet = $null
+            if ($fx -is [Windows.Media.Effects.DropShadowEffect]) { $quiet = New-Object Windows.Media.Effects.DropShadowEffect -Property @{ Opacity = 0; ShadowDepth = 0; BlurRadius = 0 } }
+            elseif ($fx -is [Windows.Media.Effects.BlurEffect]) { $quiet = New-Object Windows.Media.Effects.BlurEffect -Property @{ Radius = 0 } }
+            if ($quiet) {
+                $quiet | Add-Member -NotePropertyName DRFlat -NotePropertyValue $true
+                Set-DRFlatProp $Node ([Windows.UIElement]::EffectProperty) $quiet -NoUndo:$NoUndo
+            }
+        }
         if ($Node -is [Windows.FrameworkElement] -and -not $Node.IsHitTestVisible -and [string]::IsNullOrEmpty($Node.Name) -and $Node.Visibility -ne 'Collapsed') {
             $m = $Node.Margin
             $hide = $false
@@ -9730,5 +9740,17 @@ $window.Add_ContentRendered({
 })
     # The scan-button brooms stand still until a cleanup runs; then only that scan's broom sweeps.
     Set-DRScanBroomsAlive $false
+    # Safety net: an unexpected error inside the window is written to the log instead of closing the Cleaner.
+    try {
+        $window.Dispatcher.Add_UnhandledException({
+            param($sender, $e)
+            try {
+                $logDir = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Logs'
+                if (-not (Test-Path -LiteralPath $logDir)) { $null = New-Item -ItemType Directory -Force -Path $logDir }
+                Add-Content -LiteralPath (Join-Path $logDir 'GUI_Errors.log') -Value ('{0}  {1}' -f (Get-Date).ToString('yyyy-MM-dd HH:mm:ss'), $e.Exception.ToString())
+            } catch { }
+            $e.Handled = $true
+        })
+    } catch { }
     [void]$window.ShowDialog()
 }
