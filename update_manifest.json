@@ -1,7 +1,7 @@
 {
-  "version": "1.4.462",
-  "notes": "The time for Cookies and website traces is now closer, because it includes wiping the free space afterwards.",
-  "published": "2026-11-07T13:35:52.3482084-05:00",
+  "version": "1.4.443",
+  "notes": "Uninstaller no longer asks to close Windows Explorer and other unrelated programs when removing leftovers.",
+  "published": "2026-11-07T18:25:02.7964726-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -45,8 +45,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "DC7C4EEBECAFA208892F379629D788F2AFEDBF9603913221B26629CB494AFD24",
-      "size": 10465397
+      "sha256": "2910E777CF1F471F6A577393E3320AB3D3D8F76AD4923F598C4E9B9CA7209CAF",
+      "size": 10465488
     }
   ],
   "blocked": [],
