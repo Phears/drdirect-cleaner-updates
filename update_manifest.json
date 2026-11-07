@@ -1,7 +1,7 @@
 {
-  "version": "1.4.455",
-  "notes": "Fixed: Safe, Medium and Advanced scans no longer close the Cleaner when 3D look is off.",
-  "published": "2026-11-06T21:29:23.5733458-05:00",
+  "version": "1.4.456",
+  "notes": "Clone & Backup: Check and Restore of a saved image are about twice as fast.",
+  "published": "2026-11-06T22:16:36.0581148-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -30,8 +30,8 @@
     },
     {
       "name": "DRDirect Imager Engine.ps1",
-      "sha256": "070C653FB80B7DA7B6335BA7DBE4F1B9842B846787166F4FA99648C5EE215972",
-      "size": 79540
+      "sha256": "B8D75C3F64444F7F5B44AE416DCDA8F446D2D30B094DED330EB54566E9E39FEF",
+      "size": 81645
     },
     {
       "name": "DRDirectCleaner.ico",

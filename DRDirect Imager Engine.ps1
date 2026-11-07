@@ -850,9 +850,25 @@ public class DRImgJob
     // For tests only.
     public static byte[] TestLz4(byte[] src) { return Lz4Block(src, src.Length); }
     public static byte[] TestUnLz4(byte[] c, int rawLen) { byte[] dd = new byte[rawLen]; Lz4Decode(c, c.Length, dd, rawLen); return dd; }
-    static void Inflate(byte[] c, byte[] dst, int rawLen)
+    static void Inflate(byte[] c, byte[] dst, int rawLen) { Inflate(c, c.Length, dst, rawLen); }
+    static void Inflate(byte[] c, int cLen, byte[] dst, int rawLen)
     {
-        using (DeflateStream ds = new DeflateStream(new MemoryStream(c), CompressionMode.Decompress)) { ReadFull(ds, dst, rawLen); }
+        using (DeflateStream ds = new DeflateStream(new MemoryStream(c, 0, cLen), CompressionMode.Decompress)) { ReadFull(ds, dst, rawLen); }
+    }
+
+    // Restore: unlocks one block into a buffer that is reused (no new memory per block, so no stalls for memory clean-up). Returns the length.
+    static int DecryptInto(Aes a, byte[] data, int len, byte[] dst)
+    {
+        if (len < 32 || ((len - 16) % 16) != 0) throw new InvalidDataException("The image file is damaged.");
+        byte[] iv = new byte[16];
+        Buffer.BlockCopy(data, 0, iv, 0, 16);
+        int n;
+        using (ICryptoTransform t = a.CreateDecryptor(a.Key, iv)) { n = t.TransformBlock(data, 16, len - 16, dst, 0); }
+        if (n != len - 16) throw new InvalidDataException("The image file is damaged.");
+        int pad = dst[n - 1];
+        if (pad < 1 || pad > 16) throw new InvalidDataException("The image file is damaged.");
+        for (int i = n - pad; i < n; i++) if (dst[i] != pad) throw new InvalidDataException("The image file is damaged.");
+        return n - pad;
     }
 
     static byte[] KeyCheck(byte[] key)
@@ -966,7 +982,7 @@ public class DRImgJob
     public long FileDone;
     public long FileTotal;
 
-    class RBlock { public long Seq; public long Off; public int Raw; public int Comp; public byte[] Enc; public byte[] Hash; }
+    class RBlock { public long Seq; public long Off; public int Raw; public int Comp; public byte[] Enc; public int EncLen; public byte[] Hash; }
 
     // Restore and check using every processor thread: one thread reads the image in order, all the others
     // decrypt, unpack and write their blocks at the same time, each on its own handle to the drive, and the
@@ -974,7 +990,7 @@ public class DRImgJob
     void ReplayParallel(string file, string disk)
     {
         FileTotal = new FileInfo(file).Length; FileDone = 0;
-        using (FileStream f = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read, 8 << 20, FileOptions.SequentialScan))
+        using (FileStream f = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 20, FileOptions.SequentialScan))
         using (BinaryReader br = new BinaryReader(f))
         {
             string m = Encoding.ASCII.GetString(br.ReadBytes(8));
@@ -994,6 +1010,9 @@ public class DRImgJob
             int workers = Math.Max(2, Environment.ProcessorCount);
             BlockingCollection<RBlock> todo = new BlockingCollection<RBlock>(workers * 3);
             BlockingCollection<RBlock> finished = new BlockingCollection<RBlock>();
+            // Reused buffers for the locked blocks read from the image file.
+            BlockingCollection<byte[]> pool = new BlockingCollection<byte[]>();
+            for (int q = 0; q < workers * 4 + 4; q++) pool.Add(new byte[chunk + 64]);
             Exception[] fail = new Exception[1];
             Thread[] ts = new Thread[workers];
             for (int w = 0; w < workers; w++)
@@ -1003,6 +1022,8 @@ public class DRImgJob
                     Microsoft.Win32.SafeHandles.SafeFileHandle hd = null;
                     IntPtr nbuf = IntPtr.Zero;
                     byte[] raw = new byte[chunk];
+                    byte[] plain = new byte[chunk + 64];
+                    Aes aes = Aes.Create(); aes.KeySize = 256; aes.Mode = CipherMode.CBC; aes.Padding = PaddingMode.None; aes.Key = Key;
                     try
                     {
                         // Direct (unbuffered) writes straight to the drive, like the copy engine; falls back to a normal stream if the drive will not open that way.
@@ -1015,20 +1036,22 @@ public class DRImgJob
                         using (SHA256CryptoServiceProvider hc = new SHA256CryptoServiceProvider())
                         foreach (RBlock b in todo.GetConsumingEnumerable())
                         {
-                            if (Cancel || fail[0] != null) continue;
+                            if (Cancel || fail[0] != null) { if (b.Enc != null) { pool.Add(b.Enc); b.Enc = null; } continue; }
                             b.Hash = new byte[32];
                             if (b.Comp != 0)
                             {
-                                byte[] c;
-                                try { c = Decrypt(Key, b.Enc); }
+                                int cl;
+                                try { cl = DecryptInto(aes, b.Enc, b.EncLen, plain); }
                                 catch (CryptographicException) { throw new InvalidDataException("The image file is damaged (bad block at " + b.Off + ")."); }
-                                if (c.Length != b.Comp) throw new InvalidDataException("The image file is damaged (bad block at " + b.Off + ").");
-                                if (b.Comp == b.Raw) Buffer.BlockCopy(c, 0, raw, 0, b.Raw); else if (lz) Lz4Decode(c, b.Comp, raw, b.Raw); else Inflate(c, raw, b.Raw);
-                                b.Hash = lz ? hc.ComputeHash(b.Enc) : hc.ComputeHash(raw, 0, b.Raw);
+                                if (cl != b.Comp) throw new InvalidDataException("The image file is damaged (bad block at " + b.Off + ").");
+                                byte[] src = raw;
+                                if (b.Comp == b.Raw) src = plain; else if (lz) Lz4Decode(plain, b.Comp, raw, b.Raw); else Inflate(plain, b.Comp, raw, b.Raw);
+                                b.Hash = lz ? hc.ComputeHash(b.Enc, 0, b.EncLen) : hc.ComputeHash(src, 0, b.Raw);
+                                pool.Add(b.Enc); b.Enc = null;
                                 long wt0 = System.Diagnostics.Stopwatch.GetTimestamp();
                                 if (hd != null && (b.Raw % 4096) == 0)
                                 {
-                                    System.Runtime.InteropServices.Marshal.Copy(raw, 0, nbuf, b.Raw);
+                                    System.Runtime.InteropServices.Marshal.Copy(src, 0, nbuf, b.Raw);
                                     long np;
                                     if (!SetFilePointerEx(hd, b.Off, out np, 0)) throw new IOException("Cannot move on the target drive (error " + System.Runtime.InteropServices.Marshal.GetLastWin32Error() + ").");
                                     int put = 0;
@@ -1044,7 +1067,7 @@ public class DRImgJob
                                 else if (disk != null)
                                 {
                                     if (d == null) d = new FileStream(disk, FileMode.Open, FileAccess.Write, FileShare.ReadWrite, 1);
-                                    d.Seek(b.Off, SeekOrigin.Begin); d.Write(raw, 0, b.Raw);
+                                    d.Seek(b.Off, SeekOrigin.Begin); d.Write(src, 0, b.Raw);
                                 }
                                 lock (this) { SecWrite += (System.Diagnostics.Stopwatch.GetTimestamp() - wt0) / (double)System.Diagnostics.Stopwatch.Frequency; }
                             }
@@ -1058,6 +1081,7 @@ public class DRImgJob
                     catch (Exception ex) { if (fail[0] == null) fail[0] = ex; }
                     finally
                     {
+                        aes.Dispose();
                         if (d != null) d.Dispose();
                         if (nbuf != IntPtr.Zero) VirtualFree(nbuf, UIntPtr.Zero, 0x8000);
                         if (hd != null) hd.Dispose();
@@ -1114,8 +1138,13 @@ public class DRImgJob
                     {
                         int encLen = br.ReadInt32();
                         if (encLen <= 0 || encLen > rawLen + 64) throw new InvalidDataException("The image file is damaged (bad block at " + pos + ").");
-                        b.Enc = br.ReadBytes(encLen);
-                        if (b.Enc.Length != encLen) throw new InvalidDataException("The image file is cut short.");
+                        byte[] eb = null;
+                        while (eb == null) { if (fail[0] != null || Cancel) break; pool.TryTake(out eb, 200); }
+                        if (eb == null) break;
+                        int got = 0;
+                        while (got < encLen) { int r = f.Read(eb, got, encLen - got); if (r <= 0) break; got += r; }
+                        if (got != encLen) { pool.Add(eb); throw new InvalidDataException("The image file is cut short."); }
+                        b.Enc = eb; b.EncLen = encLen;
                     }
                     long rt1 = System.Diagnostics.Stopwatch.GetTimestamp();
                     while (!todo.TryAdd(b, 200)) { if (fail[0] != null || Cancel) break; }
