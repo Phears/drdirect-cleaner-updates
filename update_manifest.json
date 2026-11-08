@@ -1,7 +1,7 @@
 {
   "version": "1.4.467",
-  "notes": "Back to the Cleaner now closes the Uninstaller and the Duplicate Finder, so slower PCs no longer get the not strong enough warning.",
-  "published": "2026-11-07T20:37:49.0220276-05:00",
+  "notes": "Back to the Cleaner now closes the Uninstaller and the Duplicate Finder, so slower PCs no longer get the not strong enough warning. The scan buttons and the dashboard buttons now line up.",
+  "published": "2026-11-07T20:41:01.7582355-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "BC93CEBE53997DE493873EF4EF3B3D3A4C5695B1A311094274166B3E1BEA0DC2",
-      "size": 953469
+      "sha256": "D8F3E491EFE6225F7EA3D4A91BA33AA4B51845B42B75834E09E9C51000D2554F",
+      "size": 954366
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -45,8 +45,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "1147143A41EB75101A233D24E7AB4D3342853505BE10559457B483304C432DC4",
-      "size": 10543835
+      "sha256": "B01A9674BF83E1CFFEC27DC17D945E3263D0D044610AC9D1B9A1FE5CE9F29639",
+      "size": 10543876
     }
   ],
   "blocked": [],
