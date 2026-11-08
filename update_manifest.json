@@ -1,7 +1,7 @@
 {
   "version": "1.4.467",
   "notes": "Back to the Cleaner now closes the Uninstaller and the Duplicate Finder, so slower PCs no longer get the not strong enough warning.",
-  "published": "2026-11-07T20:34:09.5245744-05:00",
+  "published": "2026-11-07T20:37:49.0220276-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -45,8 +45,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "F30CE7D0EDB069CD91B88918538A1A3E72716330F9E72AC78E7AEC40D0914719",
-      "size": 10543829
+      "sha256": "1147143A41EB75101A233D24E7AB4D3342853505BE10559457B483304C432DC4",
+      "size": 10543835
     }
   ],
   "blocked": [],
