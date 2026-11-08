@@ -6011,6 +6011,24 @@ function Open-DRUninstaller {
         (Update-DRUninstallerFromFeed -CheckOnly)) {
         if (Start-DRUninstallerUpdate) { return }
     }
+    # DRDirect's own new uninstaller. It is used only on a PC that has been switched over to it
+    # (the marker file beside it); every other PC keeps opening the uninstaller below.
+    $newDir = Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\DRDirect Uninstaller'
+    $newScript = Join-Path $newDir 'DRDirect Uninstaller.ps1'
+    if ((Test-Path -LiteralPath (Join-Path $newDir 'use-new-uninstaller.flag') -PathType Leaf) -and
+        (Test-Path -LiteralPath $newScript -PathType Leaf)) {
+        try {
+            $launcher = Get-DRCleanerLauncherPath
+            if ($launcher) { $env:DRDIRECT_CLEANER_EXE = $launcher }
+            $env:DRDIRECT_UNINSTALLER_OK = '1'   # the key was checked above
+            Start-Process -FilePath 'powershell.exe' -WorkingDirectory $newDir -ArgumentList @(
+                '-NoProfile', '-STA', '-ExecutionPolicy', 'Bypass', '-WindowStyle', 'Hidden', '-File', ('"' + $newScript + '"'))
+        } catch {
+            [Windows.MessageBox]::Show("Could not open the DRDirect Uninstaller Program: $($_.Exception.Message)", 'DRDirect PC Cleaner',
+                [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Error) | Out-Null
+        }
+        return
+    }
     $script:DRUninstallerUpdateTried = $false
     $uninstaller = Resolve-DRUninstallerExe
     if (-not $uninstaller) {

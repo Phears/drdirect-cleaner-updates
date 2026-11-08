@@ -1,7 +1,7 @@
 {
-  "version": "1.4.465",
-  "notes": "The Uninstaller now shows as DRDirect Uninstaller in Windows, and the Cleaner offers to let it through Windows ransomware protection.",
-  "published": "2026-11-07T18:46:35.8699826-05:00",
+  "version": "1.4.466",
+  "notes": "Small behind-the-scenes improvements.",
+  "published": "2026-11-07T20:25:25.6202213-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "6E20A0DFA34163C46EDDC43A9C4763DE8AEAA764F0DDFD63C1F175B47988B403",
-      "size": 952262
+      "sha256": "BC93CEBE53997DE493873EF4EF3B3D3A4C5695B1A311094274166B3E1BEA0DC2",
+      "size": 953469
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
