@@ -2895,7 +2895,16 @@ public static class DRBackToCleaner {
         if ($cleaner -ne [IntPtr]::Zero) {
             if ([DRBackToCleaner]::IsIconic($cleaner)) { [void][DRBackToCleaner]::ShowWindow($cleaner, 9) }
             [void][DRBackToCleaner]::SetForegroundWindow($cleaner)
-            try { [System.Windows.Window]::GetWindow($ui.BtnBack).WindowState = [System.Windows.WindowState]::Minimized } catch { }
+            # Close rather than hide: on a less powerful PC the Cleaner only allows a few tools open at once,
+            # and a hidden Duplicate Finder would still count. The Cleaner's button opens it again.
+            $win = [System.Windows.Window]::GetWindow($ui.BtnBack)
+            if ($script:handle -and -not $script:handle.IsCompleted) {
+                $answer = [System.Windows.MessageBox]::Show($win, ('A search is still running.' + [Environment]::NewLine + [Environment]::NewLine +
+                    'Stop it and close the Duplicate Finder? (No = keep it running in the background)'), 'DRDirect Duplicate Finder', 'YesNo', 'Question')
+                if ($answer -ne 'Yes') { try { $win.WindowState = [System.Windows.WindowState]::Minimized } catch { }; return }
+                try { $script:ps.Stop() } catch { }
+            }
+            try { $win.Close() } catch { }
             return
         }
     } catch {
@@ -2912,6 +2921,9 @@ public static class DRBackToCleaner {
             # Through Explorer, so the Cleaner asks for administrator rights itself rather than inheriting this window's.
             Start-Process -FilePath 'explorer.exe' -ArgumentList $cleanerExe | Out-Null
             $ui.LblSummary.Text = 'Opening the Cleaner...'
+            if (-not ($script:handle -and -not $script:handle.IsCompleted)) {
+                try { [System.Windows.Window]::GetWindow($ui.BtnBack).Close() } catch { }
+            }
             return
         }
     } catch { }
