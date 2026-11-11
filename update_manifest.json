@@ -1,7 +1,7 @@
 {
-  "version": "1.4.467",
-  "notes": "Back to the Cleaner now closes the Uninstaller and the Duplicate Finder, so slower PCs no longer get the not strong enough warning. The scan buttons and the dashboard buttons now line up.",
-  "published": "2026-11-07T20:41:01.7582355-05:00",
+  "version": "1.4.468",
+  "notes": "Exact times only: the scan buttons and every item now show how long it really took on your PC last time, or \"Not timed yet\". No more guessed times.",
+  "published": "2026-11-11T15:42:53.9568665-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "D8F3E491EFE6225F7EA3D4A91BA33AA4B51845B42B75834E09E9C51000D2554F",
-      "size": 954366
+      "sha256": "9E06E46883B75CE029BB37164D923538C779A5EB077CFDF46400A1B31A0A5F19",
+      "size": 956154
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

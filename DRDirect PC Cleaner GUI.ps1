@@ -2440,6 +2440,61 @@ function Remove-DRConflictingSelections {
     }
 }
 
+function Format-DRExactTime {
+    # An exact time, to the second: "2s", "4m 12s", "2h 20m 00s". Only ever given a time that really happened.
+    param([double]$Seconds)
+    $span = [TimeSpan]::FromSeconds([int][Math]::Floor($Seconds))
+    if ($span.TotalHours -ge 1) { return ('{0}h {1:00}m {2:00}s' -f [int][Math]::Floor($span.TotalHours), $span.Minutes, $span.Seconds) }
+    if ($span.TotalMinutes -ge 1) { return ('{0}m {1:00}s' -f [int][Math]::Floor($span.TotalMinutes), $span.Seconds) }
+    return ('{0}s' -f [int][Math]::Floor($span.TotalSeconds))
+}
+
+function Get-DRExactLastSeconds {
+    # How long a task REALLY took the last time it ran on this PC, or $null if it never has. No guesses:
+    # the Cleaner's own record (saved when the task finished here), or, for the Defender quick and full scan,
+    # the start and end times Windows itself recorded for the last scan.
+    param([string]$TaskId)
+    try {
+        $last = [int](Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('Last_' + $TaskId) -ErrorAction Stop).('Last_' + $TaskId)
+        if ($last -gt 0) { return [double]$last }
+    } catch { }
+    if ($TaskId -in @('security.quick-scan', 'security.full-scan')) {
+        try {
+            if (-not (Get-Variable -Name DRMpExact -Scope Script -ErrorAction SilentlyContinue) -or -not $script:DRMpExact) {
+                $mp = Get-MpComputerStatus -ErrorAction Stop
+                $script:DRMpExact = @{ Quick = ($mp.QuickScanEndTime - $mp.QuickScanStartTime).TotalSeconds; Full = ($mp.FullScanEndTime - $mp.FullScanStartTime).TotalSeconds }
+            }
+            $took = if ($TaskId -eq 'security.full-scan') { [double]$script:DRMpExact.Full } else { [double]$script:DRMpExact.Quick }
+            if ($took -ge 1 -and $took -le 172800) { return $took }
+        } catch { }
+    }
+    return $null
+}
+
+function Get-DRExactLevelSeconds {
+    # How long Safe, Medium or Advanced really took the last time it ran here, start to finish, or $null.
+    param([string]$Level)
+    try {
+        $took = [int](Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('LevelTime_' + $Level) -ErrorAction Stop).('LevelTime_' + $Level)
+        if ($took -gt 0) { return [double]$took }
+    } catch { }
+    return $null
+}
+
+function Get-DRExactSumText {
+    # For a list of ticked items: the exact total of their last real times, only when every one of them has
+    # run here before. Otherwise $null, so nothing guessed is ever shown.
+    param([object[]]$Tasks)
+    if (@($Tasks).Count -eq 0) { return $null }
+    $sum = 0.0
+    foreach ($t in @($Tasks)) {
+        $one = Get-DRExactLastSeconds -TaskId ([string]$t.Id)
+        if ($null -eq $one) { return $null }
+        $sum += $one
+    }
+    return (Format-DRExactTime -Seconds $sum)
+}
+
 function New-TaskRow {
     # $Number is what the person reads out when they say which item they do
     # not want. It counts the rows actually on screen, so it stays 1..n even
@@ -2454,14 +2509,14 @@ function New-TaskRow {
     $isLoud = $risk -eq 'SignOut'
     # The slow tasks get the same framed look, but their warning is about time, not sign-ins.
     $longTasks = @{
-        'health.ram-test'         = @{ Badge = 'CAN TAKE 1 HOUR OR MORE'; Caution = 'Checking your RAM could take 1 hour or more, depending on your system. Windows has to restart to run it, so save your work first. Only tick it if you are ready to wait. The Cleaner never restarts the PC by itself.' }
-        'security.full-scan'      = @{ Badge = 'CAN TAKE 1 HOUR OR MORE'; Caution = 'If you have not done a full scan for a while, please do one. Depending on your system, a full scan can take 1 hour or more. You can keep using the PC while it runs, but it may feel slower. Only tick it if you are ready to wait.' }
-        'repair.dism-health'      = @{ Badge = 'CAN TAKE AN HOUR'; Caution = 'This repair can take up to an hour or more, depending on your system. It can look stuck for a while, so please let it finish. You can keep using the PC, but it may feel slower. Only tick it if you are ready to wait.' }
-        'repair.component-cleanup' = @{ Badge = 'CAN TAKE 30 MIN OR MORE'; Caution = 'This clean-up can take 30 minutes or more, depending on your system. It can look stuck for a while, so please let it finish. Only tick it if you are ready to wait.' }
-        'repair.sfc'              = @{ Badge = 'CAN TAKE 30 MIN OR MORE'; Caution = 'This scan can take 30 minutes or more, depending on your system. It can sit at the same percentage for a while, so please let it finish. Only tick it if you are ready to wait.' }
+        'health.ram-test'         = @{ Badge = 'LONG TEST'; Caution = 'Checking your RAM is a long test. Windows has to restart to run it, so save your work first. Only tick it if you are ready to wait. The Cleaner never restarts the PC by itself.' }
+        'security.full-scan'      = @{ Badge = 'LONG SCAN'; Caution = 'If you have not done a full scan for a while, please do one. A full scan reads every file, so it is a long scan. You can keep using the PC while it runs, but it may feel slower. Only tick it if you are ready to wait.' }
+        'repair.dism-health'      = @{ Badge = 'LONG REPAIR'; Caution = 'This is a long repair. It can look stuck for a while, so please let it finish. You can keep using the PC, but it may feel slower. Only tick it if you are ready to wait.' }
+        'repair.component-cleanup' = @{ Badge = 'LONG CLEAN-UP'; Caution = 'This is a long clean-up. It can look stuck for a while, so please let it finish. Only tick it if you are ready to wait.' }
+        'repair.sfc'              = @{ Badge = 'LONG SCAN'; Caution = 'This is a long scan. It can sit at the same percentage for a while, so please let it finish. Only tick it if you are ready to wait.' }
         'security.remove-exclusions' = @{ Badge = 'ONLY LOOKS'; Icon = '✔'; Caution = 'Shows which folders, programs and file types Defender skips, and marks any that look risky. Nothing is ever removed - exclusions you added on purpose, like a work or tools folder, always stay.' }
         'security.sweep'          = @{ Badge = 'ONLY LOOKS'; Icon = '✔'; Caution = 'Looks for signs of spyware and adware and shows a list. Nothing is ever changed or removed, because some of these can be normal on your PC.' }
-        'health.chkdsk'           = @{ Badge = 'CAN TAKE 30 MIN OR MORE'; Caution = 'A deep drive test can take 30 minutes or more, depending on the size and speed of your drive. Windows keeps running, but the PC may feel slower. Only tick it if you are ready to wait.' }
+        'health.chkdsk'           = @{ Badge = 'LONG TEST'; Caution = 'A deep drive test is a long test. Windows keeps running, but the PC may feel slower. Only tick it if you are ready to wait.' }
     }
     $longInfo = $longTasks[[string]$Task.Id]
     $isLongTest = [bool]$longInfo
@@ -2703,7 +2758,7 @@ function New-TaskRow {
 
     $meta = New-Object Windows.Controls.StackPanel -Property @{ HorizontalAlignment='Right'; Margin='12,0,0,0' }
     [Windows.Controls.Grid]::SetColumn($meta,2)
-    $value = if ($analysis.ContainsKey($Task.Id) -and $Task.SupportsAnalysis) { Format-Bytes $analysis[$Task.Id].Bytes } else { $Task.Duration }
+    $value = if ($analysis.ContainsKey($Task.Id) -and $Task.SupportsAnalysis) { Format-Bytes $analysis[$Task.Id].Bytes } else { $exactRow = Get-DRExactLastSeconds -TaskId ([string]$Task.Id); if ($null -ne $exactRow) { 'Last time took ' + (Format-DRExactTime -Seconds $exactRow) } else { 'Not timed yet' } }
     if ($aiStatus -and $aiStatus.Detail) { $value = $aiStatus.Detail }
     $meta.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$value; FontWeight='SemiBold'; HorizontalAlignment='Right' })) | Out-Null
     $sub = if ($analysis.ContainsKey($Task.Id) -and $analysis[$Task.Id].ItemCount -gt 0) { "$($analysis[$Task.Id].ItemCount) location(s)" } elseif ($Task.RequiresAdmin) { 'Administrator' } else { 'Current user' }
@@ -3185,20 +3240,11 @@ function Set-DRLevelDates {
     foreach ($level in 'Safe','Medium','Advanced') {
         $when = $found[$level]
         $ui["Preset${level}Date"].Text = if (-not $when) { 'Not done yet' } else { 'Done ' + $when.ToString('dddd d MMMM') }
-        # How long this level really took the last time it ran here, start to finish (saved when the run ended).
-        try {
-            $tookSecs = [int](Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name ('LevelTime_' + $level) -ErrorAction Stop).('LevelTime_' + $level)
-            if ($tookSecs -gt 0) { $ui["Preset${level}Date"].Text += "`n" + 'Last time took ' + (Format-DRElapsed -Span ([TimeSpan]::FromSeconds($tookSecs))) }
-        } catch { }
-        if ($script:DRWorkPs) {
-            $ui["Preset${level}Date"].Text += "`n" + [char]0x23F1 + ' Checking this PC...'
-            $ui["Preset${level}Date"].TextAlignment = 'Center'
-        } elseif ((Get-Variable -Name DRLevelEstimate -Scope Script -ErrorAction SilentlyContinue) -and $script:DRLevelEstimate) {
-            $ui["Preset${level}Date"].Text += "`n" + [char]0x23F1 + ' About ' + (Format-DRApproxTime -Seconds ($script:DRLevelEstimate[$level] + (Get-DRExtraTickedSeconds -Level $level)))
-            $driveType = Get-DRSystemDriveType
-            if ($driveType) { $ui["Preset${level}Date"].Text += ' on ' + $driveType }
-            $ui["Preset${level}Date"].TextAlignment = 'Center'
-        }
+        # Only how long this level REALLY took the last time it ran here, start to finish. Never a guess.
+        $tookSecs = Get-DRExactLevelSeconds -Level $level
+        if ($null -ne $tookSecs) { $ui["Preset${level}Date"].Text += "`n" + 'Last time took ' + (Format-DRExactTime -Seconds $tookSecs) }
+        else { $ui["Preset${level}Date"].Text += "`n" + 'Not timed yet' }
+        $ui["Preset${level}Date"].TextAlignment = 'Center'
     }
 }
 
@@ -3229,9 +3275,9 @@ function Update-SelectionSummary {
 
     # Whatever is ticked, about how long it will take on this PC, from the same times the scan buttons use.
     if ($total -gt 0) {
-        $secs = 0.0
-        foreach ($task in $selected) { try { $secs += Get-DRTaskEstimateSeconds -TaskId ([string]$task.Id) } catch { } }
-        $ui.SelectionSummary.Text += "`n" + [char]0x23F1 + ' About ' + (Format-DRApproxTime -Seconds $secs)
+        # Only an exact total, when every ticked item has really run here before. Never a guess.
+        $exactSum = $null; try { $exactSum = Get-DRExactSumText -Tasks $selected } catch { }
+        if ($exactSum) { $ui.SelectionSummary.Text += "`n" + [char]0x23F1 + ' Last time these took ' + $exactSum }
     }
     $ui.ReviewButton.IsEnabled = $total -gt 0
 }
@@ -3242,8 +3288,9 @@ function Show-Confirmation {
     $selected = @($catalog | Where-Object { $selection[$_.Id] })
     $ui.ConfirmList.Children.Clear()
     [void]$ui.ConfirmList.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text='Here is what will change. Nothing has run yet.'; FontWeight='ExtraBold'; FontSize=16; Margin='0,0,0,4' }))
-    $etaSecs = 0.0; foreach ($task in $selected) { try { $etaSecs += Get-DRTaskEstimateSeconds -TaskId ([string]$task.Id) } catch { } }
-    [void]$ui.ConfirmList.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=([string][char]0x23F1 + '  This will take about ' + (Format-DRApproxTime -Seconds $etaSecs) + ' on this PC.'); Foreground='#0057D9'; FontWeight='Bold'; FontSize=14; Margin='0,0,0,6' }))
+    $etaText = $null; try { $etaText = Get-DRExactSumText -Tasks $selected } catch { }
+    $etaLine = if ($etaText) { [string][char]0x23F1 + '  Last time these took ' + $etaText + ' on this PC.' } else { [string][char]0x23F1 + '  Not timed yet on this PC - the exact time shows after the first run.' }
+    [void]$ui.ConfirmList.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text=$etaLine; Foreground='#0057D9'; FontWeight='Bold'; FontSize=14; Margin='0,0,0,6' }))
     [void]$ui.ConfirmList.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text='A Windows restore point is saved first when possible, and the Cleaner keeps backups of the settings it changes. Your files, passwords and logins are never touched.'; Foreground='#0E8A5F'; FontSize=12.5; TextWrapping='Wrap'; Margin='0,0,0,8' }))
     foreach ($task in $selected) {
         $row = New-Object Windows.Controls.Border -Property @{ BorderBrush='#E3E8F0'; BorderThickness='0,0,0,1'; Padding='0,10' }
@@ -3297,16 +3344,11 @@ function Show-Confirmation {
                 if ($levelIds.Count -and (@($levelIds) -join '|') -eq ($chosenIds -join '|')) {
                     $top = switch ($lv) { 'Safe' { '#7BE8A8' } 'Medium' { '#4FC3FF' } default { '#FF8A80' } }
                     $bottom = switch ($lv) { 'Safe' { '#1FA860' } 'Medium' { '#1E6FE8' } default { '#D32020' } }
-                    # The time sits under the name, as on the three level buttons: "About 14 min on NVMe SSD".
+                    # The time sits under the name, as on the three level buttons: the exact last time, or "Not timed yet".
                     $estimateLine = $null
                     try {
-                        $have = Get-Variable -Name DRLevelEstimate -Scope Script -ErrorAction SilentlyContinue
-                        if (-not ($have -and $script:DRLevelEstimate)) { [void](Update-DRLevelEstimates) }
-                        if ($script:DRLevelEstimate -and $script:DRLevelEstimate.ContainsKey($lv)) {
-                            $estimateLine = [string][char]0x23F1 + ' About ' + (Format-DRApproxTime -Seconds ($script:DRLevelEstimate[$lv] + (Get-DRExtraTickedSeconds -Level $lv)))
-                            $kind = Get-DRSystemDriveType
-                            if ($kind) { $estimateLine += ' on ' + $kind }
-                        }
+                        $lvTook = Get-DRExactLevelSeconds -Level $lv
+                        $estimateLine = if ($null -ne $lvTook) { [string][char]0x23F1 + ' Last time took ' + (Format-DRExactTime -Seconds $lvTook) } else { [string][char]0x23F1 + ' Not timed yet' }
                     } catch { $estimateLine = $null }
                     $badgeText = New-Object Windows.Controls.StackPanel
                     [void]$badgeText.Children.Add((New-Object Windows.Controls.TextBlock -Property @{ Text = ($lv.ToUpperInvariant() + ' SCAN'); Foreground = [Windows.Media.Brushes]::White; HorizontalAlignment = 'Center' }))
@@ -5165,10 +5207,13 @@ $pollTimer.Add_Tick({
             if ($computed -lt $script:DRLeftShown) { $script:DRLeftShown = [Math]::Max($computed, $script:DRLeftShown - 4 * $dt) }
             else { $script:DRLeftShown = [Math]::Max($script:DRQueueRest, $script:DRLeftShown - $dt) }
             $leftSecs = $script:DRLeftShown
-            $planPct = [Math]::Min(99, [Math]::Max(0, 100.0 * (1 - $leftSecs / [Math]::Max(1.0, $script:DRRunTotal))))
+            # Progress is counted in items really finished, not in guessed minutes.
+            $pTotal = [Math]::Max(1, @($catalog | Where-Object { $selection[$_.Id] }).Count)
+            $pDone = [Math]::Max(0, $pTotal - @($runQueue).Count - $(if ($curTaskId) { 1 } else { 0 }))
+            $planPct = [Math]::Min(99, [Math]::Max(0, 100.0 * $pDone / $pTotal))
             $ui.OverallProgress.IsIndeterminate = $false; $ui.RunStripBar.IsIndeterminate = $false
             $ui.OverallProgress.Value = $planPct; $ui.RunStripBar.Value = $planPct
-            $ui.ProgressPercent.Text = 'About ' + [int]$planPct + '%'
+            $ui.ProgressPercent.Text = ('{0} of {1} done' -f $pDone, $pTotal)
             # Keep the running item (its green lights) in the middle of the list, gliding to it, until everything is done.
             try {
                 $listScroll = $ui.ProgressList.Parent
@@ -5200,10 +5245,9 @@ $pollTimer.Add_Tick({
                     $curElapsed = ((Get-Date) - $script:DRScanStart).TotalSeconds
                     $fmt = { param($s) ([TimeSpan]::FromSeconds([int]$s)).ToString($(if ($s -ge 3600) { 'h\:mm\:ss' } else { 'm\:ss' })) }
                     $curName = [string]$ui.CleaningCaption.Text
-                    if ($curElapsed -gt [Math]::Max(30.0, $script:DRScanGuess * 1.3)) {
-                        $leftCtl.Text = [char]0x23F1 + ' Still working on ' + $curName + ' (' + (& $fmt $curElapsed) + ')' + $(if ($script:DRQueueRest -ge 30) { ', then about ' + (Format-DRApproxTime -Seconds $script:DRQueueRest) } else { '' })
-                    } elseif ($leftSecs -lt 30) { $leftCtl.Text = [char]0x23F1 + ' Almost done...' }
-                    else { $leftCtl.Text = [char]0x23F1 + ' ' + (& $fmt $leftSecs) + ' left' }
+                    # Only real, measured time: how long the run and the current item have been going. No countdown guesses.
+                    $runElapsed = if ($runStartedAt) { ((Get-Date) - [datetime]$runStartedAt).TotalSeconds } else { $curElapsed }
+                    $leftCtl.Text = [char]0x23F1 + ' Running for ' + (& $fmt $runElapsed) + $(if ($curName) { ' - now on ' + $curName + ' (' + (& $fmt $curElapsed) + ')' } else { '' })
                 }
                 # The same block on top of the running page: the scan's time, a button in its colour, the bar and
                 # the countdown, with two blue lights flashing beside it.
