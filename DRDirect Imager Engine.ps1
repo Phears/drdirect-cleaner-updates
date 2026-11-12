@@ -153,6 +153,11 @@ public class DRImgJob
 
     public int Workers = Environment.ProcessorCount;
     public double SecWait, SecComp, SecRead, SecBlocked, SecWrite;
+    // Processor time split up (added over all threads, so bigger than the clock time): compress, lock, checksum.
+    long tkPack, tkLock, tkSum;
+    public double SecPack { get { return tkPack / (double)System.Diagnostics.Stopwatch.Frequency; } }
+    public double SecLock { get { return tkLock / (double)System.Diagnostics.Stopwatch.Frequency; } }
+    public double SecSum { get { return tkSum / (double)System.Diagnostics.Stopwatch.Frequency; } }
 
     void DoSmartImage(string disk, string outFile, long size, string label, bool[] sel)
     {
@@ -249,6 +254,7 @@ public class DRImgJob
                     Parallel.For(0, n, pc, delegate(int i) {
                         SmartItem it = batch[i];
                         if (IsZero(it.B, it.Len)) { zero[i] = true; return; }
+                        long t0 = System.Diagnostics.Stopwatch.GetTimestamp();
                         byte[] plain; int plainLen; bool packed;
                         if (Quick)
                         {
@@ -262,8 +268,10 @@ public class DRImgJob
                             packed = c.Length < it.Len; plain = packed ? c : it.B; plainLen = packed ? c.Length : it.Len;
                         }
                         clen[i] = plainLen;
+                        long t1 = System.Diagnostics.Stopwatch.GetTimestamp();
                         byte[] iv; byte[] ct = GetEncBuf(); int ctLen = EncryptInto(key, plain, plainLen, ct, out iv);
                         ivs[i] = iv; cts[i] = ct; ctl[i] = ctLen;
+                        long t2 = System.Diagnostics.Stopwatch.GetTimestamp();
                         SHA256CryptoServiceProvider hc = encSha; if (hc == null) { hc = new SHA256CryptoServiceProvider(); encSha = hc; }
                         if (Quick)
                         {
@@ -271,6 +279,8 @@ public class DRImgJob
                             hc.Initialize(); hc.TransformBlock(iv, 0, iv.Length, null, 0); hc.TransformFinalBlock(ct, 0, ctLen); ch[i] = (byte[])hc.Hash.Clone();
                         }
                         else { ch[i] = hc.ComputeHash(it.B, 0, it.Len); }
+                        long t3 = System.Diagnostics.Stopwatch.GetTimestamp();
+                        Interlocked.Add(ref tkPack, t1 - t0); Interlocked.Add(ref tkLock, t2 - t1); Interlocked.Add(ref tkSum, t3 - t2);
                     });
                     SecComp += sw.Elapsed.TotalSeconds;
                     List<ArraySegment<byte>> segs = new List<ArraySegment<byte>>();
@@ -1465,6 +1475,12 @@ function Write-ImagerTiming($Job, [double]$Seconds, [string]$ImageFile) {
             '',
             'Seconds spent (the threads overlap, so these do not add up to the total):'
         ) + ($rows | ForEach-Object { '  {0,-38} {1,8:N1}' -f $_[0], $_[1] }) + @('', ('Slowest part: ' + $verdict))
+        try {
+            $lines += @('', 'Processor work, added up over all threads:',
+                ('  {0,-38} {1,8:N1}' -f 'Compressing', [double]$Job.SecPack),
+                ('  {0,-38} {1,8:N1}' -f 'Locking (encryption)', [double]$Job.SecLock),
+                ('  {0,-38} {1,8:N1}' -f 'Checksum', [double]$Job.SecSum))
+        } catch { }
         Set-Content -LiteralPath ($ImageFile + '.timing.txt') -Value $lines -Encoding UTF8
     } catch { }
 }

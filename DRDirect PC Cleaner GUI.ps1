@@ -1240,7 +1240,7 @@ $ErrorActionPreference = 'Stop'
                     </Border>
                     <ProgressBar x:Name="OverallProgress" Grid.Row="1" Height="8" Minimum="0" Maximum="100" Value="0" Margin="0,96,0,18" Foreground="{StaticResource Blue}" Background="#DEE5F0" BorderThickness="0"/>
                     <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto"><StackPanel x:Name="ProgressList"/></ScrollViewer>
-                    <Grid Grid.Row="3" Margin="0,16,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Border x:Name="RunRestartPanel" Grid.Row="0" Grid.ColumnSpan="3" Visibility="Collapsed" Background="#EEF4FF" BorderBrush="#C7D7F5" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,0,0,12"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="When the clean-up finishes, restart Windows:" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,14,0"/><ComboBox x:Name="RunRestartCombo" Grid.Column="1" MinWidth="290" FontSize="13" Padding="10,6" SelectedIndex="0"><ComboBoxItem Tag="0" Content="I will restart myself, when I am ready"/><ComboBoxItem Tag="10" Content="Right away (10 seconds after it finishes)"/><ComboBoxItem Tag="300" Content="In 5 minutes after it finishes"/><ComboBoxItem Tag="600" Content="In 10 minutes after it finishes"/><ComboBoxItem Tag="-1" Content="Shut down my PC when it finishes"/></ComboBox></Grid></Border><TextBlock Grid.Row="1" x:Name="ProgressSafetyText" Text="Long-running Windows commands finish before the next task begins." Style="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center"/><Button x:Name="RestartButton" Grid.Row="1" Grid.Column="1" Content="Restart now" Style="{StaticResource PrimaryButton}" Margin="0,0,10,0" Visibility="Collapsed"/><Button x:Name="CancelPlanButton" Grid.Row="1" Grid.Column="2" Content="Stop after current task" Style="{StaticResource SecondaryButton}"/></Grid>
+                    <Grid Grid.Row="3" Margin="0,16,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Border x:Name="RunRestartPanel" Grid.Row="0" Grid.ColumnSpan="3" Visibility="Collapsed" Background="#EEF4FF" BorderBrush="#C7D7F5" BorderThickness="1" CornerRadius="10" Padding="14,10" Margin="0,0,0,12"><Grid><Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><TextBlock Text="When the clean-up finishes, restart Windows:" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,14,0"/><ComboBox x:Name="RunRestartCombo" Grid.Column="1" MinWidth="290" FontSize="13" Padding="10,6" SelectedIndex="0"><ComboBoxItem Tag="0" Content="I will restart myself, when I am ready"/><ComboBoxItem Tag="10" Content="Right away (10 seconds after it finishes)"/><ComboBoxItem Tag="300" Content="In 5 minutes after it finishes"/><ComboBoxItem Tag="600" Content="In 10 minutes after it finishes"/><ComboBoxItem Tag="-1" Content="Shut down my PC when it finishes"/></ComboBox></Grid></Border><TextBlock Grid.Row="1" x:Name="ProgressSafetyText" Text="Long-running Windows commands finish before the next task begins." Style="{StaticResource MutedText}" FontSize="12" VerticalAlignment="Center"/><Button x:Name="RestartButton" Grid.Row="1" Grid.Column="1" Content="Restart now" Style="{StaticResource PrimaryButton}" Margin="0,0,10,0" Visibility="Collapsed"/><Button x:Name="PauseRunButton" Grid.Row="1" Grid.Column="1" Content="Pause" Style="{StaticResource SecondaryButton}" Margin="0,0,10,0" Visibility="Collapsed" ToolTip="Pauses after the step that is running now. Press Start to carry on."/><Button x:Name="CancelPlanButton" Grid.Row="1" Grid.Column="2" Content="Stop after current task" Style="{StaticResource SecondaryButton}"/></Grid>
                 </Grid>
 
                 <Grid x:Name="PageHistory" Visibility="Collapsed">
@@ -1497,7 +1497,7 @@ $window.Add_Closing({
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('EstimateTimeButton','NavPinned','RunLevelPanel','RunLevelEta','RunLevelBadge','RunLevelName','RunLevelBar','RunLevelLeft','NavBroomTilt','NavBroomEdge','NavBroomHandle','StartHereRow','PresetSafeBar','PresetMediumBar','PresetAdvancedBar','PresetSafeLeft','PresetMediumLeft','PresetAdvancedLeft','PlanScroll','PlanMoreUp','PlanMoreDown','NavMoreUp','BannerBroomSafe','BannerBroomMedium','BannerBroomAdvanced','BannerBroomAdvanced2','NavModeText','ScanBroomSafe','ScanBroomMedium','ScanBroomAdvanced','ScanBroomAdvanced2','NavScroll','NavMoreHint','NavHeadClean','NavHeadFix','NavHeadCheck','DashMoreHint','DashShowAllButton','NavModeToggle','NavHeadUpdate','DashOtherTitle','DashOtherGrid','DashMsTools','SmartAppControlButton','NavSmartApp','NavFullScan','DashMoreOptions','SoundSwitch','Max3DSwitch','CrazyNuttySwitch','DashNoteButton','NavNoteButton','ResetReliabilityButton','ClockBox','ClockTime','ClockDate','ReadmeIconButton','HeroToolsHint','QuickLightA','QuickLightB','FullLightA','FullLightB','ProtectedPill','SidebarLogo','TitleLogo','AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavPowerHeat','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripCleaning','RunStripHint','NavCleanDust','ScanDustSafe','ScanDustMedium','ScanDustAdvanced','ScanDustAdvanced2','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','LastCleanCard','LastCleanLightBlue','LastCleanLightRed','LastCleanValue','LastCleanHint','LastCleanQuickScan','LastCleanFullScan','CleanCheckAllButton','CleanCheckOffButton','PresetSafeDate','PresetMediumDate','PresetAdvancedDate','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','GearBlueShadow','GearBlue','GearGoldShadow','GearGold','ConfirmLevelBadge','CleaningHeader','FunnyLine','BannerWrench','WrenchSwing','RobotSway','RobotHop','RobotArmL','RobotArmR','NavWrenchSwing','NavWrenchHop','WrenchHop','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch','NavDriveCopy','NavHeadBackup') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('PauseRunButton','EstimateTimeButton','NavPinned','RunLevelPanel','RunLevelEta','RunLevelBadge','RunLevelName','RunLevelBar','RunLevelLeft','NavBroomTilt','NavBroomEdge','NavBroomHandle','StartHereRow','PresetSafeBar','PresetMediumBar','PresetAdvancedBar','PresetSafeLeft','PresetMediumLeft','PresetAdvancedLeft','PlanScroll','PlanMoreUp','PlanMoreDown','NavMoreUp','BannerBroomSafe','BannerBroomMedium','BannerBroomAdvanced','BannerBroomAdvanced2','NavModeText','ScanBroomSafe','ScanBroomMedium','ScanBroomAdvanced','ScanBroomAdvanced2','NavScroll','NavMoreHint','NavHeadClean','NavHeadFix','NavHeadCheck','DashMoreHint','DashShowAllButton','NavModeToggle','NavHeadUpdate','DashOtherTitle','DashOtherGrid','DashMsTools','SmartAppControlButton','NavSmartApp','NavFullScan','DashMoreOptions','SoundSwitch','Max3DSwitch','CrazyNuttySwitch','DashNoteButton','NavNoteButton','ResetReliabilityButton','ClockBox','ClockTime','ClockDate','ReadmeIconButton','HeroToolsHint','QuickLightA','QuickLightB','FullLightA','FullLightB','ProtectedPill','SidebarLogo','TitleLogo','AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavPowerHeat','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripCleaning','RunStripHint','NavCleanDust','ScanDustSafe','ScanDustMedium','ScanDustAdvanced','ScanDustAdvanced2','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','LastCleanCard','LastCleanLightBlue','LastCleanLightRed','LastCleanValue','LastCleanHint','LastCleanQuickScan','LastCleanFullScan','CleanCheckAllButton','CleanCheckOffButton','PresetSafeDate','PresetMediumDate','PresetAdvancedDate','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','GearBlueShadow','GearBlue','GearGoldShadow','GearGold','ConfirmLevelBadge','CleaningHeader','FunnyLine','BannerWrench','WrenchSwing','RobotSway','RobotHop','RobotArmL','RobotArmR','NavWrenchSwing','NavWrenchHop','WrenchHop','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch','NavDriveCopy','NavHeadBackup') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -4029,6 +4029,9 @@ function Start-RunPlan {
     $runEvents.Clear(); $runStartedAt = Get-Date; $cancelAfterTask = $false
     Set-Variable -Name runStartedAt -Value $runStartedAt -Scope Script
     Set-Variable -Name cancelAfterTask -Value $false -Scope Script
+    # Pause / Start: off at the start of every run, and the button is shown while it runs.
+    $script:DRPauseWanted = $false; $script:DRPaused = $false
+    if ($ui.PauseRunButton) { $ui.PauseRunButton.Content = 'Pause'; $ui.PauseRunButton.IsEnabled = $true; $ui.PauseRunButton.Visibility = 'Visible' }
     $ui.ProgressList.Children.Clear(); foreach ($task in $selected) { $ui.ProgressList.Children.Add((New-ProgressRow $task)) | Out-Null }
     if ($ui.CleaningAnimation) { $ui.CleaningAnimation.Visibility='Visible' }
     $script:runScanLevel = Get-DRRunScanLevel -Preset $script:cleanupPreset
@@ -4122,8 +4125,19 @@ function Update-DRElapsedDisplay {
     $row.Child.Children[1].Children[1].Text = ('{0}  ·  running {1}' -f $base, $elapsed)
 }
 
+# Pause waits for the step that is running to finish (stopping a Windows repair part-way can break Windows),
+# then the scan waits here until Start is pressed.
+function Enter-DRRunPaused {
+    $script:DRPaused = $true; $script:DRPauseWanted = $false
+    Set-DRGearsSpin -On $false
+    $ui.ProgressMessage.Text = 'Paused. Press Start to carry on with the next step.'
+    $ui.ProgressSafetyText.Text = 'Paused. Nothing is running now. Press Start to carry on, or Stop to end the scan here.'
+    if ($ui.PauseRunButton) { $ui.PauseRunButton.Content = ([string][char]0x25B6 + '  Start'); $ui.PauseRunButton.IsEnabled = $true }
+}
+
 function Start-NextTask {
     if ($cancelAfterTask -or $runQueue.Count -eq 0) { Complete-RunPlan; return }
+    if ($script:DRPauseWanted) { Enter-DRRunPaused; return }
     $activeTaskId = $runQueue.Dequeue(); Set-Variable -Name activeTaskId -Value $activeTaskId -Scope Script
     $task = $catalog | Where-Object Id -eq $activeTaskId | Select-Object -First 1
     Set-Variable -Name activeTaskStartedAt -Value (Get-Date) -Scope Script
@@ -4247,6 +4261,8 @@ function Write-DRSafeRunReport {
 }
 
 function Complete-RunPlan {
+    $script:DRPaused = $false; $script:DRPauseWanted = $false
+    if ($ui.PauseRunButton) { $ui.PauseRunButton.Visibility = 'Collapsed' }
     Set-DRFixMode -On $false
     Set-DRRobotDance -On $false
     Set-DRGearsSpin -On $false
@@ -7355,11 +7371,17 @@ function Show-DRDriveCopy {
     $c.Agree.Add_Checked({ & $refresh })
     $c.Agree.Add_Unchecked({ & $refresh })
 
+    # sets the two progress bars at once (stops any glide first, or the glide would keep its own value)
+    $setBars = {
+        param([double]$a, [double]$b)
+        $c.Fill.BeginAnimation([Windows.FrameworkElement]::WidthProperty, $null); $c.DstFill.BeginAnimation([Windows.FrameworkElement]::WidthProperty, $null)
+        $c.Fill.Width = $a; $c.DstFill.Width = $b
+    }
     $showProgress = {
         $c.Form.Visibility = 'Collapsed'; $c.Prog.Visibility = 'Visible'
         $c.DoneBadge.Visibility = 'Collapsed'; $c.PctBox.Visibility = 'Visible'
         $c.PMsg.Text = ''; $c.PMsg.Foreground = $bc.ConvertFromString('#FFE600')
-        $c.Fill.Width = 0; $c.DstFill.Width = 0; $c.Pct.Text = '0%'; $c.CheckNow.Visibility = 'Collapsed'
+        & $setBars 0 0; $c.Pct.Text = '0%'; $c.CheckNow.Visibility = 'Collapsed'
         $w.Dispatcher.Invoke([Action]{}, [Windows.Threading.DispatcherPriority]::Render)
     }
     $backToForm = {
@@ -7494,8 +7516,15 @@ function Show-DRDriveCopy {
             $total = if ($real) { [double]$j.FileTotal } else { [double][Math]::Max($j.Total, 1) }
             $pct = [Math]::Min(100, 100 * $done / $total)
             $c.Pct.Text = ('{0:N0}%' -f [Math]::Floor($pct))
-            $c.Fill.Width = [Math]::Max(0, ($c.Track.ActualWidth - 5) * $pct / 100)
-            $c.DstFill.Width = [Math]::Max(0, 280 * $pct / 100)
+            # the bars glide to the new value over the time until the next update, so they move smoothly
+            $wA = [Math]::Max(0, ($c.Track.ActualWidth - 5) * $pct / 100); $wB = [Math]::Max(0, 280 * $pct / 100)
+            if ($j.Finished) { & $setBars $wA $wB }
+            else {
+                $glide = New-Object Windows.Media.Animation.DoubleAnimation($wA, (New-Object Windows.Duration([TimeSpan]::FromMilliseconds(280))))
+                $c.Fill.BeginAnimation([Windows.FrameworkElement]::WidthProperty, $glide)
+                $glide2 = New-Object Windows.Media.Animation.DoubleAnimation($wB, (New-Object Windows.Duration([TimeSpan]::FromMilliseconds(280))))
+                $c.DstFill.BeginAnimation([Windows.FrameworkElement]::WidthProperty, $glide2)
+            }
             if ($m -eq 'rescue') { $c.PText.Text = "$($state.Sync.Step)   Please do not remove the USB." }
             else {
                 $rate = $done / $sec
@@ -7513,7 +7542,7 @@ function Show-DRDriveCopy {
                         if ($m -eq 'create') { Write-ImagerTiming $j $state.Clock.Elapsed.TotalSeconds $c.BPath.Text; Set-DRLastBackupFile $c.BPath.Text }
                         if ($m -eq 'rescue' -and $state.RescueWhat) { Set-DRRescueUsbRecord $state.RescueWhat }
                     }
-                    $c.Fill.Width = [Math]::Max(0, $c.Track.ActualWidth - 5); $c.DstFill.Width = 280
+                    & $setBars ([Math]::Max(0, $c.Track.ActualWidth - 5)) 280
                     $c.PctBox.Visibility = 'Collapsed'; $c.DoneBadge.Visibility = 'Visible'
                     if ($m -eq 'create') { $state.JustSaved = $c.BPath.Text; if ($state.Demo) { Set-DRLastBackupFile $c.BPath.Text }; $c.CheckNow.Visibility = 'Visible' }
                     $bounce = New-Object Windows.Media.Animation.DoubleAnimation(0.2, 1, (New-Object Windows.Duration([TimeSpan]::FromSeconds(0.9))))
@@ -8621,6 +8650,26 @@ $ui.ConfirmationCheck.Add_Checked({ $ui.ConfirmRunButton.IsEnabled=$true })
 $ui.ConfirmationCheck.Add_Unchecked({ $ui.ConfirmRunButton.IsEnabled=$false })
 $ui.ConfirmBackButton.Add_Click({ $ui.ConfirmOverlay.Visibility='Collapsed' })
 $ui.ConfirmRunButton.Add_Click({ Start-RunPlan })
+$ui.PauseRunButton.Add_Click({
+    if ($script:DRPaused) {
+        # Start: carry on with the next step
+        $script:DRPaused = $false; $script:DRPauseWanted = $false
+        $ui.PauseRunButton.Content = 'Pause'
+        $ui.ProgressSafetyText.Text = 'Long-running Windows commands finish before the next task begins.'
+        Start-NextTask
+    }
+    elseif ($script:DRPauseWanted) {
+        # pressed again before the step ended: carry on without pausing
+        $script:DRPauseWanted = $false
+        $ui.PauseRunButton.Content = 'Pause'
+        $ui.ProgressSafetyText.Text = 'Long-running Windows commands finish before the next task begins.'
+    }
+    else {
+        $script:DRPauseWanted = $true
+        $ui.PauseRunButton.Content = 'Pausing after this step...'
+        $ui.ProgressSafetyText.Text = 'The scan will pause when the step running now has finished. Press the button again to carry on without pausing.'
+    }
+})
 $ui.CancelPlanButton.Add_Click({
     if ($ui.CancelPlanButton.Tag -eq 'Done') {
         Stop-DRRestartCountdown
@@ -8642,6 +8691,9 @@ $ui.CancelPlanButton.Add_Click({
     }
     else {
         $cancelAfterTask=$true; Set-Variable -Name cancelAfterTask -Value $true -Scope Script
+        # Paused: nothing is running, so stop right away.
+        if ($script:DRPaused) { $script:DRPaused = $false; Start-NextTask; return }
+        if ($ui.PauseRunButton) { $ui.PauseRunButton.IsEnabled = $false }
         $ui.CancelPlanButton.IsEnabled=$false; $ui.CancelPlanButton.Content='Stopping after current task…'
         $ui.ProgressSafetyText.Text='Cancellation requested. The current Windows operation will finish safely.'
 

@@ -1,7 +1,7 @@
 {
-  "version": "1.4.468",
-  "notes": "Exact times only: the scan buttons and every item now show how long it really took on your PC last time, or \"Not timed yet\". No more guessed times.",
-  "published": "2026-11-11T15:42:53.9568665-05:00",
+  "version": "1.4.469",
+  "notes": "Pause and Start: Safe, Medium and Advanced scans can now be paused after the step that is running, and started again. Clone & Backup: the progress bar now moves smoothly.",
+  "published": "2026-11-12T01:31:45.3974588-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "9E06E46883B75CE029BB37164D923538C779A5EB077CFDF46400A1B31A0A5F19",
-      "size": 956154
+      "sha256": "96F0F568540A684866DAF37B5B9DD19331AC950AED723548A9D21E4142371461",
+      "size": 959644
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -30,8 +30,8 @@
     },
     {
       "name": "DRDirect Imager Engine.ps1",
-      "sha256": "63078E31AB75AD9D113B6D0A1845E4696910194E8076E2C79B6F0BC82290C9A8",
-      "size": 83401
+      "sha256": "A5CD82BE76F16C5C178BC5D208214804CBB355DA96160515580862FC6EA77940",
+      "size": 84670
     },
     {
       "name": "DRDirectCleaner.ico",
@@ -45,8 +45,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "B01A9674BF83E1CFFEC27DC17D945E3263D0D044610AC9D1B9A1FE5CE9F29639",
-      "size": 10543876
+      "sha256": "DC7C4EEBECAFA208892F379629D788F2AFEDBF9603913221B26629CB494AFD24",
+      "size": 10465397
     }
   ],
   "blocked": [],
