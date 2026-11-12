@@ -1,7 +1,7 @@
 {
-  "version": "1.4.471",
-  "notes": "Clone & Backup: new MAX speed for Secure, about 15 percent faster (the backup file is a little bigger). Pause and Start for scans, smooth progress bar.",
-  "published": "2026-11-12T01:50:15.1613395-05:00",
+  "version": "1.4.472",
+  "notes": "Clone & Backup: MAX speed for Secure is faster again - it now writes the backup straight to the drive (about 2.6 GB/s on a fast PC).",
+  "published": "2026-11-12T02:06:00.1653631-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -30,8 +30,8 @@
     },
     {
       "name": "DRDirect Imager Engine.ps1",
-      "sha256": "A89FE3AB30E63C009327E2B824FEAFC29A556C88C0E903D65907D6E3022C5E3A",
-      "size": 85645
+      "sha256": "DBC910EDEF60EBB49669B213B0819B6A2730E2FB00FB9C021B20DFA8859DA150",
+      "size": 89470
     },
     {
       "name": "DRDirectCleaner.ico",

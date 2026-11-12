@@ -155,6 +155,74 @@ public class DRImgJob
     // MAX speed for Secure: blocks that do not shrink (photos, videos, zip files) are found from their first
     // 64 KB and stored as they are, and the search gives up sooner. Bigger file, same kind of image.
     public bool Lighter;
+    public bool UsedDirectWrite;
+
+    // Writes a file straight to the drive, past the Windows cache, in big aligned pieces. The last piece that is not a
+    // whole 4 KB is added the normal way when the file is closed, so the file is byte for byte the same as before.
+    class DirectOut : Stream
+    {
+        Microsoft.Win32.SafeHandles.SafeFileHandle h; IntPtr buf; int cap; int fill; long written; string path; bool done;
+        public static DirectOut Open(string path, int cap)
+        {
+            Microsoft.Win32.SafeHandles.SafeFileHandle fh = CreateFileW(path, GENERIC_WRITE, 0, IntPtr.Zero, 2, NO_BUF, IntPtr.Zero);
+            if (fh.IsInvalid) { fh.Dispose(); return null; }
+            IntPtr b = VirtualAlloc(IntPtr.Zero, (UIntPtr)(ulong)cap, 0x3000, 4);
+            if (b == IntPtr.Zero) { fh.Dispose(); return null; }
+            DirectOut d = new DirectOut(); d.h = fh; d.buf = b; d.cap = cap; d.path = path;
+            return d;
+        }
+        void Put(int n)
+        {
+            uint w;
+            if (!WriteFile(h, buf, (uint)n, out w, IntPtr.Zero) || w != (uint)n)
+                throw new IOException("Cannot write the image file (error " + System.Runtime.InteropServices.Marshal.GetLastWin32Error() + ").");
+            written += n;
+        }
+        public override void Write(byte[] a, int off, int n)
+        {
+            while (n > 0)
+            {
+                int k = Math.Min(n, cap - fill);
+                System.Runtime.InteropServices.Marshal.Copy(a, off, (IntPtr)(buf.ToInt64() + fill), k);
+                fill += k; off += k; n -= k;
+                if (fill == cap) { Put(fill); fill = 0; }
+            }
+        }
+        protected override void Dispose(bool disposing)
+        {
+            if (done) { base.Dispose(disposing); return; }
+            done = true;
+            try
+            {
+                int aligned = fill & ~4095;
+                if (aligned > 0) Put(aligned);
+                int rest = fill - aligned;
+                byte[] tail = new byte[rest];
+                if (rest > 0) System.Runtime.InteropServices.Marshal.Copy((IntPtr)(buf.ToInt64() + aligned), tail, 0, rest);
+                h.Dispose(); h = null;
+                if (rest > 0)
+                {
+                    using (FileStream f = new FileStream(path, FileMode.Open, FileAccess.Write, FileShare.None, 4096))
+                    { f.Seek(written, SeekOrigin.Begin); f.Write(tail, 0, rest); }
+                }
+            }
+            finally
+            {
+                if (h != null) h.Dispose();
+                if (buf != IntPtr.Zero) { VirtualFree(buf, UIntPtr.Zero, 0x8000); buf = IntPtr.Zero; }
+                base.Dispose(disposing);
+            }
+        }
+        public override void Flush() { }
+        public override bool CanRead { get { return false; } }
+        public override bool CanSeek { get { return false; } }
+        public override bool CanWrite { get { return true; } }
+        public override long Length { get { return written + fill; } }
+        public override long Position { get { return written + fill; } set { throw new NotSupportedException(); } }
+        public override int Read(byte[] b, int o, int c) { throw new NotSupportedException(); }
+        public override long Seek(long o, SeekOrigin r) { throw new NotSupportedException(); }
+        public override void SetLength(long v) { throw new NotSupportedException(); }
+    }
     public double SecWait, SecComp, SecRead, SecBlocked, SecWrite;
     // Processor time split up (added over all threads, so bigger than the clock time): compress, lock, checksum.
     long tkPack, tkLock, tkSum;
@@ -172,7 +240,11 @@ public class DRImgJob
         try { System.Runtime.GCSettings.LatencyMode = System.Runtime.GCLatencyMode.SustainedLowLatency; } catch (Exception) { }
         try
         {
-        using (FileStream o = new FileStream(outFile, FileMode.Create, FileAccess.Write, FileShare.None, 1 << 20))
+        // MAX writes the image straight to the drive in 16 MB pieces (no Windows cache); if the drive will not
+        // open that way, or for the other speeds, it is written the normal way.
+        Stream oDirect = Lighter ? DirectOut.Open(outFile, 16 << 20) : null;
+        if (oDirect != null) UsedDirectWrite = true;
+        using (Stream o = oDirect ?? new FileStream(outFile, FileMode.Create, FileAccess.Write, FileShare.None, 1 << 20))
         using (BinaryWriter bw = new BinaryWriter(o))
         {
             bw.Write(Encoding.ASCII.GetBytes(Quick ? Magic4 : Magic3));
