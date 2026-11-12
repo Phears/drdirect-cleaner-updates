@@ -579,10 +579,12 @@ function Show-JobDialog {
             $c.Go.Content = 'Start'
             # Speed = how many CPU threads the image uses: the most threads is the fastest.
             $cores = [Environment]::ProcessorCount
-            $state.Speeds = @($cores, [Math]::Max(1, [int]($cores / 2)), [Math]::Max(1, [int]($cores / 4)), $cores)
-            [void]$c.Speed.Items.Add(('{0}X  -  fastest (uses every CPU thread)' -f $state.Speeds[0]))
-            [void]$c.Speed.Items.Add(('{0}X  -  fast' -f $state.Speeds[1]))
-            [void]$c.Speed.Items.Add(('{0}X  -  gentle (the PC stays responsive)' -f $state.Speeds[2]))
+            # MAX = every thread, plus the faster MAX engine (photos/videos stored as they are, image written past the cache), same as the PC Cleaner.
+            $state.Speeds = @($cores, $cores, [Math]::Max(1, [int]($cores / 2)), [Math]::Max(1, [int]($cores / 4)), $cores)
+            [void]$c.Speed.Items.Add('MAX  -  fastest (bigger file)')
+            [void]$c.Speed.Items.Add(('{0}X  -  very fast (every CPU thread)' -f $state.Speeds[1]))
+            [void]$c.Speed.Items.Add(('{0}X  -  fast' -f $state.Speeds[2]))
+            [void]$c.Speed.Items.Add(('{0}X  -  gentle (the PC stays responsive)' -f $state.Speeds[3]))
             [void]$c.Speed.Items.Add('Smallest file  -  slower, uses every CPU thread')
             $c.Speed.SelectedIndex = 0
             $c.SpeedRow.Visibility = 'Visible'
@@ -714,7 +716,8 @@ function Show-JobDialog {
                     & $analyze
                     $ext = Get-SmartExtents $d.Number $d.Size
                     $workers = $state.Speeds[[Math]::Max(0, $c.Speed.SelectedIndex)]
-                    $smallest = ($c.Speed.SelectedIndex -eq 3)
+                    $smallest = ($c.Speed.SelectedIndex -eq 4)
+                    $maxMode = ($c.Speed.SelectedIndex -eq 0)
                     & $analyzed
                     $bytes = [double]$d.Size
                     if ($ext) { $bytes = 2MB; for ($i = 1; $i -lt $ext.Data.Count; $i += 2) { $bytes += $ext.Data[$i] } }
@@ -722,6 +725,7 @@ function Show-JobDialog {
                     if ($ok -ne 'Yes') { return }
                     Sync-DiskVolumes $d.Number
                     $job.Quick = (-not $smallest); $job.Fast = $false; $job.Workers = $workers
+                    if ($maxMode -and ($job.PSObject.Properties.Name -contains 'Lighter')) { $job.Lighter = $true }
                     if ($ext) { $job.StartSmartImage($d.Path, $c.Path.Text, $d.Size, "$($d.Name)", $ext.Data, $ext.Tail) } else { $job.StartImage($d.Path, $c.Path.Text, $d.Size, "$($d.Name)") }
                 }
                 'check' { $job.StartVerify($c.Path.Text) }

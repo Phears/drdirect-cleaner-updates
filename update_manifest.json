@@ -1,7 +1,7 @@
 {
-  "version": "1.4.473",
-  "notes": "Clone & Backup now shows the exact time each job took when it finishes, in Windows and on the Rescue USB. Guessed times were removed.",
-  "published": "2026-11-12T09:44:56.1604940-05:00",
+  "version": "1.4.474",
+  "notes": "Clone & Backup: the Rescue USB now has the Speed list for Secure (MAX by default) and shows the exact time each job took. Restore reports the real data speed.",
+  "published": "2026-11-12T14:59:17.7186083-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -35,8 +35,8 @@
     },
     {
       "name": "DRDirect Imager.ps1",
-      "sha256": "653094E4EC059779DC4A100C8C2A95297E1BA9844DEC584F58755A1A32AD748A",
-      "size": 69648
+      "sha256": "698DA3A0E622D9E2955DF7D3460CC1F34553653B3CD01063AF916B4C738C8C8F",
+      "size": 70052
     },
     {
       "name": "DRDirectCleaner.ico",
