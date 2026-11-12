@@ -1,7 +1,7 @@
 {
-  "version": "1.4.469",
-  "notes": "Pause and Start: Safe, Medium and Advanced scans can now be paused after the step that is running, and started again. Clone & Backup: the progress bar now moves smoothly.",
-  "published": "2026-11-12T01:31:45.3974588-05:00",
+  "version": "1.4.470",
+  "notes": "Pause and Start: Safe, Medium and Advanced scans can be paused after the step that is running, and started again. Clone & Backup: smoother progress bar. Includes the current DRDirect Uninstaller.",
+  "published": "2026-11-12T01:34:26.6000296-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -45,8 +45,8 @@
     },
     {
       "name": "DRDirect Uninstaller.zip",
-      "sha256": "DC7C4EEBECAFA208892F379629D788F2AFEDBF9603913221B26629CB494AFD24",
-      "size": 10465397
+      "sha256": "B01A9674BF83E1CFFEC27DC17D945E3263D0D044610AC9D1B9A1FE5CE9F29639",
+      "size": 10543876
     }
   ],
   "blocked": [],
