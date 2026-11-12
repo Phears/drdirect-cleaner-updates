@@ -1,7 +1,7 @@
 {
-  "version": "1.4.472",
-  "notes": "Clone & Backup: MAX speed for Secure is faster again - it now writes the backup straight to the drive (about 2.6 GB/s on a fast PC).",
-  "published": "2026-11-12T02:06:00.1653631-05:00",
+  "version": "1.4.473",
+  "notes": "Clone & Backup now shows the exact time each job took when it finishes, in Windows and on the Rescue USB. Guessed times were removed.",
+  "published": "2026-11-12T09:44:56.1604940-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F71E5380BB8EF774DE704C6E4EAF692955042976EFFEB96293948413C12E155B",
-      "size": 959999
+      "sha256": "D1AE3F1A0090CB69659D07C0015C2BDA8189A15EC3B42F5F6D203CE8724F6DD3",
+      "size": 962411
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -20,8 +20,8 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "1DCD80513F4BCDDBC19C3EEC755EB441DAB5366FDF4E76F5419E67D5712D1002",
-      "size": 64051
+      "sha256": "D109EC04D0089FA93D41F22BD411A0A5047AC6A4C60588B3EEE7E411A90AB56F",
+      "size": 64139
     },
     {
       "name": "DRDirect Activation.ps1",
@@ -30,8 +30,13 @@
     },
     {
       "name": "DRDirect Imager Engine.ps1",
-      "sha256": "DBC910EDEF60EBB49669B213B0819B6A2730E2FB00FB9C021B20DFA8859DA150",
-      "size": 89470
+      "sha256": "D469C29C6E4896B741DB643E130905FEE7D2FE75999BE0EBB19765029C24B711",
+      "size": 89954
+    },
+    {
+      "name": "DRDirect Imager.ps1",
+      "sha256": "653094E4EC059779DC4A100C8C2A95297E1BA9844DEC584F58755A1A32AD748A",
+      "size": 69648
     },
     {
       "name": "DRDirectCleaner.ico",

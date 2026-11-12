@@ -6742,7 +6742,11 @@ function Show-DRDriveCopy {
   <TextBlock x:Name="AInfo" Grid.Row="2" Foreground="White" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Width="340" Margin="0,-56,0,0" Effect="{StaticResource Txt3DSmall}"/>
 </Grid>
         <Grid Grid.Column="1" VerticalAlignment="Top" Margin="6,120,6,0">
-          <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+          <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+          <StackPanel x:Name="AfterPanel" Grid.Row="2" HorizontalAlignment="Center" Margin="0,34,0,0" Visibility="Collapsed">
+            <CheckBox x:Name="AfterOff" Content="Shut down when done" Foreground="White" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,10" VerticalContentAlignment="Center" Cursor="Hand"><CheckBox.LayoutTransform><ScaleTransform ScaleX="1.2" ScaleY="1.2"/></CheckBox.LayoutTransform></CheckBox>
+            <CheckBox x:Name="AfterRestart" Content="Restart when done" Foreground="White" FontSize="15" FontWeight="SemiBold" VerticalContentAlignment="Center" Cursor="Hand"><CheckBox.LayoutTransform><ScaleTransform ScaleX="1.2" ScaleY="1.2"/></CheckBox.LayoutTransform></CheckBox>
+          </StackPanel>
           <Grid Height="76">
             <Border CornerRadius="36" Background="#030718" Margin="0,18,0,-18" IsHitTestVisible="False"/><Border CornerRadius="36" Background="#060B21" Margin="0,16,0,-16" IsHitTestVisible="False"/><Border CornerRadius="36" Background="#09102B" Margin="0,14,0,-14" IsHitTestVisible="False"/><Border CornerRadius="36" Background="#0C1435" Margin="0,12,0,-12" IsHitTestVisible="False"/><Border CornerRadius="36" Background="#0F193F" Margin="0,10,0,-10" IsHitTestVisible="False"/><Border CornerRadius="36" Background="#121D48" Margin="0,8,0,-8" IsHitTestVisible="False"/><Border CornerRadius="36" Background="#152252" Margin="0,6,0,-6" IsHitTestVisible="False"/><Border CornerRadius="36" Background="#18265C" Margin="0,4,0,-4" IsHitTestVisible="False"/><Border CornerRadius="36" Background="#1B2B66" Margin="0,2,0,-2" IsHitTestVisible="False"/>
             <Border CornerRadius="36" BorderBrush="#AA00E5FF" BorderThickness="2.5">
@@ -6966,7 +6970,7 @@ function Show-DRDriveCopy {
     })
     $c = @{}
     $names = 'TitleScale', 'Title1', 'Sub1', 'HomePanel', 'JobPanel', 'Close0', 'Back1', 'Agree', 'TileCheck', 'Flow', 'PipeGlow', 'ArrowNudge', 'DstFill',
-        'Form', 'ALabel', 'Src', 'APathRow', 'APath', 'ABrowse', 'ConfirmPanel', 'SpeedPanel', 'Speed', 'BLabel', 'Dst', 'BPathRow', 'BPath', 'BBrowse',
+        'Form', 'ALabel', 'Src', 'APathRow', 'APath', 'ABrowse', 'ConfirmPanel', 'SpeedPanel', 'Speed', 'AfterPanel', 'AfterOff', 'AfterRestart', 'BLabel', 'Dst', 'BPathRow', 'BPath', 'BBrowse',
         'Warn', 'Go', 'Prog', 'PctBox', 'Pct', 'DoneBadge', 'DoneScale', 'Track', 'Fill', 'ShineMove', 'PText', 'PMsg', 'Stop', 'CheckNow'
     foreach ($p in 'A', 'B') { foreach ($n in 'Card', 'Bob', 'SpotColor', 'Face', 'Head', 'Sub', 'Hdd', 'File', 'FileText', 'Glyph', 'GlyphScale', 'GlyphText', 'GlyphBack1', 'GlyphBack2', 'Letter', 'Info', 'Led', 'LedGlow', 'Spin') { $names += "$n$p"; $names += "$p$n" } }
     foreach ($t in 'clone', 'create', 'restore', 'rescue') { foreach ($n in '', 'Scale', 'Bob', 'Shine', 'Wobble') { $names += "Tile$t$n" } }
@@ -7112,6 +7116,8 @@ function Show-DRDriveCopy {
         $c.Src.Visibility = 'Collapsed'; $c.APathRow.Visibility = 'Collapsed'
         $c.Dst.Visibility = 'Collapsed'; $c.BPathRow.Visibility = 'Collapsed'
         $c.ConfirmPanel.Visibility = 'Collapsed'; $c.SpeedPanel.Visibility = 'Collapsed'
+        # What the PC does when a copy, backup or restore is done (shown for those three only)
+        if ($c.AfterPanel) { $c.AfterPanel.Visibility = if ($m -in @('clone', 'create', 'restore')) { 'Visible' } else { 'Collapsed' } }
         $c.BLabel.Text = ''
         switch ($m) {
             'clone' {
@@ -7288,6 +7294,12 @@ function Show-DRDriveCopy {
     [void]$c.Speed.Items.Add(('{0}X  -  gentle (the PC stays responsive)' -f $state.Speeds[3]))
     [void]$c.Speed.Items.Add('Smallest file  -  slower')
     $c.Speed.SelectedIndex = 0
+    # ---- when it is done ----
+    if ($c.AfterOff -and $c.AfterRestart) {
+        # only one of the two can be ticked
+        $c.AfterOff.Add_Checked({ $c.AfterRestart.IsChecked = $false })
+        $c.AfterRestart.Add_Checked({ $c.AfterOff.IsChecked = $false })
+    }
 
     $state.Disks = @(Get-ImagerDisks)
     $c.Src.Add_SelectionChanged({ if ($state.Mode -eq 'create' -and $state.AutoPath) { & $autoPlace } else { & $refresh } })
@@ -7398,21 +7410,21 @@ function Show-DRDriveCopy {
         $d2 = if ($m -ne 'rescue' -and $c.Dst.SelectedIndex -ge 0) { $state.Disks[$c.Dst.SelectedIndex] } else { $null }
         $demoNote = if ($state.Demo) { "`n`n(Test mode: nothing is read or written. This only shows the animation.)" } else { '' }
         $job = $null; $state.Sync = $null
+        $state.After = 0
+        if ($c.AfterPanel -and $c.AfterPanel.Visibility -eq 'Visible') { if ($c.AfterOff.IsChecked) { $state.After = 1 } elseif ($c.AfterRestart.IsChecked) { $state.After = 2 } }
         try {
             & $showProgress
             $c.Stop.IsEnabled = $false
             switch ($m) {
                 'clone' {
-                    $c.PText.Text = 'Looking at the drive to see how long it will take...'
+                    $c.PText.Text = 'Looking at the drive...'
                     $w.Dispatcher.Invoke([Action]{}, [Windows.Threading.DispatcherPriority]::Render)
-                    $bytes = [double]$d.Size; $ext = $null; $sp = 150MB
+                    $bytes = [double]$d.Size; $ext = $null
                     if (-not $state.Demo) {
                         $ext = Get-SmartExtents $d.Number $d.Size
                         if ($ext) { $bytes = 2MB; for ($i = 1; $i -lt $ext.Data.Count; $i += 2) { $bytes += $ext.Data[$i] } }
-                        $sp = [DRImgJob]::MeasureSpeed($d.Path, $d.Size, $false)
                     }
-                    $est = Format-Duration ($bytes / [Math]::Max($sp, 1))
-                    if (-not (& $ask "Ready to copy?`n`nFrom:  $(Get-DriveWords $d)`nOnto:  $(Get-DriveWords $d2)`n`nWhat is on $(& $letterOf $d2) now will be replaced by the copy.`nAbout $(Format-ImgSize $bytes) to copy, about $est.$demoNote`n`nStart now?" 'SmartCopy')) { & $backToForm; return }
+                    if (-not (& $ask "Ready to copy?`n`nFrom:  $(Get-DriveWords $d)`nOnto:  $(Get-DriveWords $d2)`n`nWhat is on $(& $letterOf $d2) now will be replaced by the copy.`nAbout $(Format-ImgSize $bytes) to copy.$demoNote`n`nStart now?" 'SmartCopy')) { & $backToForm; return }
                     if ($state.Demo) { $job = [pscustomobject]@{ Done = [long]0; Total = [long][Math]::Max($bytes, 1GB); FileDone = 0; FileTotal = 0; Finished = $false; Ok = $false; Error = $null; Cancel = $false } }
                     else {
                         $job = New-Object DRImgJob
@@ -7423,20 +7435,18 @@ function Show-DRDriveCopy {
                     }
                 }
                 'create' {
-                    $c.PText.Text = 'Looking at the drive to see how long it will take...'
+                    $c.PText.Text = 'Looking at the drive...'
                     $w.Dispatcher.Invoke([Action]{}, [Windows.Threading.DispatcherPriority]::Render)
                     $workers = $state.Speeds[[Math]::Max(0, $c.Speed.SelectedIndex)]
                     $smallest = ($c.Speed.SelectedIndex -eq 4)
                     $maxMode = ($c.Speed.SelectedIndex -eq 0)
-                    $bytes = [double]$d.Size; $ext = $null; $sp = 300MB
+                    $bytes = [double]$d.Size; $ext = $null
                     if (-not $state.Demo) {
                         $ext = Get-SmartExtents $d.Number $d.Size
-                        $sp = if ($ext) { [DRImgJob]::MeasureQuick($d.Path, $ext.Data, $workers, $smallest) } else { [DRImgJob]::MeasureSpeed($d.Path, $d.Size, $true) }
                         if ($ext) { $bytes = 2MB; for ($i = 1; $i -lt $ext.Data.Count; $i += 2) { $bytes += $ext.Data[$i] } }
                     }
-                    $est = Format-Duration ($bytes / [Math]::Max($sp, 1))
                     $whole = if ($ext -and $ext.Whole.Count) { "`n`nCopied whole, because they cannot be mapped: " + ($ext.Whole -join ', ') + '.' } else { '' }
-                    if (-not (& $ask "Secure $(Get-DriveWords $d) into:`n$($c.BPath.Text)`n`nOnly the used parts are read (about $(Format-ImgSize $bytes) of $(Format-ImgSize $d.Size)).$whole`nEstimated time: about $est.$demoNote`n`nStart?" 'Secure')) { & $backToForm; return }
+                    if (-not (& $ask "Secure $(Get-DriveWords $d) into:`n$($c.BPath.Text)`n`nOnly the used parts are read (about $(Format-ImgSize $bytes) of $(Format-ImgSize $d.Size)).$whole$demoNote`n`nStart?" 'Secure')) { & $backToForm; return }
                     if ($state.Demo) { $job = [pscustomobject]@{ Done = [long]0; Total = [long][Math]::Max($bytes, 1GB); FileDone = 0; FileTotal = 0; Finished = $false; Ok = $false; Error = $null; Cancel = $false } }
                     else {
                         $job = New-ImagerJob
@@ -7466,7 +7476,7 @@ function Show-DRDriveCopy {
                     $u = $state.Usb[$c.Dst.SelectedIndex]
                     $ul = if ($u.Letters.Count) { "$($u.Letters[0]):" } else { 'the USB' }
                     $state.RescueWhat = "$($u.Name), $(Format-ImgSize $u.Size)"
-                    if (-not (& $ask "Ready to create the Rescue USB on $($ul)?`n`n$($u.Name), $(Format-ImgSize $u.Size)`nWhat is on it now will be replaced. It takes a few minutes.$demoNote`n`nStart now?" 'Rescue USB')) { & $backToForm; return }
+                    if (-not (& $ask "Ready to create the Rescue USB on $($ul)?`n`n$($u.Name), $(Format-ImgSize $u.Size)`nWhat is on it now will be replaced.$demoNote`n`nStart now?" 'Rescue USB')) { & $backToForm; return }
                     $sync = [hashtable]::Synchronized(@{ Step = 'Starting...'; N = 0; Done = $false; Result = $null })
                     $state.Sync = $sync
                     $job = [pscustomobject]@{ Done = [long]0; Total = [long]5; FileDone = 0; FileTotal = 0; Finished = $false; Ok = $false; Error = $null; Cancel = $false }
@@ -7529,13 +7539,14 @@ function Show-DRDriveCopy {
                 $glide2 = New-Object Windows.Media.Animation.DoubleAnimation($wB, (New-Object Windows.Duration([TimeSpan]::FromMilliseconds(280))))
                 $c.DstFill.BeginAnimation([Windows.FrameworkElement]::WidthProperty, $glide2)
             }
-            if ($m -eq 'rescue') { $c.PText.Text = "$($state.Sync.Step)   Please do not remove the USB." }
+            if ($m -eq 'rescue') { $c.PText.Text = "$($state.Sync.Step)   Please do not remove the USB.   Running for $($state.Clock.Elapsed.ToString('hh\:mm\:ss'))" }
             else {
                 $rate = $done / $sec
-                $eta = if ($rate -gt 0 -and -not $j.Finished) { [TimeSpan]::FromSeconds(($total - $done) / $rate).ToString('hh\:mm\:ss') } else { '' }
-                $c.PText.Text = ('{0} of {1}   -   {2}/s   -   {3}' -f (Format-ImgSize $done), (Format-ImgSize $total), (Format-ImgSize $rate), $(if ($eta) { "about $eta left" } else { 'finishing...' }))
+                # Only real, measured time: how long it has been running. No countdown guesses.
+                $c.PText.Text = ('{0} of {1}   -   {2}/s   -   running for {3}' -f (Format-ImgSize $done), (Format-ImgSize $total), (Format-ImgSize $rate), $state.Clock.Elapsed.ToString('hh\:mm\:ss'))
             }
             if ($j.Finished) {
+                $state.Clock.Stop()
                 $state.Timer.Stop(); $state.Busy = $false
                 if ($state.Ps) { try { $state.Ps.Ps.EndInvoke($state.Ps.Handle) | Out-Null } catch { }; try { $state.Ps.Ps.Dispose(); $state.Ps.Rs.Dispose() } catch { }; $state.Ps = $null }
                 $c.Stop.Content = 'Back'; $c.Stop.Tag = 'done'; $c.Stop.IsEnabled = $true
@@ -7553,18 +7564,31 @@ function Show-DRDriveCopy {
                     $bounce.EasingFunction = New-Object Windows.Media.Animation.ElasticEase -Property @{ Oscillations = 2; Springiness = 4 }
                     $c.DoneScale.BeginAnimation($sxP, $bounce); $c.DoneScale.BeginAnimation($syP, $bounce.Clone())
                     $c.LedB.Fill = $bc.ConvertFromString('#39FF7A'); $c.LedGlowB.Color = [Windows.Media.ColorConverter]::ConvertFromString('#39FF7A')
-                    $took = Format-Duration $state.Clock.Elapsed.TotalSeconds
+                    $took = Format-TookTime $state.Clock.Elapsed.TotalSeconds
                     $c.PMsg.Text = switch ($m) {
-                        'clone' { "The drive has been copied in $took." }
-                        'create' { "Backup file saved in $($took):`n$($c.BPath.Text)" }
-                        'check' { 'The backup file is complete and not damaged.' }
-                        'restore' { "The drive has been restored in $took." }
-                        'rescue' { "$($j.Error)`nKeep it somewhere safe. If you lose it or it breaks, come back here and make a new one." }
+                        'clone' { "The drive has been copied.`nTime taken: $took" }
+                        'create' { "Backup file saved:`n$($c.BPath.Text)`nTime taken: $took" }
+                        'check' { "The backup file is complete and not damaged.`nTime taken: $took" }
+                        'restore' { "The drive has been restored.`nTime taken: $took" }
+                        'rescue' { "$($j.Error)`nTime taken: $took`nKeep it somewhere safe. If you lose it or it breaks, come back here and make a new one." }
                     }
                     try { [System.Media.SystemSounds]::Asterisk.Play() } catch { }
+                    # Shut down or restart when it is done - only after it finished OK, with 60 seconds to cancel.
+                    if (-not $state.Demo -and $state.After -in @(1, 2) -and $m -in @('clone', 'create', 'restore')) {
+                        $how = if ($state.After -eq 1) { 'shut down' } else { 'restart' }
+                        $sw = if ($state.After -eq 1) { '/s' } else { '/r' }
+                        try { Start-Process -FilePath 'shutdown.exe' -ArgumentList @($sw, '/t', '60', '/c', "`"DRDirect Clone & Backup is done. Your PC will $how in 60 seconds.`"") -WindowStyle Hidden } catch { }
+                        $c.PMsg.Text = $c.PMsg.Text + "`n`nYour PC will $how in 60 seconds."
+                        $ans = [Windows.MessageBox]::Show($w, "It is done.`n`nYour PC will $how in 60 seconds.`n`nPress Cancel to keep your PC on.", 'DRDirect Clone & Backup', 'OKCancel', 'Information')
+                        if ($ans -eq 'Cancel') {
+                            try { Start-Process -FilePath 'shutdown.exe' -ArgumentList '/a' -WindowStyle Hidden } catch { }
+                            $c.PMsg.Text = $c.PMsg.Text + "`nCancelled - your PC stays on."
+                        }
+                    }
                 } else {
                     $c.PMsg.Foreground = $bc.ConvertFromString('#FFB4B4')
                     $c.PMsg.Text = if ($m -eq 'rescue') { $j.Error } else { "Stopped: $($j.Error)" }
+                    $c.PMsg.Text += "`nIt ran for $(Format-TookTime $state.Clock.Elapsed.TotalSeconds) before it stopped."
                     if ($m -eq 'restore' -or $m -eq 'clone') { $c.PMsg.Text += "`nThe target drive was only partly written. Run it again before using that drive." }
                 }
             }

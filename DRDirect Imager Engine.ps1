@@ -1529,6 +1529,15 @@ function Get-SmartExtents([int]$DiskNumber, [int64]$DiskSize) {
 }
 
 # After an image is saved: a small text file next to it says where the time went, so a slow run can be diagnosed.
+# The exact time a job really took on this PC, measured by its stopwatch from start to finish. Never an estimate.
+function Format-TookTime([double]$Seconds) {
+    $t = [TimeSpan]::FromSeconds([Math]::Round([Math]::Max($Seconds, 0)))
+    $h = [int][Math]::Floor($t.TotalHours)
+    if ($h -ge 1) { return ('{0} h {1:00} min {2:00} sec' -f $h, $t.Minutes, $t.Seconds) }
+    if ($t.Minutes -ge 1) { return ('{0} min {1:00} sec' -f $t.Minutes, $t.Seconds) }
+    '{0} sec' -f $t.Seconds
+}
+
 function Write-ImagerTiming($Job, [double]$Seconds, [string]$ImageFile) {
     try {
         $sec = [Math]::Max($Seconds, 0.5)
