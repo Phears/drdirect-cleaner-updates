@@ -7280,10 +7280,12 @@ function Show-DRDriveCopy {
 
     # ---- speed choices (Secure) ----
     $cores = [Environment]::ProcessorCount
-    $state.Speeds = @($cores, [Math]::Max(1, [int]($cores / 2)), [Math]::Max(1, [int]($cores / 4)), $cores)
-    [void]$c.Speed.Items.Add(('{0}X  -  fastest (every CPU thread)' -f $state.Speeds[0]))
-    [void]$c.Speed.Items.Add(('{0}X  -  fast' -f $state.Speeds[1]))
-    [void]$c.Speed.Items.Add(('{0}X  -  gentle (the PC stays responsive)' -f $state.Speeds[2]))
+    # MAX: every CPU thread, and data that does not shrink is stored as it is (faster, bigger file).
+    $state.Speeds = @($cores, $cores, [Math]::Max(1, [int]($cores / 2)), [Math]::Max(1, [int]($cores / 4)), $cores)
+    [void]$c.Speed.Items.Add('MAX  -  fastest (bigger file)')
+    [void]$c.Speed.Items.Add(('{0}X  -  very fast (every CPU thread)' -f $state.Speeds[1]))
+    [void]$c.Speed.Items.Add(('{0}X  -  fast' -f $state.Speeds[2]))
+    [void]$c.Speed.Items.Add(('{0}X  -  gentle (the PC stays responsive)' -f $state.Speeds[3]))
     [void]$c.Speed.Items.Add('Smallest file  -  slower')
     $c.Speed.SelectedIndex = 0
 
@@ -7424,7 +7426,8 @@ function Show-DRDriveCopy {
                     $c.PText.Text = 'Looking at the drive to see how long it will take...'
                     $w.Dispatcher.Invoke([Action]{}, [Windows.Threading.DispatcherPriority]::Render)
                     $workers = $state.Speeds[[Math]::Max(0, $c.Speed.SelectedIndex)]
-                    $smallest = ($c.Speed.SelectedIndex -eq 3)
+                    $smallest = ($c.Speed.SelectedIndex -eq 4)
+                    $maxMode = ($c.Speed.SelectedIndex -eq 0)
                     $bytes = [double]$d.Size; $ext = $null; $sp = 300MB
                     if (-not $state.Demo) {
                         $ext = Get-SmartExtents $d.Number $d.Size
@@ -7441,6 +7444,7 @@ function Show-DRDriveCopy {
                         if ($dir -and -not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
                         Sync-DiskVolumes $d.Number
                         $job.Quick = (-not $smallest); $job.Fast = $false; $job.Workers = $workers
+                        if ($maxMode -and ($job.PSObject.Properties.Name -contains 'Lighter')) { $job.Lighter = $true }
                         if ($ext) { $job.StartSmartImage($d.Path, $c.BPath.Text, $d.Size, "$($d.Name)", $ext.Data, $ext.Tail) } else { $job.StartImage($d.Path, $c.BPath.Text, $d.Size, "$($d.Name)") }
                     }
                 }

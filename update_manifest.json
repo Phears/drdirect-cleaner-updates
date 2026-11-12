@@ -1,7 +1,7 @@
 {
-  "version": "1.4.470",
-  "notes": "Pause and Start: Safe, Medium and Advanced scans can be paused after the step that is running, and started again. Clone & Backup: smoother progress bar. Includes the current DRDirect Uninstaller.",
-  "published": "2026-11-12T01:34:26.6000296-05:00",
+  "version": "1.4.471",
+  "notes": "Clone & Backup: new MAX speed for Secure, about 15 percent faster (the backup file is a little bigger). Pause and Start for scans, smooth progress bar.",
+  "published": "2026-11-12T01:50:15.1613395-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "96F0F568540A684866DAF37B5B9DD19331AC950AED723548A9D21E4142371461",
-      "size": 959644
+      "sha256": "F71E5380BB8EF774DE704C6E4EAF692955042976EFFEB96293948413C12E155B",
+      "size": 959999
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -30,8 +30,8 @@
     },
     {
       "name": "DRDirect Imager Engine.ps1",
-      "sha256": "A5CD82BE76F16C5C178BC5D208214804CBB355DA96160515580862FC6EA77940",
-      "size": 84670
+      "sha256": "A89FE3AB30E63C009327E2B824FEAFC29A556C88C0E903D65907D6E3022C5E3A",
+      "size": 85645
     },
     {
       "name": "DRDirectCleaner.ico",

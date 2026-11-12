@@ -152,6 +152,9 @@ public class DRImgJob
     }
 
     public int Workers = Environment.ProcessorCount;
+    // MAX speed for Secure: blocks that do not shrink (photos, videos, zip files) are found from their first
+    // 64 KB and stored as they are, and the search gives up sooner. Bigger file, same kind of image.
+    public bool Lighter;
     public double SecWait, SecComp, SecRead, SecBlocked, SecWrite;
     // Processor time split up (added over all threads, so bigger than the clock time): compress, lock, checksum.
     long tkPack, tkLock, tkSum;
@@ -259,8 +262,14 @@ public class DRImgJob
                         if (Quick)
                         {
                             byte[] dst = lzDst; if (dst == null) { dst = new byte[Chunk + Chunk / 255 + 64]; lzDst = dst; }
-                            int cl = Lz4CompressInto(it.B, it.Len, dst);
-                            packed = cl < it.Len; plain = packed ? dst : it.B; plainLen = packed ? cl : it.Len;
+                            bool skip = false;
+                            if (Lighter && it.Len > 65536) { int probe = Lz4CompressInto(it.B, 65536, dst, 4); skip = probe > 65536 - 2048; }
+                            if (skip) { packed = false; plain = it.B; plainLen = it.Len; }
+                            else
+                            {
+                                int cl = Lz4CompressInto(it.B, it.Len, dst, Lighter ? 4 : 6);
+                                packed = cl < it.Len; plain = packed ? dst : it.B; plainLen = packed ? cl : it.Len;
+                            }
                         }
                         else
                         {
@@ -769,7 +778,11 @@ public class DRImgJob
     static int LzHash(uint v) { return (int)((v * 2654435761u) >> 16); }
 
     // Fast block compressor (LZ4 style): quick to run, and still shrinks typical Windows data to about half.
-    static int Lz4CompressInto(byte[] src, int n, byte[] dst)
+    static int Lz4CompressInto(byte[] src, int n, byte[] dst) { return Lz4CompressInto(src, n, dst, 6); }
+
+    // skipShift 6 is the normal search. 4 gives up four times sooner on data that does not repeat (MAX speed);
+    // the output is still ordinary blocks that Check and Restore read the same way.
+    static int Lz4CompressInto(byte[] src, int n, byte[] dst, int skipShift)
     {
         int[] table = lzTable;
         if (table == null) { table = new int[1 << 16]; lzTable = table; }
@@ -785,7 +798,7 @@ public class DRImgJob
             {
                 int h = LzHash(LzRead32(src, ip));
                 int refp1 = table[h]; table[h] = ip + 1;
-                int step = searchNb >> 6;
+                int step = searchNb >> skipShift;
                 if (refp1 != 0 && ip - (refp1 - 1) <= 65535 && LzRead32(src, refp1 - 1) == LzRead32(src, ip))
                 {
                     int refp = refp1 - 1;
