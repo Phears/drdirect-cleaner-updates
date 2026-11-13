@@ -9967,14 +9967,90 @@ function Install-DRTrayHelper {
     $text = $script:DRTrayScriptText.Replace("`r`n", "`n").Replace("`n", "`r`n")
     $current = if (Test-Path -LiteralPath $scriptPath -PathType Leaf) { [IO.File]::ReadAllText($scriptPath).TrimStart([char]0xFEFF) } else { $null }
     if ($current -ne $text) { [IO.File]::WriteAllText($scriptPath, $text, [Text.UTF8Encoding]::new($true)) }
+    # Windows Startup apps (Settings and Task Manager) name an entry after the program it starts. Started through
+    # powershell.exe it showed as "Windows PowerShell 5.1, Microsoft Corporation", so the Cleaner did not seem to be in
+    # the startup at all. A tiny starter with the DRDirect name, publisher and logo starts the icon instead.
+    $starter = $null
+    try { $starter = Get-DRTrayStarter -Root $root } catch { }
     $shortcutPath = Join-Path ([Environment]::GetFolderPath('Startup')) 'DRDirect Tray.lnk'
     $shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut($shortcutPath)
-    $shortcut.TargetPath = 'powershell.exe'
-    $shortcut.Arguments = '-NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File "' + $scriptPath + '"'
+    if ($starter) {
+        $shortcut.TargetPath = $starter
+        $shortcut.Arguments = ''
+        $shortcut.WorkingDirectory = $root
+        $shortcut.IconLocation = "$starter,0"
+    } else {
+        $shortcut.TargetPath = 'powershell.exe'
+        $shortcut.Arguments = '-NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File "' + $scriptPath + '"'
+    }
     $shortcut.WindowStyle = 7
     $shortcut.Description = 'DRDirect PC Cleaner update icon'
     $shortcut.Save()
-    Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-WindowStyle', 'Hidden', '-File', ('"' + $scriptPath + '"'))
+    if ($starter) { Start-Process -FilePath $starter -WorkingDirectory $root }
+    else { Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-WindowStyle', 'Hidden', '-File', ('"' + $scriptPath + '"')) }
+}
+# Builds "DRDirect PC Cleaner Tray.exe" in the Cleaner's own folder under LOCALAPPDATA with the .NET compiler that comes with
+# every Windows 10 and 11. It only starts "DRDirect Tray.ps1" beside it, hidden. Built once; built again only when
+# the text below changes. Returns its path, or $null if it could not be built (then PowerShell starts the icon as before).
+$script:DRTrayStarterVersion = '1'
+$script:DRTrayStarterSource = @'
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+[assembly: AssemblyTitle("DRDirect PC Cleaner")]
+[assembly: AssemblyDescription("DRDirect PC Cleaner")]
+[assembly: AssemblyCompany("DRDirect")]
+[assembly: AssemblyProduct("DRDirect PC Cleaner")]
+[assembly: AssemblyCopyright("Copyright (c) 2026 DRDirect")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]
+static class DRDirectTrayStarter {
+    [STAThread]
+    static void Main() {
+        string dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        string script = Path.Combine(dir, "DRDirect Tray.ps1");
+        if (!File.Exists(script)) return;
+        string ps = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"WindowsPowerShell\v1.0\powershell.exe");
+        ProcessStartInfo si = new ProcessStartInfo(ps, "-NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File \"" + script + "\"");
+        si.UseShellExecute = false;
+        si.CreateNoWindow = true;
+        si.WindowStyle = ProcessWindowStyle.Hidden;
+        si.WorkingDirectory = dir;
+        Process.Start(si);
+    }
+}
+'@
+function Get-DRTrayStarter {
+    param([string]$Root)
+    $exePath = Join-Path $Root 'DRDirect PC Cleaner Tray.exe'
+    $tagPath = Join-Path $Root 'tray_starter.txt'
+    $tag = if (Test-Path -LiteralPath $tagPath -PathType Leaf) { (Get-Content -LiteralPath $tagPath -Raw).Trim() } else { '' }
+    if ((Test-Path -LiteralPath $exePath -PathType Leaf) -and $tag -eq $script:DRTrayStarterVersion) { return $exePath }
+    $csc = @((Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'), (Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe')) |
+        Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+    if (-not $csc) { return $null }
+    # The DRDirect logo: the Cleaner's own .ico if it is beside this script or in the updated scripts.
+    $here = if ($PSScriptRoot) { $PSScriptRoot } else { $Root }
+    $ico = @((Join-Path $here 'DRDirectCleaner.ico'), (Join-Path $Root 'Scripts\DRDirectCleaner.ico'), (Join-Path $env:ProgramFiles 'DRDirect PC Cleaner\DRDirectCleaner.ico')) |
+        Where-Object { $_ -and (Test-Path -LiteralPath $_ -PathType Leaf) } | Select-Object -First 1
+    $work = Join-Path $env:TEMP ('DRDirectTrayStarter_' + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $work -Force | Out-Null
+    try {
+        $src = Join-Path $work 'starter.cs'
+        $out = Join-Path $work 'DRDirect PC Cleaner Tray.exe'
+        [IO.File]::WriteAllText($src, $script:DRTrayStarterSource, [Text.UTF8Encoding]::new($false))
+        $cscArgs = @('/nologo', '/target:winexe', '/optimize+', ('/out:"' + $out + '"'))
+        if ($ico) { $cscArgs += ('/win32icon:"' + $ico + '"') }
+        $cscArgs += ('"' + $src + '"')
+        $p = Start-Process -FilePath $csc -ArgumentList $cscArgs -WindowStyle Hidden -Wait -PassThru
+        if ($p.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $out -PathType Leaf)) { return $null }
+        # The starter only starts PowerShell and closes at once, so it is never in use when replaced.
+        Copy-Item -LiteralPath $out -Destination $exePath -Force
+        Set-Content -LiteralPath $tagPath -Value $script:DRTrayStarterVersion -Encoding ASCII
+        return $exePath
+    } catch { return $null }
+    finally { Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue }
 }
 function Invoke-DRTrayOffer {
     # Every PC gets the small icon in its Windows Startup list, without a question. The one way to stop it is the icon's own

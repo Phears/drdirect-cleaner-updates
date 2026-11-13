@@ -1,7 +1,7 @@
 {
-  "version": "1.4.475",
-  "notes": "Rescue USB now shows a warning first: making a Rescue USB erases the USB stick. You choose to continue or not.",
-  "published": "2026-11-13T17:02:10.8356239-05:00",
+  "version": "1.4.476",
+  "notes": "DRDirect PC Cleaner now shows under its own name and logo in Windows Startup apps (it showed as Windows PowerShell before).",
+  "published": "2026-11-13T17:13:55.4990829-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "1ED919244ED79D188FD6B31EB2B642B741493CA2F5A0A7442D533D90C991152D",
-      "size": 963304
+      "sha256": "55686744999130EFD45147CD1185C453D1860E2A5B193D6E2CBC5E80329D233E",
+      "size": 967943
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
