@@ -9986,13 +9986,29 @@ function Install-DRTrayHelper {
     $shortcut.WindowStyle = 7
     $shortcut.Description = 'DRDirect PC Cleaner update icon'
     $shortcut.Save()
+    # Before, this entry showed in Startup apps as "Windows PowerShell", so on many PCs it was switched off without
+    # anyone knowing it was the Cleaner. It is switched back on once, now that it shows as DRDirect PC Cleaner.
+    # After that, if the end user switches it off in Task Manager or Settings, that choice is kept.
+    $onceFile = Join-Path $root 'tray_on_once.txt'
+    if (-not (Test-Path -LiteralPath $onceFile -PathType Leaf)) {
+        try {
+            $approvedKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder'
+            if (Test-Path -LiteralPath $approvedKey) {
+                $flag = (Get-Item -LiteralPath $approvedKey).GetValue('DRDirect Tray.lnk')
+                if ($flag -is [byte[]] -and $flag.Length -gt 0 -and (($flag[0] -band 1) -eq 1)) {
+                    Set-ItemProperty -LiteralPath $approvedKey -Name 'DRDirect Tray.lnk' -Type Binary -Value ([byte[]](2,0,0,0,0,0,0,0,0,0,0,0))
+                }
+            }
+            Set-Content -LiteralPath $onceFile -Value 'on' -Encoding ASCII
+        } catch { }
+    }
     if ($starter) { Start-Process -FilePath $starter -WorkingDirectory $root }
     else { Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-WindowStyle', 'Hidden', '-File', ('"' + $scriptPath + '"')) }
 }
 # Builds "DRDirect PC Cleaner Tray.exe" in the Cleaner's own folder under LOCALAPPDATA with the .NET compiler that comes with
 # every Windows 10 and 11. It only starts "DRDirect Tray.ps1" beside it, hidden. Built once; built again only when
 # the text below changes. Returns its path, or $null if it could not be built (then PowerShell starts the icon as before).
-$script:DRTrayStarterVersion = '1'
+$script:DRTrayStarterVersion = '2'
 $script:DRTrayStarterSource = @'
 using System;
 using System.Diagnostics;
@@ -10037,6 +10053,21 @@ function Get-DRTrayStarter {
     $work = Join-Path $env:TEMP ('DRDirectTrayStarter_' + [guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path $work -Force | Out-Null
     try {
+        if (-not $ico) {
+            # No .ico file on this PC: take the DRDirect logo from the installed Cleaner itself.
+            $cleanerExe = Join-Path $env:ProgramFiles 'DRDirect PC Cleaner\DRDirect PC Cleaner.exe'
+            if (Test-Path -LiteralPath $cleanerExe -PathType Leaf) {
+                try {
+                    Add-Type -AssemblyName System.Drawing
+                    $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($cleanerExe)
+                    if ($icon) {
+                        $ico = Join-Path $work 'logo.ico'
+                        $fs = [IO.File]::Create($ico)
+                        try { $icon.Save($fs) } finally { $fs.Close(); $icon.Dispose() }
+                    }
+                } catch { $ico = $null }
+            }
+        }
         $src = Join-Path $work 'starter.cs'
         $out = Join-Path $work 'DRDirect PC Cleaner Tray.exe'
         [IO.File]::WriteAllText($src, $script:DRTrayStarterSource, [Text.UTF8Encoding]::new($false))
