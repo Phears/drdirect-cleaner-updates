@@ -1,7 +1,7 @@
 {
-  "version": "1.4.477",
-  "notes": "DRDirect PC Cleaner is switched on in Windows Startup apps again, with the DRDirect logo. If you switch it off yourself later, it stays off.",
-  "published": "2026-11-13T17:21:43.2258005-05:00",
+  "version": "1.4.478",
+  "notes": "Clone & Backup can now make a Rescue USB on any PC: it downloads the Rescue system first (about 535 MB), then erases, formats and makes the USB.",
+  "published": "2026-11-13T17:57:50.4521241-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "F0FF3C7076BD33BA7025373D0FFCBBF5BE72D7A52BAFED31099267ED7634CDD9",
-      "size": 969818
+      "sha256": "E55E2902BD696799B64F009A334E9DE7C0161657852D334E594E951FAD987664",
+      "size": 973156
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

@@ -6168,12 +6168,18 @@ function Set-DRRescueDriveIcons {
 }
 
 function Get-DRSavedRescueFolder { Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Rescue System' }
+# End users do not have the Rescue system on their PC, so Clone & Backup downloads it (once) when a Rescue USB is made.
+# It is checked against its SHA-256 before it is used; a file that does not match is thrown away.
+$script:DRRescueDownload = @{ Url = 'https://github.com/Phears/drdirect-cleaner-updates/releases/download/rescue-1/DRDirect-Rescue.iso'; Sha256 = 'BD8F3F082A32D6164A805F92EB0504A39AE2EEB19B810BA680E9723D61240463'; Size = [int64]560392192 }
+function Get-DRDownloadedRescueIso { Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Rescue System.iso' }
 function Test-DRRescueTree { param([string]$Root) try { (Test-Path -LiteralPath (Join-Path $Root 'bootmgr')) -and (Test-Path -LiteralPath (Join-Path $Root 'sources\boot.wim')) } catch { $false } }
 function Find-DRRescueSource {
     $home2 = Resolve-DRImagerHome
     if ($home2) { return (Join-Path $home2 'DRDirect Imager Rescue.iso') }
     $saved = Get-DRSavedRescueFolder
     if (Test-DRRescueTree $saved) { return $saved }
+    $dl = Get-DRDownloadedRescueIso
+    if ((Test-Path -LiteralPath $dl -PathType Leaf) -and (Test-Path -LiteralPath ($dl + '.ok') -PathType Leaf)) { return $dl }
     foreach ($v in @(Get-Volume -ErrorAction SilentlyContinue | Where-Object { $_.DriveLetter })) {
         $r = "$($v.DriveLetter):\"
         if (-not (Test-DRRescueTree $r)) { continue }
@@ -6323,6 +6329,42 @@ function Write-RescueUsb {
     } finally {
         if ($mounted) { try { Dismount-DiskImage -ImagePath $IsoPath | Out-Null } catch { } }
     }
+}
+'@
+
+# Runs in the Rescue USB job before the writer: when this PC has no Rescue system, it is downloaded (with the
+# percentage shown), checked against its SHA-256 and kept for next time.
+$script:DRRescueDownloader = @'
+if (-not $IsoPath) {
+    $sync.Step = 'Downloading the Rescue system...'; $sync.N = $sync.N + 1
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+    $part = $DlTo + '.part'
+    $dir = Split-Path -Parent $DlTo
+    $null = New-Item -ItemType Directory -Force -Path $dir
+    $req = [Net.HttpWebRequest]::Create($DlUrl)
+    $req.UserAgent = 'DRDirect PC Cleaner'
+    $req.Timeout = 60000; $req.ReadWriteTimeout = 120000
+    $resp = $req.GetResponse()
+    $total = [int64]$resp.ContentLength
+    $in = $resp.GetResponseStream()
+    $out = [IO.File]::Create($part)
+    try {
+        $buf = New-Object byte[] (1MB)
+        $got = [int64]0; $lastPct = -1
+        while (($n = $in.Read($buf, 0, $buf.Length)) -gt 0) {
+            $out.Write($buf, 0, $n); $got += $n
+            if ($total -gt 0) {
+                $pct = [int](100 * $got / $total)
+                if ($pct -ne $lastPct) { $lastPct = $pct; $sync.Step = ('Downloading the Rescue system... {0}%  ({1:N0} of {2:N0} MB)' -f $pct, ($got / 1MB), ($total / 1MB)) }
+            }
+        }
+    } finally { $out.Close(); $in.Close(); $resp.Close() }
+    $sync.Step = 'Checking the download...'
+    $h = (Get-FileHash -LiteralPath $part -Algorithm SHA256).Hash
+    if ($h -ne $DlSha) { Remove-Item -LiteralPath $part -Force -ErrorAction SilentlyContinue; throw 'The download was not complete or was changed on the way. Nothing was changed on the USB. Please try again.' }
+    Move-Item -LiteralPath $part -Destination $DlTo -Force
+    Set-Content -LiteralPath ($DlTo + '.ok') -Value $h -Encoding ASCII
+    $IsoPath = $DlTo
 }
 '@
 
@@ -7166,7 +7208,7 @@ function Show-DRDriveCopy {
                 $c.HeadA.Text = 'RESCUE SYSTEM'; $c.SubA.Text = '(starts this PC without Windows)'
                 $c.HeadB.Text = 'USB FLASH DRIVE'; $c.SubB.Text = '(becomes the Rescue USB)'
                 $last = Get-DRRescueUsbRecord
-                $c.ALabel.Text = if (-not (Find-DRRescueSource) -and -not $state.Demo) { 'Plug in a DRDirect Rescue USB once: the Cleaner keeps its Rescue system for next time.' }
+                $c.ALabel.Text = if (-not (Find-DRRescueSource) -and -not $state.Demo) { "This PC does not have the Rescue system yet. Clone & Backup downloads it first (about $(Format-ImgSize $script:DRRescueDownload.Size), needs the internet), then erases and formats the USB and makes the Rescue USB." }
                     elseif ($last) { "Your last Rescue USB was made on $($last.When.ToString('d MMMM yyyy')) ($($last.What)).`nLost it or broken? Make a new one here, any time." }
                     else { "You do not have a Rescue USB yet. Make one now and keep it somewhere safe.`nLost it or broken later? Come back here and make a new one." }
                 if ($last) { $c.HeadA.Text = 'NEW RESCUE USB'; $c.Go.Content = [Net.WebUtility]::HtmlDecode('&#x25B6;  Make a new Rescue USB') }
@@ -7272,14 +7314,18 @@ function Show-DRDriveCopy {
                 $u = if ($c.Dst.SelectedIndex -ge 0) { $state.Usb[$c.Dst.SelectedIndex] } else { $null }
                 & $setBig 'A' 'ISO'; & $setBig 'B' $(if ($u -and $u.Letters.Count) { "$($u.Letters[0]):" } elseif ($u) { 'USB' } else { '?' })
                 $state.RescueSrc = Find-DRRescueSource
-                $c.InfoA.Text = if ($state.RescueSrc -match '^[A-Za-z]:\\$') { "DRDirect Rescue system`n(from the Rescue USB $($state.RescueSrc.Substring(0,2)))" } elseif ($state.RescueSrc) { 'DRDirect Rescue system' } else { 'Not found on this PC' }
+                $state.RescueDownload = (-not $state.RescueSrc -and -not $state.Demo)
+                $c.InfoA.Text = if ($state.RescueDownload) { "DRDirect Rescue system`n(downloaded first, about $(Format-ImgSize $script:DRRescueDownload.Size))" } elseif ($state.RescueSrc -match '^[A-Za-z]:\\$') { "DRDirect Rescue system`n(from the Rescue USB $($state.RescueSrc.Substring(0,2)))" } elseif ($state.RescueSrc) { 'DRDirect Rescue system' } else { 'Not found on this PC' }
                 $c.InfoB.Text = if ($u) { "$($u.Name)`n$(Format-ImgSize $u.Size)" } else { 'Plug in a USB flash drive you do not need.' }
-                if (-not $state.RescueSrc -and -not $state.Demo) { & $block 'The Rescue system is not on this PC. Plug in a DRDirect Rescue USB and press Look again: the Cleaner saves its Rescue system and can then make new ones.'; $c.Go.Content = [string][char]0x21BB + '  Look again'; $c.Go.IsEnabled = $true; $state.LookAgain = $true; return }
                 if (-not $state.Usb.Count) { & $tip 'Plug in a USB stick (any size from 1 GB), then press Look again. A new one replaces a lost or broken Rescue USB.'; $c.Go.Content = [string][char]0x21BB + '  Look again'; $c.Go.IsEnabled = $true; $state.LookAgain = $true; return }
                 if (-not $u) { & $tip 'More than one USB flash drive is plugged in. Pick the one to use.'; return }
                 $ul = if ($u.Letters.Count) { "$($u.Letters[0]):" } else { 'the USB' }
                 if ($u.Files -gt 0) { & $tip "The USB holds $($u.Files) file(s), about $(Format-ImgSize $u.UsedBytes). Copy anything you want to keep first." }
-                $c.Go.IsEnabled = (& $agree "rescue|$($u.Number)" "2.  Yes, make the Rescue USB on $ul" "What is on the USB now will be replaced. It starts this PC only.")
+                if ($state.RescueDownload) {
+                    $c.Go.IsEnabled = (& $agree "rescue|$($u.Number)|dl" "2.  Yes, download the Rescue system, erase and format $ul and make the Rescue USB" "Everything on the USB is erased. It starts this PC only.")
+                } else {
+                    $c.Go.IsEnabled = (& $agree "rescue|$($u.Number)" "2.  Yes, make the Rescue USB on $ul" "What is on the USB now will be replaced. It starts this PC only.")
+                }
             }
         }
     }
@@ -7487,17 +7533,19 @@ function Show-DRDriveCopy {
                     $u = $state.Usb[$c.Dst.SelectedIndex]
                     $ul = if ($u.Letters.Count) { "$($u.Letters[0]):" } else { 'the USB' }
                     $state.RescueWhat = "$($u.Name), $(Format-ImgSize $u.Size)"
-                    if (-not (& $ask "Ready to create the Rescue USB on $($ul)?`n`n$($u.Name), $(Format-ImgSize $u.Size)`nWhat is on it now will be replaced.$demoNote`n`nStart now?" 'Rescue USB')) { & $backToForm; return }
+                    $dlNote = if ($state.RescueDownload) { "`nThe Rescue system is downloaded first (about $(Format-ImgSize $script:DRRescueDownload.Size)). Keep the internet on." } else { '' }
+                    if (-not (& $ask "Ready to create the Rescue USB on $($ul)?`n`n$($u.Name), $(Format-ImgSize $u.Size)`nThe USB is erased and formatted. Everything on it now will be deleted.$dlNote$demoNote`n`nStart now?" 'Rescue USB')) { & $backToForm; return }
                     $sync = [hashtable]::Synchronized(@{ Step = 'Starting...'; N = 0; Done = $false; Result = $null })
                     $state.Sync = $sync
                     $job = [pscustomobject]@{ Done = [long]0; Total = [long]5; FileDone = 0; FileTotal = 0; Finished = $false; Ok = $false; Error = $null; Cancel = $false }
                     if (-not $state.Demo) {
                         $rs = [runspacefactory]::CreateRunspace(); $rs.Open()
-                        foreach ($kv in @{ sync = $sync; DRImagerHome = $(if ($state.Home) { $state.Home } else { Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner' }); DiskNumber = $u.Number; IsoPath = $(if ($state.RescueSrc) { $state.RescueSrc } else { Find-DRRescueSource }); ExpectLetter = $(if ($u.Letters.Count) { [string]$u.Letters[0] } else { '' }) }.GetEnumerator()) {
+                        foreach ($kv in @{ sync = $sync; DRImagerHome = $(if ($state.Home) { $state.Home } else { Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner' }); DiskNumber = $u.Number; IsoPath = $(if ($state.RescueSrc) { $state.RescueSrc } else { [string](Find-DRRescueSource) }); DlUrl = $script:DRRescueDownload.Url; DlSha = $script:DRRescueDownload.Sha256; DlTo = (Get-DRDownloadedRescueIso); ExpectLetter = $(if ($u.Letters.Count) { [string]$u.Letters[0] } else { '' }) }.GetEnumerator()) {
                             $rs.SessionStateProxy.SetVariable($kv.Key, $kv.Value)
                         }
                         $ps = [powershell]::Create(); $ps.Runspace = $rs
                         $body = "try {`n" + (Get-DRImagerEngineText) + "`n" + $script:DRRescueUsbWriter.Replace('$PSScriptRoot', '$DRImagerHome') + "`n" +
+                            $script:DRRescueDownloader + "`n" +
                             '$sync.Result = Write-RescueUsb -DiskNumber $DiskNumber -IsoPath $IsoPath -ExpectLetter $ExpectLetter -Say { param($t) $sync.Step = $t; $sync.N = $sync.N + 1 }' +
                             "`n} catch { `$sync.Result = @{ Ok = `$false; Message = ""It did not finish: `$(`$_.Exception.Message)"" } } finally { `$sync.Done = `$true }"
                         [void]$ps.AddScript($body)
