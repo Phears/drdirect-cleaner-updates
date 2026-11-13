@@ -1,7 +1,7 @@
 {
-  "version": "1.4.474",
-  "notes": "Clone & Backup: the Rescue USB now has the Speed list for Secure (MAX by default) and shows the exact time each job took. Restore reports the real data speed.",
-  "published": "2026-11-12T14:59:17.7186083-05:00",
+  "version": "1.4.475",
+  "notes": "Rescue USB now shows a warning first: making a Rescue USB erases the USB stick. You choose to continue or not.",
+  "published": "2026-11-13T17:02:10.8356239-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "D1AE3F1A0090CB69659D07C0015C2BDA8189A15EC3B42F5F6D203CE8724F6DD3",
-      "size": 962411
+      "sha256": "1ED919244ED79D188FD6B31EB2B642B741493CA2F5A0A7442D533D90C991152D",
+      "size": 963304
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

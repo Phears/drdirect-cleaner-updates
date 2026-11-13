@@ -7361,7 +7361,18 @@ function Show-DRDriveCopy {
         }
         $tile.Add_MouseEnter({ param($s, $e) $sc = $c["$($s.Name)Scale"]; & $anim $sc $sxP $sc.ScaleX 1.1 0.18; & $anim $sc $syP $sc.ScaleY 1.1 0.18 })
         $tile.Add_MouseLeave({ param($s, $e) $sc = $c["$($s.Name)Scale"]; & $anim $sc $sxP $sc.ScaleX 1 0.25; & $anim $sc $syP $sc.ScaleY 1 0.25 })
-        $tile.Add_Click({ param($s, $e) try { & $showJob ([string]$s.Name.Substring(4)) } catch { [Windows.MessageBox]::Show($w, "Clone & Backup could not open that screen:`n$($_.Exception.Message)`n$($_.InvocationInfo.PositionMessage)", 'DRDirect Clone & Backup', 'OK', 'Error') | Out-Null } })
+        $tile.Add_Click({ param($s, $e) try {
+            # Rescue USB: a warning first, so the end user decides to go on or not
+            if ($s.Name -eq 'Tilerescue') {
+                $warn = "WARNING - Rescue USB`n`n" +
+                    "Making a Rescue USB ERASES the USB stick you pick. Everything on it now (files, photos, documents) will be deleted and cannot be brought back.`n`n" +
+                    "-  Use an empty USB stick, or copy anything you want to keep off it first.`n" +
+                    "-  Do not unplug the USB stick or turn off the PC while it is being made.`n" +
+                    "-  Only USB sticks are offered. Your Windows drive and other drives inside the PC are never touched.`n`n" +
+                    "Do you want to continue?"
+                if ([Windows.MessageBox]::Show($w, $warn, 'DRDirect Rescue USB - Warning', 'YesNo', 'Warning', 'No') -ne 'Yes') { return }
+            }
+            & $showJob ([string]$s.Name.Substring(4)) } catch { [Windows.MessageBox]::Show($w, "Clone & Backup could not open that screen:`n$($_.Exception.Message)`n$($_.InvocationInfo.PositionMessage)", 'DRDirect Clone & Backup', 'OK', 'Error') | Out-Null } })
         $k++
     }
     # 3D look off: flatten the whole window - drop shadows and glows off, the thick 3D bases under buttons and tiles,
