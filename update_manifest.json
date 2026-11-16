@@ -1,7 +1,7 @@
 {
-  "version": "1.4.479",
-  "notes": "System File Checker no longer gets stuck. It waits for other Windows repairs to finish first, shows its real progress, stops if Windows makes no progress for a long time, and explains the result in plain words.",
-  "published": "2026-11-15T20:22:13.7507438-05:00",
+  "version": "1.4.480",
+  "notes": "System File Checker no longer gets stuck: it waits for other Windows repairs, shows its real progress and explains the result. Also brings back the Rescue USB warning and download from 1.4.475-1.4.478.",
+  "published": "2026-11-15T20:25:48.0801895-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "BF00F0D54AB3163D848583B953BA97AC4FF72DBB237415A008F640BA454A28A3",
-      "size": 962873
+      "sha256": "86F5025B427498C49F9D66D8B964BFE167BA92E8B850F031CF8CA3D5948D6E08",
+      "size": 973618
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
