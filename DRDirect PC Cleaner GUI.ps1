@@ -4122,6 +4122,16 @@ function Update-DRElapsedDisplay {
     $elapsed = Format-DRElapsed -Span ((Get-Date) - $script:activeTaskStartedAt)
     $base = $script:activeTaskMessage
     if ([string]::IsNullOrWhiteSpace($base)) { $base = 'Working…' }
+    # System File Checker writes its real progress to a small file while it runs.
+    if ($script:activeTaskId -eq 'repair.sfc' -and $env:DRDIRECT_CHILD_PID_FILE) {
+        try {
+            $sfcLive = $env:DRDIRECT_CHILD_PID_FILE + '.sfc'
+            if ([System.IO.File]::Exists($sfcLive)) {
+                $liveText = [System.IO.File]::ReadAllText($sfcLive).Trim()
+                if ($liveText) { $base = $liveText }
+            }
+        } catch { }
+    }
     $row.Child.Children[1].Children[1].Text = ('{0}  ·  running {1}' -f $base, $elapsed)
 }
 
@@ -6168,18 +6178,12 @@ function Set-DRRescueDriveIcons {
 }
 
 function Get-DRSavedRescueFolder { Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Rescue System' }
-# End users do not have the Rescue system on their PC, so Clone & Backup downloads it (once) when a Rescue USB is made.
-# It is checked against its SHA-256 before it is used; a file that does not match is thrown away.
-$script:DRRescueDownload = @{ Url = 'https://github.com/Phears/drdirect-cleaner-updates/releases/download/rescue-1/DRDirect-Rescue.iso'; Sha256 = 'BD8F3F082A32D6164A805F92EB0504A39AE2EEB19B810BA680E9723D61240463'; Size = [int64]560392192 }
-function Get-DRDownloadedRescueIso { Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Rescue System.iso' }
 function Test-DRRescueTree { param([string]$Root) try { (Test-Path -LiteralPath (Join-Path $Root 'bootmgr')) -and (Test-Path -LiteralPath (Join-Path $Root 'sources\boot.wim')) } catch { $false } }
 function Find-DRRescueSource {
     $home2 = Resolve-DRImagerHome
     if ($home2) { return (Join-Path $home2 'DRDirect Imager Rescue.iso') }
     $saved = Get-DRSavedRescueFolder
     if (Test-DRRescueTree $saved) { return $saved }
-    $dl = Get-DRDownloadedRescueIso
-    if ((Test-Path -LiteralPath $dl -PathType Leaf) -and (Test-Path -LiteralPath ($dl + '.ok') -PathType Leaf)) { return $dl }
     foreach ($v in @(Get-Volume -ErrorAction SilentlyContinue | Where-Object { $_.DriveLetter })) {
         $r = "$($v.DriveLetter):\"
         if (-not (Test-DRRescueTree $r)) { continue }
@@ -6329,42 +6333,6 @@ function Write-RescueUsb {
     } finally {
         if ($mounted) { try { Dismount-DiskImage -ImagePath $IsoPath | Out-Null } catch { } }
     }
-}
-'@
-
-# Runs in the Rescue USB job before the writer: when this PC has no Rescue system, it is downloaded (with the
-# percentage shown), checked against its SHA-256 and kept for next time.
-$script:DRRescueDownloader = @'
-if (-not $IsoPath) {
-    $sync.Step = 'Downloading the Rescue system...'; $sync.N = $sync.N + 1
-    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
-    $part = $DlTo + '.part'
-    $dir = Split-Path -Parent $DlTo
-    $null = New-Item -ItemType Directory -Force -Path $dir
-    $req = [Net.HttpWebRequest]::Create($DlUrl)
-    $req.UserAgent = 'DRDirect PC Cleaner'
-    $req.Timeout = 60000; $req.ReadWriteTimeout = 120000
-    $resp = $req.GetResponse()
-    $total = [int64]$resp.ContentLength
-    $in = $resp.GetResponseStream()
-    $out = [IO.File]::Create($part)
-    try {
-        $buf = New-Object byte[] (1MB)
-        $got = [int64]0; $lastPct = -1
-        while (($n = $in.Read($buf, 0, $buf.Length)) -gt 0) {
-            $out.Write($buf, 0, $n); $got += $n
-            if ($total -gt 0) {
-                $pct = [int](100 * $got / $total)
-                if ($pct -ne $lastPct) { $lastPct = $pct; $sync.Step = ('Downloading the Rescue system... {0}%  ({1:N0} of {2:N0} MB)' -f $pct, ($got / 1MB), ($total / 1MB)) }
-            }
-        }
-    } finally { $out.Close(); $in.Close(); $resp.Close() }
-    $sync.Step = 'Checking the download...'
-    $h = (Get-FileHash -LiteralPath $part -Algorithm SHA256).Hash
-    if ($h -ne $DlSha) { Remove-Item -LiteralPath $part -Force -ErrorAction SilentlyContinue; throw 'The download was not complete or was changed on the way. Nothing was changed on the USB. Please try again.' }
-    Move-Item -LiteralPath $part -Destination $DlTo -Force
-    Set-Content -LiteralPath ($DlTo + '.ok') -Value $h -Encoding ASCII
-    $IsoPath = $DlTo
 }
 '@
 
@@ -7208,7 +7176,7 @@ function Show-DRDriveCopy {
                 $c.HeadA.Text = 'RESCUE SYSTEM'; $c.SubA.Text = '(starts this PC without Windows)'
                 $c.HeadB.Text = 'USB FLASH DRIVE'; $c.SubB.Text = '(becomes the Rescue USB)'
                 $last = Get-DRRescueUsbRecord
-                $c.ALabel.Text = if (-not (Find-DRRescueSource) -and -not $state.Demo) { "This PC does not have the Rescue system yet. Clone & Backup downloads it first (about $(Format-ImgSize $script:DRRescueDownload.Size), needs the internet), then erases and formats the USB and makes the Rescue USB." }
+                $c.ALabel.Text = if (-not (Find-DRRescueSource) -and -not $state.Demo) { 'Plug in a DRDirect Rescue USB once: the Cleaner keeps its Rescue system for next time.' }
                     elseif ($last) { "Your last Rescue USB was made on $($last.When.ToString('d MMMM yyyy')) ($($last.What)).`nLost it or broken? Make a new one here, any time." }
                     else { "You do not have a Rescue USB yet. Make one now and keep it somewhere safe.`nLost it or broken later? Come back here and make a new one." }
                 if ($last) { $c.HeadA.Text = 'NEW RESCUE USB'; $c.Go.Content = [Net.WebUtility]::HtmlDecode('&#x25B6;  Make a new Rescue USB') }
@@ -7314,18 +7282,14 @@ function Show-DRDriveCopy {
                 $u = if ($c.Dst.SelectedIndex -ge 0) { $state.Usb[$c.Dst.SelectedIndex] } else { $null }
                 & $setBig 'A' 'ISO'; & $setBig 'B' $(if ($u -and $u.Letters.Count) { "$($u.Letters[0]):" } elseif ($u) { 'USB' } else { '?' })
                 $state.RescueSrc = Find-DRRescueSource
-                $state.RescueDownload = (-not $state.RescueSrc -and -not $state.Demo)
-                $c.InfoA.Text = if ($state.RescueDownload) { "DRDirect Rescue system`n(downloaded first, about $(Format-ImgSize $script:DRRescueDownload.Size))" } elseif ($state.RescueSrc -match '^[A-Za-z]:\\$') { "DRDirect Rescue system`n(from the Rescue USB $($state.RescueSrc.Substring(0,2)))" } elseif ($state.RescueSrc) { 'DRDirect Rescue system' } else { 'Not found on this PC' }
+                $c.InfoA.Text = if ($state.RescueSrc -match '^[A-Za-z]:\\$') { "DRDirect Rescue system`n(from the Rescue USB $($state.RescueSrc.Substring(0,2)))" } elseif ($state.RescueSrc) { 'DRDirect Rescue system' } else { 'Not found on this PC' }
                 $c.InfoB.Text = if ($u) { "$($u.Name)`n$(Format-ImgSize $u.Size)" } else { 'Plug in a USB flash drive you do not need.' }
+                if (-not $state.RescueSrc -and -not $state.Demo) { & $block 'The Rescue system is not on this PC. Plug in a DRDirect Rescue USB and press Look again: the Cleaner saves its Rescue system and can then make new ones.'; $c.Go.Content = [string][char]0x21BB + '  Look again'; $c.Go.IsEnabled = $true; $state.LookAgain = $true; return }
                 if (-not $state.Usb.Count) { & $tip 'Plug in a USB stick (any size from 1 GB), then press Look again. A new one replaces a lost or broken Rescue USB.'; $c.Go.Content = [string][char]0x21BB + '  Look again'; $c.Go.IsEnabled = $true; $state.LookAgain = $true; return }
                 if (-not $u) { & $tip 'More than one USB flash drive is plugged in. Pick the one to use.'; return }
                 $ul = if ($u.Letters.Count) { "$($u.Letters[0]):" } else { 'the USB' }
                 if ($u.Files -gt 0) { & $tip "The USB holds $($u.Files) file(s), about $(Format-ImgSize $u.UsedBytes). Copy anything you want to keep first." }
-                if ($state.RescueDownload) {
-                    $c.Go.IsEnabled = (& $agree "rescue|$($u.Number)|dl" "2.  Yes, download the Rescue system, erase and format $ul and make the Rescue USB" "Everything on the USB is erased. It starts this PC only.")
-                } else {
-                    $c.Go.IsEnabled = (& $agree "rescue|$($u.Number)" "2.  Yes, make the Rescue USB on $ul" "What is on the USB now will be replaced. It starts this PC only.")
-                }
+                $c.Go.IsEnabled = (& $agree "rescue|$($u.Number)" "2.  Yes, make the Rescue USB on $ul" "What is on the USB now will be replaced. It starts this PC only.")
             }
         }
     }
@@ -7407,18 +7371,7 @@ function Show-DRDriveCopy {
         }
         $tile.Add_MouseEnter({ param($s, $e) $sc = $c["$($s.Name)Scale"]; & $anim $sc $sxP $sc.ScaleX 1.1 0.18; & $anim $sc $syP $sc.ScaleY 1.1 0.18 })
         $tile.Add_MouseLeave({ param($s, $e) $sc = $c["$($s.Name)Scale"]; & $anim $sc $sxP $sc.ScaleX 1 0.25; & $anim $sc $syP $sc.ScaleY 1 0.25 })
-        $tile.Add_Click({ param($s, $e) try {
-            # Rescue USB: a warning first, so the end user decides to go on or not
-            if ($s.Name -eq 'Tilerescue') {
-                $warn = "WARNING - Rescue USB`n`n" +
-                    "Making a Rescue USB ERASES the USB stick you pick. Everything on it now (files, photos, documents) will be deleted and cannot be brought back.`n`n" +
-                    "-  Use an empty USB stick, or copy anything you want to keep off it first.`n" +
-                    "-  Do not unplug the USB stick or turn off the PC while it is being made.`n" +
-                    "-  Only USB sticks are offered. Your Windows drive and other drives inside the PC are never touched.`n`n" +
-                    "Do you want to continue?"
-                if ([Windows.MessageBox]::Show($w, $warn, 'DRDirect Rescue USB - Warning', 'YesNo', 'Warning', 'No') -ne 'Yes') { return }
-            }
-            & $showJob ([string]$s.Name.Substring(4)) } catch { [Windows.MessageBox]::Show($w, "Clone & Backup could not open that screen:`n$($_.Exception.Message)`n$($_.InvocationInfo.PositionMessage)", 'DRDirect Clone & Backup', 'OK', 'Error') | Out-Null } })
+        $tile.Add_Click({ param($s, $e) try { & $showJob ([string]$s.Name.Substring(4)) } catch { [Windows.MessageBox]::Show($w, "Clone & Backup could not open that screen:`n$($_.Exception.Message)`n$($_.InvocationInfo.PositionMessage)", 'DRDirect Clone & Backup', 'OK', 'Error') | Out-Null } })
         $k++
     }
     # 3D look off: flatten the whole window - drop shadows and glows off, the thick 3D bases under buttons and tiles,
@@ -7533,19 +7486,17 @@ function Show-DRDriveCopy {
                     $u = $state.Usb[$c.Dst.SelectedIndex]
                     $ul = if ($u.Letters.Count) { "$($u.Letters[0]):" } else { 'the USB' }
                     $state.RescueWhat = "$($u.Name), $(Format-ImgSize $u.Size)"
-                    $dlNote = if ($state.RescueDownload) { "`nThe Rescue system is downloaded first (about $(Format-ImgSize $script:DRRescueDownload.Size)). Keep the internet on." } else { '' }
-                    if (-not (& $ask "Ready to create the Rescue USB on $($ul)?`n`n$($u.Name), $(Format-ImgSize $u.Size)`nThe USB is erased and formatted. Everything on it now will be deleted.$dlNote$demoNote`n`nStart now?" 'Rescue USB')) { & $backToForm; return }
+                    if (-not (& $ask "Ready to create the Rescue USB on $($ul)?`n`n$($u.Name), $(Format-ImgSize $u.Size)`nWhat is on it now will be replaced.$demoNote`n`nStart now?" 'Rescue USB')) { & $backToForm; return }
                     $sync = [hashtable]::Synchronized(@{ Step = 'Starting...'; N = 0; Done = $false; Result = $null })
                     $state.Sync = $sync
                     $job = [pscustomobject]@{ Done = [long]0; Total = [long]5; FileDone = 0; FileTotal = 0; Finished = $false; Ok = $false; Error = $null; Cancel = $false }
                     if (-not $state.Demo) {
                         $rs = [runspacefactory]::CreateRunspace(); $rs.Open()
-                        foreach ($kv in @{ sync = $sync; DRImagerHome = $(if ($state.Home) { $state.Home } else { Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner' }); DiskNumber = $u.Number; IsoPath = $(if ($state.RescueSrc) { $state.RescueSrc } else { [string](Find-DRRescueSource) }); DlUrl = $script:DRRescueDownload.Url; DlSha = $script:DRRescueDownload.Sha256; DlTo = (Get-DRDownloadedRescueIso); ExpectLetter = $(if ($u.Letters.Count) { [string]$u.Letters[0] } else { '' }) }.GetEnumerator()) {
+                        foreach ($kv in @{ sync = $sync; DRImagerHome = $(if ($state.Home) { $state.Home } else { Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner' }); DiskNumber = $u.Number; IsoPath = $(if ($state.RescueSrc) { $state.RescueSrc } else { Find-DRRescueSource }); ExpectLetter = $(if ($u.Letters.Count) { [string]$u.Letters[0] } else { '' }) }.GetEnumerator()) {
                             $rs.SessionStateProxy.SetVariable($kv.Key, $kv.Value)
                         }
                         $ps = [powershell]::Create(); $ps.Runspace = $rs
                         $body = "try {`n" + (Get-DRImagerEngineText) + "`n" + $script:DRRescueUsbWriter.Replace('$PSScriptRoot', '$DRImagerHome') + "`n" +
-                            $script:DRRescueDownloader + "`n" +
                             '$sync.Result = Write-RescueUsb -DiskNumber $DiskNumber -IsoPath $IsoPath -ExpectLetter $ExpectLetter -Say { param($t) $sync.Step = $t; $sync.N = $sync.N + 1 }' +
                             "`n} catch { `$sync.Result = @{ Ok = `$false; Message = ""It did not finish: `$(`$_.Exception.Message)"" } } finally { `$sync.Done = `$true }"
                         [void]$ps.AddScript($body)
@@ -10015,121 +9966,14 @@ function Install-DRTrayHelper {
     $text = $script:DRTrayScriptText.Replace("`r`n", "`n").Replace("`n", "`r`n")
     $current = if (Test-Path -LiteralPath $scriptPath -PathType Leaf) { [IO.File]::ReadAllText($scriptPath).TrimStart([char]0xFEFF) } else { $null }
     if ($current -ne $text) { [IO.File]::WriteAllText($scriptPath, $text, [Text.UTF8Encoding]::new($true)) }
-    # Windows Startup apps (Settings and Task Manager) name an entry after the program it starts. Started through
-    # powershell.exe it showed as "Windows PowerShell 5.1, Microsoft Corporation", so the Cleaner did not seem to be in
-    # the startup at all. A tiny starter with the DRDirect name, publisher and logo starts the icon instead.
-    $starter = $null
-    try { $starter = Get-DRTrayStarter -Root $root } catch { }
     $shortcutPath = Join-Path ([Environment]::GetFolderPath('Startup')) 'DRDirect Tray.lnk'
     $shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut($shortcutPath)
-    if ($starter) {
-        $shortcut.TargetPath = $starter
-        $shortcut.Arguments = ''
-        $shortcut.WorkingDirectory = $root
-        $shortcut.IconLocation = "$starter,0"
-    } else {
-        $shortcut.TargetPath = 'powershell.exe'
-        $shortcut.Arguments = '-NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File "' + $scriptPath + '"'
-    }
+    $shortcut.TargetPath = 'powershell.exe'
+    $shortcut.Arguments = '-NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File "' + $scriptPath + '"'
     $shortcut.WindowStyle = 7
     $shortcut.Description = 'DRDirect PC Cleaner update icon'
     $shortcut.Save()
-    # Before, this entry showed in Startup apps as "Windows PowerShell", so on many PCs it was switched off without
-    # anyone knowing it was the Cleaner. It is switched back on once, now that it shows as DRDirect PC Cleaner.
-    # After that, if the end user switches it off in Task Manager or Settings, that choice is kept.
-    $onceFile = Join-Path $root 'tray_on_once.txt'
-    if (-not (Test-Path -LiteralPath $onceFile -PathType Leaf)) {
-        try {
-            $approvedKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\StartupFolder'
-            if (Test-Path -LiteralPath $approvedKey) {
-                $flag = (Get-Item -LiteralPath $approvedKey).GetValue('DRDirect Tray.lnk')
-                if ($flag -is [byte[]] -and $flag.Length -gt 0 -and (($flag[0] -band 1) -eq 1)) {
-                    Set-ItemProperty -LiteralPath $approvedKey -Name 'DRDirect Tray.lnk' -Type Binary -Value ([byte[]](2,0,0,0,0,0,0,0,0,0,0,0))
-                }
-            }
-            Set-Content -LiteralPath $onceFile -Value 'on' -Encoding ASCII
-        } catch { }
-    }
-    if ($starter) { Start-Process -FilePath $starter -WorkingDirectory $root }
-    else { Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-WindowStyle', 'Hidden', '-File', ('"' + $scriptPath + '"')) }
-}
-# Builds "DRDirect PC Cleaner Tray.exe" in the Cleaner's own folder under LOCALAPPDATA with the .NET compiler that comes with
-# every Windows 10 and 11. It only starts "DRDirect Tray.ps1" beside it, hidden. Built once; built again only when
-# the text below changes. Returns its path, or $null if it could not be built (then PowerShell starts the icon as before).
-$script:DRTrayStarterVersion = '2'
-$script:DRTrayStarterSource = @'
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-[assembly: AssemblyTitle("DRDirect PC Cleaner")]
-[assembly: AssemblyDescription("DRDirect PC Cleaner")]
-[assembly: AssemblyCompany("DRDirect")]
-[assembly: AssemblyProduct("DRDirect PC Cleaner")]
-[assembly: AssemblyCopyright("Copyright (c) 2026 DRDirect")]
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
-static class DRDirectTrayStarter {
-    [STAThread]
-    static void Main() {
-        string dir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        string script = Path.Combine(dir, "DRDirect Tray.ps1");
-        if (!File.Exists(script)) return;
-        string ps = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System), @"WindowsPowerShell\v1.0\powershell.exe");
-        ProcessStartInfo si = new ProcessStartInfo(ps, "-NoProfile -ExecutionPolicy Bypass -STA -WindowStyle Hidden -File \"" + script + "\"");
-        si.UseShellExecute = false;
-        si.CreateNoWindow = true;
-        si.WindowStyle = ProcessWindowStyle.Hidden;
-        si.WorkingDirectory = dir;
-        Process.Start(si);
-    }
-}
-'@
-function Get-DRTrayStarter {
-    param([string]$Root)
-    $exePath = Join-Path $Root 'DRDirect PC Cleaner Tray.exe'
-    $tagPath = Join-Path $Root 'tray_starter.txt'
-    $tag = if (Test-Path -LiteralPath $tagPath -PathType Leaf) { (Get-Content -LiteralPath $tagPath -Raw).Trim() } else { '' }
-    if ((Test-Path -LiteralPath $exePath -PathType Leaf) -and $tag -eq $script:DRTrayStarterVersion) { return $exePath }
-    $csc = @((Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'), (Join-Path $env:WINDIR 'Microsoft.NET\Framework\v4.0.30319\csc.exe')) |
-        Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
-    if (-not $csc) { return $null }
-    # The DRDirect logo: the Cleaner's own .ico if it is beside this script or in the updated scripts.
-    $here = if ($PSScriptRoot) { $PSScriptRoot } else { $Root }
-    $ico = @((Join-Path $here 'DRDirectCleaner.ico'), (Join-Path $Root 'Scripts\DRDirectCleaner.ico'), (Join-Path $env:ProgramFiles 'DRDirect PC Cleaner\DRDirectCleaner.ico')) |
-        Where-Object { $_ -and (Test-Path -LiteralPath $_ -PathType Leaf) } | Select-Object -First 1
-    $work = Join-Path $env:TEMP ('DRDirectTrayStarter_' + [guid]::NewGuid().ToString('N'))
-    New-Item -ItemType Directory -Path $work -Force | Out-Null
-    try {
-        if (-not $ico) {
-            # No .ico file on this PC: take the DRDirect logo from the installed Cleaner itself.
-            $cleanerExe = Join-Path $env:ProgramFiles 'DRDirect PC Cleaner\DRDirect PC Cleaner.exe'
-            if (Test-Path -LiteralPath $cleanerExe -PathType Leaf) {
-                try {
-                    Add-Type -AssemblyName System.Drawing
-                    $icon = [System.Drawing.Icon]::ExtractAssociatedIcon($cleanerExe)
-                    if ($icon) {
-                        $ico = Join-Path $work 'logo.ico'
-                        $fs = [IO.File]::Create($ico)
-                        try { $icon.Save($fs) } finally { $fs.Close(); $icon.Dispose() }
-                    }
-                } catch { $ico = $null }
-            }
-        }
-        $src = Join-Path $work 'starter.cs'
-        $out = Join-Path $work 'DRDirect PC Cleaner Tray.exe'
-        [IO.File]::WriteAllText($src, $script:DRTrayStarterSource, [Text.UTF8Encoding]::new($false))
-        $cscArgs = @('/nologo', '/target:winexe', '/optimize+', ('/out:"' + $out + '"'))
-        if ($ico) { $cscArgs += ('/win32icon:"' + $ico + '"') }
-        $cscArgs += ('"' + $src + '"')
-        $p = Start-Process -FilePath $csc -ArgumentList $cscArgs -WindowStyle Hidden -Wait -PassThru
-        if ($p.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $out -PathType Leaf)) { return $null }
-        # The starter only starts PowerShell and closes at once, so it is never in use when replaced.
-        Copy-Item -LiteralPath $out -Destination $exePath -Force
-        Set-Content -LiteralPath $tagPath -Value $script:DRTrayStarterVersion -Encoding ASCII
-        return $exePath
-    } catch { return $null }
-    finally { Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue }
+    Start-Process -FilePath 'powershell.exe' -WindowStyle Hidden -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-WindowStyle', 'Hidden', '-File', ('"' + $scriptPath + '"'))
 }
 function Invoke-DRTrayOffer {
     # Every PC gets the small icon in its Windows Startup list, without a question. The one way to stop it is the icon's own

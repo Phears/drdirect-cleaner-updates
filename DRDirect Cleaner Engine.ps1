@@ -1029,6 +1029,169 @@ function Invoke-DRExternalCommand {
     return $result.ExitCode
 }
 
+# System File Checker. sfc.exe on its own could sit for ever: it waits silently behind any other Windows repair
+# (DISM, Windows Update) that holds the servicing engine, and the old run gave no sign of life the whole time.
+# This version runs the real 64-bit sfc, waits for other repairs first, shows sfc's own percentage while it
+# works, stops waiting if sfc goes silent for a long time, and explains the result in plain words.
+function Get-DRSystemSfcPath {
+    # A 32-bit host would get the 32-bit sfc from SysWOW64, which cannot start the repair service.
+    $sysnative = Join-Path $env:SystemRoot 'Sysnative\sfc.exe'
+    if (-not [Environment]::Is64BitProcess -and (Test-Path -LiteralPath $sysnative)) { return $sysnative }
+    $system32 = Join-Path $env:SystemRoot 'System32\sfc.exe'
+    if (Test-Path -LiteralPath $system32) { return $system32 }
+    return 'sfc.exe'
+}
+
+function Set-DRSfcLiveText {
+    # The interface reads this small file while SFC runs, so the row shows sfc's real progress.
+    param([string]$Text)
+    $file = $env:DRDIRECT_CHILD_PID_FILE
+    if ([string]::IsNullOrWhiteSpace($file)) { return }
+    $file = $file + '.sfc'
+    try {
+        if ($Text) { [System.IO.File]::WriteAllText($file, $Text) }
+        elseif (Test-Path -LiteralPath $file) { [System.IO.File]::Delete($file) }
+    } catch { }
+}
+
+function Invoke-DRSfc {
+    param([string]$TaskId, [string]$TestRoot, [int]$WaitForOthersMinutes = 20, [int]$SilentLimitMinutes = 45)
+    if ($TestRoot) {
+        New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: System File Checker was not run.'
+        return
+    }
+
+    # 1) Another Windows repair already running holds the servicing engine and sfc would just sit behind it.
+    $waitStart = Get-Date
+    $toldWaiting = $false
+    while ($true) {
+        $others = @(Get-Process -Name 'sfc', 'DISM', 'DismHost' -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $PID })
+        if ($others.Count -eq 0) { break }
+        if (-not $toldWaiting) {
+            Set-DRSfcLiveText 'Waiting for another Windows repair to finish first…'
+            $toldWaiting = $true
+        }
+        if (((Get-Date) - $waitStart).TotalMinutes -ge $WaitForOthersMinutes) {
+            Set-DRSfcLiveText $null
+            New-DREvent -TaskId $TaskId -State Warning -Message ('Another Windows repair ({0}) was still running after {1} minutes, so System File Checker was not started. Restart the PC and run it again.' -f (($others | ForEach-Object ProcessName | Select-Object -Unique) -join ', '), $WaitForOthersMinutes)
+            return
+        }
+        Start-Sleep -Seconds 5
+    }
+
+    # 2) sfc needs the Windows Modules Installer service. Starting it changes no setting.
+    try {
+        $ti = Get-Service -Name 'TrustedInstaller' -ErrorAction Stop
+        if ($ti.Status -ne 'Running' -and $ti.StartType -ne 'Disabled') { Start-Service -Name 'TrustedInstaller' -ErrorAction Stop }
+    } catch { }
+
+    # 3) Run sfc and read what it prints as it prints it.
+    Set-DRSfcLiveText 'Starting the system file check…'
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = Get-DRSystemSfcPath
+    $psi.Arguments = '/scannow'
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $psi
+
+    $all = New-Object System.Text.StringBuilder
+    $exitCode = $null
+    $stoppedSilent = $false
+    $lastPercent = -1
+    try {
+        [void]$process.Start()
+        Set-DRActiveChildProcess -ProcessId $process.Id
+        $errTask = $process.StandardError.ReadToEndAsync()
+        $reader = $process.StandardOutput
+        $buffer = New-Object char[] 4096
+        $lastNews = Get-Date
+        $lastCpu = 0.0
+        $lastCpuCheck = Get-Date
+        $readTask = $reader.ReadAsync($buffer, 0, $buffer.Length)
+        while ($true) {
+            if ($readTask.Wait(2000)) {
+                $count = $readTask.Result
+                if ($count -le 0) { break }   # sfc closed its output: it has finished
+                # sfc writes UTF-16, which arrives here padded with null characters.
+                $chunk = ([string]::new($buffer, 0, $count)) -replace "`0", ''
+                [void]$all.Append($chunk)
+                if ($chunk.Trim()) { $lastNews = Get-Date }
+                # Its progress line is redrawn with carriage returns: "Verification 47% complete."
+                $found = [regex]::Matches($chunk, '(\d{1,3})\s*%')
+                if ($found.Count -gt 0) {
+                    $pct = [int]$found[$found.Count - 1].Groups[1].Value
+                    if ($pct -ne $lastPercent -and $pct -le 100) {
+                        $lastPercent = $pct
+                        $lastNews = Get-Date
+                        Set-DRSfcLiveText ('Checking Windows system files: {0}% done' -f $pct)
+                    }
+                } elseif ($chunk -match 'Beginning verification|Beginning system scan') {
+                    Set-DRSfcLiveText 'Checking Windows system files…'
+                }
+                $readTask = $reader.ReadAsync($buffer, 0, $buffer.Length)
+            }
+            elseif (((Get-Date) - $lastCpuCheck).TotalSeconds -ge 30 -and -not $process.HasExited) {
+                # sfc can print nothing for a long time while Windows' servicing engine does the work, so that
+                # engine (and sfc itself) still using the processor counts as working, not stuck.
+                $lastCpuCheck = Get-Date
+                $cpuNow = 0.0
+                foreach ($p in @(@(Get-Process -Name 'TiWorker', 'TrustedInstaller' -ErrorAction SilentlyContinue) + @($process))) {
+                    try { $p.Refresh(); $cpuNow += $p.TotalProcessorTime.TotalSeconds } catch { }
+                }
+                if ($cpuNow -gt ($lastCpu + 1)) { $lastNews = Get-Date }
+                $lastCpu = $cpuNow
+            }
+            elseif (((Get-Date) - $lastNews).TotalMinutes -ge $SilentLimitMinutes) {
+                # Nothing at all from sfc for this long: it is stuck behind Windows, not working.
+                $stoppedSilent = $true
+                try { $process.Kill() } catch { }
+                break
+            }
+        }
+        if (-not $process.WaitForExit(30000)) { try { $process.Kill() } catch { } }
+        else { $exitCode = $process.ExitCode }
+        try { if ($errTask.Wait(5000)) { [void]$all.Append("`r`n" + $errTask.Result) } } catch { }
+    } finally {
+        Set-DRActiveChildProcess -ProcessId 0
+        Set-DRSfcLiveText $null
+        $process.Dispose()
+    }
+
+    $text = ($all.ToString() -replace "`0", '')
+    $report = Format-DROutputForLog -Text $text
+    if ($report) { New-DREvent -TaskId $TaskId -State Information -Message ("sfc.exe reported:`r`n{0}" -f $report) }
+
+    if ($stoppedSilent) {
+        $where = if ($lastPercent -ge 0) { " at $lastPercent%" } else { '' }
+        New-DREvent -TaskId $TaskId -State Warning -Message ("System File Checker made no progress{0} for {1} minutes, so the Cleaner stopped waiting for it. Windows was most likely busy installing an update. Restart the PC and run it again." -f $where, $SilentLimitMinutes)
+        return
+    }
+
+    $flat = ($text -replace '\s+', ' ')
+    if ($flat -match 'did not find any integrity violations') {
+        New-DREvent -TaskId $TaskId -State Information -Message 'All Windows system files are fine. Nothing needed repairing.'
+    } elseif ($flat -match 'found corrupt files and successfully repaired') {
+        New-DREvent -TaskId $TaskId -State Information -Message 'Some damaged Windows system files were found and repaired. Restart the PC to finish.'
+    } elseif ($flat -match 'unable to fix some') {
+        New-DREvent -TaskId $TaskId -State Warning -Message 'Some damaged Windows system files could not be repaired. Run "DISM RestoreHealth", restart, then run System File Checker again.'
+    } elseif ($flat -match 'repair pending|requires reboot') {
+        New-DREvent -TaskId $TaskId -State Warning -Message 'Windows has a repair waiting for a restart, so System File Checker cannot run yet. Restart the PC and run it again.'
+    } elseif ($flat -match 'could not start the repair service') {
+        throw 'System File Checker could not start the Windows Modules Installer service. Restart the PC and run it again.'
+    } elseif ($flat -match 'could not perform the requested operation') {
+        throw 'Windows could not run System File Checker right now. Restart the PC and run it again.'
+    } elseif ($null -eq $exitCode) {
+        throw 'System File Checker did not report a result. It was most likely stopped before it finished.'
+    } elseif ($exitCode -ne 0) {
+        throw "System File Checker finished with exit code $exitCode."
+    } else {
+        New-DREvent -TaskId $TaskId -State Information -Message 'System File Checker finished.'
+    }
+}
+
 function Invoke-DRChkdsk {
     param([string]$TaskId, [string]$TestRoot)
     if ($TestRoot) {
@@ -4974,7 +5137,7 @@ function Invoke-DRTask {
             }
             'repair.dism-health' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath 'DISM.exe' -Arguments @('/Online','/Cleanup-Image','/RestoreHealth') -TestRoot $TestRoot | Out-Null }
             'repair.component-cleanup' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath 'DISM.exe' -Arguments @('/Online','/Cleanup-Image','/StartComponentCleanup') -TestRoot $TestRoot | Out-Null }
-            'repair.sfc' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath 'sfc.exe' -Arguments @('/scannow') -TestRoot $TestRoot | Out-Null }
+            'repair.sfc' { Invoke-DRSfc -TaskId $TaskId -TestRoot $TestRoot }
             'repair.font-cache' { Invoke-DRFontCacheReset -TaskId $TaskId -TestRoot $TestRoot }
             'repair.windows-update' { Invoke-DRWindowsUpdateReset -TaskId $TaskId -TestRoot $TestRoot }
             'repair.network-reset' { Invoke-DRNetworkReset -TaskId $TaskId -TestRoot $TestRoot }

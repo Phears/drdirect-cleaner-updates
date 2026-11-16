@@ -1,7 +1,7 @@
 {
-  "version": "1.4.478",
-  "notes": "Clone & Backup can now make a Rescue USB on any PC: it downloads the Rescue system first (about 535 MB), then erases, formats and makes the USB.",
-  "published": "2026-11-13T17:57:50.4521241-05:00",
+  "version": "1.4.479",
+  "notes": "System File Checker no longer gets stuck. It waits for other Windows repairs to finish first, shows its real progress, stops if Windows makes no progress for a long time, and explains the result in plain words.",
+  "published": "2026-11-15T20:22:13.7507438-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "E55E2902BD696799B64F009A334E9DE7C0161657852D334E594E951FAD987664",
-      "size": 973156
+      "sha256": "BF00F0D54AB3163D848583B953BA97AC4FF72DBB237415A008F640BA454A28A3",
+      "size": 962873
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "EE44C2F59355F4BDF80A6E166FDE943B18F022A005D898DD5ACF0F005E3C6B86",
-      "size": 353171
+      "sha256": "56106725433CE687A673B6711E78DBEB17D19B322FC03E14E011CD6A0CED869B",
+      "size": 356862
     },
     {
       "name": "DRDirect Updater.ps1",
