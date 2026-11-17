@@ -1,7 +1,7 @@
 {
-  "version": "1.4.480",
-  "notes": "System File Checker no longer gets stuck: it waits for other Windows repairs, shows its real progress and explains the result. Also brings back the Rescue USB warning and download from 1.4.475-1.4.478.",
-  "published": "2026-11-15T20:25:48.0801895-05:00",
+  "version": "1.4.481",
+  "notes": "Rescue USB: if this PC is missing the Rescue USB app, it is downloaded first, before the USB is erased. Fixes \"DRDirect Imager.ps1 was not found to put on the USB\".",
+  "published": "2026-11-16T21:28:24.3161654-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "86F5025B427498C49F9D66D8B964BFE167BA92E8B850F031CF8CA3D5948D6E08",
-      "size": 973618
+      "sha256": "424AECE408ACC432916964084430061E99E173B10F593BBD8477804C606ACFB8",
+      "size": 975421
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

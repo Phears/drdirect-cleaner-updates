@@ -7544,6 +7544,25 @@ function Show-DRDriveCopy {
                     $ul = if ($u.Letters.Count) { "$($u.Letters[0]):" } else { 'the USB' }
                     $state.RescueWhat = "$($u.Name), $(Format-ImgSize $u.Size)"
                     $dlNote = if ($state.RescueDownload) { "`nThe Rescue system is downloaded first (about $(Format-ImgSize $script:DRRescueDownload.Size)). Keep the internet on." } else { '' }
+                    # A PC that updated with an older updater may be missing the Rescue USB app. Fetch it now,
+                    # before anything is erased, so the USB is never wiped for nothing.
+                    if (-not $state.Demo) {
+                        $imgApp = Join-Path (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts') 'DRDirect Imager.ps1'
+                        if (-not (Test-Path -LiteralPath $imgApp -PathType Leaf) -and (Get-Command Repair-DRSkippedUpdateFile -ErrorAction SilentlyContinue)) {
+                            $w.Cursor = [Windows.Input.Cursors]::Wait
+                            try { $null = Repair-DRSkippedUpdateFile -Name 'DRDirect Imager.ps1' } catch { } finally { $w.Cursor = $null }
+                        }
+                        $haveApp = $false
+                        $appHome = if ($state.Home) { $state.Home } else { Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner' }
+                        foreach ($pl in @($appHome, (Join-Path $appHome 'DRDirect Imager'), (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner'),
+                                (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Rescue System\DRDirect'), (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts'))) {
+                            if ($pl -and (Test-Path -LiteralPath (Join-Path $pl 'DRDirect Imager.ps1') -PathType Leaf)) { $haveApp = $true; break }
+                        }
+                        if (-not $haveApp) {
+                            [Windows.MessageBox]::Show($w, "The Rescue USB app could not be downloaded right now, so the USB was not touched.`n`nCheck that the internet is on, then try again.", 'Rescue USB', 'OK', 'Warning') | Out-Null
+                            & $backToForm; return
+                        }
+                    }
                     if (-not (& $ask "Ready to create the Rescue USB on $($ul)?`n`n$($u.Name), $(Format-ImgSize $u.Size)`nThe USB is erased and formatted. Everything on it now will be deleted.$dlNote$demoNote`n`nStart now?" 'Rescue USB')) { & $backToForm; return }
                     $sync = [hashtable]::Synchronized(@{ Step = 'Starting...'; N = 0; Done = $false; Result = $null })
                     $state.Sync = $sync
