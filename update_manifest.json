@@ -1,7 +1,7 @@
 {
-  "version": "1.4.481",
-  "notes": "Rescue USB: if this PC is missing the Rescue USB app, it is downloaded first, before the USB is erased. Fixes \"DRDirect Imager.ps1 was not found to put on the USB\".",
-  "published": "2026-11-16T21:28:24.3161654-05:00",
+  "version": "1.4.482",
+  "notes": "Cleaning is faster and safer (never goes through folder links). In Windows Safe Mode, restore points and Defender scans are skipped with a note. New Windows repair USB button under Fix & Protect. Clone & Backup: the Rescue USB can now also hold Windows install or repair (USB of 16 GB or more).",
+  "published": "2026-11-17T14:14:56.5942860-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "424AECE408ACC432916964084430061E99E173B10F593BBD8477804C606ACFB8",
-      "size": 975421
+      "sha256": "AB2BDF5E9FCE12D7F6615CE01C4A00B518FA66C5545FB71C1547F8F27194A581",
+      "size": 993674
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "56106725433CE687A673B6711E78DBEB17D19B322FC03E14E011CD6A0CED869B",
-      "size": 356862
+      "sha256": "4F7A43D2F31F953426D72E1D536B487B139EFA3BB610F2A9143EEEE2BBEB16A8",
+      "size": 369799
     },
     {
       "name": "DRDirect Updater.ps1",

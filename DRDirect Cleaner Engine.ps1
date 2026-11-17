@@ -299,25 +299,276 @@ function Test-DRSafeDeleteTarget {
     if (-not $full -or -not $root -or $full.Length -le $root.Length) { return $false }
     if (-not $full.StartsWith($root + '\', [StringComparison]::OrdinalIgnoreCase)) { return $false }
 
-    $blocked = @(
-        [System.IO.Path]::GetPathRoot($full),
-        $env:SystemDrive,
-        $env:USERPROFILE,
-        $env:WINDIR,
-        $env:ProgramFiles,
-        ${env:ProgramFiles(x86)},
-        $env:ProgramData
-    ) | Where-Object { $_ }
+    # The protected folders are worked out once and reused for every item, instead of
+    # once per file. They are worked out again whenever any of them changes (the
+    # signed-in user's folders are switched in after start-up), so the list is never stale.
+    $blockedKey = @([Environment]::CurrentDirectory, $env:SystemDrive, $env:USERPROFILE, $env:WINDIR, $env:ProgramFiles, ${env:ProgramFiles(x86)}, $env:ProgramData) -join '|'
+    if ($script:DRBlockedKey -ne $blockedKey) {
+        $script:DRBlockedFull = @(
+            @($env:SystemDrive, $env:USERPROFILE, $env:WINDIR, $env:ProgramFiles, ${env:ProgramFiles(x86)}, $env:ProgramData) |
+                Where-Object { $_ } | ForEach-Object { Get-DRFullPath -Path $_ } | Where-Object { $_ }
+        )
+        $script:DRBlockedKey = $blockedKey
+    }
 
-    foreach ($item in $blocked) {
-        $blockedFull = Get-DRFullPath -Path $item
-        if ($blockedFull -and $full.Equals($blockedFull, [StringComparison]::OrdinalIgnoreCase)) { return $false }
+    $driveRoot = Get-DRFullPath -Path ([System.IO.Path]::GetPathRoot($full))
+    if ($driveRoot -and $full.Equals($driveRoot, [StringComparison]::OrdinalIgnoreCase)) { return $false }
+    foreach ($blockedFull in $script:DRBlockedFull) {
+        if ($full.Equals($blockedFull, [StringComparison]::OrdinalIgnoreCase)) { return $false }
     }
     return $true
 }
 
+# Fast folder measuring and deleting.
+# PowerShell builds a full object for every file it walks, which made scans and
+# cleaning slow on folders with thousands of small files (Temp, browser caches).
+# DRDirect.FastFs asks Windows for the same information directly. Folder links
+# (junctions and symbolic links) are never followed: measuring does not count what
+# is behind them, and deleting removes only the link itself, never what it points to.
+# If the helper cannot be loaded on a PC, the Cleaner uses the old PowerShell way.
+$script:DRFastFsState = $null
+$script:DRBlockedKey = $null
+$script:DRBlockedFull = @()
+$script:DRLastMeasurePath = $null
+$script:DRLastMeasureTop = 0
+$script:DRTaskById = $null
+$script:DRSafeModeState = $null
+
+# Windows Safe Mode: a few jobs cannot run there (Windows makes no restore points and Microsoft Defender
+# does not start). Those are skipped with a clear note instead of failing; everything else runs as usual.
+function Get-DRSafeMode {
+    if ($null -eq $script:DRSafeModeState) {
+        $state = ''
+        try { $state = [string](Get-CimInstance Win32_ComputerSystem -ErrorAction Stop).BootupState } catch { }
+        $script:DRSafeModeState = if ($state -match 'Fail-safe with network') { 'Network' } elseif ($state -match 'Fail-safe') { 'Plain' } else { 'None' }
+    }
+    return $script:DRSafeModeState
+}
+
+function Get-DRSafeModeSkipReason {
+    param([string]$TaskId, [string]$TestRoot)
+    if ($TestRoot -or (Get-DRSafeMode) -eq 'None') { return $null }
+    switch -Regex ($TaskId) {
+        '^(safety|repair)\.restore-point$' { return 'Skipped: Windows cannot make a restore point in Safe Mode. Restart Windows normally to make one.' }
+        '^security\.(quick-scan|full-scan|defender-update)$' { return 'Skipped: Microsoft Defender does not run in Safe Mode. Restart Windows normally to scan.' }
+    }
+    return $null
+}
+
+function Initialize-DRFastFs {
+    if ($null -ne $script:DRFastFsState) { return [bool]$script:DRFastFsState }
+    try {
+        if (-not ('DRDirect.FastFs' -as [type])) {
+            Add-Type -TypeDefinition @'
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.IO;
+using System.Runtime.InteropServices;
+
+namespace DRDirect {
+public static class FastFs {
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    struct FindData {
+        public uint Attributes;
+        public System.Runtime.InteropServices.ComTypes.FILETIME Created;
+        public System.Runtime.InteropServices.ComTypes.FILETIME Accessed;
+        public System.Runtime.InteropServices.ComTypes.FILETIME Written;
+        public uint SizeHigh;
+        public uint SizeLow;
+        public uint Reserved0;
+        public uint Reserved1;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)] public string Name;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 14)] public string ShortName;
+    }
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    static extern IntPtr FindFirstFileExW(string name, int infoLevel, out FindData data, int searchOp, IntPtr filter, int flags);
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    static extern bool FindNextFileW(IntPtr handle, out FindData data);
+    [DllImport("kernel32.dll")]
+    static extern bool FindClose(IntPtr handle);
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    static extern bool SetFileAttributesW(string name, uint attributes);
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    static extern bool DeleteFileW(string name);
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    static extern bool RemoveDirectoryW(string name);
+
+    static readonly IntPtr Invalid = new IntPtr(-1);
+    const uint ReadOnly = 0x1;
+    const uint Directory = 0x10;
+    const uint Reparse = 0x400;
+    const int InfoBasic = 1;
+    const int LargeFetch = 2;
+
+    struct Entry { public string Path; public uint Attributes; public long Size; }
+
+    static bool IsGone(int error) { return error == 2 || error == 3; }
+
+    // Absolute path in the \\?\ form so very long paths work too.
+    static string Prep(string path) {
+        if (string.IsNullOrEmpty(path)) throw new ArgumentException("No path given.");
+        string p = path.Replace('/', '\\');
+        if (p.StartsWith(@"\\?\")) return p.TrimEnd('\\');
+        if (p.StartsWith(@"\\")) return @"\\?\UNC\" + p.Substring(2).TrimEnd('\\');
+        if (p.Length < 3 || p[1] != ':' || p[2] != '\\') throw new ArgumentException("Not a full path: " + path);
+        return @"\\?\" + p.TrimEnd('\\');
+    }
+
+    // Looks up one file or folder. Returns false when it is not there or cannot be read.
+    static bool Stat(string p, out uint attributes, out long size, out int error) {
+        FindData d;
+        attributes = 0; size = 0; error = 0;
+        IntPtr h = FindFirstFileExW(p, InfoBasic, out d, 0, IntPtr.Zero, 0);
+        if (h == Invalid) { error = Marshal.GetLastWin32Error(); return false; }
+        FindClose(h);
+        attributes = d.Attributes;
+        size = ((long)d.SizeHigh << 32) | d.SizeLow;
+        return true;
+    }
+
+    // What is directly inside one folder. Returns false when the folder cannot be read.
+    static bool List(string dir, List<Entry> into, out int error) {
+        FindData d;
+        error = 0;
+        IntPtr h = FindFirstFileExW(dir + "\\*", InfoBasic, out d, 0, IntPtr.Zero, LargeFetch);
+        if (h == Invalid) { error = Marshal.GetLastWin32Error(); return error == 18; }
+        try {
+            do {
+                if (d.Name == "." || d.Name == "..") continue;
+                Entry e = new Entry();
+                e.Path = dir + "\\" + d.Name;
+                e.Attributes = d.Attributes;
+                e.Size = ((long)d.SizeHigh << 32) | d.SizeLow;
+                into.Add(e);
+            } while (FindNextFileW(h, out d));
+        } finally { FindClose(h); }
+        return true;
+    }
+
+    // Returns { bytes, files, items directly inside }. Unreadable folders are skipped.
+    public static long[] Measure(string path) {
+        long[] r = new long[3];
+        string root = Prep(path);
+        uint a; long size; int err;
+        bool isDriveRoot = root.Length == 6 && root[5] == ':';
+        if (!isDriveRoot) {
+            if (!Stat(root, out a, out size, out err)) return r;
+            if ((a & Directory) == 0) { r[0] = size; r[1] = 1; r[2] = 1; return r; }
+        }
+        Stack<string> stack = new Stack<string>();
+        stack.Push(root);
+        List<Entry> entries = new List<Entry>();
+        while (stack.Count > 0) {
+            string dir = stack.Pop();
+            entries.Clear();
+            if (!List(dir, entries, out err)) continue;
+            if (object.ReferenceEquals(dir, root)) r[2] = entries.Count;
+            foreach (Entry e in entries) {
+                if ((e.Attributes & Directory) != 0) {
+                    if ((e.Attributes & Reparse) == 0) stack.Push(e.Path);
+                } else { r[0] += e.Size; r[1]++; }
+            }
+        }
+        return r;
+    }
+
+    // How many items are directly inside a folder (1 for a file, 0 when missing).
+    public static long CountTop(string path) {
+        string root = Prep(path);
+        uint a; long size; int err;
+        if (!Stat(root, out a, out size, out err)) return 0;
+        if ((a & Directory) == 0) return 1;
+        List<Entry> entries = new List<Entry>();
+        if (!List(root, entries, out err)) return 0;
+        return entries.Count;
+    }
+
+    static void DeleteFile(string p, uint attributes, List<string> errors) {
+        if ((attributes & ReadOnly) != 0) SetFileAttributesW(p, attributes & ~ReadOnly);
+        if (DeleteFileW(p)) return;
+        int e = Marshal.GetLastWin32Error();
+        if (IsGone(e)) return;
+        if ((attributes & ReadOnly) != 0) SetFileAttributesW(p, attributes);
+        errors.Add(Show(p) + ": " + new Win32Exception(e).Message);
+    }
+
+    // Removes an empty folder, or a folder link without touching what it points to.
+    static void RemoveDir(string p, uint attributes, List<string> errors) {
+        if ((attributes & ReadOnly) != 0) SetFileAttributesW(p, attributes & ~ReadOnly);
+        if (RemoveDirectoryW(p)) return;
+        int e = Marshal.GetLastWin32Error();
+        if (IsGone(e)) return;
+        if ((attributes & ReadOnly) != 0) SetFileAttributesW(p, attributes);
+        errors.Add(Show(p) + ": " + new Win32Exception(e).Message);
+    }
+
+    static void ClearTree(string dir, List<string> errors) {
+        List<Entry> entries = new List<Entry>();
+        int err;
+        if (!List(dir, entries, out err)) {
+            if (!IsGone(err)) errors.Add(Show(dir) + ": " + new Win32Exception(err).Message);
+            return;
+        }
+        foreach (Entry e in entries) {
+            if ((e.Attributes & Directory) == 0) { DeleteFile(e.Path, e.Attributes, errors); continue; }
+            if ((e.Attributes & Reparse) != 0) { RemoveDir(e.Path, e.Attributes, errors); continue; }
+            ClearTree(e.Path, errors);
+            RemoveDir(e.Path, e.Attributes, errors);
+        }
+    }
+
+    static string Show(string p) {
+        if (p.StartsWith(@"\\?\UNC\")) return @"\\" + p.Substring(8);
+        if (p.StartsWith(@"\\?\")) return p.Substring(4);
+        return p;
+    }
+
+    // Deletes one file or one folder with everything in it. Keeps going past files
+    // that are in use, then reports how many could not be removed.
+    public static void Delete(string path) {
+        string p = Prep(path);
+        uint a; long size; int err;
+        if (p.Length <= 7) throw new IOException("Refusing to delete a drive root: " + path);
+        if (!Stat(p, out a, out size, out err)) {
+            if (IsGone(err)) return;
+            throw new IOException(path + ": " + new Win32Exception(err).Message);
+        }
+        List<string> errors = new List<string>();
+        if ((a & Directory) == 0) DeleteFile(p, a, errors);
+        else if ((a & Reparse) != 0) RemoveDir(p, a, errors);
+        else { ClearTree(p, errors); RemoveDir(p, a, errors); }
+        if (errors.Count == 1) throw new IOException(errors[0]);
+        if (errors.Count > 1) throw new IOException(string.Format("{0} items could not be removed, for example {1}", errors.Count, errors[0]));
+    }
+}
+}
+'@
+        }
+        $script:DRFastFsState = $true
+    } catch {
+        $script:DRFastFsState = $false
+    }
+    return [bool]$script:DRFastFsState
+}
+
 function Get-DRPathSize {
     param([string]$Path)
+    $script:DRLastMeasurePath = $null
+    if ($Path -and (Initialize-DRFastFs)) {
+        try {
+            $full = Get-DRFullPath -Path $Path
+            if ($full) {
+                $r = [DRDirect.FastFs]::Measure($full)
+                # How many files there are decides how long deleting them takes, so the analysis keeps the count too.
+                $script:DRMeasuredFiles += [int]$r[1]
+                $script:DRLastMeasurePath = $Path
+                $script:DRLastMeasureTop = [int]$r[2]
+                return [int64]$r[0]
+            }
+        } catch { }
+    }
     try {
         if (-not (Test-Path -LiteralPath $Path)) { return [int64]0 }
         $item = Get-Item -LiteralPath $Path -Force -ErrorAction Stop
@@ -329,6 +580,16 @@ function Get-DRPathSize {
         if ($null -eq $sum) { return [int64]0 }
         return [int64]$sum
     } catch { return [int64]0 }
+}
+
+function Get-DRChildCount {
+    <# How many items are directly inside a folder. Reuses the count from the measuring just done when it was the same folder, so the folder is not read twice. #>
+    param([string]$Path)
+    if ($Path -and $script:DRLastMeasurePath -and $script:DRLastMeasurePath -eq $Path) { return [int]$script:DRLastMeasureTop }
+    if ($Path -and (Initialize-DRFastFs)) {
+        try { $full = Get-DRFullPath -Path $Path; if ($full) { return [int][DRDirect.FastFs]::CountTop($full) } } catch { }
+    }
+    return @(Get-ChildItem -LiteralPath $Path -Force -ErrorAction SilentlyContinue).Count
 }
 
 function Get-DRHibernateRoom {
@@ -643,7 +904,13 @@ function Remove-DRSafeItem {
         throw "Safety blocked deletion outside the approved root: $LiteralPath"
     }
     if ($PSCmdlet.ShouldProcess($LiteralPath, 'Remove')) {
-        Remove-Item -LiteralPath $LiteralPath -Recurse -Force -ErrorAction Stop
+        $fullTarget = Get-DRFullPath -Path $LiteralPath
+        if ($fullTarget -and (Initialize-DRFastFs)) {
+            # Never goes through folder links; keeps going past files in use.
+            [DRDirect.FastFs]::Delete($fullTarget)
+        } else {
+            Remove-Item -LiteralPath $LiteralPath -Recurse -Force -ErrorAction Stop
+        }
     }
     return $true
 }
@@ -713,7 +980,7 @@ function Get-DRAnalysis {
             switch ($id) {
                 'cleanup.windows-temp' {
                     $paths = @(if ($TestRoot) { @($TestRoot) } else { @($env:TEMP, (Join-Path $env:WINDIR 'Temp')) })
-                    foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
+                    foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += (Get-DRChildCount $path) }
                     $detail = 'Windows and application temporary folders'
                 }
                 'cleanup.browser-cache' {
@@ -769,7 +1036,7 @@ function Get-DRAnalysis {
                 }
                 'cleanup.prefetch' {
                     $path = if ($TestRoot) { $TestRoot } else { Join-Path $env:WINDIR 'Prefetch' }
-                    $bytes = Get-DRPathSize $path; $items = @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count
+                    $bytes = Get-DRPathSize $path; $items = (Get-DRChildCount $path)
                     $detail = 'Advanced; Windows rebuilds this cache'
                 }
                 'cleanup.recycle-bin' {
@@ -787,7 +1054,7 @@ function Get-DRAnalysis {
                 }
                 'cleanup.wu-download-cache' {
                     $path = if ($TestRoot) { $TestRoot } else { Join-Path $env:WINDIR 'SoftwareDistribution\Download' }
-                    $bytes = Get-DRPathSize $path; $items = @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count
+                    $bytes = Get-DRPathSize $path; $items = (Get-DRChildCount $path)
                     $detail = 'Already-installed update installers'
                 }
                 'cleanup.old-update-backups' {
@@ -802,17 +1069,17 @@ function Get-DRAnalysis {
                 }
                 'cleanup.shader-cache' {
                     $paths = @(if ($TestRoot) { @($TestRoot) } else { @(Get-DRShaderCachePaths) })
-                    foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
+                    foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += (Get-DRChildCount $path) }
                     $detail = 'Games rebuild these by themselves'
                 }
                 'cleanup.game-caches' {
                     $paths = @(if ($TestRoot) { @($TestRoot) } else { @(Get-DRGameCachePaths) })
-                    foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
+                    foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += (Get-DRChildCount $path) }
                     $detail = 'Steam and Epic web caches; launchers rebuild them'
                 }
                 'cleanup.dev-caches' {
                     $paths = @(if ($TestRoot) { @($TestRoot) } else { @(Get-DRDevCachePaths) })
-                    foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
+                    foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += (Get-DRChildCount $path) }
                     $detail = 'Download caches; tools fetch again when needed'
                 }
                 'cleanup.windows-old' {
@@ -827,7 +1094,7 @@ function Get-DRAnalysis {
                 }
                 'cleanup.wer-queue' {
                     $paths = @(if ($TestRoot) { @($TestRoot) } else { @((Join-Path $env:ProgramData 'Microsoft\Windows\WER\ReportQueue'), (Join-Path $env:ProgramData 'Microsoft\Windows\WER\ReportArchive')) })
-                    foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
+                    foreach ($path in $paths) { $bytes += Get-DRPathSize $path; $items += (Get-DRChildCount $path) }
                     $detail = 'Queued and archived crash reports'
                 }
                 'cleanup.clipboard' {
@@ -879,7 +1146,7 @@ function Get-DRAnalysis {
                     $paths = @(if ($TestRoot) { @($TestRoot) } else { @((Join-Path $env:WINDIR 'Memory.dmp'), (Join-Path $env:WINDIR 'Minidump')) })
                     foreach ($path in $paths) {
                         $bytes += Get-DRPathSize $path
-                        if (Test-Path -LiteralPath $path -PathType Container) { $items += @(Get-ChildItem -LiteralPath $path -Force -ErrorAction SilentlyContinue).Count }
+                        if (Test-Path -LiteralPath $path -PathType Container) { $items += (Get-DRChildCount $path) }
                         elseif (Test-Path -LiteralPath $path) { $items++ }
                     }
                     $detail = 'Only useful for diagnosing a specific past crash'
@@ -4701,8 +4968,21 @@ function Invoke-DRTask {
         [string[]]$SelectedExclusion
     )
 
-    $task = Get-DRTaskCatalog | Where-Object Id -eq $TaskId | Select-Object -First 1
+    if ($null -eq $script:DRTaskById) {
+        $byId = @{}
+        foreach ($entry in @(Get-DRTaskCatalog)) { if (-not $byId.ContainsKey($entry.Id)) { $byId[$entry.Id] = $entry } }
+        $script:DRTaskById = $byId
+    }
+    $task = $script:DRTaskById[$TaskId]
     if (-not $task) { throw "Unknown maintenance task: $TaskId" }
+    # Jobs that cannot run in Windows Safe Mode are skipped with a note, before anything else is checked.
+    $safeModeSkip = Get-DRSafeModeSkipReason -TaskId $TaskId -TestRoot $TestRoot
+    if ($safeModeSkip) {
+        New-DREvent -TaskId $TaskId -State Started -Message ("Starting {0}." -f $task.Name) -Percent 0
+        New-DREvent -TaskId $TaskId -State Information -Message $safeModeSkip
+        New-DREvent -TaskId $TaskId -State Completed -Message ("{0} skipped in Safe Mode." -f $task.Name) -Percent 100
+        return
+    }
     if ($task.RequiresAdmin -and -not $TestRoot -and -not (Test-DRAdministrator)) { throw "$($task.Name) requires administrator access." }
 
     New-DREvent -TaskId $TaskId -State Started -Message ("Starting {0}." -f $task.Name) -Percent 0
