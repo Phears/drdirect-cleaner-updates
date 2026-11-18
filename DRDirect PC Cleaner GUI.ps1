@@ -6158,10 +6158,32 @@ function Set-DRRescueDriveIcons {
     try {
         $base = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\DriveIcons'
         $rescue = @{}
-        foreach ($v in @(Get-Volume -ErrorAction SilentlyContinue | Where-Object { $_.DriveLetter -and [string]$_.DriveType -eq 'Removable' })) {
+        # Bigger and faster USB sticks often tell Windows they are 'Fixed' drives, not 'Removable', so the type is
+        # not used. A Rescue USB is known by its own DRDirect files: the logo and its lock file. The Windows drive never counts.
+        $sysLetter = ([string]$env:SystemDrive).TrimEnd(':').ToUpperInvariant()
+        foreach ($v in @(Get-Volume -ErrorAction SilentlyContinue | Where-Object { $_.DriveLetter -and [string]$_.DriveType -in @('Removable', 'Fixed') })) {
             $l = ([string]$v.DriveLetter).ToUpperInvariant()
+            if ($l -eq $sysLetter) { continue }
             $ico = "$($l):\DRDirect\DRDirect.ico"
-            if (Test-Path -LiteralPath $ico) { $rescue[$l] = $ico }
+            $hasLock = (Test-Path -LiteralPath "$($l):\DRDirect\pc.id") -or (Test-Path -LiteralPath "$($l):\DRDirect\owner.id") -or (Test-Path -LiteralPath "$($l):\DRDirect\usb.id")
+            if ($hasLock -and -not (Test-Path -LiteralPath $ico)) {
+                # A Rescue USB made without its logo file (end-user PCs did not have it): put the DRDirect logo back.
+                $from = $null
+                foreach ($pl in @((Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts'), $(if ($PSScriptRoot) { Join-Path $PSScriptRoot 'DRDirect Imager' }), $PSScriptRoot)) {
+                    if (-not $pl) { continue }
+                    foreach ($n in 'DRDirect Image.ico', 'DRDirectCleaner.ico') { $c = Join-Path $pl $n; if (Test-Path -LiteralPath $c -PathType Leaf) { $from = $c; break } }
+                    if ($from) { break }
+                }
+                if ($from) {
+                    try {
+                        Copy-Item -LiteralPath $from -Destination $ico -Force -ErrorAction Stop
+                        $ar = "$($l):\autorun.inf"
+                        if (-not (Test-Path -LiteralPath $ar)) { Set-Content -LiteralPath $ar -Value "[autorun]`r`nicon=DRDirect\DRDirect.ico`r`nlabel=DRDirect Rescue" -Encoding ASCII; try { (Get-Item -LiteralPath $ar -Force).Attributes = 'Hidden, System, Archive' } catch { } }
+                    } catch { }
+                }
+            }
+            $isRescue = (Test-Path -LiteralPath $ico) -and ((Test-Path -LiteralPath "$($l):\DRDirect\pc.id") -or (Test-Path -LiteralPath "$($l):\DRDirect\owner.id") -or (Test-Path -LiteralPath "$($l):\DRDirect\usb.id"))
+            if ($isRescue) { $rescue[$l] = $ico }
         }
         foreach ($l in $rescue.Keys) {
             $k = Join-Path $base $l
@@ -6297,18 +6319,26 @@ function Write-RescueUsb {
         }
         if (-not (Test-Path -LiteralPath (Join-Path $app 'DRDirect Imager.ps1'))) { throw ("DRDirect Imager.ps1 was not found to put on the USB. Looked in: " + (($appPlaces | Where-Object { $_ }) -join ' | ')) }
         if (-not $ico) { $ico = Join-Path $PSScriptRoot 'DRDirect Image.ico' }
+        if (-not (Test-Path -LiteralPath $ico)) {
+            # End-user PCs may not have the Clone & Backup logo; the Cleaner's own DRDirect logo is always there.
+            foreach ($n in 'DRDirect Image.ico', 'DRDirectCleaner.ico') {
+                foreach ($pl in $appPlaces) { if ($pl) { $c = Join-Path $pl $n; if (Test-Path -LiteralPath $c -PathType Leaf) { $ico = $c; break } } }
+                if (Test-Path -LiteralPath $ico) { break }
+            }
+        }
         if (Test-Path -LiteralPath $ico) {
             Copy-Item -LiteralPath $ico -Destination (Join-Path $app 'DRDirect.ico') -Force
             Set-Content -LiteralPath (Join-Path $dest 'autorun.inf') -Value "[autorun]`r`nicon=DRDirect\DRDirect.ico`r`nlabel=DRDirect Rescue" -Encoding ASCII
             try { (Get-Item -LiteralPath (Join-Path $dest 'autorun.inf') -Force).Attributes = 'Hidden, System, Archive' } catch { }
         }
         # Windows ignores the autorun.inf icon on USB sticks; DriveIcons in the registry is what it shows.
-        try {
+        # Only when the logo is really on the stick: pointing Windows at a missing file shows a blank page icon.
+        if (Test-Path -LiteralPath (Join-Path $app 'DRDirect.ico')) { try {
             $dk = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\DriveIcons\' + ([string]$part.DriveLetter).ToUpperInvariant()
             $null = New-Item -Path ($dk + '\DefaultIcon') -Force; Set-Item -Path ($dk + '\DefaultIcon') -Value ((Join-Path $app 'DRDirect.ico'))
             $null = New-Item -Path ($dk + '\DefaultLabel') -Force; Set-Item -Path ($dk + '\DefaultLabel') -Value 'DRDirect Rescue'
             Set-ItemProperty -Path $dk -Name 'DRDirectRescue' -Value 1 -Type DWord
-        } catch { }
+        } catch { } }
         $launcher = "@echo off`r`nstart `"`" powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -WindowStyle Hidden -File `"%~dp0DRDirect\DRDirect Imager.ps1`"`r`n"
         Set-Content -LiteralPath (Join-Path $dest 'DRDirect Clone & Backup.bat') -Value $launcher -Encoding ASCII
         $readme = "Directional Aid for Users`r`n-------------------------`r`n`r`nThis is a DRDirect Rescue USB. It holds hidden boot files. Please do not change anything on it.`r`nTo start a rescue, restart the PC from this USB. To use the app inside Windows, open DRDirect Clone & Backup.bat.`r`nTo make another Rescue USB, use the Rescue USB button in DRDirect Clone & Backup. Copying these files is not enough.`r`n`r`nDRDirect`r`n"
@@ -7742,6 +7772,9 @@ function Show-DRDriveCopy {
                     if (-not $state.Demo) {
                         if ($state.RescueDownload -and (Get-Command Repair-DRSkippedUpdateFile -ErrorAction SilentlyContinue) -and -not (Test-Path -LiteralPath (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts\DRDirect Rescue.ps1'))) {
                             try { $null = Repair-DRSkippedUpdateFile -Name 'DRDirect Rescue.ps1'; $null = Repair-DRSkippedUpdateFile -Name 'DRDirect Logo.png' } catch { }
+                        }
+                        if ((Get-Command Repair-DRSkippedUpdateFile -ErrorAction SilentlyContinue) -and -not (Test-Path -LiteralPath (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts\DRDirect Image.ico'))) {
+                            try { $null = Repair-DRSkippedUpdateFile -Name 'DRDirect Image.ico' } catch { }
                         }
                         $imgApp = Join-Path (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts') 'DRDirect Imager.ps1'
                         if (-not (Test-Path -LiteralPath $imgApp -PathType Leaf) -and (Get-Command Repair-DRSkippedUpdateFile -ErrorAction SilentlyContinue)) {

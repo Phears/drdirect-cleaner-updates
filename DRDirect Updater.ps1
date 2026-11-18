@@ -71,6 +71,8 @@ $script:DRUpdatableFiles = @(
     # downloads and puts these DRDirect files into it.
     'DRDirect Rescue.ps1',
     'DRDirect Logo.png',
+    # The logo each Rescue USB shows in File Explorer.
+    'DRDirect Image.ico',
     # The Uninstaller is a separate program, so it travels as one package. It is
     # only stored here; Update-DRUninstallerFromFeed puts it in place.
     'DRDirect Uninstaller.zip'

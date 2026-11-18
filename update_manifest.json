@@ -1,7 +1,7 @@
 {
-  "version": "1.4.483",
-  "notes": "System File Checker can no longer get stuck: if Windows is busy with an update it stops and says to restart. New Windows Update button under Fix & Protect. The Rescue USB now makes its Rescue system on this PC from Microsoft's own free downloads. New Fix start-up button on the Rescue USB screen repairs a PC that will not start.",
-  "published": "2026-11-17T19:51:10.8651005-05:00",
+  "version": "1.4.484",
+  "notes": "Rescue USB sticks show the DRDirect logo again in File Explorer, including sticks made on this PC and bigger USB sticks.",
+  "published": "2026-11-17T20:53:56.2421261-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "193EDA36F28BA58A969D4146D9778E7EB05FDB9410EE7EAA2045A3D539C063A6",
-      "size": 1007849
+      "sha256": "B488D4508F77D6EACBFB806D71D8067E72E9559928338569F0260E3B9D929E45",
+      "size": 1010840
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -20,8 +20,8 @@
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "CFD4F563D1A788B93C02855A5E13EC46C816D1A2185361BCE4D3006B6FAFCD3D",
-      "size": 64353
+      "sha256": "62B9F6923A1FBD731E382D325407091FC0D0A412073A51977CB282B6DAEABBA7",
+      "size": 64436
     },
     {
       "name": "DRDirect Activation.ps1",
@@ -47,6 +47,11 @@
       "name": "DRDirect Logo.png",
       "sha256": "33F56F67BE948ED1D2996D9C1F81BC9B576E1F4180089202194DEDE81459CA63",
       "size": 37612
+    },
+    {
+      "name": "DRDirect Image.ico",
+      "sha256": "BFE529E2FE58E8A51A482BE7D58877C00C53BCD6B4D983AA2F6B860C187F4218",
+      "size": 37634
     },
     {
       "name": "DRDirectCleaner.ico",
