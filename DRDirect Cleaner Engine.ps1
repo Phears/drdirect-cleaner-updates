@@ -1296,6 +1296,169 @@ function Invoke-DRExternalCommand {
     return $result.ExitCode
 }
 
+# DISM (RestoreHealth and component cleanup). The old run waited on DISM with no limit at all and showed only
+# "Starting…", so a DISM sitting idle behind Windows (0% processor, no disk, never started its helper) left the
+# Cleaner on that row for hours on an end user's PC. This version waits for other repairs first, closes DISM's
+# input so it can never wait on a keyboard, shows DISM's own percentage, counts the servicing engine and DISM's
+# log as signs of life, and stops DISM only when nothing at all has happened for a long time.
+function Invoke-DRDism {
+    param([string]$TaskId, [string[]]$Arguments, [string]$Label, [string]$TestRoot,
+        [int]$WaitForOthersMinutes = 20, [int]$SilentLimitMinutes = 30, [int]$MaxTotalMinutes = 240)
+    if ($TestRoot) {
+        New-DREvent -TaskId $TaskId -State Information -Message ("TEST MODE: would run DISM.exe {0}" -f ($Arguments -join ' '))
+        return
+    }
+
+    # 1) Only one repair can hold the Windows servicing engine; DISM would just sit behind another one.
+    $waitStart = Get-Date
+    $toldWaiting = $false
+    while ($true) {
+        $others = @(Get-Process -Name 'sfc', 'DISM', 'DismHost' -ErrorAction SilentlyContinue | Where-Object { $_.Id -ne $PID })
+        if ($others.Count -eq 0) { break }
+        if (-not $toldWaiting) { Set-DRSfcLiveText 'Waiting for another Windows repair to finish first…'; $toldWaiting = $true }
+        if (((Get-Date) - $waitStart).TotalMinutes -ge $WaitForOthersMinutes) {
+            Set-DRSfcLiveText $null
+            New-DREvent -TaskId $TaskId -State Warning -Message ('Another Windows repair ({0}) was still running after {1} minutes, so {2} was not started. Restart the PC and run it again.' -f (($others | ForEach-Object ProcessName | Select-Object -Unique) -join ', '), $WaitForOthersMinutes, $Label)
+            return
+        }
+        Start-Sleep -Seconds 5
+    }
+
+    # 2) DISM needs the Windows Modules Installer service. Starting it changes no setting.
+    try {
+        $ti = Get-Service -Name 'TrustedInstaller' -ErrorAction Stop
+        if ($ti.Status -ne 'Running' -and $ti.StartType -ne 'Disabled') { Start-Service -Name 'TrustedInstaller' -ErrorAction Stop }
+    } catch { }
+
+    $dismExe = Join-Path $env:SystemRoot 'Sysnative\DISM.exe'
+    if ([Environment]::Is64BitProcess -or -not (Test-Path -LiteralPath $dismExe)) { $dismExe = Join-Path $env:SystemRoot 'System32\DISM.exe' }
+    if (-not (Test-Path -LiteralPath $dismExe)) { $dismExe = 'DISM.exe' }
+    $dismLog = Join-Path $env:SystemRoot 'Logs\DISM\dism.log'
+
+    # 3) Run DISM and read what it prints as it prints it.
+    Set-DRSfcLiveText "Starting $Label…"
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $dismExe
+    $psi.Arguments = (@($Arguments) + '/English') -join ' '
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+    $psi.RedirectStandardInput = $true
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $psi
+
+    $all = New-Object System.Text.StringBuilder
+    $exitCode = $null
+    $stoppedSilent = $false
+    $stoppedTooLong = $false
+    $lastPercent = -1.0
+    $started = Get-Date
+    try {
+        [void]$process.Start()
+        Set-DRActiveChildProcess -ProcessId $process.Id
+        # Nothing will ever be typed into DISM, so its input is closed straight away.
+        try { $process.StandardInput.Close() } catch { }
+        $errTask = $process.StandardError.ReadToEndAsync()
+        $reader = $process.StandardOutput
+        $buffer = New-Object char[] 4096
+        $lastNews = Get-Date
+        $lastCpu = 0.0
+        $lastCpuCheck = Get-Date
+        $lastLogWrite = $null
+        $readTask = $reader.ReadAsync($buffer, 0, $buffer.Length)
+        while ($true) {
+            if (((Get-Date) - $started).TotalMinutes -ge $MaxTotalMinutes) {
+                $stoppedTooLong = $true
+                try { Stop-Process -Id $process.Id -Force -ErrorAction Stop } catch { }
+                break
+            }
+            if ($readTask.Wait(2000)) {
+                $count = $readTask.Result
+                if ($count -le 0) { break }   # DISM closed its output: it has finished
+                $chunk = ([string]::new($buffer, 0, $count)) -replace "`0", ''
+                [void]$all.Append($chunk)
+                if ($chunk.Trim()) { $lastNews = Get-Date }
+                # DISM redraws its bar with carriage returns: "[=====   17.0%   ]"
+                $found = [regex]::Matches($chunk, '(\d{1,3}(?:[.,]\d)?)\s*%')
+                if ($found.Count -gt 0) {
+                    $pct = [double]($found[$found.Count - 1].Groups[1].Value -replace ',', '.')
+                    if ($pct -ne $lastPercent -and $pct -le 100) {
+                        $lastPercent = $pct
+                        $lastNews = Get-Date
+                        Set-DRSfcLiveText ('{0}: {1}% done' -f $Label, $pct)
+                    }
+                }
+                $readTask = $reader.ReadAsync($buffer, 0, $buffer.Length)
+            }
+            elseif (((Get-Date) - $lastCpuCheck).TotalSeconds -ge 30 -and -not $process.HasExited) {
+                # DISM can print nothing for a long time while its helper and Windows' servicing engine do the work,
+                # so any of them using the processor, or DISM still writing its log, counts as working.
+                $lastCpuCheck = Get-Date
+                $cpuNow = 0.0
+                foreach ($p in @(@(Get-Process -Name 'DismHost', 'TiWorker', 'TrustedInstaller' -ErrorAction SilentlyContinue) + @($process))) {
+                    try { $p.Refresh(); $cpuNow += $p.TotalProcessorTime.TotalSeconds } catch { }
+                }
+                if ($cpuNow -gt ($lastCpu + 1)) { $lastNews = Get-Date }
+                $lastCpu = $cpuNow
+                try {
+                    $w = [System.IO.File]::GetLastWriteTimeUtc($dismLog)
+                    if ($null -ne $lastLogWrite -and $w -gt $lastLogWrite) { $lastNews = Get-Date }
+                    $lastLogWrite = $w
+                } catch { }
+                if ($lastPercent -lt 0) {
+                    Set-DRSfcLiveText ('{0}: getting ready…' -f $Label)
+                }
+            }
+            elseif (((Get-Date) - $lastNews).TotalMinutes -ge $SilentLimitMinutes) {
+                # No output, no processor use and no log writes for this long: DISM is idle, not repairing.
+                $stoppedSilent = $true
+                try { Stop-Process -Id $process.Id -Force -ErrorAction Stop } catch { }
+                break
+            }
+        }
+        if (-not $process.WaitForExit(30000)) { try { $process.Kill() } catch { } }
+        elseif (-not ($stoppedSilent -or $stoppedTooLong)) { $exitCode = $process.ExitCode }
+        try { if ($errTask.Wait(5000)) { [void]$all.Append("`r`n" + $errTask.Result) } } catch { }
+    } finally {
+        Set-DRActiveChildProcess -ProcessId 0
+        Set-DRSfcLiveText $null
+        $process.Dispose()
+    }
+
+    $text = ($all.ToString() -replace "`0", '')
+    $report = Format-DROutputForLog -Text $text
+    if ($report) { New-DREvent -TaskId $TaskId -State Information -Message ("DISM.exe reported:`r`n{0}" -f $report) }
+
+    if ($stoppedSilent) {
+        $where = if ($lastPercent -ge 0) { " at $lastPercent%" } else { '' }
+        New-DREvent -TaskId $TaskId -State Warning -Message ("$Label did nothing{0} for {1} minutes (no processor or disk work), so the Cleaner stopped it. Windows was most likely busy with an update or waiting for a restart. Restart the PC, let Windows Update finish, then run it again. Nothing was changed." -f $where, $SilentLimitMinutes)
+        return
+    }
+    if ($stoppedTooLong) {
+        New-DREvent -TaskId $TaskId -State Warning -Message ("$Label was still not finished after $MaxTotalMinutes minutes, so the Cleaner stopped it. Restart the PC, let Windows Update finish, then run it again.")
+        return
+    }
+
+    $flat = ($text -replace '\s+', ' ')
+    if ($null -eq $exitCode) { throw "$Label did not report a result. It was most likely stopped before it finished." }
+    if ($exitCode -eq 0) {
+        if ($flat -match 'corruption was repaired') { New-DREvent -TaskId $TaskId -State Information -Message 'Windows found damage in its component store and repaired it. Restart the PC to finish.' }
+        elseif ($flat -match 'No component store corruption detected') { New-DREvent -TaskId $TaskId -State Information -Message 'The Windows component store is healthy. Nothing needed repairing.' }
+        else { New-DREvent -TaskId $TaskId -State Information -Message "$Label finished." }
+        return
+    }
+    if ($exitCode -eq 3010) { New-DREvent -TaskId $TaskId -State Warning -Message "$Label finished. Restart the PC to complete it."; return }
+    $hex = '0x{0:X8}' -f [BitConverter]::ToUInt32([BitConverter]::GetBytes([int32]$exitCode), 0)
+    if ($hex -in '0x800F081F', '0x800F0906', '0x800F0950') {
+        throw "Windows could not download the files it needs to repair itself ($hex). Check the internet connection and that Windows Update works, then run $Label again."
+    }
+    if ($hex -eq '0x800F0922' -or $flat -match 'pending') {
+        throw "Windows has an update or repair waiting for a restart ($hex). Restart the PC and run $Label again."
+    }
+    throw "$Label finished with error $hex."
+}
+
 # System File Checker. sfc.exe on its own could sit for ever: it waits silently behind any other Windows repair
 # (DISM, Windows Update) that holds the servicing engine, and the old run gave no sign of life the whole time.
 # This version runs the real 64-bit sfc, waits for other repairs first, shows sfc's own percentage while it
@@ -5437,8 +5600,8 @@ function Invoke-DRTask {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: restore point was not created.' }
                 else { Write-DRRestorePointResult -TaskId $TaskId -Result (Save-DRRestorePoint -Description 'DRDirect PC Cleaner - Before Maintenance') }
             }
-            'repair.dism-health' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath 'DISM.exe' -Arguments @('/Online','/Cleanup-Image','/RestoreHealth') -TestRoot $TestRoot | Out-Null }
-            'repair.component-cleanup' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath 'DISM.exe' -Arguments @('/Online','/Cleanup-Image','/StartComponentCleanup') -TestRoot $TestRoot | Out-Null }
+            'repair.dism-health' { Invoke-DRDism -TaskId $TaskId -Arguments @('/Online','/Cleanup-Image','/RestoreHealth') -Label 'DISM RestoreHealth' -TestRoot $TestRoot }
+            'repair.component-cleanup' { Invoke-DRDism -TaskId $TaskId -Arguments @('/Online','/Cleanup-Image','/StartComponentCleanup') -Label 'DISM component cleanup' -TestRoot $TestRoot }
             'repair.sfc' { Invoke-DRSfc -TaskId $TaskId -TestRoot $TestRoot }
             'repair.font-cache' { Invoke-DRFontCacheReset -TaskId $TaskId -TestRoot $TestRoot }
             'repair.windows-update' { Invoke-DRWindowsUpdateReset -TaskId $TaskId -TestRoot $TestRoot }

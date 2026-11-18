@@ -4124,8 +4124,8 @@ function Update-DRElapsedDisplay {
     $elapsed = Format-DRElapsed -Span ((Get-Date) - $script:activeTaskStartedAt)
     $base = $script:activeTaskMessage
     if ([string]::IsNullOrWhiteSpace($base)) { $base = 'Working…' }
-    # System File Checker writes its real progress to a small file while it runs.
-    if ($script:activeTaskId -eq 'repair.sfc' -and $env:DRDIRECT_CHILD_PID_FILE) {
+    # System File Checker and DISM write their real progress to a small file while they run.
+    if ($script:activeTaskId -in @('repair.sfc', 'repair.dism-health', 'repair.component-cleanup') -and $env:DRDIRECT_CHILD_PID_FILE) {
         try {
             $sfcLive = $env:DRDIRECT_CHILD_PID_FILE + '.sfc'
             if ([System.IO.File]::Exists($sfcLive)) {

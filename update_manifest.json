@@ -1,7 +1,7 @@
 {
-  "version": "1.4.484",
-  "notes": "Rescue USB sticks show the DRDirect logo again in File Explorer, including sticks made on this PC and bigger USB sticks.",
-  "published": "2026-11-17T20:53:56.2421261-05:00",
+  "version": "1.4.485",
+  "notes": "DISM RestoreHealth now shows its real progress and can no longer sit for hours on \"Starting...\". If Windows leaves it idle, the Cleaner stops it and tells you what to do.",
+  "published": "2026-11-17T22:28:50.1172072-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "B488D4508F77D6EACBFB806D71D8067E72E9559928338569F0260E3B9D929E45",
-      "size": 1010840
+      "sha256": "0664C9D9EDEED94344AAB129EE6654A8AEDB8376C6D35288051127BD4E4BF6BA",
+      "size": 1010904
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "75E1ADE7A2E2DACFB88F60A1757A04711871E87F61A8923A976BADCDDFD43995",
-      "size": 371641
+      "sha256": "C7B4AA0031CCD2539295DF4F5ADF7FF36A260A82C273CA615EEA030AAC8E5F22",
+      "size": 380986
     },
     {
       "name": "DRDirect Updater.ps1",
