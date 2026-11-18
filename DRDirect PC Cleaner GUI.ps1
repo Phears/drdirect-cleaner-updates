@@ -1076,6 +1076,7 @@ $ErrorActionPreference = 'Stop'
                     <TextBlock x:Name="NavHeadFix" Text="FIX &amp; PROTECT" Foreground="#FFFF33" FontSize="12.5" FontWeight="ExtraBold" Margin="20,16,0,4"/>
                     <Button x:Name="NavRepair" Style="{StaticResource NavButton}" Foreground="#FFE600"><Grid HorizontalAlignment="Stretch"><TextBlock Text="⚒   Fix Windows 10/11" FontSize="16.5" VerticalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/><Viewbox Width="46" Height="46" Margin="0,-10,0,-10" HorizontalAlignment="Right" VerticalAlignment="Center" IsHitTestVisible="False" RenderTransformOrigin="0.5,0.5"><Viewbox.RenderTransform><TransformGroup><RotateTransform x:Name="NavWrenchSwing" Angle="0"/><TranslateTransform x:Name="NavWrenchHop" Y="0"/></TransformGroup></Viewbox.RenderTransform><Canvas Width="64" Height="64"><Canvas.Resources><LinearGradientBrush x:Key="FxSteelH" MappingMode="Absolute" StartPoint="27,0" EndPoint="37,0"><GradientStop Color="#8A97AB" Offset="0"/><GradientStop Color="#F4F8FF" Offset="0.3"/><GradientStop Color="#B9C6DA" Offset="0.55"/><GradientStop Color="#6D7B92" Offset="1"/></LinearGradientBrush><LinearGradientBrush x:Key="FxSteel" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#F4F8FF" Offset="0"/><GradientStop Color="#B9C6DA" Offset="0.5"/><GradientStop Color="#6D7B92" Offset="1"/></LinearGradientBrush><LinearGradientBrush x:Key="FxGold" StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFF4B8" Offset="0"/><GradientStop Color="#F2B91C" Offset="0.45"/><GradientStop Color="#9A6000" Offset="1"/></LinearGradientBrush></Canvas.Resources><Canvas.Effect><DropShadowEffect BlurRadius="7" ShadowDepth="4" Direction="270" Opacity="0.6"/></Canvas.Effect><Canvas><Canvas.RenderTransform><RotateTransform Angle="-42" CenterX="32" CenterY="32"/></Canvas.RenderTransform><Rectangle Canvas.Left="27" Canvas.Top="32" Width="10" Height="26" RadiusX="5" RadiusY="5" Fill="#7A4A00"/><Rectangle Canvas.Left="27" Canvas.Top="30" Width="10" Height="26" RadiusX="5" RadiusY="5" Fill="{StaticResource FxGold}" Stroke="#FFF6B8" StrokeThickness="1"/><Line X1="29.5" Y1="34" X2="29.5" Y2="52" Stroke="#B3FFFFFF" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/><Rectangle Canvas.Left="30.5" Canvas.Top="8" Width="3" Height="23" Fill="{StaticResource FxSteel}" Stroke="#6D7B92" StrokeThickness="0.6"/><Polygon Points="29.5,8 34.5,8 33.5,4 30.5,4" Fill="#B9C6DA" Stroke="#6D7B92" StrokeThickness="0.6"/></Canvas><Canvas><Canvas.RenderTransform><RotateTransform Angle="42" CenterX="32" CenterY="32"/></Canvas.RenderTransform><Line X1="32" Y1="26" X2="32" Y2="58" Stroke="#05215E" StrokeThickness="11" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/><Line X1="32" Y1="26" X2="32" Y2="58" Stroke="{StaticResource FxSteelH}" StrokeThickness="8" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/><Line X1="29.5" Y1="28" X2="29.5" Y2="56" Stroke="#CCFFFFFF" StrokeThickness="1.6" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/><Ellipse Canvas.Left="19.5" Canvas.Top="6.5" Width="25" Height="25" Fill="#05215E"/><Ellipse Canvas.Left="19.5" Canvas.Top="4.5" Width="25" Height="25" Fill="{StaticResource FxSteel}" Stroke="White" StrokeThickness="1"/><Rectangle Canvas.Left="27" Canvas.Top="3" Width="10" Height="12" Fill="#0A2E8A" Stroke="#05215E" StrokeThickness="1"/><Line X1="27.8" Y1="3" X2="27.8" Y2="14.5" Stroke="#9FC2F0" StrokeThickness="1"/><Path Data="M21,12 A12,12 0 0 1 29,5" Stroke="#E6FFFFFF" StrokeThickness="2.4" StrokeStartLineCap="Round" StrokeEndLineCap="Round"/></Canvas></Canvas></Viewbox></Grid></Button>
                     <Button x:Name="NavWinUsb" Style="{StaticResource NavButton}" Foreground="#FFE600" Content="⛨   Windows repair USB" ToolTip="Makes a Windows 11 install USB with Microsoft's own Media Creation Tool. Needs a USB stick of at least 8 GB. Everything on that stick is erased."/>
+                    <Button x:Name="NavWinUpdate" Style="{StaticResource NavButton}" Foreground="#FFE600" Content="⛨   Windows Update" ToolTip="Checks for Windows 10/11 updates and installs them, in its own window. A restart may be needed afterwards."/>
                     <Button x:Name="NavSecurity" Style="{StaticResource NavButton}" Foreground="#FFE600"><Grid><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Viewbox Width="30" Height="30" Margin="-4,-6,10,-6"><Canvas Width="48" Height="48"><Canvas.Effect><DropShadowEffect ShadowDepth="2" Direction="270" BlurRadius="3" Opacity="0.55"/></Canvas.Effect><Path Data="M24,4 L40,10 L40,24 C40,33 33,40 24,44 C15,40 8,33 8,24 L8,10 Z" Stroke="#8A4B00" StrokeThickness="1"><Path.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFF59A" Offset="0"/><GradientStop Color="#FFD21F" Offset="0.45"/><GradientStop Color="#E58A00" Offset="1"/></LinearGradientBrush></Path.Fill></Path><Path Data="M24,9 L35,13 L35,24 C35,30.5 30.5,35.5 24,39 C17.5,35.5 13,30.5 13,24 L13,13 Z"><Path.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#3A64A0" Offset="0"/><GradientStop Color="#0E2144" Offset="1"/></LinearGradientBrush></Path.Fill></Path><Path Data="M19.5,23 L19.5,20 A4.5,4.5 0 0 1 28.5,20 L28.5,23" Stroke="#C9D3E3" StrokeThickness="3" Fill="Transparent"/><Rectangle Canvas.Left="16.5" Canvas.Top="22.5" Width="15" Height="12" RadiusX="3" RadiusY="3" Stroke="#8A4B00" StrokeThickness="0.8"><Rectangle.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#FFF59A" Offset="0"/><GradientStop Color="#FFD21F" Offset="0.45"/><GradientStop Color="#E58A00" Offset="1"/></LinearGradientBrush></Rectangle.Fill></Rectangle><Ellipse Canvas.Left="22.3" Canvas.Top="26.3" Width="3.4" Height="3.4" Fill="#5A3300"/><Path Data="M24,9 L13,13 L13,22 C18,20 24,19 35,17 L35,13 Z" Opacity="0.5"><Path.Fill><LinearGradientBrush StartPoint="0,0" EndPoint="0,1"><GradientStop Color="#E6FFFFFF" Offset="0"/><GradientStop Color="#00FFFFFF" Offset="1"/></LinearGradientBrush></Path.Fill></Path></Canvas></Viewbox><TextBlock Grid.Column="1" TextWrapping="Wrap" VerticalAlignment="Center" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"><Run Text="Check my "/><Run Text="security and privacy" Foreground="#00FF2E" FontWeight="ExtraBold"/></TextBlock></Grid></Button>
                     <Button x:Name="NavFullScan" Style="{StaticResource NavButton}" Foreground="#FFE600" Content="⛨   Full scan only" ToolTip="Runs one Microsoft Defender full scan and nothing else. It can take a long time."/>
                     <Button x:Name="NavSmartApp" Style="{StaticResource NavButton}" Foreground="#FFE600" Content="⛨   Smart App Control" ToolTip="Opens the Windows page where Smart App Control is switched on or off. The Cleaner changes nothing itself."/>
@@ -1498,7 +1499,7 @@ $window.Add_Closing({
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
 $ui = @{}
-@('PauseRunButton','EstimateTimeButton','NavPinned','RunLevelPanel','RunLevelEta','RunLevelBadge','RunLevelName','RunLevelBar','RunLevelLeft','NavBroomTilt','NavBroomEdge','NavBroomHandle','StartHereRow','PresetSafeBar','PresetMediumBar','PresetAdvancedBar','PresetSafeLeft','PresetMediumLeft','PresetAdvancedLeft','PlanScroll','PlanMoreUp','PlanMoreDown','NavMoreUp','BannerBroomSafe','BannerBroomMedium','BannerBroomAdvanced','BannerBroomAdvanced2','NavModeText','ScanBroomSafe','ScanBroomMedium','ScanBroomAdvanced','ScanBroomAdvanced2','NavScroll','NavMoreHint','NavHeadClean','NavHeadFix','NavHeadCheck','DashMoreHint','DashShowAllButton','NavModeToggle','NavHeadUpdate','DashOtherTitle','DashOtherGrid','DashMsTools','SmartAppControlButton','NavSmartApp','NavWinUsb','NavFullScan','DashMoreOptions','SoundSwitch','Max3DSwitch','CrazyNuttySwitch','DashNoteButton','NavNoteButton','ResetReliabilityButton','ClockBox','ClockTime','ClockDate','ReadmeIconButton','HeroToolsHint','QuickLightA','QuickLightB','FullLightA','FullLightB','ProtectedPill','SidebarLogo','TitleLogo','AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavPowerHeat','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripCleaning','RunStripHint','NavCleanDust','ScanDustSafe','ScanDustMedium','ScanDustAdvanced','ScanDustAdvanced2','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','LastCleanCard','LastCleanLightBlue','LastCleanLightRed','LastCleanValue','LastCleanHint','LastCleanQuickScan','LastCleanFullScan','CleanCheckAllButton','CleanCheckOffButton','PresetSafeDate','PresetMediumDate','PresetAdvancedDate','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','GearBlueShadow','GearBlue','GearGoldShadow','GearGold','ConfirmLevelBadge','CleaningHeader','FunnyLine','BannerWrench','WrenchSwing','RobotSway','RobotHop','RobotArmL','RobotArmR','NavWrenchSwing','NavWrenchHop','WrenchHop','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch','NavDriveCopy','NavHeadBackup') | ForEach-Object { $ui[$_] = Get-Control $_ }
+@('PauseRunButton','EstimateTimeButton','NavPinned','RunLevelPanel','RunLevelEta','RunLevelBadge','RunLevelName','RunLevelBar','RunLevelLeft','NavBroomTilt','NavBroomEdge','NavBroomHandle','StartHereRow','PresetSafeBar','PresetMediumBar','PresetAdvancedBar','PresetSafeLeft','PresetMediumLeft','PresetAdvancedLeft','PlanScroll','PlanMoreUp','PlanMoreDown','NavMoreUp','BannerBroomSafe','BannerBroomMedium','BannerBroomAdvanced','BannerBroomAdvanced2','NavModeText','ScanBroomSafe','ScanBroomMedium','ScanBroomAdvanced','ScanBroomAdvanced2','NavScroll','NavMoreHint','NavHeadClean','NavHeadFix','NavHeadCheck','DashMoreHint','DashShowAllButton','NavModeToggle','NavHeadUpdate','DashOtherTitle','DashOtherGrid','DashMsTools','SmartAppControlButton','NavSmartApp','NavWinUsb','NavWinUpdate','NavFullScan','DashMoreOptions','SoundSwitch','Max3DSwitch','CrazyNuttySwitch','DashNoteButton','NavNoteButton','ResetReliabilityButton','ClockBox','ClockTime','ClockDate','ReadmeIconButton','HeroToolsHint','QuickLightA','QuickLightB','FullLightA','FullLightB','ProtectedPill','SidebarLogo','TitleLogo','AISearchBox','AISearchText','AISearchHint','RestartDelayPanel','RestartDelayCombo','CustomTitleBar','TitleDragArea','TitleMinButton','TitleMaxButton','TitleCloseButton','NavDashboard','NavCleanup','NavRepair','NavSecurity','NavHealth','NavMemory','NavPowerHeat','NavSpeed','NavHibernate','UpdateBanner','UpdateBannerText','DiskWarning','DiskWarningTitle','DiskWarningMore','UpdateBannerButton','HeroUpdateButton','RunRestartPanel','RunRestartCombo','RunStrip','RunStripTitle','RunStripDetail','RunStripCleaning','RunStripHint','NavCleanDust','ScanDustSafe','ScanDustMedium','ScanDustAdvanced','ScanDustAdvanced2','RunStripBar','NavHistory','NavProgress','ActivateButton','ActivateWrap','ActivateScale','TrialCountdown','AdminStatus','VersionText','PageTitle','PageEyebrow','FreeSpaceText','WindowsStatusText','LastCleanCard','LastCleanLightBlue','LastCleanLightRed','LastCleanValue','LastCleanHint','LastCleanQuickScan','LastCleanFullScan','CleanCheckAllButton','CleanCheckOffButton','PresetSafeDate','PresetMediumDate','PresetAdvancedDate','ScanButton','HealthCheckButton','HealthCard','HealthIconBox','HealthIcon','HealthLabel','WindowsStatusHint','LastReportButton','TestModeBanner','PageDashboard','PageTasks','TaskIntro','SelectionSummary','CleanupPresetPanel','PresetSafe','PresetMedium','PresetAdvanced','PresetDescription','TaskList','ReviewButton','PageProgress','ProgressScanLevel','ProgressHeading','ProgressMessage','ProgressPercent','OverallProgress','ProgressList','CleaningAnimation','CleaningCaption','CleanDone','CleanDoneScale','CleanDoneTick','CleanDoneSub','ProgressSafetyText','RestartButton','CancelPlanButton','PageHistory','OpenReportsButton','ClearHistoryButton','HistoryList','DashboardHistoryList','DashboardHistoryButton','NavHardware','PageHardware','PageAppUpdates','NavAppUpdates','AppUpdatesStatus','ListAppUpdatesButton','UpdateAllAppsButton','HardwareList','CheckDriversButton','PCManagerButton','NavDuplicates','NavUninstaller','HeroUninstallButton','NavAI','PageDuplicates','OpenDuplicatesButton','CheckUpdatesButton','DuplicateStatus','BusyOverlay','OverlayTitle','OverlayMessage','OverlayProgress','OverlayPercent','OverlayContinueButton','ConfirmOverlay','ConfirmList','ConfirmWarning','ConfirmWarningText','ConfirmationCheck','ConfirmBackButton','ConfirmRunButton','GearBlueShadow','GearBlue','GearGoldShadow','GearGold','ConfirmLevelBadge','CleaningHeader','FunnyLine','BannerWrench','WrenchSwing','RobotSway','RobotHop','RobotArmL','RobotArmR','NavWrenchSwing','NavWrenchHop','WrenchHop','SafeCleanButton','UndoAllButton','SafePreviewButton','SafePlanList','SafePlanRunButton','UndoAllDashButton','SafePlanTitle','SafePlanNote','SafeLevelSafeButton','SafeLevelMediumButton','SafeLevelAdvancedButton','Buttons3DSwitch','NavDriveCopy','NavHeadBackup') | ForEach-Object { $ui[$_] = Get-Control $_ }
 
 # A quiet 'done' beat when a plan finishes: the completion badge fades in with a
 # small bounce, its tick draws itself, and the results list eases into view.
@@ -6463,6 +6464,113 @@ if (-not $IsoPath) {
 }
 '@
 
+# The Rescue system is made on this PC from Microsoft's own free downloads (the Windows ADK Deployment Tools and its
+# Windows PE add-on), the same recipe as DRDirect's Build Rescue: Windows PE with PowerShell and .NET, plus the DRDirect
+# Rescue app. DRDirect never sends Microsoft's files; only DRDirect's own app files come from the update feed.
+# Microsoft's installers are downloaded from Microsoft, only run when Windows confirms Microsoft signed them, and
+# show Microsoft's own screens and licence terms.
+$script:DRRescueBuilder = @'
+if (-not $IsoPath) {
+    function Say-Build([string]$t) { $sync.Step = $t; $sync.N = $sync.N + 1 }
+    $kitsKey = 'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows Kits\Installed Roots'
+    function Get-AdkRoot { try { $k = [string](Get-ItemProperty -LiteralPath $kitsKey -Name KitsRoot10 -ErrorAction Stop).KitsRoot10; if ($k) { return (Join-Path $k 'Assessment and Deployment Kit') } } catch { }; '' }
+    function Get-MsInstaller([string]$Url, [string]$Name) {
+        $f = Join-Path $env:TEMP $Name
+        Remove-Item -LiteralPath $f -Force -ErrorAction SilentlyContinue
+        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+        $wc = New-Object Net.WebClient
+        try { $wc.DownloadFile($Url, $f) } finally { $wc.Dispose() }
+        $sig = Get-AuthenticodeSignature -LiteralPath $f
+        if ([string]$sig.Status -ne 'Valid' -or -not $sig.SignerCertificate -or ([string]$sig.SignerCertificate.Subject -notmatch '(^|,\s*)O=Microsoft Corporation(,|$)')) {
+            Remove-Item -LiteralPath $f -Force -ErrorAction SilentlyContinue
+            throw "$Name could not be confirmed as Microsoft's, so it was not run. Nothing was changed on the USB."
+        }
+        $f
+    }
+    $adk = Get-AdkRoot
+    $setEnv = if ($adk) { Join-Path $adk 'Deployment Tools\DandISetEnv.bat' } else { '' }
+    if (-not $setEnv -or -not (Test-Path -LiteralPath $setEnv)) {
+        Say-Build "Getting Microsoft's Windows ADK. Microsoft's installer opens - follow it (keep Deployment Tools ticked)."
+        $f = Get-MsInstaller 'https://go.microsoft.com/fwlink/?linkid=2289980' 'adksetup.exe'
+        $null = Start-Process -FilePath $f -ArgumentList '/features', 'OptionId.DeploymentTools', '/ceip', 'off', '/norestart' -Wait -PassThru
+        Remove-Item -LiteralPath $f -Force -ErrorAction SilentlyContinue
+        $adk = Get-AdkRoot
+        $setEnv = if ($adk) { Join-Path $adk 'Deployment Tools\DandISetEnv.bat' } else { '' }
+        if (-not $setEnv -or -not (Test-Path -LiteralPath $setEnv)) { throw "Microsoft's Windows ADK (Deployment Tools) was not installed, so the Rescue system could not be made. Nothing was changed on the USB." }
+    }
+    $peRoot = Join-Path $adk 'Windows Preinstallation Environment'
+    if (-not (Test-Path -LiteralPath (Join-Path $peRoot 'amd64\en-us\winpe.wim'))) {
+        Say-Build "Getting Microsoft's Windows PE add-on. Microsoft's installer opens - follow it."
+        $f = Get-MsInstaller 'https://go.microsoft.com/fwlink/?linkid=2289981' 'adkwinpesetup.exe'
+        $null = Start-Process -FilePath $f -ArgumentList '/features', 'OptionId.WindowsPreinstallationEnvironment', '/ceip', 'off', '/norestart' -Wait -PassThru
+        Remove-Item -LiteralPath $f -Force -ErrorAction SilentlyContinue
+        if (-not (Test-Path -LiteralPath (Join-Path $peRoot 'amd64\en-us\winpe.wim'))) { throw "Microsoft's Windows PE add-on was not installed, so the Rescue system could not be made. Nothing was changed on the USB." }
+    }
+
+    # DRDirect's own Rescue app files, from the Cleaner's folders.
+    $app = @{}
+    foreach ($want in @(@('DRDirect Imager Engine.ps1', 'DRDirect Imager Engine.ps1'), @('Rescue.ps1', 'DRDirect Rescue.ps1'), @('Rescue.ps1', 'Rescue.ps1'), @('DRDirect Imager.ps1', 'DRDirect Imager.ps1'), @('DRDirect Logo.png', 'DRDirect Logo.png'))) {
+        if ($app.ContainsKey($want[0])) { continue }
+        foreach ($dir in $AppDirs) { if ($dir) { $s = Join-Path $dir $want[1]; if (Test-Path -LiteralPath $s -PathType Leaf) { $app[$want[0]] = $s; break } } }
+    }
+    foreach ($must in 'DRDirect Imager Engine.ps1', 'Rescue.ps1') { if (-not $app.ContainsKey($must)) { throw "The Rescue app file '$must' is missing on this PC. Check for updates in the Cleaner, then try again. Nothing was changed on the USB." } }
+
+    $dism = Join-Path $env:WINDIR 'System32\dism.exe'
+    $work = 'C:\DRRescueBuild'          # short path with no spaces: DISM refuses long ones
+    $mount = Join-Path $work 'mount'
+    $ocsShort = 'C:\DRRescueOCs'
+    function Run-Dism { & $dism @args | Out-Null; if ($LASTEXITCODE -ne 0) { throw "Making the Rescue system failed (DISM code $LASTEXITCODE). Nothing was changed on the USB." } }
+    & $dism /Cleanup-Mountpoints | Out-Null
+    if (Test-Path -LiteralPath $work) { & $dism /Unmount-Image "/MountDir:$mount" /Discard | Out-Null; Remove-Item -LiteralPath $work -Recurse -Force }
+
+    Say-Build 'Making the Rescue system: the base...'
+    $null = cmd /c "`"$setEnv`" && copype amd64 `"$work`"" 2>&1
+    $wim = Join-Path $work 'media\sources\boot.wim'
+    if (-not (Test-Path -LiteralPath $wim)) { throw 'Making the Rescue system failed (copype). Nothing was changed on the USB.' }
+    $null = New-Item -ItemType Directory -Force -Path $mount
+    Run-Dism /Mount-Image "/ImageFile:$wim" /Index:1 "/MountDir:$mount"
+    $committed = $false
+    try {
+        if (Test-Path -LiteralPath $ocsShort) { Remove-Item -LiteralPath $ocsShort -Recurse -Force }
+        Copy-Item -LiteralPath (Join-Path $peRoot 'amd64\WinPE_OCs') -Destination $ocsShort -Recurse
+        foreach ($pkg in 'WinPE-WMI', 'WinPE-NetFx', 'WinPE-Scripting', 'WinPE-PowerShell', 'WinPE-StorageWMI', 'WinPE-DismCmdlets') {
+            Say-Build "Making the Rescue system: adding $($pkg.Substring(6))..."
+            Run-Dism "/Image:$mount" /Add-Package "/PackagePath:$(Join-Path $ocsShort "$pkg.cab")"
+            $lang = Join-Path $ocsShort "en-us\${pkg}_en-us.cab"
+            if (Test-Path -LiteralPath $lang) { Run-Dism "/Image:$mount" /Add-Package "/PackagePath:$lang" }
+        }
+        Say-Build 'Making the Rescue system: adding the DRDirect Rescue app...'
+        $dst = Join-Path $mount 'Imager'
+        $null = New-Item -ItemType Directory -Force -Path $dst
+        foreach ($k in $app.Keys) { Copy-Item -LiteralPath $app[$k] -Destination (Join-Path $dst $k) -Force }
+        # The fast engine, compiled now so the Rescue system needs no compiler (in its own process, so nothing clashes here).
+        $text = [IO.File]::ReadAllText($app['DRDirect Imager Engine.ps1'])
+        $m = [regex]::Match($text, "(?s)\`$script:DRImgSource = @'\r?\n(.*?)\r?\n'@")
+        if (-not $m.Success) { $s0 = $text.IndexOf("@'") + 2; $e0 = $text.IndexOf("'@", $s0); $csharp = $text.Substring($s0, $e0 - $s0) } else { $csharp = $m.Groups[1].Value }
+        $srcFile = Join-Path $env:TEMP 'DRImgEngine-src.cs'
+        [IO.File]::WriteAllText($srcFile, $csharp)
+        $dll = Join-Path $dst 'DRImgEngine.dll'
+        & powershell.exe -NoProfile -Command "Add-Type -Language CSharp -TypeDefinition ([IO.File]::ReadAllText('$srcFile')) -OutputAssembly '$dll' -OutputType Library" | Out-Null
+        Remove-Item -LiteralPath $srcFile -Force -ErrorAction SilentlyContinue
+        if (-not (Test-Path -LiteralPath $dll)) { throw 'The fast engine could not be prepared for the Rescue system. Nothing was changed on the USB.' }
+        Set-Content -LiteralPath (Join-Path $mount 'Windows\System32\startnet.cmd') -Encoding ASCII -Value "wpeinit`r`npowershell -NoProfile -ExecutionPolicy Bypass -File X:\Imager\Rescue.ps1"
+        try { Run-Dism "/Image:$mount" "/Set-TimeZone:$((Get-TimeZone).Id)" } catch { }
+        Say-Build 'Making the Rescue system: saving it...'
+        Run-Dism /Unmount-Image "/MountDir:$mount" /Commit
+        $committed = $true
+    } finally {
+        if (-not $committed) { & $dism /Unmount-Image "/MountDir:$mount" /Discard | Out-Null }
+        Remove-Item -LiteralPath $ocsShort -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    # Kept on this PC, so the next Rescue USB is made straight away.
+    if (Test-Path -LiteralPath $SavedRescue) { Remove-Item -LiteralPath $SavedRescue -Recurse -Force }
+    $null = New-Item -ItemType Directory -Force -Path (Split-Path -Parent $SavedRescue)
+    Move-Item -LiteralPath (Join-Path $work 'media') -Destination $SavedRescue
+    Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue
+    $IsoPath = $SavedRescue
+}
+'@
+
 # When the last Rescue USB was made on this PC, so a lost or broken one is easy to replace.
 function Get-DRRescueUsbRecord {
     try {
@@ -7303,7 +7411,7 @@ function Show-DRDriveCopy {
                 $c.HeadA.Text = 'RESCUE SYSTEM'; $c.SubA.Text = '(starts this PC without Windows)'
                 $c.HeadB.Text = 'USB FLASH DRIVE'; $c.SubB.Text = '(becomes the Rescue USB)'
                 $last = Get-DRRescueUsbRecord
-                $c.ALabel.Text = if (-not (Find-DRRescueSource) -and -not $state.Demo) { "This PC does not have the Rescue system yet. Clone & Backup downloads it first (about $(Format-ImgSize $script:DRRescueDownload.Size), needs the internet), then erases and formats the USB and makes the Rescue USB." }
+                $c.ALabel.Text = if (-not (Find-DRRescueSource) -and -not $state.Demo) { "This PC does not have the Rescue system yet. Clone & Backup makes it first, from Microsoft's free Windows ADK and Windows PE add-on (downloaded from Microsoft, needs the internet), then erases and formats the USB and makes the Rescue USB." }
                     elseif ($last) { "Your last Rescue USB was made on $($last.When.ToString('d MMMM yyyy')) ($($last.What)).`nLost it or broken? Make a new one here, any time." }
                     else { "You do not have a Rescue USB yet. Make one now and keep it somewhere safe.`nLost it or broken later? Come back here and make a new one." }
                 if ($last) { $c.HeadA.Text = 'NEW RESCUE USB'; $c.Go.Content = [Net.WebUtility]::HtmlDecode('&#x25B6;  Make a new Rescue USB') }
@@ -7410,14 +7518,14 @@ function Show-DRDriveCopy {
                 & $setBig 'A' 'ISO'; & $setBig 'B' $(if ($u -and $u.Letters.Count) { "$($u.Letters[0]):" } elseif ($u) { 'USB' } else { '?' })
                 $state.RescueSrc = Find-DRRescueSource
                 $state.RescueDownload = (-not $state.RescueSrc -and -not $state.Demo)
-                $c.InfoA.Text = if ($state.RescueDownload) { "DRDirect Rescue system`n(downloaded first, about $(Format-ImgSize $script:DRRescueDownload.Size))" } elseif ($state.RescueSrc -match '^[A-Za-z]:\\$') { "DRDirect Rescue system`n(from the Rescue USB $($state.RescueSrc.Substring(0,2)))" } elseif ($state.RescueSrc) { 'DRDirect Rescue system' } else { 'Not found on this PC' }
+                $c.InfoA.Text = if ($state.RescueDownload) { "DRDirect Rescue system`n(made first on this PC, from Microsoft's downloads)" } elseif ($state.RescueSrc -match '^[A-Za-z]:\\$') { "DRDirect Rescue system`n(from the Rescue USB $($state.RescueSrc.Substring(0,2)))" } elseif ($state.RescueSrc) { 'DRDirect Rescue system' } else { 'Not found on this PC' }
                 $c.InfoB.Text = if ($u) { "$($u.Name)`n$(Format-ImgSize $u.Size)" } else { 'Plug in a USB flash drive you do not need.' }
                 if (-not $state.Usb.Count) { & $tip 'Plug in a USB stick (any size from 1 GB), then press Look again. A new one replaces a lost or broken Rescue USB.'; $c.Go.Content = [string][char]0x21BB + '  Look again'; $c.Go.IsEnabled = $true; $state.LookAgain = $true; return }
                 if (-not $u) { & $tip 'More than one USB flash drive is plugged in. Pick the one to use.'; return }
                 $ul = if ($u.Letters.Count) { "$($u.Letters[0]):" } else { 'the USB' }
                 if ($u.Files -gt 0) { & $tip "The USB holds $($u.Files) file(s), about $(Format-ImgSize $u.UsedBytes). Copy anything you want to keep first." }
                 if ($state.RescueDownload) {
-                    $c.Go.IsEnabled = (& $agree "rescue|$($u.Number)|dl" "2.  Yes, download the Rescue system, erase and format $ul and make the Rescue USB" "Everything on the USB is erased. It starts this PC only.")
+                    $c.Go.IsEnabled = (& $agree "rescue|$($u.Number)|dl" "2.  Yes, make the Rescue system, erase and format $ul and make the Rescue USB" "Everything on the USB is erased. It starts this PC only.")
                 } else {
                     $c.Go.IsEnabled = (& $agree "rescue|$($u.Number)" "2.  Yes, make the Rescue USB on $ul" "What is on the USB now will be replaced. It starts this PC only.")
                 }
@@ -7628,10 +7736,13 @@ function Show-DRDriveCopy {
                     $u = $state.Usb[$c.Dst.SelectedIndex]
                     $ul = if ($u.Letters.Count) { "$($u.Letters[0]):" } else { 'the USB' }
                     $state.RescueWhat = "$($u.Name), $(Format-ImgSize $u.Size)"
-                    $dlNote = if ($state.RescueDownload) { "`nThe Rescue system is downloaded first (about $(Format-ImgSize $script:DRRescueDownload.Size)). Keep the internet on." } else { '' }
+                    $dlNote = if ($state.RescueDownload) { "`n`nFirst the Rescue system is made on this PC. Microsoft's Windows ADK and Windows PE add-on are downloaded from Microsoft (a big download - keep the internet on). Microsoft's own installers open: follow them and accept Microsoft's licence terms there. This happens only once on this PC." } else { '' }
                     # A PC that updated with an older updater may be missing the Rescue USB app. Fetch it now,
                     # before anything is erased, so the USB is never wiped for nothing.
                     if (-not $state.Demo) {
+                        if ($state.RescueDownload -and (Get-Command Repair-DRSkippedUpdateFile -ErrorAction SilentlyContinue) -and -not (Test-Path -LiteralPath (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts\DRDirect Rescue.ps1'))) {
+                            try { $null = Repair-DRSkippedUpdateFile -Name 'DRDirect Rescue.ps1'; $null = Repair-DRSkippedUpdateFile -Name 'DRDirect Logo.png' } catch { }
+                        }
                         $imgApp = Join-Path (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts') 'DRDirect Imager.ps1'
                         if (-not (Test-Path -LiteralPath $imgApp -PathType Leaf) -and (Get-Command Repair-DRSkippedUpdateFile -ErrorAction SilentlyContinue)) {
                             $w.Cursor = [Windows.Input.Cursors]::Wait
@@ -7671,12 +7782,12 @@ function Show-DRDriveCopy {
                     $job = [pscustomobject]@{ Done = [long]0; Total = [long]$state.RescueSteps; FileDone = 0; FileTotal = 0; Finished = $false; Ok = $false; Error = $null; Cancel = $false }
                     if (-not $state.Demo) {
                         $rs = [runspacefactory]::CreateRunspace(); $rs.Open()
-                        foreach ($kv in @{ sync = $sync; DRImagerHome = $(if ($state.Home) { $state.Home } else { Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner' }); DiskNumber = $u.Number; IsoPath = $(if ($state.RescueSrc) { $state.RescueSrc } else { [string](Find-DRRescueSource) }); DlUrl = $script:DRRescueDownload.Url; DlSha = $script:DRRescueDownload.Sha256; DlTo = (Get-DRDownloadedRescueIso); ExpectLetter = $(if ($u.Letters.Count) { [string]$u.Letters[0] } else { '' }); WinIso = [string]$state.WinIso }.GetEnumerator()) {
+                        foreach ($kv in @{ sync = $sync; DRImagerHome = $(if ($state.Home) { $state.Home } else { Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner' }); DiskNumber = $u.Number; IsoPath = $(if ($state.RescueSrc) { $state.RescueSrc } else { [string](Find-DRRescueSource) }); DlUrl = $script:DRRescueDownload.Url; DlSha = $script:DRRescueDownload.Sha256; DlTo = (Get-DRDownloadedRescueIso); ExpectLetter = $(if ($u.Letters.Count) { [string]$u.Letters[0] } else { '' }); WinIso = [string]$state.WinIso; SavedRescue = (Get-DRSavedRescueFolder); AppDirs = @($(if ($state.Home) { $state.Home }), $(if ($state.Home) { Join-Path $state.Home 'DRDirect Imager' }), (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner\Scripts'), (Join-Path $env:LOCALAPPDATA 'DRDirect PC Cleaner'), $(if ($PSScriptRoot) { Join-Path $PSScriptRoot 'DRDirect Imager' }), $PSScriptRoot) }.GetEnumerator()) {
                             $rs.SessionStateProxy.SetVariable($kv.Key, $kv.Value)
                         }
                         $ps = [powershell]::Create(); $ps.Runspace = $rs
                         $body = "try {`n" + (Get-DRImagerEngineText) + "`n" + $script:DRRescueUsbWriter.Replace('$PSScriptRoot', '$DRImagerHome') + "`n" +
-                            $script:DRRescueDownloader + "`n" +
+                            $script:DRRescueBuilder + "`n" +
                             '$sync.Result = Write-RescueUsb -DiskNumber $DiskNumber -IsoPath $IsoPath -ExpectLetter $ExpectLetter -Say { param($t) $sync.Step = $t; $sync.N = $sync.N + 1 }' + "`n" +
                             'if ($WinIso -and $sync.Result.Ok) { $wr = Add-DRWindowsSetup -Root ($sync.Result.Letter + ''\'') -WinIso $WinIso -Say { param($t) $sync.Step = $t; $sync.N = $sync.N + 1 }; $sync.Result.Message = $sync.Result.Message + $(if ($wr.Ok) { "`n" + $wr.Message } else { "`nWindows was NOT added: " + $wr.Message + "`nThe Rescue part works as usual." }) }' +
                             "`n} catch { `$sync.Result = @{ Ok = `$false; Message = ""It did not finish: `$(`$_.Exception.Message)"" } } finally { `$sync.Done = `$true }"
@@ -8003,7 +8114,7 @@ try {
 } catch { }
 
 # Simple view for a first-time person: one big button and a short menu. Every tool is one click away.
-$script:DRSimpleHidden = @('NavFullScan','NavSmartApp','NavWinUsb','NavSpeed','NavDuplicates','NavHibernate','NavUninstaller','NavSecurity','NavHealth','NavMemory','NavPowerHeat','NavHardware','NavHeadClean','NavHeadFix','NavHeadCheck',
+$script:DRSimpleHidden = @('NavFullScan','NavSmartApp','NavWinUsb','NavWinUpdate','NavSpeed','NavDuplicates','NavHibernate','NavUninstaller','NavSecurity','NavHealth','NavMemory','NavPowerHeat','NavHardware','NavHeadClean','NavHeadFix','NavHeadCheck',
     'DashOtherTitle','DashOtherGrid','DashMsTools','DashMoreOptions')
 function Set-DRUiMode {
     param([bool]$Simple)
@@ -8516,6 +8627,76 @@ function Start-DRWindowsInstallUsb {
     $script:DRWinUsbTimer.Start()
 }
 $ui.NavWinUsb.Add_Click({ Start-DRWindowsInstallUsb })
+
+# ---------- Windows Update: check for and install Windows 10/11 updates ----------
+# Uses Windows' own Windows Update service (the same one Settings uses), in its own window so every step shows.
+# Only software updates; drivers are left to Windows' normal schedule. Nothing is sent anywhere by the Cleaner.
+function Start-DRWindowsUpdate {
+    $q = "Check for Windows updates and install them now?`n`n" +
+        "Windows' own Windows Update does the work, in a separate window that shows each update. " +
+        "Microsoft's licence terms for the updates are accepted, the same as Windows Update in Settings does.`n`n" +
+        "You can keep using the PC. If an update needs a restart, the window says so - nothing restarts by itself."
+    $a = [Windows.MessageBox]::Show($q, 'DRDirect PC Cleaner - Windows Update', 'YesNo', 'Question')
+    if ($a -ne 'Yes') { return }
+    $script = @'
+$Host.UI.RawUI.WindowTitle = 'DRDirect PC Cleaner - Windows Update'
+$clock = [Diagnostics.Stopwatch]::StartNew()
+try {
+    Write-Host ''
+    Write-Host '  DRDirect PC Cleaner - Windows Update' -ForegroundColor Cyan
+    Write-Host ''
+    Write-Host '  Looking for Windows updates...' -ForegroundColor Yellow
+    $session = New-Object -ComObject Microsoft.Update.Session
+    $session.ClientApplicationID = 'DRDirect PC Cleaner'
+    $found = $session.CreateUpdateSearcher().Search("IsInstalled=0 and IsHidden=0 and Type='Software'")
+    if ($found.Updates.Count -eq 0) {
+        Write-Host ''
+        Write-Host '  Windows is up to date. Nothing to install.' -ForegroundColor Green
+    } else {
+        $list = New-Object -ComObject Microsoft.Update.UpdateColl
+        foreach ($u in $found.Updates) { if (-not $u.EulaAccepted) { $u.AcceptEula() }; [void]$list.Add($u); Write-Host ('   - ' + $u.Title) }
+        Write-Host ''
+        Write-Host ('  Downloading {0} update(s)...' -f $list.Count) -ForegroundColor Yellow
+        $dl = $session.CreateUpdateDownloader(); $dl.Updates = $list; [void]$dl.Download()
+        $ready = New-Object -ComObject Microsoft.Update.UpdateColl
+        foreach ($u in $list) { if ($u.IsDownloaded) { [void]$ready.Add($u) } }
+        if ($ready.Count -eq 0) { throw 'The updates could not be downloaded. Check that the internet is on.' }
+        Write-Host ('  Installing {0} update(s)...' -f $ready.Count) -ForegroundColor Yellow
+        $inst = $session.CreateUpdateInstaller(); $inst.Updates = $ready
+        $res = $inst.Install()
+        Write-Host ''
+        for ($k = 0; $k -lt $ready.Count; $k++) {
+            $code = $res.GetUpdateResult($k).ResultCode
+            $word = switch ($code) { 2 { 'Installed' } 3 { 'Installed (with warnings)' } 4 { 'FAILED' } 5 { 'Stopped' } default { 'Not done' } }
+            $colour = if ($code -in 2, 3) { 'Green' } else { 'Red' }
+            Write-Host ('   {0,-26} {1}' -f $word, $ready.Item($k).Title) -ForegroundColor $colour
+        }
+        Write-Host ''
+        if ($res.RebootRequired) { Write-Host '  Restart the PC to finish installing the updates.' -ForegroundColor Cyan }
+        else { Write-Host '  Done. No restart is needed.' -ForegroundColor Green }
+    }
+} catch {
+    Write-Host ''
+    Write-Host ('  Windows Update could not finish: ' + $_.Exception.Message) -ForegroundColor Red
+    Write-Host '  Opening Windows Update in Settings instead.'
+    try { Start-Process 'ms-settings:windowsupdate' } catch { }
+}
+$t = [TimeSpan]::FromSeconds([Math]::Round($clock.Elapsed.TotalSeconds))
+Write-Host ''
+Write-Host ('  Time taken: {0} min {1} sec' -f [int][Math]::Floor($t.TotalMinutes), $t.Seconds)
+Write-Host ''
+Read-Host '  Press Enter to close this window'
+'@
+    try {
+        $encoded = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($script))
+        # Installing Windows updates needs administrator rights; Windows asks if the Cleaner does not have them.
+        Start-Process -FilePath 'powershell.exe' -Verb RunAs -ArgumentList '-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $encoded | Out-Null
+    } catch {
+        [Windows.MessageBox]::Show("Windows Update could not be started: $($_.Exception.Message)`n`nOpening Windows Update in Settings instead.", 'DRDirect PC Cleaner - Windows Update', 'OK', 'Warning') | Out-Null
+        try { Start-Process 'ms-settings:windowsupdate' } catch { }
+    }
+}
+$ui.NavWinUpdate.Add_Click({ Start-DRWindowsUpdate })
 # One button, one job: only the Defender full scan runs. Nothing ticked elsewhere is added to it.
 $ui.NavFullScan.Add_Click({ Invoke-DRAIRunNow -TaskIds @('security.full-scan') })
 $ui.NavHistory.Add_Click({ Set-Page 'History' })

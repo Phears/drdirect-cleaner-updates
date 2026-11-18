@@ -1,7 +1,7 @@
 {
-  "version": "1.4.482",
-  "notes": "Cleaning is faster and safer (never goes through folder links). In Windows Safe Mode, restore points and Defender scans are skipped with a note. New Windows repair USB button under Fix & Protect. Clone & Backup: the Rescue USB can now also hold Windows install or repair (USB of 16 GB or more).",
-  "published": "2026-11-17T14:14:56.5942860-05:00",
+  "version": "1.4.483",
+  "notes": "System File Checker can no longer get stuck: if Windows is busy with an update it stops and says to restart. New Windows Update button under Fix & Protect. The Rescue USB now makes its Rescue system on this PC from Microsoft's own free downloads. New Fix start-up button on the Rescue USB screen repairs a PC that will not start.",
+  "published": "2026-11-17T19:51:10.8651005-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,18 +10,18 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "AB2BDF5E9FCE12D7F6615CE01C4A00B518FA66C5545FB71C1547F8F27194A581",
-      "size": 993674
+      "sha256": "193EDA36F28BA58A969D4146D9778E7EB05FDB9410EE7EAA2045A3D539C063A6",
+      "size": 1007849
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "4F7A43D2F31F953426D72E1D536B487B139EFA3BB610F2A9143EEEE2BBEB16A8",
-      "size": 369799
+      "sha256": "75E1ADE7A2E2DACFB88F60A1757A04711871E87F61A8923A976BADCDDFD43995",
+      "size": 371641
     },
     {
       "name": "DRDirect Updater.ps1",
-      "sha256": "D109EC04D0089FA93D41F22BD411A0A5047AC6A4C60588B3EEE7E411A90AB56F",
-      "size": 64139
+      "sha256": "CFD4F563D1A788B93C02855A5E13EC46C816D1A2185361BCE4D3006B6FAFCD3D",
+      "size": 64353
     },
     {
       "name": "DRDirect Activation.ps1",
@@ -37,6 +37,16 @@
       "name": "DRDirect Imager.ps1",
       "sha256": "698DA3A0E622D9E2955DF7D3460CC1F34553653B3CD01063AF916B4C738C8C8F",
       "size": 70052
+    },
+    {
+      "name": "DRDirect Rescue.ps1",
+      "sha256": "F1D4082132429D2F74707D05FE5F616420B30E1B0BED88327AB89A92BBFFDCC8",
+      "size": 72095
+    },
+    {
+      "name": "DRDirect Logo.png",
+      "sha256": "33F56F67BE948ED1D2996D9C1F81BC9B576E1F4180089202194DEDE81459CA63",
+      "size": 37612
     },
     {
       "name": "DRDirectCleaner.ico",

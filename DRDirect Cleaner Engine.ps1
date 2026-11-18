@@ -1322,7 +1322,7 @@ function Set-DRSfcLiveText {
 }
 
 function Invoke-DRSfc {
-    param([string]$TaskId, [string]$TestRoot, [int]$WaitForOthersMinutes = 20, [int]$SilentLimitMinutes = 45)
+    param([string]$TaskId, [string]$TestRoot, [int]$WaitForOthersMinutes = 20, [int]$SilentLimitMinutes = 45, [int]$StuckPercentMinutes = 30, [int]$NoPercentMinutes = 60, [int]$MaxTotalMinutes = 180)
     if ($TestRoot) {
         New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: System File Checker was not run.'
         return
@@ -1367,7 +1367,12 @@ function Invoke-DRSfc {
     $all = New-Object System.Text.StringBuilder
     $exitCode = $null
     $stoppedSilent = $false
+    $stuckAtPercent = $false
     $lastPercent = -1
+    # When sfc's percentage last moved. Windows' update engine can keep the processor busy for hours while sfc
+    # waits behind it at the same percentage (seen on an end user's laptop), so busy is not the same as moving.
+    $sfcStarted = Get-Date
+    $lastPercentMove = Get-Date
     try {
         [void]$process.Start()
         Set-DRActiveChildProcess -ProcessId $process.Id
@@ -1379,6 +1384,16 @@ function Invoke-DRSfc {
         $lastCpuCheck = Get-Date
         $readTask = $reader.ReadAsync($buffer, 0, $buffer.Length)
         while ($true) {
+            $sinceMove = ((Get-Date) - $lastPercentMove).TotalMinutes
+            if (($lastPercent -ge 0 -and $lastPercent -lt 100 -and $sinceMove -ge $StuckPercentMinutes) -or
+                ($lastPercent -lt 0 -and ((Get-Date) - $sfcStarted).TotalMinutes -ge $NoPercentMinutes) -or
+                (((Get-Date) - $sfcStarted).TotalMinutes -ge $MaxTotalMinutes)) {
+                # Hard limits that nothing else can extend, so System File Checker can never run on for ever.
+                # The percentage has not moved for a long time: sfc is waiting behind Windows, not checking files.
+                $stuckAtPercent = $true
+                try { $process.Kill() } catch { }
+                break
+            }
             if ($readTask.Wait(2000)) {
                 $count = $readTask.Result
                 if ($count -le 0) { break }   # sfc closed its output: it has finished
@@ -1392,6 +1407,7 @@ function Invoke-DRSfc {
                     $pct = [int]$found[$found.Count - 1].Groups[1].Value
                     if ($pct -ne $lastPercent -and $pct -le 100) {
                         $lastPercent = $pct
+                        $lastPercentMove = Get-Date
                         $lastNews = Get-Date
                         Set-DRSfcLiveText ('Checking Windows system files: {0}% done' -f $pct)
                     }
@@ -1431,6 +1447,12 @@ function Invoke-DRSfc {
     $report = Format-DROutputForLog -Text $text
     if ($report) { New-DREvent -TaskId $TaskId -State Information -Message ("sfc.exe reported:`r`n{0}" -f $report) }
 
+    if ($stuckAtPercent) {
+        $ranFor = [int]((Get-Date) - $sfcStarted).TotalMinutes
+        $where = if ($ranFor -ge $MaxTotalMinutes) { "was still not finished after $MaxTotalMinutes minutes" } elseif ($lastPercent -ge 0) { "stayed at $lastPercent% for $StuckPercentMinutes minutes" } else { "showed no progress for $NoPercentMinutes minutes" }
+        New-DREvent -TaskId $TaskId -State Warning -Message ("System File Checker $where, so the Cleaner stopped it. Windows is most likely busy installing an update. Let Windows Update finish (Settings > Windows Update), restart the PC, then run System File Checker again. Nothing was changed.")
+        return
+    }
     if ($stoppedSilent) {
         $where = if ($lastPercent -ge 0) { " at $lastPercent%" } else { '' }
         New-DREvent -TaskId $TaskId -State Warning -Message ("System File Checker made no progress{0} for {1} minutes, so the Cleaner stopped waiting for it. Windows was most likely busy installing an update. Restart the PC and run it again." -f $where, $SilentLimitMinutes)

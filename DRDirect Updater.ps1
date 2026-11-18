@@ -67,6 +67,10 @@ $script:DRUpdatableFiles = @(
     'DRDirect Imager Engine.ps1',
     # The Clone & Backup app that goes on each Rescue USB.
     'DRDirect Imager.ps1',
+    # The Rescue screen and logo: the Cleaner builds the Rescue system on each PC from Microsoft's own
+    # downloads and puts these DRDirect files into it.
+    'DRDirect Rescue.ps1',
+    'DRDirect Logo.png',
     # The Uninstaller is a separate program, so it travels as one package. It is
     # only stored here; Update-DRUninstallerFromFeed puts it in place.
     'DRDirect Uninstaller.zip'
