@@ -6122,6 +6122,41 @@ function Open-DRUninstaller {
     }
 }
 # ---------- DRDirect Clone & Backup inside the Cleaner: SmartCopy, Secure, Check, Restore, Rescue USB ----------
+# Clone & Backup keeps the PC awake and at full speed while it works. Without this, an end user's PC went to
+# sleep part-way through Secure (nothing is read or written while asleep) and Windows' power saving slowed the
+# Cleaner down when its window was in the background, so one image took 24 hours.
+function Set-DRStayAwake {
+    param([bool]$On)
+    try {
+        if (-not ('DRDirect.StayAwake' -as [type])) {
+            Add-Type -Namespace DRDirect -Name StayAwake -MemberDefinition @'
+[DllImport("kernel32.dll")] public static extern uint SetThreadExecutionState(uint flags);
+[DllImport("kernel32.dll")] public static extern IntPtr GetCurrentProcess();
+[DllImport("kernel32.dll", SetLastError = true)] public static extern bool SetProcessInformation(IntPtr process, int infoClass, ref PowerThrottling info, int size);
+[StructLayout(LayoutKind.Sequential)] public struct PowerThrottling { public uint Version; public uint ControlMask; public uint StateMask; }
+public static void Throttle(bool allow)
+{
+    // ProcessPowerThrottling = 4; EXECUTION_SPEED = 1. Mask set with state 0 = never slow this process down;
+    // mask 0 = Windows decides again, as it normally does.
+    PowerThrottling p = new PowerThrottling(); p.Version = 1; p.ControlMask = allow ? 0u : 1u; p.StateMask = 0;
+    SetProcessInformation(GetCurrentProcess(), 4, ref p, Marshal.SizeOf(typeof(PowerThrottling)));
+}
+'@ -ErrorAction Stop
+        }
+        # ES_CONTINUOUS | ES_SYSTEM_REQUIRED (no sleep). The screen may still turn off, which is fine.
+        if ($On) { [void][DRDirect.StayAwake]::SetThreadExecutionState([uint32]2147483649); [DRDirect.StayAwake]::Throttle($false) }
+        else { [void][DRDirect.StayAwake]::SetThreadExecutionState([uint32]2147483648); [DRDirect.StayAwake]::Throttle($true) }
+    } catch { }
+}
+
+# Hours keep counting past 24 (hh:mm:ss would start again at 00 after a day).
+function Format-DRRunTime([TimeSpan]$Span) { '{0:00}:{1:00}:{2:00}' -f [int][Math]::Floor($Span.TotalHours), $Span.Minutes, $Span.Seconds }
+
+# True when a laptop is running on its battery (a desktop, or a laptop on the charger, gives false).
+function Test-DROnBattery {
+    try { return ([System.Windows.Forms.SystemInformation]::PowerStatus.PowerLineStatus -eq [System.Windows.Forms.PowerLineStatus]::Offline) } catch { return $false }
+}
+
 # The Imager engine is loaded only when this window opens, so the Cleaner starts as fast as before.
 # Its functions are made script-wide so the window's click handlers can see them.
 function Get-DRImagerEngineText {
@@ -7735,8 +7770,11 @@ function Show-DRDriveCopy {
                         $ext = Get-SmartExtents $d.Number $d.Size
                         if ($ext) { $bytes = 2MB; for ($i = 1; $i -lt $ext.Data.Count; $i += 2) { $bytes += $ext.Data[$i] } }
                     }
+                    if (-not $state.Demo -and (Test-DROnBattery)) {
+                        if (-not (& $ask "This laptop is running on its battery.`n`nSecure can take a long time, and if the battery runs out the image is lost. Please plug in the charger and keep the lid open until it is done.`n`nStart anyway?" 'Secure')) { & $backToForm; return }
+                    }
                     $whole = if ($ext -and $ext.Whole.Count) { "`n`nCopied whole, because they cannot be mapped: " + ($ext.Whole -join ', ') + '.' } else { '' }
-                    if (-not (& $ask "Secure $(Get-DriveWords $d) into:`n$($c.BPath.Text)`n`nOnly the used parts are read (about $(Format-ImgSize $bytes) of $(Format-ImgSize $d.Size)).$whole$demoNote`n`nStart?" 'Secure')) { & $backToForm; return }
+                    if (-not (& $ask "Secure $(Get-DriveWords $d) into:`n$($c.BPath.Text)`n`nOnly the used parts are read (about $(Format-ImgSize $bytes) of $(Format-ImgSize $d.Size)).$whole`n`nThe PC is kept awake until it is done. On a laptop, keep the lid open.$demoNote`n`nStart?" 'Secure')) { & $backToForm; return }
                     if ($state.Demo) { $job = [pscustomobject]@{ Done = [long]0; Total = [long][Math]::Max($bytes, 1GB); FileDone = 0; FileTotal = 0; Finished = $false; Ok = $false; Error = $null; Cancel = $false } }
                     else {
                         $job = New-ImagerJob
@@ -7837,6 +7875,8 @@ function Show-DRDriveCopy {
 
         $state.Job = $job; $state.Busy = $true
         $state.Clock = [Diagnostics.Stopwatch]::StartNew()
+        $state.LastDone = [double]-1; $state.LastMove = [Diagnostics.Stopwatch]::StartNew()
+        if (-not $state.Demo) { Set-DRStayAwake $true }
         $c.Stop.Content = 'Stop'; $c.Stop.Tag = $null; $c.Stop.IsEnabled = ($m -ne 'rescue')
         & $setFlow 'fast'
         $c.LedB.Fill = $bc.ConvertFromString('#FFB020'); $c.LedGlowB.Color = [Windows.Media.ColorConverter]::ConvertFromString('#FFB020')
@@ -7875,15 +7915,23 @@ function Show-DRDriveCopy {
                 $glide2 = New-Object Windows.Media.Animation.DoubleAnimation($wB, (New-Object Windows.Duration([TimeSpan]::FromMilliseconds(280))))
                 $c.DstFill.BeginAnimation([Windows.FrameworkElement]::WidthProperty, $glide2)
             }
-            if ($m -eq 'rescue') { $c.PText.Text = "$($state.Sync.Step)   Please do not remove the USB.   Running for $($state.Clock.Elapsed.ToString('hh\:mm\:ss'))" }
+            if ($m -eq 'rescue') { $c.PText.Text = "$($state.Sync.Step)   Please do not remove the USB.   Running for $((Format-DRRunTime $state.Clock.Elapsed))" }
             else {
                 $rate = $done / $sec
                 # Only real, measured time: how long it has been running. No countdown guesses.
-                $c.PText.Text = ('{0} of {1}   -   {2}/s   -   running for {3}' -f (Format-ImgSize $done), (Format-ImgSize $total), (Format-ImgSize $rate), $state.Clock.Elapsed.ToString('hh\:mm\:ss'))
+                $c.PText.Text = ('{0} of {1}   -   {2}/s   -   running for {3}' -f (Format-ImgSize $done), (Format-ImgSize $total), (Format-ImgSize $rate), (Format-DRRunTime $state.Clock.Elapsed))
+                # Say so plainly when nothing has moved for a while, instead of a screen that looks like it is working.
+                if ($state.LastMove) {
+                    if ($done -ne $state.LastDone) { $state.LastDone = $done; $state.LastMove.Restart() }
+                    elseif (-not $j.Finished -and $state.LastMove.Elapsed.TotalMinutes -ge 3) {
+                        $c.PText.Text += ("`nNothing has moved for {0} min. The drive is not answering - it may have damaged areas, or a USB drive may have been unplugged." -f [int]$state.LastMove.Elapsed.TotalMinutes)
+                    }
+                }
             }
             if ($j.Finished) {
                 $state.Clock.Stop()
                 $state.Timer.Stop(); $state.Busy = $false
+                Set-DRStayAwake $false
                 if ($state.Ps) { try { $state.Ps.Ps.EndInvoke($state.Ps.Handle) | Out-Null } catch { }; try { $state.Ps.Ps.Dispose(); $state.Ps.Rs.Dispose() } catch { }; $state.Ps = $null }
                 $c.Stop.Content = 'Back'; $c.Stop.Tag = 'done'; $c.Stop.IsEnabled = $true
                 & $setFlow 'off'

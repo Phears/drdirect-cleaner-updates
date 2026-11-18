@@ -1,7 +1,7 @@
 {
-  "version": "1.4.485",
-  "notes": "DISM RestoreHealth now shows its real progress and can no longer sit for hours on \"Starting...\". If Windows leaves it idle, the Cleaner stops it and tells you what to do.",
-  "published": "2026-11-17T22:28:50.1172072-05:00",
+  "version": "1.4.486",
+  "notes": "Clone & Backup keeps the PC awake and at full speed until an image, copy or restore is done, so it no longer stalls for hours when the PC would have gone to sleep.",
+  "published": "2026-11-18T09:43:43.1733352-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "0664C9D9EDEED94344AAB129EE6654A8AEDB8376C6D35288051127BD4E4BF6BA",
-      "size": 1010904
+      "sha256": "688F818E0668BF18C8AFBA4DEA6D103846B130968067521249915D8867CFA300",
+      "size": 1014472
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
