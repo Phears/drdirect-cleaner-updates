@@ -5865,8 +5865,9 @@ function Write-DRRunReport {
     New-Item -Path $script:DRReportRoot -ItemType Directory -Force | Out-Null
     $path = Join-Path $script:DRReportRoot ('Maintenance_Report_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '.txt')
     $lines = New-Object System.Collections.Generic.List[string]
-    $lines.Add('DRDirect PC Cleaner - Maintenance Report')
+    # Which cleaning this was comes first, at the very top of the report, so it is the first thing anyone reads.
     if (-not [string]::IsNullOrWhiteSpace($Level)) { $lines.Add(('Cleaning: {0}' -f $Level)) }
+    $lines.Add('DRDirect PC Cleaner - Maintenance Report')
     $lines.Add(('Computer: {0}' -f $env:COMPUTERNAME))
     $lines.Add(('User: {0}' -f $env:USERNAME))
     $finishedAt = Get-Date
