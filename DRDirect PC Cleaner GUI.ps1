@@ -4185,7 +4185,8 @@ function Write-DRSafeRunReport {
     param(
         [object[]]$Events,
         [string[]]$TaskId,
-        [datetime]$StartedAt
+        [datetime]$StartedAt,
+        [string]$Level
     )
 
     $localAppData = $env:LOCALAPPDATA
@@ -4203,6 +4204,7 @@ function Write-DRSafeRunReport {
 
     $builder = New-Object System.Text.StringBuilder
     [void]$builder.AppendLine('DRDirect PC Cleaner - Maintenance Report')
+    if (-not [string]::IsNullOrWhiteSpace($Level)) { [void]$builder.AppendLine(('Cleaning: {0}' -f $Level)) }
     [void]$builder.AppendLine(('Started:  {0}' -f $StartedAt.ToString('yyyy-MM-dd HH:mm:ss')))
     [void]$builder.AppendLine(('Finished: {0}' -f $finishedAt.ToString('yyyy-MM-dd HH:mm:ss')))
     $elapsed = $finishedAt - $StartedAt
@@ -4314,6 +4316,8 @@ function Complete-RunPlan {
 
     $report = $null
     $reportWarning = $null
+    # Which cleaning this was, for the report and the Cleaning history.
+    $drLevelText = if ($script:DRRunStartPreset -in @('Safe','Medium','Advanced')) { $script:DRRunStartPreset + ' scan' } else { 'Custom (items picked by hand)' }
 
     try {
         # Pass plain arrays to the engine report function. Generic List objects can
@@ -4322,7 +4326,8 @@ function Complete-RunPlan {
             Write-DRRunReport `
                 -Events $eventSnapshot `
                 -TaskId $selectedIds `
-                -StartedAt ([datetime]$runStartedAt)
+                -StartedAt ([datetime]$runStartedAt) `
+                -Level $drLevelText
         )
 
         $reportCandidates = @(
@@ -4346,7 +4351,8 @@ function Complete-RunPlan {
             $report = Write-DRSafeRunReport `
                 -Events $eventSnapshot `
                 -TaskId $selectedIds `
-                -StartedAt ([datetime]$runStartedAt)
+                -StartedAt ([datetime]$runStartedAt) `
+                -Level $drLevelText
         }
         catch {
             $fallbackError = $_.Exception.Message
@@ -4803,6 +4809,23 @@ function Set-DRLastCleanCard {
     }
 }
 
+# Which cleaning a report was for (Safe scan, Medium scan, Advanced scan or Custom), read from its
+# "Cleaning:" line, with the colour that cleaning uses everywhere else. Reports from before this was
+# recorded have no such line and get $null, so the history simply shows nothing extra for them.
+function Get-DRReportLevel {
+    param($File)
+    try {
+        foreach ($line in @(Get-Content -LiteralPath $File.FullName -TotalCount 6 -ErrorAction Stop)) {
+            if ($line -match '^\s*Cleaning:\s*(.+?)\s*$') {
+                $text = $Matches[1]
+                $ink = if ($text -like 'Safe*') { '#1FA860' } elseif ($text -like 'Medium*') { '#1E6FE8' } elseif ($text -like 'Advanced*') { '#D32020' } else { '#667085' }
+                return [pscustomobject]@{ Text = $text; Color = $ink }
+            }
+        }
+    } catch { }
+    return $null
+}
+
 function Show-DashboardHistory {
     <#
         .SYNOPSIS
@@ -4853,6 +4876,13 @@ function Show-DashboardHistory {
         $when = $file.LastWriteTime
         $label = New-Object Windows.Controls.TextBlock -Property @{
             Text = $when.ToString('dddd d MMMM, HH:mm'); FontWeight = 'SemiBold'
+        }
+        $drLevel = Get-DRReportLevel $file
+        if ($drLevel) {
+            $levelRun = New-Object Windows.Documents.Run ('   ' + $drLevel.Text)
+            $levelRun.Foreground = (New-Object Windows.Media.BrushConverter).ConvertFromString($drLevel.Color)
+            $levelRun.FontWeight = 'Bold'
+            [void]$label.Inlines.Add($levelRun)
         }
         $ago = (Get-Date) - $when
         $agoText = if ($ago.TotalDays -ge 2) { ('{0} days ago' -f [int][Math]::Floor($ago.TotalDays)) }
@@ -5083,6 +5113,17 @@ function Show-History {
         $dateText.FontWeight = 'SemiBold'
         $dateText.FontSize = 15
         [void]$panel.Children.Add($dateText)
+
+        $drLevel = Get-DRReportLevel $file
+        if ($drLevel) {
+            $levelText = New-Object Windows.Controls.TextBlock
+            $levelText.Text = $drLevel.Text.ToUpperInvariant()
+            $levelText.Foreground = (New-Object Windows.Media.BrushConverter).ConvertFromString($drLevel.Color)
+            $levelText.FontWeight = 'Bold'
+            $levelText.FontSize = 13
+            $levelText.Margin = '0,3,0,0'
+            [void]$panel.Children.Add($levelText)
+        }
 
         $nameText = New-Object Windows.Controls.TextBlock
         $nameText.Text = $file.Name

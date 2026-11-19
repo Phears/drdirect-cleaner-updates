@@ -1,7 +1,7 @@
 {
-  "version": "1.4.487",
-  "notes": "Windows Disk Cleanup can no longer hold up a Safe, Medium or Advanced scan for hours. If it stops working, the Cleaner closes it after 10 minutes and carries on with the rest of the scan.",
-  "published": "2026-11-19T09:49:53.9548222-05:00",
+  "version": "1.4.488",
+  "notes": "Every report and the Cleaning history now show which cleaning was done: Safe, Medium, Advanced or Custom.",
+  "published": "2026-11-19T13:19:16.2561796-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "688F818E0668BF18C8AFBA4DEA6D103846B130968067521249915D8867CFA300",
-      "size": 1014472
+      "sha256": "9C0BBD3BA829DBF1D2EE05EA35102311C8CAD153CB7AEA978A7663940575DB42",
+      "size": 1016620
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "21C510BFE888D21B664D9A5FEF0B5B7C0B9E4488F4885D64211C2E8EFAD6A2CA",
-      "size": 385433
+      "sha256": "D68C1554D2208BFC583B001E33B949DCBD3CE94BB01E5FB2005DCB457EF8FD58",
+      "size": 385706
     },
     {
       "name": "DRDirect Updater.ps1",

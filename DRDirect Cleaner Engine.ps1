@@ -5859,11 +5859,14 @@ function Invoke-DRPlan {
 }
 
 function Write-DRRunReport {
-    param([object[]]$Events, [string[]]$TaskId, [datetime]$StartedAt)
+    # $Level is the cleaning that was run (Safe scan, Medium scan, Advanced scan or Custom), so every report
+    # and the Cleaning history say which one it was.
+    param([object[]]$Events, [string[]]$TaskId, [datetime]$StartedAt, [string]$Level)
     New-Item -Path $script:DRReportRoot -ItemType Directory -Force | Out-Null
     $path = Join-Path $script:DRReportRoot ('Maintenance_Report_' + (Get-Date -Format 'yyyyMMdd_HHmmss') + '.txt')
     $lines = New-Object System.Collections.Generic.List[string]
     $lines.Add('DRDirect PC Cleaner - Maintenance Report')
+    if (-not [string]::IsNullOrWhiteSpace($Level)) { $lines.Add(('Cleaning: {0}' -f $Level)) }
     $lines.Add(('Computer: {0}' -f $env:COMPUTERNAME))
     $lines.Add(('User: {0}' -f $env:USERNAME))
     $finishedAt = Get-Date
