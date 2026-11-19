@@ -746,7 +746,7 @@ function Invoke-DRWindowsOldCleanup {
     $before = Get-DRPathSize $path
     try {
         New-ItemProperty -Path $key -Name StateFlags0778 -Value 2 -PropertyType DWord -Force | Out-Null
-        Invoke-DRExternalCommand -TaskId $TaskId -FilePath $cleanmgr -Arguments @('/d','C:','/sagerun:778') -TestRoot $TestRoot | Out-Null
+        Invoke-DRDiskCleanup -TaskId $TaskId -Arguments @('/d','C:','/sagerun:778') -TestRoot $TestRoot
     } finally {
         Remove-ItemProperty -Path $key -Name StateFlags0778 -ErrorAction SilentlyContinue
     }
@@ -1231,10 +1231,13 @@ function Format-DROutputForLog {
     param([string]$Text, [int]$Limit = 6000)
     if ([string]::IsNullOrWhiteSpace($Text)) { return '' }
     $lines = @()
-    foreach ($line in ($Text -split "`r?`n")) {
+    # DISM and sfc redraw their progress with a bare carriage return, so each redraw is its own line here
+    # (otherwise every "[===  21.4%  ]" step showed up as a new line in the report).
+    foreach ($line in ($Text -split "`r`n|`r|`n")) {
         $trimmed = $line.Trim()
         if (-not $trimmed) { continue }
         if ($trimmed -match 'percent complete|% complete') { continue }
+        if ($trimmed -match '^\[[=\-\s]*\d{1,3}([.,]\d)?\s*%[=\-\s]*\]?$') { continue }
         $lines += $trimmed
     }
     if (@($lines).Count -eq 0) { return '' }
@@ -1294,6 +1297,87 @@ function Invoke-DRExternalCommand {
     if ($null -eq $result.ExitCode) { throw "$FilePath did not report a result. It was most likely stopped before it finished." }
     if ($result.ExitCode -ne 0) { throw "$FilePath finished with exit code $($result.ExitCode)." }
     return $result.ExitCode
+}
+
+# Windows Disk Cleanup (cleanmgr). It used to be waited on with no limit at all, and on the owner's own PC a Medium
+# scan sat on this row from 10:46 PM to 9:29 AM: cleanmgr did nothing until someone clicked the PC. Now it is
+# watched: its processor use (and any helper it starts) counts as working, and if nothing happens for
+# $SilentLimitMinutes, or it runs past $MaxTotalMinutes, the Cleaner closes it, says so plainly, and the scan
+# carries on with the next step.
+function Invoke-DRDiskCleanup {
+    param([string]$TaskId, [string[]]$Arguments, [string]$TestRoot,
+        [int]$SilentLimitMinutes = 10, [int]$MaxTotalMinutes = 60)
+    $cleanmgr = Join-Path $env:SystemRoot 'System32\cleanmgr.exe'
+    if ($TestRoot) {
+        New-DREvent -TaskId $TaskId -State Information -Message ("TEST MODE: would run {0} {1}" -f $cleanmgr, ($Arguments -join ' '))
+        return
+    }
+
+    # A Disk Cleanup already open (one left behind, or one the user opened) would make this one wait on it.
+    $already = @(Get-Process -Name 'cleanmgr' -ErrorAction SilentlyContinue)
+    if ($already.Count -gt 0) {
+        New-DREvent -TaskId $TaskId -State Warning -Message 'Windows Disk Cleanup was already open on this PC, so the Cleaner did not start a second one. Close Disk Cleanup and run this step again.'
+        return
+    }
+
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $cleanmgr
+    $psi.Arguments = ($Arguments -join ' ')
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $psi
+
+    $stoppedSilent = $false
+    $stoppedTooLong = $false
+    $exitCode = $null
+    $started = Get-Date
+    try {
+        [void]$process.Start()
+        Set-DRActiveChildProcess -ProcessId $process.Id
+        $lastNews = Get-Date
+        $lastCpu = -1.0
+        while (-not $process.WaitForExit(5000)) {
+            $now = Get-Date
+            if (($now - $started).TotalMinutes -ge $MaxTotalMinutes) { $stoppedTooLong = $true; break }
+
+            # cleanmgr plus anything it started (some cleanup items run a helper of their own).
+            $ids = @($process.Id)
+            try { $ids += @(Get-CimInstance -ClassName Win32_Process -Filter ("ParentProcessId = {0}" -f $process.Id) -ErrorAction Stop | ForEach-Object { [int]$_.ProcessId }) } catch { }
+            $cpuNow = 0.0
+            foreach ($id in $ids) {
+                try { $p = Get-Process -Id $id -ErrorAction Stop; $cpuNow += $p.TotalProcessorTime.TotalSeconds } catch { }
+            }
+            if ($cpuNow -gt ($lastCpu + 0.5)) { $lastNews = $now }
+            $lastCpu = $cpuNow
+
+            if (($now - $lastNews).TotalMinutes -ge $SilentLimitMinutes) { $stoppedSilent = $true; break }
+        }
+        if ($stoppedSilent -or $stoppedTooLong) {
+            # Close cleanmgr and whatever it started, so nothing is left waiting in the background.
+            try {
+                Get-CimInstance -ClassName Win32_Process -Filter ("ParentProcessId = {0}" -f $process.Id) -ErrorAction Stop |
+                    ForEach-Object { try { Stop-Process -Id $_.ProcessId -Force -ErrorAction Stop } catch { } }
+            } catch { }
+            try { Stop-Process -Id $process.Id -Force -ErrorAction Stop } catch { }
+            try { [void]$process.WaitForExit(10000) } catch { }
+        } else {
+            $exitCode = $process.ExitCode
+        }
+    } finally {
+        Set-DRActiveChildProcess -ProcessId 0
+        $process.Dispose()
+    }
+
+    if ($stoppedSilent) {
+        New-DREvent -TaskId $TaskId -State Warning -Message ('Windows Disk Cleanup stopped doing anything for {0} minutes, so the Cleaner closed it and carried on with the rest of the scan. Nothing was harmed. Restarting the PC usually clears this.' -f $SilentLimitMinutes)
+        return
+    }
+    if ($stoppedTooLong) {
+        New-DREvent -TaskId $TaskId -State Warning -Message ('Windows Disk Cleanup was still running after {0} minutes, so the Cleaner closed it and carried on with the rest of the scan. Nothing was harmed.' -f $MaxTotalMinutes)
+        return
+    }
+    if ($null -ne $exitCode -and $exitCode -ne 0) { throw "Windows Disk Cleanup finished with exit code $exitCode." }
 }
 
 # DISM (RestoreHealth and component cleanup). The old run waited on DISM with no limit at all and showed only
@@ -5303,7 +5387,7 @@ function Invoke-DRTask {
                         if (Test-Path $key) { Remove-ItemProperty -Path $key -Name StateFlags0777 -ErrorAction SilentlyContinue }
                     }
                 }
-                Invoke-DRExternalCommand -TaskId $TaskId -FilePath $cleanmgr -Arguments @('/d','C:','/sagerun:777') -TestRoot $TestRoot | Out-Null
+                Invoke-DRDiskCleanup -TaskId $TaskId -Arguments @('/d','C:','/sagerun:777') -TestRoot $TestRoot
             }
             'cleanup.wu-download-cache' {
                 if ($TestRoot) { Clear-DRFolderContents -FolderPath $TestRoot -TaskId $TaskId -TestRoot $TestRoot | Out-Null }
