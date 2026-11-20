@@ -8327,7 +8327,12 @@ function Add-DRScrollPills {
     }
     $up = & $make ([string][char]0x25B2 + '   More above') 'Top' 'Scroll up'
     $down = & $make ([string][char]0x25BC + '   More below') 'Bottom' 'Scroll down'
-    foreach ($pill in @($up, $down)) {
+    # Back to top: one click goes all the way up to the top of the page, shown in the bottom right corner
+    # whenever the page is scrolled down at all.
+    $top = & $make ([string][char]0x25B2 + [string][char]0x25B2 + '   Back to top') 'Bottom' 'Go all the way up to the top of the page'
+    $top.HorizontalAlignment = 'Right'
+    $top.Margin = '0,0,34,12'
+    foreach ($pill in @($up, $down, $top)) {
         [Windows.Controls.Grid]::SetRow($pill, [Windows.Controls.Grid]::GetRow($Scroller))
         [Windows.Controls.Grid]::SetColumn($pill, [Windows.Controls.Grid]::GetColumn($Scroller))
         [Windows.Controls.Grid]::SetRowSpan($pill, [Windows.Controls.Grid]::GetRowSpan($Scroller))
@@ -8337,6 +8342,7 @@ function Add-DRScrollPills {
     $update = {
         $shown = $Scroller.IsVisible
         $up.Visibility = if ($shown -and $Scroller.VerticalOffset -gt 4) { 'Visible' } else { 'Collapsed' }
+        $top.Visibility = $up.Visibility
         $down.Visibility = if ($shown -and $Scroller.ScrollableHeight -gt 4 -and $Scroller.VerticalOffset -lt ($Scroller.ScrollableHeight - 4)) { 'Visible' } else { 'Collapsed' }
     }.GetNewClosure()
     $Scroller.Add_ScrollChanged($update)
@@ -8344,6 +8350,7 @@ function Add-DRScrollPills {
     $Scroller.Add_SizeChanged($update)
     & $update
     $up.Add_MouseLeftButtonUp({ $Scroller.ScrollToVerticalOffset([Math]::Max(0, $Scroller.VerticalOffset - ($Scroller.ViewportHeight * 0.85))) }.GetNewClosure())
+    $top.Add_MouseLeftButtonUp({ $Scroller.ScrollToVerticalOffset(0) }.GetNewClosure())
     $down.Add_MouseLeftButtonUp({ $Scroller.ScrollToVerticalOffset([Math]::Min($Scroller.ScrollableHeight, $Scroller.VerticalOffset + ($Scroller.ViewportHeight * 0.85))) }.GetNewClosure())
 }
 try {

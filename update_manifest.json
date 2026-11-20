@@ -1,7 +1,7 @@
 {
-  "version": "1.4.490",
-  "notes": "Cleaning history now shows how long each scan really took, right beside Safe, Medium or Advanced scan.",
-  "published": "2026-11-19T20:09:48.7062457-05:00",
+  "version": "1.4.491",
+  "notes": "New Back to top button: when you scroll down the Dashboard, one click takes you all the way back up to the top.",
+  "published": "2026-11-19T20:27:18.2007363-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "796B0AE92EDD65D398148D0E7158C1FB7E1DED07FB598671A2726306B8D473AC",
-      "size": 1018412
+      "sha256": "0AFFF600E78D13830D0AF8EC9DB78D0ED32C710CE3E0FE989D51C2980E3C2AE1",
+      "size": 1018907
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
