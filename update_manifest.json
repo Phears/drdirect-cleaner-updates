@@ -1,7 +1,7 @@
 {
-  "version": "1.4.492",
-  "notes": "The 1st window / 2nd window button reads more clearly.",
-  "published": "2026-11-19T20:36:47.4811124-05:00",
+  "version": "1.4.493",
+  "notes": "The 1st window / 2nd window button has a bigger number.",
+  "published": "2026-11-19T20:38:30.7862406-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,7 +10,7 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "349F5E21AA30677B6132E9C03AB2FE20283D865161BA58469ADBCEB938024397",
+      "sha256": "A5A104BEEB5F7AFCBDBD11584359E54807501874382E076C9E0DE6BC8A33F536",
       "size": 1019017
     },
     {

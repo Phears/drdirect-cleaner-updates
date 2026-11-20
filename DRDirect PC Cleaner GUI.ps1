@@ -8276,7 +8276,7 @@ function Set-DRUiMode {
     $ui.NavModeText.TextAlignment = 'Center'
     $ui.NavModeText.Inlines.Clear()
     $blue = [Windows.Media.BrushConverter]::new().ConvertFromString('#0057D9')
-    [void]$ui.NavModeText.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text = $(if ($Simple) { '1' } else { '2' }); FontSize = 18; FontWeight = 'ExtraBold'; Foreground = $blue }))
+    [void]$ui.NavModeText.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text = $(if ($Simple) { '1' } else { '2' }); FontSize = 21; FontWeight = 'ExtraBold'; Foreground = $blue }))
     [void]$ui.NavModeText.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text = ([string][char]0x2009 + $(if ($Simple) { 'st window' } else { 'nd window' })); FontSize = 16; FontWeight = 'ExtraBold' }))
     [void]$ui.NavModeText.Inlines.Add((New-Object Windows.Documents.LineBreak))
     [void]$ui.NavModeText.Inlines.Add((New-Object Windows.Documents.Run -Property @{ Text = $(if ($Simple) { '＋  Show all tools' } else { '－  Show fewer tools' }) }))
