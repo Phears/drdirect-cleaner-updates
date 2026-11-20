@@ -3980,6 +3980,128 @@ function Set-DRScanBroomsAlive {
     }
 }
 
+# Advanced scan only: the programs that start with Windows are paused (frozen, not closed) while it runs, so
+# DISM and the Quick and Full virus scans get the PC to themselves, and every one of them is started again
+# the moment the run ends, however it ends. Nothing is closed and no work is lost: a paused program simply
+# waits, then carries on exactly where it was. Never paused: Windows itself, antivirus and security
+# programs, remote-help programs (AnyDesk, TeamViewer...) so a technician is never cut off, Claude, and
+# DRDirect's own programs. What was paused is written down, so if the Cleaner is closed or crashes mid-run
+# they are started again the next time it opens.
+$script:DRPausedStartupKey = 'HKCU:\Software\DRDirect\PC Cleaner\PausedStartup'
+function Initialize-DRProcessPause {
+    if (([System.Management.Automation.PSTypeName]'DRDirect.ProcPause').Type) { return $true }
+    try {
+        Add-Type -Namespace DRDirect -Name ProcPause -MemberDefinition @'
+[System.Runtime.InteropServices.DllImport("ntdll.dll")] public static extern int NtSuspendProcess(System.IntPtr handle);
+[System.Runtime.InteropServices.DllImport("ntdll.dll")] public static extern int NtResumeProcess(System.IntPtr handle);
+'@ -ErrorAction Stop
+        return $true
+    } catch { return $false }
+}
+
+function Get-DRStartupExePaths {
+    $paths = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    $addCommand = {
+        param([string]$Command)
+        if ([string]::IsNullOrWhiteSpace($Command)) { return }
+        $c = [Environment]::ExpandEnvironmentVariables($Command.Trim())
+        $exe = if ($c -match '^"([^"]+)"') { $Matches[1] } elseif ($c -match '^(.+?\.exe)\b') { $Matches[1] } else { ($c -split '\s+')[0] }
+        if ($exe -and $exe -like '*.exe') { [void]$paths.Add($exe.Trim()) }
+    }
+    foreach ($key in 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run',
+                     'HKLM:\Software\Microsoft\Windows\CurrentVersion\Run',
+                     'HKLM:\Software\WOW6432Node\Microsoft\Windows\CurrentVersion\Run') {
+        try {
+            $item = Get-ItemProperty -LiteralPath $key -ErrorAction Stop
+            foreach ($p in $item.PSObject.Properties) { if ($p.Name -notlike 'PS*') { & $addCommand ([string]$p.Value) } }
+        } catch { }
+    }
+    try {
+        $shell = New-Object -ComObject WScript.Shell
+        foreach ($folder in @([Environment]::GetFolderPath('Startup'), [Environment]::GetFolderPath('CommonStartup'))) {
+            if (-not $folder -or -not (Test-Path -LiteralPath $folder)) { continue }
+            foreach ($file in @(Get-ChildItem -LiteralPath $folder -File -ErrorAction SilentlyContinue)) {
+                if ($file.Extension -eq '.lnk') { try { & $addCommand ('"' + $shell.CreateShortcut($file.FullName).TargetPath + '"') } catch { } }
+                elseif ($file.Extension -eq '.exe') { [void]$paths.Add($file.FullName) }
+            }
+        }
+    } catch { }
+    return ,$paths
+}
+
+function Suspend-DRStartupApps {
+    $paused = New-Object System.Collections.ArrayList
+    if (-not (Initialize-DRProcessPause)) { return $paused.ToArray() }
+    $startup = Get-DRStartupExePaths
+    if ($startup.Count -eq 0) { return $paused.ToArray() }
+    $neverPause = '(?i)^(explorer|dwm|csrss|winlogon|sihost|ctfmon|svchost|MsMpEng|NisSrv|SecurityHealth.*|MpDefenderCoreService|' +
+        'AnyDesk|TeamViewer.*|tv_.*|RustDesk|ScreenConnect.*|Splashtop.*|SRService|remoting_host|LogMeIn.*|Claude.*|DRDirect.*|' +
+        'avp|avgui|AvastUI|AvastSvc|avgsvc|ekrn|egui|bdagent|vsserv|mbam.*|MBAMService|Norton.*|ns|mcshield|mfemms|McUICnt|SophosUI|' +
+        'WRSA|uiWinMgr|Avira.*|1Password-BrowserSupport|audiodg)$'
+    $mySession = (Get-Process -Id $PID).SessionId
+    # The Cleaner and whatever started it (its launcher) are never paused.
+    $protect = @($PID)
+    try {
+        $walk = $PID
+        for ($i = 0; $i -lt 4; $i++) {
+            $parent = (Get-CimInstance Win32_Process -Filter "ProcessId=$walk" -ErrorAction Stop).ParentProcessId
+            if (-not $parent) { break }
+            $protect += [int]$parent; $walk = $parent
+        }
+    } catch { }
+    $windowsDir = $env:SystemRoot
+    foreach ($proc in @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue)) {
+        try {
+            $path = [string]$proc.ExecutablePath
+            if (-not $path -or -not $startup.Contains($path)) { continue }
+            if ($proc.SessionId -ne $mySession -or $protect -contains [int]$proc.ProcessId) { continue }
+            if ($windowsDir -and $path.StartsWith($windowsDir, [StringComparison]::OrdinalIgnoreCase)) { continue }
+            $name = [IO.Path]::GetFileNameWithoutExtension($path)
+            if ($name -match $neverPause) { continue }
+            $p = Get-Process -Id $proc.ProcessId -ErrorAction Stop
+            if ([DRDirect.ProcPause]::NtSuspendProcess($p.Handle) -eq 0) {
+                [void]$paused.Add([pscustomobject]@{ Id = [int]$p.Id; Name = $name; Started = $p.StartTime.ToString('o') })
+            }
+        } catch { }
+    }
+    # Written down straight away, so a crash or a closed window can never leave them frozen.
+    try {
+        if ($paused.Count) {
+            if (-not (Test-Path -LiteralPath $script:DRPausedStartupKey)) { [void](New-Item -Path $script:DRPausedStartupKey -Force) }
+            foreach ($item in $paused) { Set-ItemProperty -LiteralPath $script:DRPausedStartupKey -Name ([string]$item.Id) -Value ($item.Name + '|' + $item.Started) }
+        }
+    } catch { }
+    return $paused.ToArray()
+}
+
+function Resume-DRStartupApps {
+    $resumed = New-Object System.Collections.ArrayList
+    if (-not (Test-Path -LiteralPath $script:DRPausedStartupKey)) { return $resumed.ToArray() }
+    if (-not (Initialize-DRProcessPause)) { return $resumed.ToArray() }
+    try {
+        $saved = Get-ItemProperty -LiteralPath $script:DRPausedStartupKey -ErrorAction Stop
+        foreach ($entry in $saved.PSObject.Properties) {
+            if ($entry.Name -notmatch '^\d+$') { continue }
+            try {
+                $parts = ([string]$entry.Value) -split '\|', 2
+                $p = Get-Process -Id ([int]$entry.Name) -ErrorAction Stop
+                # Only the very same program that was paused: a new one that reused the number is left alone.
+                if ($parts.Count -eq 2 -and $p.StartTime.ToString('o') -ne $parts[1]) { continue }
+                # Resumed as many times as needed, in case it was paused more than once.
+                for ($i = 0; $i -lt 5; $i++) { [void][DRDirect.ProcPause]::NtResumeProcess($p.Handle) }
+                [void]$resumed.Add($parts[0])
+            } catch { }
+        }
+    } catch { }
+    try { Remove-Item -LiteralPath $script:DRPausedStartupKey -Recurse -Force -ErrorAction SilentlyContinue } catch { }
+    return $resumed.ToArray()
+}
+
+# Anything a crash or a closed Cleaner left paused is started again as soon as the Cleaner opens.
+try { [void](Resume-DRStartupApps) } catch { }
+# And whenever the Cleaner window closes, so nothing is ever left paused behind it.
+try { $window.Add_Closed({ try { [void](Resume-DRStartupApps) } catch { } }) } catch { }
+
 function Start-RunPlan {
     if (Test-DROtherToolBusy -Opening 'Clean') { $ui.ConfirmOverlay.Visibility = 'Collapsed'; return }
     # A trial gets one cleanup run in total, not one per launch.
@@ -4038,6 +4160,15 @@ function Start-RunPlan {
     if ($ui.CleaningAnimation) { $ui.CleaningAnimation.Visibility='Visible' }
     $script:runScanLevel = Get-DRRunScanLevel -Preset $script:cleanupPreset
     $script:DRRunStartPreset = [string]$script:cleanupPreset
+    # Advanced scan: the startup programs are paused (not closed) while it runs and started again at the end.
+    if ($script:DRRunStartPreset -eq 'Advanced' -and -not $TestRoot) {
+        try {
+            $drPausedApps = @(Suspend-DRStartupApps)
+            if ($drPausedApps.Count) {
+                $runEvents.Add((New-DREvent -TaskId 'startup.pause' -State Information -Message ('Paused {0} startup program(s) so the Advanced scan runs on its own: {1}' -f $drPausedApps.Count, (($drPausedApps | ForEach-Object { $_.Name } | Select-Object -Unique) -join ', '))))
+            }
+        } catch { }
+    }
     Set-DRScanBroomsAlive $true -Preset $script:runScanLevel
     if ($ui.CleanDone) { $ui.CleanDone.Visibility='Collapsed' }
     if ($ui.ProgressList) {
@@ -4277,6 +4408,11 @@ function Write-DRSafeRunReport {
 
 function Complete-RunPlan {
     $script:DRPaused = $false; $script:DRPauseWanted = $false
+    # The startup programs paused for an Advanced scan are started again first, whether it finished or was stopped.
+    try {
+        $drResumedApps = @(Resume-DRStartupApps)
+        if ($drResumedApps.Count) { $runEvents.Add((New-DREvent -TaskId 'startup.pause' -State Information -Message ('Started the {0} paused startup program(s) again.' -f $drResumedApps.Count))) }
+    } catch { }
     if ($ui.PauseRunButton) { $ui.PauseRunButton.Visibility = 'Collapsed' }
     Set-DRFixMode -On $false
     Set-DRRobotDance -On $false

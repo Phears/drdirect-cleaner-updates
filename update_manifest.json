@@ -1,7 +1,7 @@
 {
-  "version": "1.4.494",
+  "version": "1.4.495",
   "notes": "The Advanced scan now pauses your startup programs while it runs, so the Windows repair and virus scans finish sooner, then starts them again when it is done.",
-  "published": "2026-11-19T21:05:12.5861613-05:00",
+  "published": "2026-11-19T21:08:14.8490864-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "A5A104BEEB5F7AFCBDBD11584359E54807501874382E076C9E0DE6BC8A33F536",
-      "size": 1019017
+      "sha256": "E12CB2D8F2E94D1E1B5FA544012D1146EF050BF62488037F24BC10082791243F",
+      "size": 1027180
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
