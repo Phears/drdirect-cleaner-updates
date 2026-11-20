@@ -1,7 +1,7 @@
 {
-  "version": "1.4.496",
+  "version": "1.4.497",
   "notes": "The Advanced scan now always leaves AnyDesk and other remote-help and security programs running.",
-  "published": "2026-11-19T21:29:46.3271660-05:00",
+  "published": "2026-11-19T21:31:13.7105582-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "E12CB2D8F2E94D1E1B5FA544012D1146EF050BF62488037F24BC10082791243F",
-      "size": 1027180
+      "sha256": "211CA8B85CE56AE9BE65DE9092D7D249F2274CC5F47308E3EEA04283020D1732",
+      "size": 1028051
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

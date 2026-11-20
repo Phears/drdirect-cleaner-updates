@@ -4058,6 +4058,16 @@ function Suspend-DRStartupApps {
             if ($windowsDir -and $path.StartsWith($windowsDir, [StringComparison]::OrdinalIgnoreCase)) { continue }
             $name = [IO.Path]::GetFileNameWithoutExtension($path)
             if ($name -match $neverPause) { continue }
+            # Also by what the program says it is, and where it lives: a renamed or custom AnyDesk (or another
+            # remote-help or security program) is still never paused.
+            $neverPauseText = '(?i)anydesk|teamviewer|rustdesk|splashtop|screenconnect|connectwise|logmein|remote ?desktop|remote ?support|' +
+                'quick ?assist|parsec|chrome remote|defender|antivirus|anti-virus|security|malwarebytes|norton|mcafee|kaspersky|eset|bitdefender|' +
+                'avast|avg|sophos|webroot|avira|trend ?micro|drdirect|claude|anthropic'
+            if ($path -match $neverPauseText) { continue }
+            try {
+                $info = [Diagnostics.FileVersionInfo]::GetVersionInfo($path)
+                if ((@($info.ProductName, $info.FileDescription, $info.CompanyName) -join ' ') -match $neverPauseText) { continue }
+            } catch { }
             $p = Get-Process -Id $proc.ProcessId -ErrorAction Stop
             if ([DRDirect.ProcPause]::NtSuspendProcess($p.Handle) -eq 0) {
                 [void]$paused.Add([pscustomobject]@{ Id = [int]$p.Id; Name = $name; Started = $p.StartTime.ToString('o') })
