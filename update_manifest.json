@@ -1,7 +1,7 @@
 {
-  "version": "1.4.493",
-  "notes": "The 1st window / 2nd window button has a bigger number.",
-  "published": "2026-11-19T20:38:30.7862406-05:00",
+  "version": "1.4.494",
+  "notes": "The Advanced scan now pauses your startup programs while it runs, so the Windows repair and virus scans finish sooner, then starts them again when it is done.",
+  "published": "2026-11-19T21:05:12.5861613-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
