@@ -1,7 +1,7 @@
 {
-  "version": "1.4.497",
-  "notes": "The Advanced scan now always leaves AnyDesk and other remote-help and security programs running.",
-  "published": "2026-11-19T21:31:13.7105582-05:00",
+  "version": "1.4.498",
+  "notes": "The Advanced scan now always leaves Snagit running too.",
+  "published": "2026-11-19T21:36:17.9751536-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "211CA8B85CE56AE9BE65DE9092D7D249F2274CC5F47308E3EEA04283020D1732",
-      "size": 1028051
+      "sha256": "050D03EB2FD34E3C609820047F7DF7BA0D1FE33E29E7238EC3046E9FBE930E4F",
+      "size": 1028093
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

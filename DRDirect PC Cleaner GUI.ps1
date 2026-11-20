@@ -3984,8 +3984,8 @@ function Set-DRScanBroomsAlive {
 # DISM and the Quick and Full virus scans get the PC to themselves, and every one of them is started again
 # the moment the run ends, however it ends. Nothing is closed and no work is lost: a paused program simply
 # waits, then carries on exactly where it was. Never paused: Windows itself, antivirus and security
-# programs, remote-help programs (AnyDesk, TeamViewer...) so a technician is never cut off, Claude, and
-# DRDirect's own programs. What was paused is written down, so if the Cleaner is closed or crashes mid-run
+# programs, remote-help programs (AnyDesk, TeamViewer...) so a technician is never cut off, Snagit, Claude,
+# and DRDirect's own programs. What was paused is written down, so if the Cleaner is closed or crashes mid-run
 # they are started again the next time it opens.
 $script:DRPausedStartupKey = 'HKCU:\Software\DRDirect\PC Cleaner\PausedStartup'
 function Initialize-DRProcessPause {
@@ -4037,7 +4037,7 @@ function Suspend-DRStartupApps {
     $neverPause = '(?i)^(explorer|dwm|csrss|winlogon|sihost|ctfmon|svchost|MsMpEng|NisSrv|SecurityHealth.*|MpDefenderCoreService|' +
         'AnyDesk|TeamViewer.*|tv_.*|RustDesk|ScreenConnect.*|Splashtop.*|SRService|remoting_host|LogMeIn.*|Claude.*|DRDirect.*|' +
         'avp|avgui|AvastUI|AvastSvc|avgsvc|ekrn|egui|bdagent|vsserv|mbam.*|MBAMService|Norton.*|ns|mcshield|mfemms|McUICnt|SophosUI|' +
-        'WRSA|uiWinMgr|Avira.*|1Password-BrowserSupport|audiodg)$'
+        'WRSA|uiWinMgr|Avira.*|1Password-BrowserSupport|audiodg|Snagit.*|TscHelp)$'
     $mySession = (Get-Process -Id $PID).SessionId
     # The Cleaner and whatever started it (its launcher) are never paused.
     $protect = @($PID)
@@ -4062,7 +4062,7 @@ function Suspend-DRStartupApps {
             # remote-help or security program) is still never paused.
             $neverPauseText = '(?i)anydesk|teamviewer|rustdesk|splashtop|screenconnect|connectwise|logmein|remote ?desktop|remote ?support|' +
                 'quick ?assist|parsec|chrome remote|defender|antivirus|anti-virus|security|malwarebytes|norton|mcafee|kaspersky|eset|bitdefender|' +
-                'avast|avg|sophos|webroot|avira|trend ?micro|drdirect|claude|anthropic'
+                'avast|avg|sophos|webroot|avira|trend ?micro|drdirect|claude|anthropic|snagit|techsmith'
             if ($path -match $neverPauseText) { continue }
             try {
                 $info = [Diagnostics.FileVersionInfo]::GetVersionInfo($path)
