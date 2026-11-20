@@ -1,7 +1,7 @@
 {
-  "version": "1.4.489",
-  "notes": "Every report now says which cleaning was done (Safe, Medium, Advanced or Custom) on its very first line. The Running text under the scan buttons no longer covers the other text, and Check all / Check off are bigger and clearer.",
-  "published": "2026-11-19T15:39:34.7088679-05:00",
+  "version": "1.4.490",
+  "notes": "Cleaning history now shows how long each scan really took, right beside Safe, Medium or Advanced scan.",
+  "published": "2026-11-19T20:09:48.7062457-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "006A15E0A74961CE6B38316FC346ED7D8FB6CC62C470F235DFD61A55963EDE87",
-      "size": 1017027
+      "sha256": "796B0AE92EDD65D398148D0E7158C1FB7E1DED07FB598671A2726306B8D473AC",
+      "size": 1018412
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",

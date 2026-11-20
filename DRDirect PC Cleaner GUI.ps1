@@ -4827,6 +4827,24 @@ function Get-DRReportLevel {
     return $null
 }
 
+# How long a cleaning really took on this PC, read from the report's own "Total time it took:" line (the
+# real start-to-finish time, never a guess). Shown as e.g. "1 hr 4 min 9 sec", "12 min 5 sec" or "48 sec".
+# Reports without that line (scan-refused notes, very old reports) get $null and show nothing.
+function Get-DRReportDuration {
+    param($File)
+    try {
+        foreach ($line in @(Get-Content -LiteralPath $File.FullName -TotalCount 12 -ErrorAction Stop)) {
+            if ($line -match '^\s*Total time it took:\s*(\d+):(\d{1,2}):(\d{1,2})\s*$') {
+                $h = [int]$Matches[1]; $m = [int]$Matches[2]; $sec = [int]$Matches[3]
+                if ($h -gt 0) { return ('{0} hr {1} min {2} sec' -f $h, $m, $sec) }
+                if ($m -gt 0) { return ('{0} min {1} sec' -f $m, $sec) }
+                return ('{0} sec' -f $sec)
+            }
+        }
+    } catch { }
+    return $null
+}
+
 function Show-DashboardHistory {
     <#
         .SYNOPSIS
@@ -5123,6 +5141,14 @@ function Show-History {
             $levelText.FontWeight = 'Bold'
             $levelText.FontSize = 13
             $levelText.Margin = '0,3,0,0'
+            # How long it took, right beside the scan name. Only the real time, nothing else.
+            $drTook = Get-DRReportDuration $file
+            if ($drTook) {
+                $tookRun = New-Object Windows.Documents.Run ('      ' + $drTook)
+                $tookRun.Foreground = (New-Object Windows.Media.BrushConverter).ConvertFromString('#344054')
+                $tookRun.FontWeight = 'SemiBold'
+                [void]$levelText.Inlines.Add($tookRun)
+            }
             [void]$panel.Children.Add($levelText)
         }
 
