@@ -1,7 +1,7 @@
 {
-  "version": "1.4.491",
-  "notes": "New Back to top button: when you scroll down the Dashboard, one click takes you all the way back up to the top.",
-  "published": "2026-11-19T20:27:18.2007363-05:00",
+  "version": "1.4.492",
+  "notes": "The 1st window / 2nd window button reads more clearly.",
+  "published": "2026-11-19T20:36:47.4811124-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "0AFFF600E78D13830D0AF8EC9DB78D0ED32C710CE3E0FE989D51C2980E3C2AE1",
-      "size": 1018907
+      "sha256": "349F5E21AA30677B6132E9C03AB2FE20283D865161BA58469ADBCEB938024397",
+      "size": 1019017
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
