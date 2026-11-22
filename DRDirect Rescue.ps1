@@ -16,6 +16,22 @@ function Get-RescueUsbDrive {
     # The USB this program was started from: the volume named DRDIRECT.
     Get-Volume -ErrorAction SilentlyContinue | Where-Object { $_.FileSystemLabel -eq 'DRDIRECT' -and $_.DriveLetter } | Select-Object -First 1
 }
+# Owner password lockout, kept on the stick in owner.wait: after 3 wrong passwords the stick waits
+# 5 minutes; after every further 3 wrong passwords it waits 30 minutes. A right password clears it.
+function Get-OwnerWait([string]$File) {
+    $r = @{ Rounds = 0; Until = [datetime]::MinValue }
+    try {
+        $l = @(Get-Content -LiteralPath $File -ErrorAction Stop)
+        $r.Rounds = [int]$l[0]; $r.Until = [datetime]::new([int64]$l[1], [DateTimeKind]::Utc)
+    } catch { }
+    $r
+}
+function Set-OwnerWait([string]$File, [int]$Rounds) {
+    $mins = if ($Rounds -le 1) { 5 } else { 30 }
+    $until = [datetime]::UtcNow.AddMinutes($mins)
+    try { Set-Content -LiteralPath $File -Value @([string]$Rounds, [string]$until.Ticks) -Encoding ASCII -Force } catch { }
+    $mins
+}
 function Test-RescuePcLock {
     $vol = Get-RescueUsbDrive
     if (-not $vol) { return @{ Ok = $false; Why = 'The Rescue USB could not find itself, so it cannot check which PC it is for.' } }
@@ -26,13 +42,18 @@ function Test-RescuePcLock {
     $ownerFile = "$($vol.DriveLetter):\DRDirect\owner.id"
     if (Test-Path -LiteralPath $ownerFile) {
         $rec = [string](Get-Content -LiteralPath $ownerFile -ErrorAction SilentlyContinue | Select-Object -First 1)
+        $waitFile = "$($vol.DriveLetter):\DRDirect\owner.wait"
+        $wait = Get-OwnerWait $waitFile
+        $left = [math]::Ceiling(($wait.Until - [datetime]::UtcNow).TotalMinutes)
+        if ($left -gt 0) { return @{ Ok = $false; Why = "Too many wrong owner passwords. This stick is locked. Try again in $left minute(s)." } }
         for ($try = 1; $try -le 3; $try++) {
             $sec = Read-Host '  Owner password' -AsSecureString
             $plain = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($sec))
-            if (Test-OwnerRecord $plain $rec) { return @{ Ok = $true; Why = '' } }
+            if (Test-OwnerRecord $plain $rec) { Remove-Item -LiteralPath $waitFile -Force -ErrorAction SilentlyContinue; return @{ Ok = $true; Why = '' } }
             Write-Host '  Wrong password.' -ForegroundColor Yellow
         }
-        return @{ Ok = $false; Why = 'Wrong owner password three times.' }
+        $mins = Set-OwnerWait $waitFile ($wait.Rounds + 1)
+        return @{ Ok = $false; Why = "Wrong owner password three times. This stick is now locked for $mins minutes." }
     }
     if (-not (Test-Path -LiteralPath $file)) { return @{ Ok = $false; Why = 'This USB has no PC lock file. Make it again with the Rescue USB button.' } }
     $allowed = @(Get-Content -LiteralPath $file -ErrorAction SilentlyContinue | ForEach-Object { $_.Trim().ToUpperInvariant() } | Where-Object { $_ })

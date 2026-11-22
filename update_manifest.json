@@ -1,7 +1,7 @@
 {
-  "version": "1.4.498",
-  "notes": "The Advanced scan now always leaves Snagit running too.",
-  "published": "2026-11-19T21:36:17.9751536-05:00",
+  "version": "1.4.499",
+  "notes": "The Cleaner now remembers your zoom and window size",
+  "published": "2026-11-22T13:21:51.7086704-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "050D03EB2FD34E3C609820047F7DF7BA0D1FE33E29E7238EC3046E9FBE930E4F",
-      "size": 1028093
+      "sha256": "2E3B6A63932F26BC8C19F67FFD950755A7122BCD77A02239D9BB1928AF9626E5",
+      "size": 1030328
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -35,13 +35,13 @@
     },
     {
       "name": "DRDirect Imager.ps1",
-      "sha256": "698DA3A0E622D9E2955DF7D3460CC1F34553653B3CD01063AF916B4C738C8C8F",
-      "size": 70052
+      "sha256": "078E9B38D28E804351EC8D0450B5E9FA5C5E0BC5C612280C3256A37D4F0ECEA6",
+      "size": 72604
     },
     {
       "name": "DRDirect Rescue.ps1",
-      "sha256": "F1D4082132429D2F74707D05FE5F616420B30E1B0BED88327AB89A92BBFFDCC8",
-      "size": 72095
+      "sha256": "E8B31BC8FCB1A9A6E50FB1738B9AD5DCABF99E4743DD3CD05DDA912CFAF820A2",
+      "size": 73378
     },
     {
       "name": "DRDirect Logo.png",

@@ -1425,10 +1425,29 @@ try {
     if ($t -is [Windows.Media.ScaleTransform]) { $script:DRZoomBase = [double]$t.ScaleX }
 } catch { }
 function Set-DRPageZoom {
-    param([double]$Zoom)
+    param([double]$Zoom, [switch]$NoSave)
     $script:DRZoom = [Math]::Round([Math]::Max(0.5, [Math]::Min(2.0, $Zoom)), 2)
     $s = $script:DRZoomBase * $script:DRZoom
     $window.Content.LayoutTransform = New-Object Windows.Media.ScaleTransform($s, $s)
+    # Kept the moment it changes (not only when the window closes), so a restart or a
+    # shutdown of the PC never loses it. Only the person changes it: Ctrl + / - / 0 or Ctrl + wheel.
+    if (-not $NoSave -and -not $TestMode -and -not $NoShow) {
+        try {
+            $zk = 'HKCU:\Software\DRDirect\PC Cleaner'
+            if (-not (Test-Path -LiteralPath $zk)) { New-Item -Path $zk -Force | Out-Null }
+            Set-ItemProperty -LiteralPath $zk -Name 'PageZoom' -Value ([string]$script:DRZoom.ToString([Globalization.CultureInfo]::InvariantCulture)) -Type String
+        } catch { }
+    }
+}
+# Open at the size the person set last time (the build's hidden self-test starts from 100%).
+if (-not $TestMode -and -not $NoShow) {
+    try {
+        $zSaved = (Get-ItemProperty -LiteralPath 'HKCU:\Software\DRDirect\PC Cleaner' -Name 'PageZoom' -ErrorAction Stop).PageZoom
+        $zValue = 0.0
+        if ([double]::TryParse([string]$zSaved, [Globalization.NumberStyles]::Float, [Globalization.CultureInfo]::InvariantCulture, [ref]$zValue) -and $zValue -ge 0.5 -and $zValue -le 2.0) {
+            Set-DRPageZoom $zValue -NoSave
+        }
+    } catch { }
 }
 $window.Add_PreviewKeyDown({
     param($sender, $e)
@@ -1464,6 +1483,18 @@ try {
         if ([int]$drSaved.WinMax -eq 1) { $window.WindowState = [Windows.WindowState]::Maximized }
     }
 } catch { }
+function Save-DRWindowPlace {
+    try {
+        $b = if ($window.WindowState -eq [Windows.WindowState]::Normal) { New-Object Windows.Rect($window.Left, $window.Top, $window.Width, $window.Height) } else { $window.RestoreBounds }
+        if ($b.Width -lt 300 -or $b.Height -lt 300) { return }
+        if (-not (Test-Path -LiteralPath $drWinKey)) { New-Item -Path $drWinKey -Force | Out-Null }
+        Set-ItemProperty -LiteralPath $drWinKey -Name 'WinLeft'   -Value ([int][Math]::Round($b.Left))   -Type DWord
+        Set-ItemProperty -LiteralPath $drWinKey -Name 'WinTop'    -Value ([int][Math]::Round($b.Top))    -Type DWord
+        Set-ItemProperty -LiteralPath $drWinKey -Name 'WinWidth'  -Value ([int][Math]::Round($b.Width))  -Type DWord
+        Set-ItemProperty -LiteralPath $drWinKey -Name 'WinHeight' -Value ([int][Math]::Round($b.Height)) -Type DWord
+        Set-ItemProperty -LiteralPath $drWinKey -Name 'WinMax'    -Value ([int]($window.WindowState -eq [Windows.WindowState]::Maximized)) -Type DWord
+    } catch { }
+}
 $window.Add_Closing({
     param($closingSender, $closingArgs)
     # Closing the Cleaner while the Uninstaller or the Duplicate Finder is open caused an error, so the X waits
@@ -1484,17 +1515,17 @@ $window.Add_Closing({
             }
         } catch { }
     }
-    try {
-        $b = if ($window.WindowState -eq [Windows.WindowState]::Normal) { New-Object Windows.Rect($window.Left, $window.Top, $window.Width, $window.Height) } else { $window.RestoreBounds }
-        if ($b.Width -lt 300 -or $b.Height -lt 300) { return }
-        if (-not (Test-Path -LiteralPath $drWinKey)) { New-Item -Path $drWinKey -Force | Out-Null }
-        Set-ItemProperty -LiteralPath $drWinKey -Name 'WinLeft'   -Value ([int][Math]::Round($b.Left))   -Type DWord
-        Set-ItemProperty -LiteralPath $drWinKey -Name 'WinTop'    -Value ([int][Math]::Round($b.Top))    -Type DWord
-        Set-ItemProperty -LiteralPath $drWinKey -Name 'WinWidth'  -Value ([int][Math]::Round($b.Width))  -Type DWord
-        Set-ItemProperty -LiteralPath $drWinKey -Name 'WinHeight' -Value ([int][Math]::Round($b.Height)) -Type DWord
-        Set-ItemProperty -LiteralPath $drWinKey -Name 'WinMax'    -Value ([int]($window.WindowState -eq [Windows.WindowState]::Maximized)) -Type DWord
-    } catch { }
+    Save-DRWindowPlace
 })
+# The window's size and place are also kept a second after every move or resize, because
+# a PC that is shut down or restarted does not always let the Cleaner run its closing code.
+$script:DRPlaceTimer = New-Object Windows.Threading.DispatcherTimer
+$script:DRPlaceTimer.Interval = [TimeSpan]::FromSeconds(1)
+$script:DRPlaceTimer.Add_Tick({ $script:DRPlaceTimer.Stop(); Save-DRWindowPlace })
+$drPlaceChanged = { if ($window.IsLoaded -and $window.WindowState -ne [Windows.WindowState]::Minimized) { $script:DRPlaceTimer.Stop(); $script:DRPlaceTimer.Start() } }
+$window.Add_SizeChanged($drPlaceChanged)
+$window.Add_LocationChanged($drPlaceChanged)
+$window.Add_StateChanged($drPlaceChanged)
 
 function Get-Control { param([string]$Name) $window.FindName($Name) }
 
@@ -6479,6 +6510,8 @@ function Find-DRRescueSource {
 function Get-DRRescueUsbDisks {
     foreach ($d in (Get-Disk -ErrorAction SilentlyContinue | Sort-Object Number)) {
         if ([string]$d.BusType -ne 'USB' -or $d.IsBoot -or $d.IsSystem) { continue }
+        # Never a big USB hard drive or SSD (backup drives): flash drives only, so nothing over 300 GB.
+        if ([int64]$d.Size -gt 300GB) { continue }
         $letters = @(Get-Partition -DiskNumber $d.Number -ErrorAction SilentlyContinue | Where-Object { $_.DriveLetter } | ForEach-Object { [string]$_.DriveLetter })
         $files = 0; $usedBytes = 0L
         foreach ($l in $letters) {
@@ -8815,6 +8848,8 @@ function Get-DRWinUsbSticks {
     try {
         foreach ($d in @(Get-Disk -ErrorAction Stop | Sort-Object Number)) {
             if ([string]$d.BusType -ne 'USB' -or $d.IsBoot -or $d.IsSystem) { continue }
+            # Never a big USB hard drive or SSD (backup drives): flash drives only, so nothing over 300 GB.
+            if ([int64]$d.Size -gt 300GB) { continue }
             $letters = @(Get-Partition -DiskNumber $d.Number -ErrorAction SilentlyContinue | Where-Object { $_.DriveLetter } | ForEach-Object { [string]$_.DriveLetter + ':' })
             $found += [pscustomobject]@{ Name = ([string]$d.FriendlyName).Trim(); Size = [int64]$d.Size; Letters = ($letters -join ' ') }
         }

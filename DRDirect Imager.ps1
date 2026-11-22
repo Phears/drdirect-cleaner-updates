@@ -37,8 +37,31 @@ if ((Test-Path -LiteralPath $rescueLockFile) -or (Test-Path -LiteralPath $ownerL
         return
     }
 }
+# Owner password lockout, kept on the stick in owner.wait: after 3 wrong passwords the stick waits
+# 5 minutes; after every further 3 wrong passwords it waits 30 minutes. A right password clears it.
+function Get-OwnerWait([string]$File) {
+    $r = @{ Rounds = 0; Until = [datetime]::MinValue }
+    try {
+        $l = @(Get-Content -LiteralPath $File -ErrorAction Stop)
+        $r.Rounds = [int]$l[0]; $r.Until = [datetime]::new([int64]$l[1], [DateTimeKind]::Utc)
+    } catch { }
+    $r
+}
+function Set-OwnerWait([string]$File, [int]$Rounds) {
+    $mins = if ($Rounds -le 1) { 5 } else { 30 }
+    $until = [datetime]::UtcNow.AddMinutes($mins)
+    try { Set-Content -LiteralPath $File -Value @([string]$Rounds, [string]$until.Ticks) -Encoding ASCII -Force } catch { }
+    $mins
+}
 if (Test-Path -LiteralPath $ownerLockFile) {
     $ownerRec = [string](Get-Content -LiteralPath $ownerLockFile -ErrorAction SilentlyContinue | Select-Object -First 1)
+    $waitFile = Join-Path $PSScriptRoot 'owner.wait'
+    $wait = Get-OwnerWait $waitFile
+    $left = [math]::Ceiling(($wait.Until - [datetime]::UtcNow).TotalMinutes)
+    if ($left -gt 0) {
+        [System.Windows.MessageBox]::Show("Too many wrong owner passwords.`n`nThis stick is locked. Try again in $left minute(s).", 'DRDirect Clone & Backup', 'OK', 'Warning') | Out-Null
+        return
+    }
     $okOwner = $false
     for ($try = 1; $try -le 3 -and -not $okOwner; $try++) {
         $pw = New-Object System.Windows.Window
@@ -52,7 +75,12 @@ if (Test-Path -LiteralPath $ownerLockFile) {
         if (-not $pw.ShowDialog()) { return }
         if (Test-OwnerRecord $pb.Password $ownerRec) { $okOwner = $true }
     }
-    if (-not $okOwner) { return }
+    if (-not $okOwner) {
+        $mins = Set-OwnerWait $waitFile ($wait.Rounds + 1)
+        [System.Windows.MessageBox]::Show("Wrong owner password 3 times.`n`nThis stick is now locked for $mins minutes.", 'DRDirect Clone & Backup', 'OK', 'Warning') | Out-Null
+        return
+    }
+    Remove-Item -LiteralPath $waitFile -Force -ErrorAction SilentlyContinue
 }
 elseif (Test-Path -LiteralPath $rescueLockFile) {
     $mineHashes = @()
@@ -275,6 +303,8 @@ $main.FindName('CardCSub').Text = 'Secure uses maximum compression'
 function Get-RescueUsbDisks {
     foreach ($d in (Get-Disk -ErrorAction SilentlyContinue | Sort-Object Number)) {
         if ([string]$d.BusType -ne 'USB' -or $d.IsBoot -or $d.IsSystem) { continue }
+        # Never a big USB hard drive or SSD (backup drives): flash drives only, so nothing over 300 GB.
+        if ([int64]$d.Size -gt 300GB) { continue }
         $letters = @(Get-Partition -DiskNumber $d.Number -ErrorAction SilentlyContinue | Where-Object { $_.DriveLetter } | ForEach-Object { [string]$_.DriveLetter })
         $files = 0; $usedBytes = 0L
         foreach ($l in $letters) {
