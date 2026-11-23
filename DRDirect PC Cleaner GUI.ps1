@@ -4216,7 +4216,7 @@ function Start-RunPlan {
         $ui.ProgressList.BeginAnimation([Windows.UIElement]::OpacityProperty, $null)
         $ui.ProgressList.Opacity = 1
     }
-    $ui.OverallProgress.Value=0; $ui.ProgressPercent.Text='0%'; $ui.CancelPlanButton.IsEnabled=$true; $ui.CancelPlanButton.Content='Stop after current task'
+    $ui.OverallProgress.IsIndeterminate=$false; $ui.OverallProgress.Value=0; $ui.ProgressPercent.Text='0%'; $ui.CancelPlanButton.IsEnabled=$true; $ui.CancelPlanButton.Content='Stop after current task'
     $ui.RestartButton.Visibility='Collapsed'
     Set-ProgressScanLevel -Preset $script:cleanupPreset
     # While it runs, the person can still change when Windows restarts afterwards, or turn the automatic restart off.
@@ -4297,7 +4297,7 @@ function Update-DRElapsedDisplay {
     $base = $script:activeTaskMessage
     if ([string]::IsNullOrWhiteSpace($base)) { $base = 'Working…' }
     # System File Checker and DISM write their real progress to a small file while they run.
-    if ($script:activeTaskId -in @('repair.sfc', 'repair.dism-health', 'repair.component-cleanup') -and $env:DRDIRECT_CHILD_PID_FILE) {
+    if ($script:activeTaskId -in @('repair.sfc', 'repair.dism-health', 'repair.component-cleanup', 'security.quick-scan', 'security.full-scan') -and $env:DRDIRECT_CHILD_PID_FILE) {
         try {
             $sfcLive = $env:DRDIRECT_CHILD_PID_FILE + '.sfc'
             if ([System.IO.File]::Exists($sfcLive)) {
@@ -4559,6 +4559,7 @@ function Complete-RunPlan {
     }
 
     $ui.ProgressPercent.Text = '100%'
+    $ui.OverallProgress.IsIndeterminate = $false; $ui.RunStripBar.IsIndeterminate = $false
     $ui.OverallProgress.Value = 100
     # Windows' own soft calendar chime, left to ring out for about 5 seconds, so the person knows the Cleaner
     # is all done even if they have looked away. It is the sound that comes with Windows, so nothing is downloaded.
@@ -5484,8 +5485,20 @@ $pollTimer.Add_Tick({
             $pTotal = [Math]::Max(1, @($catalog | Where-Object { $selection[$_.Id] }).Count)
             $pDone = [Math]::Max(0, $pTotal - @($runQueue).Count - $(if ($curTaskId) { 1 } else { 0 }))
             $planPct = [Math]::Min(99, [Math]::Max(0, 100.0 * $pDone / $pTotal))
+            # The blue line always shows progress: the running item's real percentage when Windows gives one
+            # (System File Checker, DISM), added to the items already done.
+            $curPct = $null
+            if ($env:DRDIRECT_CHILD_PID_FILE) {
+                try {
+                    $liveFile = $env:DRDIRECT_CHILD_PID_FILE + '.sfc'
+                    if ([System.IO.File]::Exists($liveFile) -and ([System.IO.File]::ReadAllText($liveFile) -match '(\d{1,3})(?:[.,]\d+)?\s*% done')) { $curPct = [Math]::Min(100, [int]$Matches[1]) }
+                } catch { }
+            }
+            # Otherwise the running item moves the line by its time on this PC, the same as the time left.
+            $curShare = if ($null -ne $curPct) { $curPct / 100.0 } else { [Math]::Min(0.99, [Math]::Max(0.0, $taskShare)) }
+            $linePct = [Math]::Min(99, 100.0 * ($pDone + $curShare) / $pTotal)
             $ui.OverallProgress.IsIndeterminate = $false; $ui.RunStripBar.IsIndeterminate = $false
-            $ui.OverallProgress.Value = $planPct; $ui.RunStripBar.Value = $planPct
+            $ui.OverallProgress.Value = $linePct; $ui.RunStripBar.Value = $linePct
             $ui.ProgressPercent.Text = ('{0} of {1} done' -f $pDone, $pTotal)
             # Keep the running item (its green lights) in the middle of the list, gliding to it, until everything is done.
             try {
@@ -5510,7 +5523,7 @@ $pollTimer.Add_Tick({
             if ($script:runScanLevel -in @('Safe','Medium','Advanced')) {
                 $lv = [string]$script:runScanLevel
                 $barCtl = $ui["Preset${lv}Bar"]; $leftCtl = $ui["Preset${lv}Left"]
-                if ($barCtl) { $barCtl.Visibility = 'Visible'; $barCtl.Value = $planPct }
+                if ($barCtl) { $barCtl.Visibility = 'Visible'; $barCtl.Value = $linePct }
                 if ($leftCtl) {
                     $leftCtl.Visibility = 'Visible'
                     # When the running item goes past its expected time, say so plainly instead of freezing on a number:
@@ -5520,7 +5533,7 @@ $pollTimer.Add_Tick({
                     $curName = [string]$ui.CleaningCaption.Text
                     # Only real, measured time: how long the run and the current item have been going. No countdown guesses.
                     $runElapsed = if ($runStartedAt) { ((Get-Date) - [datetime]$runStartedAt).TotalSeconds } else { $curElapsed }
-                    $leftCtl.Text = [char]0x23F1 + ' Running for ' + (& $fmt $runElapsed) + $(if ($curName) { ' - now on ' + $curName + ' (' + (& $fmt $curElapsed) + ')' } else { '' })
+                    $leftCtl.Text = [char]0x23F1 + ' Running for ' + (& $fmt $runElapsed) + $(if ($curName) { ' - now on ' + $curName + ' (' + (& $fmt $curElapsed) + ')' } else { '' }) + $(if ($leftSecs -ge 1) { ' - about ' + (& $fmt $leftSecs) + ' left' } else { '' })
                 }
                 # The same block on top of the running page: the scan's time, a button in its colour, the bar and
                 # the countdown, with two blue lights flashing beside it.
@@ -5535,7 +5548,7 @@ $pollTimer.Add_Tick({
                         $ui.RunLevelBadge.Background = New-Object Windows.Media.LinearGradientBrush ([Windows.Media.ColorConverter]::ConvertFromString($runTop)), ([Windows.Media.ColorConverter]::ConvertFromString($runBottom)), 90
                         $script:DRRunBadgeLevel = $lv
                     }
-                    $ui.RunLevelBar.Value = $planPct
+                    $ui.RunLevelBar.Value = $linePct
                     if ($leftCtl) { $ui.RunLevelLeft.Text = $leftCtl.Text }
                 }
             }
@@ -5614,7 +5627,7 @@ $pollTimer.Add_Tick({
             $ui.RunStrip.Visibility = 'Visible'
             $ui.RunStripTitle.Text = [string][char]0x2714 + '  Finished. Click to see it'
             $ui.RunStripDetail.Text = [string]$ui.ProgressHeading.Text
-            $ui.RunStripBar.Value = 100
+            $ui.RunStripBar.IsIndeterminate = $false; $ui.RunStripBar.Value = 100
             $ui.RunStripCleaning.Visibility = 'Collapsed'; $ui.RunStripHint.Visibility = 'Collapsed'
         } else {
             $ui.RunStrip.Visibility = 'Collapsed'
@@ -6013,7 +6026,9 @@ foreach ($ps7 in @($pkgs | Where-Object { $_.Id -eq 'Microsoft.PowerShell' -and 
 
 # Apps left out on purpose: Warp updates itself and its download stalls; Logitech G HUB updates itself and
 # winget misreads its version, so it was offered again right after every successful update.
-$skipIds = @('Warp.Warp', 'Logitech.GHUB')
+# App Installer is winget itself: winget cannot update itself while it runs (0x800704c7), and the
+# Microsoft Store keeps it current anyway.
+$skipIds = @('Warp.Warp', 'Logitech.GHUB', 'Microsoft.AppInstaller')
 # Adobe Express Photos is not used here and its download keeps failing winget's checksum check.
 $skipName = 'Adobe Express*'
 foreach ($s in @($pkgs | Where-Object { ($skipIds -contains $_.Id) -or ($_.Name -like $skipName) })) {

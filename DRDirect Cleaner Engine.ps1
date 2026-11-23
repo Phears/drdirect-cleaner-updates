@@ -1569,7 +1569,7 @@ function Set-DRSfcLiveText {
 }
 
 function Invoke-DRSfc {
-    param([string]$TaskId, [string]$TestRoot, [int]$WaitForOthersMinutes = 20, [int]$SilentLimitMinutes = 45, [int]$StuckPercentMinutes = 30, [int]$NoPercentMinutes = 60, [int]$MaxTotalMinutes = 180)
+    param([string]$TaskId, [string]$TestRoot, [int]$WaitForOthersMinutes = 20, [int]$SilentLimitMinutes = 45, [int]$StuckPercentMinutes = 30, [int]$NoPercentMinutes = 20, [int]$MaxTotalMinutes = 180)
     if ($TestRoot) {
         New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: System File Checker was not run.'
         return
@@ -1673,6 +1673,11 @@ function Invoke-DRSfc {
                 }
                 if ($cpuNow -gt ($lastCpu + 1)) { $lastNews = Get-Date }
                 $lastCpu = $cpuNow
+                # No percentage yet: Windows has not let sfc start checking. Show the real time waited so far.
+                if ($lastPercent -lt 0) {
+                    $waited = [int][math]::Floor(((Get-Date) - $sfcStarted).TotalMinutes)
+                    Set-DRSfcLiveText ('Waiting for Windows to let the check start ({0} of {1} min)' -f $waited, $NoPercentMinutes)
+                }
             }
             elseif (((Get-Date) - $lastNews).TotalMinutes -ge $SilentLimitMinutes) {
                 # Nothing at all from sfc for this long: it is stuck behind Windows, not working.
@@ -1756,6 +1761,67 @@ function Invoke-DRChkdsk {
             }
         }
     }
+}
+
+# Windows Defender quick or full scan. MpCmdRun gives no percentage and the old run waited on it with no limit, so the
+# row only said "Starting…" for the whole scan. This one tells the person Defender is scanning, publishes the process so
+# Stop can reach it, and cancels the scan if it runs past a hard limit, so it can never run on for ever.
+function Invoke-DRDefenderScan {
+    param([string]$TaskId, [ValidateSet('Quick','Full')][string]$Kind, [string]$TestRoot, [int]$MaxMinutes = 0)
+    $mpCmd = Find-DRMpCmdRun
+    $scanType = if ($Kind -eq 'Full') { '2' } else { '1' }
+    if ($TestRoot) {
+        New-DREvent -TaskId $TaskId -State Information -Message ("TEST MODE: would run {0} -Scan -ScanType {1}" -f $mpCmd, $scanType)
+        return
+    }
+    if ($MaxMinutes -le 0) { $MaxMinutes = if ($Kind -eq 'Full') { 480 } else { 90 } }
+    $what = if ($Kind -eq 'Full') { 'Defender is checking every file on this PC' } else { 'Defender is checking the places viruses usually hide' }
+    Set-DRSfcLiveText ('{0} (Defender shows no percentage, only when it is done)' -f $what)
+
+    $psi = New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName = $mpCmd
+    $psi.Arguments = "-Scan -ScanType $scanType"
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $psi
+
+    $exitCode = $null
+    $tooLong = $false
+    $text = ''
+    $started = Get-Date
+    try {
+        [void]$process.Start()
+        Set-DRActiveChildProcess -ProcessId $process.Id
+        $outTask = $process.StandardOutput.ReadToEndAsync()
+        $errTask = $process.StandardError.ReadToEndAsync()
+        while (-not $process.WaitForExit(5000)) {
+            if (((Get-Date) - $started).TotalMinutes -ge $MaxMinutes) {
+                $tooLong = $true
+                try { Start-DRHiddenProcess -FilePath $mpCmd -Arguments @('-Cancel') | Out-Null } catch { }
+                if (-not $process.WaitForExit(30000)) { try { $process.Kill() } catch { } }
+                break
+            }
+        }
+        if (-not $tooLong) { $exitCode = $process.ExitCode }
+        try { if ($outTask.Wait(5000)) { $text += $outTask.Result } } catch { }
+        try { if ($errTask.Wait(5000)) { $text += "`r`n" + $errTask.Result } } catch { }
+    } finally {
+        Set-DRActiveChildProcess -ProcessId 0
+        Set-DRSfcLiveText $null
+        $process.Dispose()
+    }
+
+    $report = Format-DROutputForLog -Text ($text -replace "`0", '')
+    if ($report) { New-DREvent -TaskId $TaskId -State Information -Message ("MpCmdRun.exe reported:`r`n{0}" -f $report) }
+    if ($tooLong) {
+        New-DREvent -TaskId $TaskId -State Warning -Message ("The Defender {0} scan was still running after {1} minutes, so the Cleaner stopped it and carried on. Restart the PC and run it again. Nothing was changed." -f $Kind.ToLower(), $MaxMinutes)
+        return
+    }
+    if ($null -eq $exitCode) { throw "$mpCmd did not report a result. It was most likely stopped before it finished." }
+    if ($exitCode -ne 0) { throw "$mpCmd finished with exit code $exitCode." }
 }
 
 function Invoke-DRWindowsUpdateReset {
@@ -5691,8 +5757,8 @@ function Invoke-DRTask {
             'repair.windows-update' { Invoke-DRWindowsUpdateReset -TaskId $TaskId -TestRoot $TestRoot }
             'repair.network-reset' { Invoke-DRNetworkReset -TaskId $TaskId -TestRoot $TestRoot }
             'security.defender-update' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath (Find-DRMpCmdRun) -Arguments @('-SignatureUpdate') -TestRoot $TestRoot | Out-Null }
-            'security.quick-scan' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath (Find-DRMpCmdRun) -Arguments @('-Scan','-ScanType','1') -TestRoot $TestRoot | Out-Null }
-            'security.full-scan' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath (Find-DRMpCmdRun) -Arguments @('-Scan','-ScanType','2') -TestRoot $TestRoot | Out-Null }
+            'security.quick-scan' { Invoke-DRDefenderScan -TaskId $TaskId -Kind Quick -TestRoot $TestRoot }
+            'security.full-scan' { Invoke-DRDefenderScan -TaskId $TaskId -Kind Full -TestRoot $TestRoot }
             'security.network-files' {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Defender preferences were not changed.' }
                 else { Set-MpPreference -DisableScanningNetworkFiles $false -ErrorAction Stop }

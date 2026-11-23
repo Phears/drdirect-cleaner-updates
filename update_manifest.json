@@ -1,7 +1,7 @@
 {
-  "version": "1.4.499",
-  "notes": "The Cleaner now remembers your zoom and window size",
-  "published": "2026-11-22T13:21:51.7086704-05:00",
+  "version": "1.4.500",
+  "notes": "The blue line and time left are back on every scan; Defender and System File Checker no longer look stuck.",
+  "published": "2026-11-23T09:19:51.8327491-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "2E3B6A63932F26BC8C19F67FFD950755A7122BCD77A02239D9BB1928AF9626E5",
-      "size": 1030328
+      "sha256": "C5237873C4401E89D618A470A5C74BEF7F8BA5F50D6B37E43204B82FAA0DB731",
+      "size": 1031705
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "4DDF233F1267EF5F30600AD188303B36A678A89D7BE289E7796CDFCDD11038E1",
-      "size": 385819
+      "sha256": "2773197CF5F4E8F825952EB0E799117A9DA1C27162B411F4C2657049BA8652CE",
+      "size": 389263
     },
     {
       "name": "DRDirect Updater.ps1",
