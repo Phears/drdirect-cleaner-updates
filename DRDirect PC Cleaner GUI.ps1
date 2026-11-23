@@ -1591,7 +1591,7 @@ $script:DRNoRestartTaskIds = @('health.chkdsk','health.drive-check','health.pc-c
     'ai.gmail.on','ai.office-copilot.on','ai.edge-button.on','ai.copilot-key.on',
     'ai.copilot-app.on','ai.m365-app.on','ai.chatgpt-app.on','ai.claude-app.on',
     'ai.edge.uninstall','ai.chrome.uninstall','ai.brave.uninstall','ai.firefox.uninstall',
-    'ai.copilot-app.uninstall','ai.m365-app.uninstall','ai.chatgpt-app.uninstall','ai.claude-app.uninstall',
+    'ai.copilot-app.uninstall','ai.m365-app.uninstall','ai.chatgpt-app.uninstall',
     'ai.chrome.reinstall','ai.brave.reinstall','ai.firefox.reinstall')
 # The "Turn off" choices "Turn off all AI" picks, filled as the AI rows are drawn.
 $script:DRCheckWarned = @{}
@@ -2237,6 +2237,8 @@ function New-DRAIChoicePanel {
     $id = [string]$Task.Id
     $onId = "$id.on"
     $offLabel = switch -Wildcard ($id) {
+        # Claude's only switch is "starts with Windows"; it is never removed or blocked.
+        'ai.claude-app'    { '✕  Turn off'; break }
         'ai.check'         { '⌕  Check now' }
         'ai.restore'       { '↺  Turn all back on' }
         'ai.remove-models' { '✕  Delete' }
@@ -2250,35 +2252,26 @@ function New-DRAIChoicePanel {
     $canOff = (-not $Status) -or [bool]$Status.CanOff
     $offReason = $null
     if ($NeedsSignIn) { $canOff = $false; $offReason = 'Sign in to the browser first.' }
+    elseif (-not $canOff -and $id -eq 'ai.claude-app') { $offReason = 'Already off: Claude does not start with Windows.' }
     elseif (-not $canOff) { $offReason = 'Already removed from this PC.' }
     # Rows that can tell whether their AI is on show it in dark green (on) or dark red (off).
     $isOff = $null
     if ($Status -and $offKind -eq 'Off') { $isOff = [bool]($Status.CanOn -or -not $Status.CanOff) }
-    if ($id -eq 'ai.claude-app') {
-        # The Claude app has no setting to switch, so Turn off and Turn back on act on the Claude website
-        # (blocked or open in the browsers). The app itself is only touched by Remove below.
-        $blockStatus = @($script:DRAIStatus | Where-Object { $_.TaskId -eq 'ai.claude-block' }) | Select-Object -First 1
-        $blockOpen = [bool]($blockStatus -and $blockStatus.CanOff -and $blockStatus.State -eq 'On')
-        $blockCanOn = [bool]($blockStatus -and $blockStatus.CanOn)
-        $siteOff = New-DRAIChoiceButton -Label '✕  Turn off' -Kind 'Off' -TaskId 'ai.claude-block' -Enabled $blockOpen -Reason 'Already off: the Claude website is blocked.' -Active (-not $blockOpen)
-        $siteOn = New-DRAIChoiceButton -Label '✓  Turn back on' -Kind 'On' -TaskId 'ai.claude-block.on' -Enabled $blockCanOn -Reason 'Already on - the Cleaner has not turned it off.' -Active $blockOpen
-        [void]$panel.Children.Add($siteOff); [void]$panel.Children.Add($siteOn)
-    }
     $offButton = New-DRAIChoiceButton -Label $offLabel -Kind $offKind -TaskId $id -Enabled $canOff -Reason $offReason -Active $isOff
     [void]$panel.Children.Add($offButton)
     if ($id -eq 'ai.restore') { $script:DRAIRestoreButton = $offButton }
     # "Turn off all AI" picks everything the Cleaner can finish by itself.
     # Claude is never part of it: DRDirect keeps Claude.
-    if ($offKind -eq 'Off' -and [string]$Task.Risk -ne 'Guided' -and $id -notin @('ai.claude-app','ai.claude-block')) { [void]$script:DRAIOffButtons.Add($offButton) }
+    if ($offKind -eq 'Off' -and [string]$Task.Risk -ne 'Guided' -and $id -ne 'ai.claude-app') { [void]$script:DRAIOffButtons.Add($offButton) }
 
     if (@($catalog | Where-Object { $_.Id -eq $onId }).Count) {
         $onLabel = switch ($id) {
             'ai.edge-button'    { '↗  Open Edge to show it' }
             'ai.office-copilot' { '↗  Open Word to turn on' }
-            default             { if ($id -like 'ai.*-app') { '↻  Reinstall' } else { '✓  Turn back on' } }
+            default             { if ($id -like 'ai.*-app' -and $id -ne 'ai.claude-app') { '↻  Reinstall' } else { '✓  Turn back on' } }
         }
         $canOn = [bool]($Status -and $Status.CanOn)
-        $onReason = if ($canOn) { $null } elseif ($id -like 'ai.*-app') { 'Already installed.' } else { 'Already on - the Cleaner has not turned it off on this PC.' }
+        $onReason = if ($canOn) { $null } elseif ($id -eq 'ai.claude-app') { 'Already on - the Cleaner has not changed how Claude starts.' } elseif ($id -like 'ai.*-app') { 'Already installed.' } else { 'Already on - the Cleaner has not turned it off on this PC.' }
         [void]$panel.Children.Add((New-DRAIChoiceButton -Label $onLabel -Kind 'On' -TaskId $onId -Enabled $canOn -Reason $onReason -Active $(if ($null -ne $isOff) { -not $isOff } else { $null })))
     }
 

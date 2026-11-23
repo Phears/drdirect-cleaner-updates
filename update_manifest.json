@@ -1,7 +1,7 @@
 {
-  "version": "1.4.500",
-  "notes": "The blue line and time left are back on every scan; Defender and System File Checker no longer look stuck.",
-  "published": "2026-11-23T09:19:51.8327491-05:00",
+  "version": "1.4.501",
+  "notes": "Switch off AI: Claude is never blocked; the Claude card only turns Claude starting with Windows off or on.",
+  "published": "2026-11-23T16:54:47.1827546-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "C5237873C4401E89D618A470A5C74BEF7F8BA5F50D6B37E43204B82FAA0DB731",
-      "size": 1031705
+      "sha256": "BD98FC9FF60DE8C34FCB428F34EBA8AF8BF74A293AF44F805A44313875AF0603",
+      "size": 1031036
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "2773197CF5F4E8F825952EB0E799117A9DA1C27162B411F4C2657049BA8652CE",
-      "size": 389263
+      "sha256": "820C8FF8F49E0C37AC9730FF20DF0D6538DE6E7B19D6D64052121747A758B34E",
+      "size": 393576
     },
     {
       "name": "DRDirect Updater.ps1",
