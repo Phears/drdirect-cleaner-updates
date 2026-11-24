@@ -1,17 +1,17 @@
 {
-  "version": "1.4.503",
-  "notes": "Clone & Backup: copy a big drive onto a smaller drive (only the data is copied). Secure can make a backup that fits a smaller drive, and Restore (also on a new Rescue USB) can put it onto a smaller drive.",
-  "published": "2026-11-24T04:54:40.1304624-05:00",
+  "version": "1.4.504",
+  "notes": "French / English: a button on the Dashboard switches the Cleaner, Clone & Backup and the Duplicate Finder between French and English at any time.",
+  "published": "2026-11-24T06:26:22.1303756-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "146D5BC2F8059D3DF3A5CD0C02F6F495C2D121ED0E28D12F54B26B1C2E879448",
-      "size": 222212
+      "sha256": "164D3B535C1E88E5450F929903EAEB0C0BE2419565B256C8FAA4867A1580D929",
+      "size": 508288
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "684453D2F881F0EA07B6AF3C8FC36E49F2334716E6F2FF993C5E4BAE0BFCCBBE",
-      "size": 1041375
+      "sha256": "332EB2E0594B682F79AE0D77C2F39832B97E46E74A5451A863C9494ED4B804C6",
+      "size": 1295735
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
