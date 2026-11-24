@@ -9238,7 +9238,7 @@ function Open-DRUninstaller {
         try {
             $drSet = Join-Path (Split-Path -Parent $uninstaller) 'BCUninstaller.settings'
             if (Test-Path -LiteralPath $drSet) {
-                $drWant = if (('DRDirect.Lang' -as [type]) -and [DRDirect.Lang]::French) { 'fr' } else { 'en' }
+                $drWant = if (('DRDirect.Lang' -as [type]) -and [DRDirect.Lang]::French) { 'fr-CA' } else { 'en-US' }   # it only accepts a full name from its own list (fr-CA, en-US...)
                 $drTxt = [IO.File]::ReadAllText($drSet)
                 $drNew = [regex]::Replace($drTxt, '<Language>[\s\S]*?</Language>|<Language\s*/>', '<Language>' + $drWant + '</Language>')
                 if ($drNew -ne $drTxt) { [IO.File]::WriteAllText($drSet, $drNew, (New-Object Text.UTF8Encoding $true)) }
