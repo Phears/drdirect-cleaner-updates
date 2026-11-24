@@ -826,6 +826,7 @@ Check for Windows updates and install them now?	Chercher les mises à jour Windo
 Check for driver updates	Chercher des mises à jour de pilotes
 Check for problems the next time I start my computer	Rechercher les problèmes au prochain démarrage de l’ordinateur
 Check for updates	Rechercher des mises à jour
+Check my	Vérifier ma
 Check my PC	Vérifier mon PC
 Check my RAM	Vérifier ma RAM
 Check my drives	Vérifier mes disques
@@ -1055,7 +1056,7 @@ DRDirect Pro Tech\nUninstaller	Désinstalleur\nDRDirect Pro Tech
 DRDirect Rescue USB - Warning	Clé USB de secours DRDirect - Avertissement
 DRDirect Rescue system	Système de secours DRDirect
 DRDirect Uninstaller	Désinstalleur DRDirect
-DRDirect Uninstaller Program	Programme de désinstallation DRDirect
+DRDirect Uninstaller Program	Désinstalleur DRDirect
 DRDirect Uninstaller is removing {0}	Le désinstalleur DRDirect retire {0}
 DRDirect backup file (*.drimg)|*.drimg	Fichier de sauvegarde DRDirect (*.drimg)|*.drimg
 DRDirect image (*.drimg)|*.drimg	Sauvegarde DRDirect (*.drimg)|*.drimg
@@ -2467,7 +2468,7 @@ Update all apps	Mettre à jour toutes les applis
 Update every app with winget, in a colour PowerShell window	Mettre à jour chaque appli avec winget, dans une fenêtre PowerShell en couleur
 Update failed: {0}	La mise à jour a échoué : {0}
 Update my apps	Mettre à jour mes applis
-Update the Cleaner	Mettre à jour le Cleaner
+Update the Cleaner	Mettre à jour
 Update this program	Mettre à jour ce programme
 Update {0} is available.	La mise à jour {0} est disponible.
 Updated to {0}.	Mis à jour vers {0}.
@@ -2922,7 +2923,7 @@ your Windows drive	votre disque Windows
 ⛨   Full scan only	⛨   Analyse complète seulement
 ⛨   Smart App Control	⛨   Contrôle intelligent des applications
 ⛨   Windows Update	⛨   Windows Update
-⛨   Windows repair USB	⛨   Clé USB de réparation Windows
+⛨   Windows repair USB	⛨   Clé USB de réparation
 ✅ PowerShell 7 is now installed through winget and up to date	✅ PowerShell 7 est maintenant installé avec winget et à jour
 ✅ no problems	✅ aucun problème
 ✅ {0} upgraded	✅ {0} mis à jour
@@ -2934,7 +2935,7 @@ your Windows drive	votre disque Windows
 ✕  Turn off all AI	✕  Désactiver toute l’IA
 ✦   Clean my PC	✦   Nettoyer mon PC
 ⟳  Reload uninstallers	⟳  Recharger les désinstalleurs
-⧉   Find duplicate files	⧉   Trouver les fichiers en double
+⧉   Find duplicate files	⧉   Fichiers en double
 ⬅  Back to simple view	⬅  Retour à la vue simple
 ⬆  Windows updates	⬆  Mises à jour Windows
 ⭳   Update my apps	⭳   Mettre à jour mes applis
