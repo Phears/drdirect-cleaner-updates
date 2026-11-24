@@ -736,7 +736,12 @@ function Get-Problem {
             if (-not $img) { return 'Choose the image file to restore (Image).' }
             if (-not $b) { return 'Choose the drive to restore onto.' }
             if ($b.Number -eq $script:stickDisk) { return 'That is the Rescue USB you started from. Choose another drive.' }
-            return (Get-RestoreBlockReason $b.Number $img)
+            $why = Get-RestoreBlockReason $b.Number $img -AllowSmaller
+            if ($why) { return $why }
+            # a smaller drive is fine when the backup fits on it
+            $need = $null; try { $need = [DRImgJob]::ReadHeader($img) } catch { }
+            if ($need -and $b.Size -lt $need) { $rp = Get-RestoreFitPlan $img $b.Number; if ($rp.Reason) { return $rp.Reason } }
+            return $null
         }
         'check' {
             if (-not $img) { return 'Choose the image file to check (Image).' }
@@ -971,6 +976,7 @@ $timer.Add_Tick({
         $bar.Value = 1000
         if ($script:targetNo -ge 0) {
             Complete-RestoreTarget $script:targetNo
+            if ($script:restoreFit) { Expand-RestoreFitTarget $script:restoreFit; $script:restoreFit = $null }
             if ($chkTrim.Checked) {
                 $lblProg.Text = 'Trimming the drive (this can take a few minutes)...'; [System.Windows.Forms.Application]::DoEvents()
                 foreach ($l in (Get-DiskLetters $script:targetNo)) { try { Optimize-Volume -DriveLetter $l -ReTrim -ErrorAction Stop | Out-Null } catch { } }
@@ -1030,8 +1036,19 @@ function Start-Main {
             }
             'restore' {
                 $b = Get-SelectedDisk $cbDiskB
-                Initialize-RestoreTarget $b.Number; $script:targetNo = $b.Number
-                $j.StartRestore($img, $b.Path)
+                $script:restoreFit = $null
+                $need = [DRImgJob]::ReadHeader($img)
+                if ($b.Size -lt $need) {
+                    # onto a smaller drive: only the partitions are written, the ones at the end move up, C: is grown after
+                    $rp = Get-RestoreFitPlan $img $b.Number
+                    if ($rp.Reason) { throw $rp.Reason }
+                    Initialize-RestoreTarget $b.Number; $script:targetNo = $b.Number
+                    $script:restoreFit = $rp
+                    $j.StartRestoreMapped($img, $b.Path, $rp.Map, $rp.Head, $rp.Tail, $rp.TailOff)
+                } else {
+                    Initialize-RestoreTarget $b.Number; $script:targetNo = $b.Number
+                    $j.StartRestore($img, $b.Path)
+                }
             }
             'check' { $j.StartVerify($img) }
         }

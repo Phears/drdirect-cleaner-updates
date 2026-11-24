@@ -7783,9 +7783,16 @@ function Show-DRDriveCopy {
                 $c.InfoA.Text = if ($d) { "$($d.Name)`n$(Format-ImgSize $d.Size)$(if ($d.IsWindows) { '  -  Windows drive' })" } else { '' }
                 $c.InfoB.Text = if ($d2) { "$($d2.Name)`n$(Format-ImgSize $d2.Size)$(if ($d2.IsWindows) { '  -  Windows drive' })" } else { 'Plug in the drive to copy onto.' }
                 if (-not $d -or -not $d2) { & $tip 'Choose a drive to copy from and a drive to copy onto.'; return }
-                $why = Get-CloneBlockReason $d.Number $d2.Number
+                $why = Get-CloneBlockReason $d.Number $d2.Number -AllowSmaller
                 if ($why) { & $block $why; return }
-                if ($d.IsWindows) { & $tip "Tip: Windows is running from $(& $letterOf $d), so it is copied while in use. For a perfect copy, start the PC from the Rescue USB." }
+                $fitTip = ''
+                if ($d2.Size -lt $d.Size) {
+                    $fp = Get-CloneFitPlan $d.Number $d2.Number
+                    if ($fp.Reason) { & $block $fp.Reason; return }
+                    $fitTip = "The target is smaller, and the data fits: only the data is copied ($(Format-ImgSize ($fp.Used + $fp.Other)) of $(Format-ImgSize $d.Size)). $($fp.FitName) is made smaller to fit for the copy, then put back to its full size."
+                    & $tip $fitTip
+                }
+                if ($d.IsWindows) { & $tip ($(if ($fitTip) { "$fitTip`n" } else { '' }) + "Tip: Windows is running from $(& $letterOf $d), so it is copied while in use. For a perfect copy, start the PC from the Rescue USB.") }
                 $t2 = & $letterOf $d2
                 $c.Go.IsEnabled = (& $agree "clone|$($d.Number)|$($d2.Number)" "3.  Yes, put the copy on $t2" "What is on $t2 now will be replaced by the copy.")
             }
@@ -7824,8 +7831,14 @@ function Show-DRDriveCopy {
                 $c.InfoB.Text = if ($d2) { "$($d2.Name)`n$(Format-ImgSize $d2.Size)$(if ($d2.IsWindows) { '  -  Windows drive' })" } else { 'Plug in the drive to restore onto.' }
                 if (-not $d2) { & $tip 'Choose the drive to restore onto.'; return }
                 if (-not $aFile) { & $tip 'Press Browse to pick the backup file.'; return }
-                $why = Get-RestoreBlockReason $d2.Number $aFile
+                $why = Get-RestoreBlockReason $d2.Number $aFile -AllowSmaller
                 if ($why) { & $block $why; return }
+                $needSize = $null; try { $needSize = [DRImgJob]::ReadHeader($aFile) } catch { }
+                if ($needSize -and $d2.Size -lt $needSize) {
+                    $rp = Get-RestoreFitPlan $aFile $d2.Number
+                    if ($rp.Reason) { & $block $rp.Reason; return }
+                    & $tip 'The drive is smaller than the one the backup came from, and the backup fits: it is put back, and the main partition is then grown to fill the drive.'
+                }
                 $t2 = & $letterOf $d2
                 $c.Go.IsEnabled = (& $agree "restore|$aFile|$($d2.Number)" "3.  Yes, put it back on $t2" "What is on $t2 now will be replaced.")
             }
@@ -7996,6 +8009,31 @@ function Show-DRDriveCopy {
                     $c.PText.Text = 'Looking at the drive...'
                     $w.Dispatcher.Invoke([Action]{}, [Windows.Threading.DispatcherPriority]::Render)
                     $bytes = [double]$d.Size; $ext = $null
+                    $state.Fit = $null
+                    if ($d2.Size -lt $d.Size) {
+                        $fp = Get-CloneFitPlan $d.Number $d2.Number
+                        if ($fp.Reason) { throw $fp.Reason }
+                        $fitL = $fp.FitName
+                        if (-not (& $ask "Ready to copy onto the smaller drive?`n`nFrom:  $(Get-DriveWords $d)`nOnto:  $(Get-DriveWords $d2)`n`nWhat is on $(& $letterOf $d2) now will be replaced by the copy.`nOnly the data is copied, about $(Format-ImgSize ($fp.Used + $fp.Other)). Nothing blank is copied.`n`nTo make it fit, Windows first makes $fitL smaller ($(Format-ImgSize $fp.FitFullSize) to $(Format-ImgSize $fp.FitNewSize)). Nothing is deleted. This can take a few minutes. When the copy is done, $fitL is put back to its full size.$demoNote`n`nStart now?" 'SmartCopy')) { & $backToForm; return }
+                        if ($state.Demo) { $job = [pscustomobject]@{ Done = [long]0; Total = [long][Math]::Max($fp.Used, 1GB); FileDone = 0; FileTotal = 0; Finished = $false; Ok = $false; Error = $null; Cancel = $false } }
+                        else {
+                            $c.PText.Text = "Windows is making $fitL smaller so the copy fits. This can take a few minutes - please wait..."
+                            $w.Dispatcher.Invoke([Action]{}, [Windows.Threading.DispatcherPriority]::Render)
+                            $state.Fit = $fp
+                            try {
+                                $prep = Invoke-CloneFitPrepare $fp
+                                $job = New-Object DRImgJob
+                                $state.Target = $d2.Number
+                                Sync-DiskVolumes $d.Number
+                                Initialize-RestoreTarget $d2.Number
+                                $job.StartMappedClone($d.Path, $d2.Path, $prep.Trip, $prep.Head, $prep.Tail, $prep.TailOff)
+                            } catch {
+                                $back = Restore-CloneFitSource $fp; $state.Fit = $null
+                                throw ($_.Exception.Message + $(if ($back) { "`n`n$back" } else { '' }))
+                            }
+                        }
+                        break
+                    }
                     if (-not $state.Demo) {
                         $ext = Get-SmartExtents $d.Number $d.Size
                         if ($ext) { $bytes = 2MB; for ($i = 1; $i -lt $ext.Data.Count; $i += 2) { $bytes += $ext.Data[$i] } }
@@ -8024,6 +8062,13 @@ function Show-DRDriveCopy {
                     if (-not $state.Demo -and (Test-DROnBattery)) {
                         if (-not (& $ask "This laptop is running on its battery.`n`nSecure can take a long time, and if the battery runs out the image is lost. Please plug in the charger and keep the lid open until it is done.`n`nStart anyway?" 'Secure')) { & $backToForm; return }
                     }
+                    $state.Fit = $null; $secFit = $null
+                    if (-not $state.Demo) {
+                        $si = Get-SecureFitInfo $d.Number
+                        if ($si -and $si.Used -lt $si.FitFullSize * 0.6) {
+                            if (& $ask "Do you want to be able to put this backup back onto a SMALLER drive (for example a 500 GB)?`n`n$($si.FitName) holds $(Format-ImgSize $si.Used) on a $(Format-ImgSize $si.FitFullSize) partition.`n`nYes: Windows makes $($si.FitName) smaller just for the backup (this can take a few minutes, nothing is deleted), and puts it back to its full size when the backup is done.`nNo: a normal backup (it can only go back onto a drive as big as this one)." 'Secure') { $secFit = $si }
+                        }
+                    }
                     $whole = if ($ext -and $ext.Whole.Count) { "`n`nCopied whole, because they cannot be mapped: " + ($ext.Whole -join ', ') + '.' } else { '' }
                     if (-not (& $ask "Secure $(Get-DriveWords $d) into:`n$($c.BPath.Text)`n`nOnly the used parts are read (about $(Format-ImgSize $bytes) of $(Format-ImgSize $d.Size)).$whole`n`nThe PC is kept awake until it is done. On a laptop, keep the lid open.$demoNote`n`nStart?" 'Secure')) { & $backToForm; return }
                     if ($state.Demo) { $job = [pscustomobject]@{ Done = [long]0; Total = [long][Math]::Max($bytes, 1GB); FileDone = 0; FileTotal = 0; Finished = $false; Ok = $false; Error = $null; Cancel = $false } }
@@ -8031,6 +8076,13 @@ function Show-DRDriveCopy {
                         $job = New-ImagerJob
                         $dir = Split-Path -Parent $c.BPath.Text
                         if ($dir -and -not (Test-Path -LiteralPath $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
+                        if ($secFit) {
+                            $c.PText.Text = "Windows is making $($secFit.FitName) smaller for the backup. This can take a few minutes - please wait..."
+                            $w.Dispatcher.Invoke([Action]{}, [Windows.Threading.DispatcherPriority]::Render)
+                            $state.Fit = $secFit
+                            try { $null = Invoke-SecureFitPrepare $secFit; $ext = Get-SmartExtents $d.Number $d.Size }
+                            catch { $back = Restore-CloneFitSource $secFit; $state.Fit = $null; throw ($_.Exception.Message + $(if ($back) { "`n`n$back" } else { '' })) }
+                        }
                         Sync-DiskVolumes $d.Number
                         $job.Quick = (-not $smallest); $job.Fast = $false; $job.Workers = $workers
                         if ($maxMode -and ($job.PSObject.Properties.Name -contains 'Lighter')) { $job.Lighter = $true }
@@ -8047,8 +8099,18 @@ function Show-DRDriveCopy {
                     else {
                         $job = New-ImagerJob
                         $state.Target = $d2.Number
-                        Initialize-RestoreTarget $d2.Number
-                        $job.StartRestore($c.APath.Text, $d2.Path)
+                        $state.RestoreFit = $null
+                        $needSize = [DRImgJob]::ReadHeader($c.APath.Text)
+                        if ($d2.Size -lt $needSize) {
+                            $rp = Get-RestoreFitPlan $c.APath.Text $d2.Number
+                            if ($rp.Reason) { throw $rp.Reason }
+                            Initialize-RestoreTarget $d2.Number
+                            $state.RestoreFit = $rp
+                            $job.StartRestoreMapped($c.APath.Text, $d2.Path, $rp.Map, $rp.Head, $rp.Tail, $rp.TailOff)
+                        } else {
+                            Initialize-RestoreTarget $d2.Number
+                            $job.StartRestore($c.APath.Text, $d2.Path)
+                        }
                     }
                 }
                 'rescue' {
@@ -8184,11 +8246,14 @@ function Show-DRDriveCopy {
                 $state.Timer.Stop(); $state.Busy = $false
                 Set-DRStayAwake $false
                 if ($state.Ps) { try { $state.Ps.Ps.EndInvoke($state.Ps.Handle) | Out-Null } catch { }; try { $state.Ps.Ps.Dispose(); $state.Ps.Rs.Dispose() } catch { }; $state.Ps = $null }
+                $fitBack = $null
+                if ($state.Fit) { $fitBack = Restore-CloneFitSource $state.Fit; $state.Fit = $null }
                 $c.Stop.Content = 'Back'; $c.Stop.Tag = 'done'; $c.Stop.IsEnabled = $true
                 & $setFlow 'off'
                 if ($j.Ok) {
                     if (-not $state.Demo) {
                         if ($m -eq 'clone' -or $m -eq 'restore') { Complete-RestoreTarget $state.Target }
+                        if ($m -eq 'restore' -and $state.RestoreFit) { Expand-RestoreFitTarget $state.RestoreFit; $state.RestoreFit = $null }
                         if ($m -eq 'create') { Write-ImagerTiming $j $state.Clock.Elapsed.TotalSeconds $c.BPath.Text; Set-DRLastBackupFile $c.BPath.Text }
                         if ($m -eq 'rescue' -and $state.RescueWhat) { Set-DRRescueUsbRecord $state.RescueWhat }
                     }
@@ -8201,8 +8266,8 @@ function Show-DRDriveCopy {
                     $c.LedB.Fill = $bc.ConvertFromString('#39FF7A'); $c.LedGlowB.Color = [Windows.Media.ColorConverter]::ConvertFromString('#39FF7A')
                     $took = Format-TookTime $state.Clock.Elapsed.TotalSeconds
                     $c.PMsg.Text = switch ($m) {
-                        'clone' { "The drive has been copied.`nTime taken: $took" }
-                        'create' { "Backup file saved:`n$($c.BPath.Text)`nTime taken: $took" }
+                        'clone' { "The drive has been copied.`nTime taken: $took" + $(if ($fitBack) { "`n$fitBack" } else { '' }) }
+                        'create' { "Backup file saved:`n$($c.BPath.Text)`nTime taken: $took" + $(if ($fitBack) { "`n$fitBack" } else { '' }) }
                         'check' { "The backup file is complete and not damaged.`nTime taken: $took" }
                         'restore' { "The drive has been restored.`nTime taken: $took" }
                         'rescue' { "$($j.Error)`nTime taken: $took`nKeep it somewhere safe. If you lose it or it breaks, come back here and make a new one." }
@@ -8225,6 +8290,7 @@ function Show-DRDriveCopy {
                     $c.PMsg.Text = if ($m -eq 'rescue') { $j.Error } else { "Stopped: $($j.Error)" }
                     $c.PMsg.Text += "`nIt ran for $(Format-TookTime $state.Clock.Elapsed.TotalSeconds) before it stopped."
                     if ($m -eq 'restore' -or $m -eq 'clone') { $c.PMsg.Text += "`nThe target drive was only partly written. Run it again before using that drive." }
+                    if ($fitBack) { $c.PMsg.Text += "`n$fitBack" }
                 }
             }
         })

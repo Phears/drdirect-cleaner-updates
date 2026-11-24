@@ -1,7 +1,7 @@
 {
-  "version": "1.4.502",
-  "notes": "Edge: choice to use Google instead of Bing. Driver search uses Google. Update my apps no longer shows the App Installer error.",
-  "published": "2026-11-23T21:25:23.4926238-05:00",
+  "version": "1.4.503",
+  "notes": "Clone & Backup: copy a big drive onto a smaller drive (only the data is copied). Secure can make a backup that fits a smaller drive, and Restore (also on a new Rescue USB) can put it onto a smaller drive.",
+  "published": "2026-11-24T04:54:40.1304624-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "70C606941DD6BFEF6F24D614CA583AEE3422B6A67843C1E1290EAC620B948705",
-      "size": 1035559
+      "sha256": "684453D2F881F0EA07B6AF3C8FC36E49F2334716E6F2FF993C5E4BAE0BFCCBBE",
+      "size": 1041375
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
@@ -30,8 +30,8 @@
     },
     {
       "name": "DRDirect Imager Engine.ps1",
-      "sha256": "D469C29C6E4896B741DB643E130905FEE7D2FE75999BE0EBB19765029C24B711",
-      "size": 89954
+      "sha256": "79E6137487E08E17D5BEF77594E2239C34AF8B6D20119187D7EE4849A6937A96",
+      "size": 118617
     },
     {
       "name": "DRDirect Imager.ps1",
@@ -40,8 +40,8 @@
     },
     {
       "name": "DRDirect Rescue.ps1",
-      "sha256": "E8B31BC8FCB1A9A6E50FB1738B9AD5DCABF99E4743DD3CD05DDA912CFAF820A2",
-      "size": 73378
+      "sha256": "D82531B07A74141910BC252570BB2E111E4F68944E13C54B4A40C7AEA56259E9",
+      "size": 74498
     },
     {
       "name": "DRDirect Logo.png",

@@ -416,6 +416,57 @@ public class DRImgJob
         }
         finally { try { System.Runtime.GCSettings.LatencyMode = oldMode; } catch (Exception) { } }
     }
+    // The first block of a backup file, unlocked (it holds the drive's partition table).
+    public byte[] ReadFirstBlock(string file)
+    {
+        using (FileStream f = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
+        using (BinaryReader br = new BinaryReader(f))
+        {
+            string m = Encoding.ASCII.GetString(br.ReadBytes(8));
+            if (m != Magic3 && m != Magic4) throw new InvalidDataException("This backup was made by an older version and cannot be put on a smaller drive.");
+            bool lz = (m == Magic4);
+            br.ReadInt64(); br.ReadInt32(); int chunk = br.ReadInt32(); br.ReadString();
+            byte[] kc = br.ReadBytes(32);
+            if (lz) br.ReadInt32();
+            byte[] mine = Key == null ? null : KeyCheck(Key);
+            for (int q = 0; q < 32; q++) if (mine == null || kc.Length != 32 || mine[q] != kc[q]) throw new InvalidDataException("This image is locked to the PC that made it. It can only be opened on that PC.");
+            long off = br.ReadInt64(); int raw = br.ReadInt32(); int comp = br.ReadInt32();
+            if (off != 0 || raw <= 0 || raw > chunk || comp < 0 || comp > raw) throw new InvalidDataException("The image file is damaged (bad block at 0).");
+            byte[] outb = new byte[raw];
+            if (comp == 0) return outb;
+            int encLen = br.ReadInt32();
+            if (encLen <= 0 || encLen > raw + 64) throw new InvalidDataException("The image file is damaged (bad block at 0).");
+            byte[] enc = br.ReadBytes(encLen);
+            byte[] plain = new byte[chunk + 64];
+            using (Aes aes = Aes.Create())
+            {
+                aes.KeySize = 256; aes.Mode = CipherMode.CBC; aes.Padding = PaddingMode.None; aes.Key = Key;
+                int cl = DecryptInto(aes, enc, encLen, plain);
+                if (cl != comp) throw new InvalidDataException("The image file is damaged (bad block at 0).");
+                if (comp == raw) Buffer.BlockCopy(plain, 0, outb, 0, raw); else if (lz) Lz4Decode(plain, comp, outb, raw); else Inflate(plain, comp, outb, raw);
+            }
+            return outb;
+        }
+    }
+
+    // Restore onto a smaller drive: map holds [start, end, move] for each partition; only bytes inside them are
+    // written, each moved by its amount. The new partition table (from the first block) is written last.
+    public long[] RestoreMap;
+    public void StartRestoreMapped(string file, string disk, long[] map, byte[] gptHead, byte[] gptTail, long tailOff)
+    {
+        RestoreMap = map;
+        Total = ReadHeader(file); Status = "Restoring";
+        Go(delegate() {
+            ReplayParallel(file, disk);
+            using (FileStream dst = new FileStream(disk, FileMode.Open, FileAccess.Write, FileShare.ReadWrite, 4096))
+            {
+                dst.Seek(tailOff, SeekOrigin.Begin); dst.Write(gptTail, 0, gptTail.Length);
+                dst.Seek(0, SeekOrigin.Begin); dst.Write(gptHead, 0, gptHead.Length);
+                dst.Flush();
+            }
+        }, null);
+    }
+
     public void StartVerify(string file)
     {
         Total = ReadHeader(file); Status = "Checking";
@@ -675,7 +726,13 @@ public class DRImgJob
     {
         List<long[]> tasks = new List<long[]>();
         foreach (long[] e in extents)
-            for (long o = e[0]; o < e[1]; o += piece) tasks.Add(new long[] { o, Math.Min(piece, e[1] - o) });
+            for (long o = e[0]; o < e[1]; o += piece) tasks.Add(new long[] { o, Math.Min(piece, e[1] - o), o });
+        RunTasks(src, dst, tasks, piece, workers);
+    }
+
+    // Each task is [source offset, length, target offset].
+    void RunTasks(string src, string dst, List<long[]> tasks, long piece, int workers)
+    {
         if (tasks.Count == 0) return;
         int[] next = new int[] { -1 };
         Exception[] fail = new Exception[1];
@@ -710,13 +767,14 @@ public class DRImgJob
                             if (r == 0) throw new EndOfStreamException("The source drive ended earlier than expected.");
                             got += r;
                         }
-                        if (!SetFilePointerEx(hd, off, out np, 0)) throw new IOException("Cannot move on the target drive (error " + System.Runtime.InteropServices.Marshal.GetLastWin32Error() + ").");
+                        long dOff = tasks[i][2];
+                        if (!SetFilePointerEx(hd, dOff, out np, 0)) throw new IOException("Cannot move on the target drive (error " + System.Runtime.InteropServices.Marshal.GetLastWin32Error() + ").");
                         long put = 0;
                         while (put < len)
                         {
                             uint wr;
                             if (!WriteFile(hd, (IntPtr)(buf.ToInt64() + put), (uint)(len - put), out wr, IntPtr.Zero))
-                                throw new IOException("Cannot write the target drive at " + (off + put) + " (error " + System.Runtime.InteropServices.Marshal.GetLastWin32Error() + ").");
+                                throw new IOException("Cannot write the target drive at " + (dOff + put) + " (error " + System.Runtime.InteropServices.Marshal.GetLastWin32Error() + ").");
                             if (wr == 0) throw new IOException("The target drive stopped accepting data.");
                             put += wr;
                         }
@@ -738,6 +796,153 @@ public class DRImgJob
         foreach (Thread t in ts) t.Join();
         if (fail[0] != null) throw new IOException(fail[0].Message);
         if (Cancel) throw new OperationCanceledException();
+    }
+
+    // Fit to a smaller drive. trip holds [source offset, target offset, length] for every used area, so the data can go to a
+    // new place on the target (a partition that moved). Nothing blank is copied. The new partition table is written last:
+    // gptHead at the start of the target and gptTail at tailOff, so a stopped copy never looks like a finished drive.
+    public void StartMappedClone(string srcDisk, string dstDisk, long[] trip, byte[] gptHead, byte[] gptTail, long tailOff)
+    {
+        List<long[]> v = new List<long[]>();
+        for (int i = 0; i + 2 < trip.Length; i += 3)
+        {
+            long s = trip[i] & ~4095L;
+            long d = trip[i + 1] - (trip[i] - s);
+            long e = (trip[i] + trip[i + 2] + 4095) & ~4095L;
+            if (e > s) v.Add(new long[] { s, e, d - s });
+        }
+        v.Sort(delegate(long[] x, long[] y) { return x[0].CompareTo(y[0]); });
+        // join areas that are close together and move by the same amount (fewer, bigger reads)
+        List<long[]> m = new List<long[]>();
+        foreach (long[] e in v)
+        {
+            if (m.Count > 0 && m[m.Count - 1][2] == e[2] && e[0] <= m[m.Count - 1][1] + (1 << 20)) { if (e[1] > m[m.Count - 1][1]) m[m.Count - 1][1] = e[1]; }
+            else m.Add(new long[] { e[0], e[1], e[2] });
+        }
+        const long PIECE = 8L * 1024 * 1024;
+        List<long[]> tasks = new List<long[]>();
+        long total = 0;
+        foreach (long[] e in m)
+        {
+            if (((e[0] + e[2]) & 4095L) != 0) throw new InvalidDataException("A partition would land on an uneven place on the target, so nothing was copied.");
+            for (long o = e[0]; o < e[1]; o += PIECE) { long len = Math.Min(PIECE, e[1] - o); tasks.Add(new long[] { o, len, o + e[2] }); total += len; }
+        }
+        Total = total + gptHead.Length + gptTail.Length; Status = "Copying";
+        Go(delegate() {
+            RunTasks(srcDisk, dstDisk, tasks, PIECE, Math.Max(2, Math.Min(6, Environment.ProcessorCount)));
+            UsedDirectIO = true;
+            using (FileStream dst = new FileStream(dstDisk, FileMode.Open, FileAccess.Write, FileShare.ReadWrite, 4096))
+            {
+                dst.Seek(tailOff, SeekOrigin.Begin); dst.Write(gptTail, 0, gptTail.Length);
+                dst.Seek(0, SeekOrigin.Begin); dst.Write(gptHead, 0, gptHead.Length);
+                dst.Flush();
+            }
+            Done = Total;
+        }, null);
+    }
+
+    static uint[] crcTable;
+    public static uint Crc32(byte[] b, int off, int len)
+    {
+        if (crcTable == null)
+        {
+            uint[] tb = new uint[256];
+            for (uint n = 0; n < 256; n++) { uint c = n; for (int k = 0; k < 8; k++) c = ((c & 1) != 0) ? (0xEDB88320u ^ (c >> 1)) : (c >> 1); tb[n] = c; }
+            crcTable = tb;
+        }
+        uint r = 0xFFFFFFFFu;
+        for (int i = off; i < off + len; i++) r = crcTable[(r ^ b[i]) & 0xFF] ^ (r >> 8);
+        return r ^ 0xFFFFFFFFu;
+    }
+
+    // The source drive's GPT partition table, rewritten for a target of dstSize bytes. moves holds
+    // [old first sector, new first sector] pairs for partitions that move; every partition keeps its own IDs,
+    // so Windows' start-up settings still find them. Returns { head, tail, tail offset as 8 bytes }.
+    public static byte[][] BuildFitGpt(string srcDisk, int ss, long dstSize, long[] moves)
+    {
+        byte[] first = new byte[1 << 20];
+        using (FileStream f = new FileStream(srcDisk, FileMode.Open, FileAccess.Read, FileShare.ReadWrite, 4096)) { ReadFull(f, first, first.Length); }
+        return BuildGptFromBlock(first, ss, dstSize, moves);
+    }
+
+    // The partitions in a GPT partition table held in the first bytes of a drive (or of a backup): [first sector, last sector, ...].
+    public static long[] ReadGptParts(byte[] first, int ss)
+    {
+        if (first.Length < 2 * ss || Encoding.ASCII.GetString(first, ss, 8) != "EFI PART") throw new InvalidDataException("No GPT partition table was found.");
+        long entLba = BitConverter.ToInt64(first, ss + 72);
+        int num = BitConverter.ToInt32(first, ss + 80), esz = BitConverter.ToInt32(first, ss + 84);
+        if (num <= 0 || num > 1024 || esz < 128 || esz > 4096 || entLba * ss + (long)num * esz > first.Length) throw new InvalidDataException("The partition table is not normal.");
+        List<long> r = new List<long>();
+        for (int i = 0; i < num; i++)
+        {
+            int o = (int)(entLba * ss) + i * esz;
+            bool used = false;
+            for (int k = 0; k < 16; k++) if (first[o + k] != 0) { used = true; break; }
+            if (!used) continue;
+            r.Add(BitConverter.ToInt64(first, o + 32)); r.Add(BitConverter.ToInt64(first, o + 40));
+        }
+        return r.ToArray();
+    }
+
+    public static byte[][] BuildGptFromBlock(byte[] blk, int ss, long dstSize, long[] moves)
+    {
+        byte[] lba0 = new byte[ss], hdr = new byte[ss], ent;
+        int num, esz;
+        if (blk.Length < 2 * ss) throw new InvalidDataException("No GPT partition table was found.");
+        Array.Copy(blk, 0, lba0, 0, ss);
+        Array.Copy(blk, ss, hdr, 0, ss);
+        if (Encoding.ASCII.GetString(hdr, 0, 8) != "EFI PART") throw new InvalidDataException("No GPT partition table was found.");
+        {
+            long entLba = BitConverter.ToInt64(hdr, 72);
+            num = BitConverter.ToInt32(hdr, 80); esz = BitConverter.ToInt32(hdr, 84);
+            if (num <= 0 || num > 1024 || esz < 128 || esz > 4096) throw new InvalidDataException("The partition table is not normal.");
+            int entBytes = num * esz;
+            ent = new byte[((entBytes + ss - 1) / ss) * ss];
+            if (entLba * ss + ent.Length > blk.Length) throw new InvalidDataException("The partition table is not normal.");
+            Array.Copy(blk, (int)(entLba * ss), ent, 0, ent.Length);
+        }
+        int entSecs = ent.Length / ss;
+        long dstSecs = dstSize / ss;
+        long firstUsable = BitConverter.ToInt64(hdr, 40);
+        if (firstUsable < 2 + entSecs) throw new InvalidDataException("The source drive's partition table is not normal.");
+        long lastUsable = dstSecs - 2 - entSecs;
+        for (int i = 0; i < num; i++)
+        {
+            int o = i * esz;
+            bool used = false;
+            for (int k = 0; k < 16; k++) if (ent[o + k] != 0) { used = true; break; }
+            if (!used) continue;
+            long first = BitConverter.ToInt64(ent, o + 32), last = BitConverter.ToInt64(ent, o + 40);
+            for (int k = 0; k + 1 < moves.Length; k += 2)
+                if (moves[k] == first) { long nf = moves[k + 1]; last = nf + (last - first); first = nf; break; }
+            if (first < firstUsable || last > lastUsable || last < first) throw new InvalidDataException("A partition does not fit on the target drive, so nothing was copied.");
+            Array.Copy(BitConverter.GetBytes(first), 0, ent, o + 32, 8);
+            Array.Copy(BitConverter.GetBytes(last), 0, ent, o + 40, 8);
+        }
+        uint entCrc = Crc32(ent, 0, num * esz);
+        int hsz = BitConverter.ToInt32(hdr, 12);
+        if (hsz < 92 || hsz > ss) hsz = 92;
+        byte[] h1 = (byte[])hdr.Clone(), h2 = (byte[])hdr.Clone();
+        long tailLba = dstSecs - 1 - entSecs;
+        foreach (byte[] h in new byte[][] { h1, h2 })
+        {
+            bool prim = (h == h1);
+            Array.Copy(BitConverter.GetBytes(prim ? 1L : dstSecs - 1), 0, h, 24, 8);
+            Array.Copy(BitConverter.GetBytes(prim ? dstSecs - 1 : 1L), 0, h, 32, 8);
+            Array.Copy(BitConverter.GetBytes(lastUsable), 0, h, 48, 8);
+            Array.Copy(BitConverter.GetBytes(prim ? 2L : tailLba), 0, h, 72, 8);
+            Array.Copy(BitConverter.GetBytes(entCrc), 0, h, 88, 4);
+            Array.Clear(h, 16, 4);
+            Array.Copy(BitConverter.GetBytes(Crc32(h, 0, hsz)), 0, h, 16, 4);
+        }
+        // protective MBR: its one partition covers the whole (new) drive
+        if (lba0[510] == 0x55 && lba0[511] == 0xAA && lba0[446 + 4] == 0xEE)
+            Array.Copy(BitConverter.GetBytes((uint)Math.Min(dstSecs - 1, 0xFFFFFFFFL)), 0, lba0, 446 + 12, 4);
+        byte[] head = new byte[ss * (2 + entSecs)];
+        Array.Copy(lba0, 0, head, 0, ss); Array.Copy(h1, 0, head, ss, ss); Array.Copy(ent, 0, head, 2 * ss, ent.Length);
+        byte[] tail = new byte[ss * (entSecs + 1)];
+        Array.Copy(ent, 0, tail, 0, ent.Length); Array.Copy(h2, 0, tail, ent.Length, ss);
+        return new byte[][] { head, tail, BitConverter.GetBytes(tailLba * ss) };
     }
 
     public void StartClone(string srcDisk, string dstDisk, long size)
@@ -1172,25 +1377,42 @@ public class DRImgJob
                                 b.Hash = lz ? hc.ComputeHash(b.Enc, 0, b.EncLen) : hc.ComputeHash(src, 0, b.Raw);
                                 pool.Add(b.Enc); b.Enc = null;
                                 long wt0 = System.Diagnostics.Stopwatch.GetTimestamp();
-                                if (hd != null && (b.Raw % 4096) == 0)
+                                // pieces to write: [offset in this block, length, place on the target]
+                                List<long[]> pieces = new List<long[]>();
+                                long[] rmap = RestoreMap;
+                                if (rmap == null) pieces.Add(new long[] { 0, b.Raw, b.Off });
+                                else
                                 {
-                                    System.Runtime.InteropServices.Marshal.Copy(src, 0, nbuf, b.Raw);
+                                    for (int mi = 0; mi + 2 < rmap.Length; mi += 3)
+                                    {
+                                        long lo = Math.Max(rmap[mi], b.Off), hi = Math.Min(rmap[mi + 1], b.Off + b.Raw);
+                                        if (lo < hi) pieces.Add(new long[] { lo - b.Off, hi - lo, lo + rmap[mi + 2] });
+                                    }
+                                }
+                                foreach (long[] pc in pieces)
+                                {
+                                int pOff = (int)pc[0], pLen = (int)pc[1]; long pAt = pc[2];
+                                if (disk == null) continue;
+                                if (hd != null && (pLen % 4096) == 0 && (pAt % 4096) == 0)
+                                {
+                                    System.Runtime.InteropServices.Marshal.Copy(src, pOff, nbuf, pLen);
                                     long np;
-                                    if (!SetFilePointerEx(hd, b.Off, out np, 0)) throw new IOException("Cannot move on the target drive (error " + System.Runtime.InteropServices.Marshal.GetLastWin32Error() + ").");
+                                    if (!SetFilePointerEx(hd, pAt, out np, 0)) throw new IOException("Cannot move on the target drive (error " + System.Runtime.InteropServices.Marshal.GetLastWin32Error() + ").");
                                     int put = 0;
-                                    while (put < b.Raw)
+                                    while (put < pLen)
                                     {
                                         uint wr;
-                                        if (!WriteFile(hd, (IntPtr)(nbuf.ToInt64() + put), (uint)(b.Raw - put), out wr, IntPtr.Zero))
-                                            throw new IOException("Cannot write the target drive at " + (b.Off + put) + " (error " + System.Runtime.InteropServices.Marshal.GetLastWin32Error() + ").");
+                                        if (!WriteFile(hd, (IntPtr)(nbuf.ToInt64() + put), (uint)(pLen - put), out wr, IntPtr.Zero))
+                                            throw new IOException("Cannot write the target drive at " + (pAt + put) + " (error " + System.Runtime.InteropServices.Marshal.GetLastWin32Error() + ").");
                                         if (wr == 0) throw new IOException("The target drive stopped accepting data.");
                                         put += (int)wr;
                                     }
                                 }
-                                else if (disk != null)
+                                else
                                 {
                                     if (d == null) d = new FileStream(disk, FileMode.Open, FileAccess.Write, FileShare.ReadWrite, 1);
-                                    d.Seek(b.Off, SeekOrigin.Begin); d.Write(src, 0, b.Raw);
+                                    d.Seek(pAt, SeekOrigin.Begin); d.Write(src, pOff, pLen);
+                                }
                                 }
                                 lock (this) { SecWrite += (System.Diagnostics.Stopwatch.GetTimestamp() - wt0) / (double)System.Diagnostics.Stopwatch.Frequency; }
                             }
@@ -1580,20 +1802,236 @@ function Write-ImagerTiming($Job, [double]$Seconds, [string]$ImageFile) {
 }
 
 # Returns a reason to refuse, or $null when the drive-to-drive copy can go ahead.
-function Get-CloneBlockReason([int]$SrcNumber, [int]$DstNumber) {
+function Get-CloneBlockReason([int]$SrcNumber, [int]$DstNumber, [switch]$AllowSmaller) {
     $a = Get-Disk -Number $SrcNumber -ErrorAction SilentlyContinue
     $b = Get-Disk -Number $DstNumber -ErrorAction SilentlyContinue
     if (-not $a -or -not $b) { return 'A chosen drive is no longer there.' }
     if ($SrcNumber -eq $DstNumber) { return 'Choose two different drives.' }
     if ($b.IsBoot -or $b.IsSystem) { return 'Windows is running from the drive you chose to copy onto, so it cannot be overwritten from inside Windows.' }
-    if ($b.Size -lt $a.Size) {
+    if ($b.Size -lt $a.Size -and -not $AllowSmaller) {
         return ("The target is too small. The source is {0} and the target is {1}." -f (Format-ImgSize $a.Size), (Format-ImgSize $b.Size))
     }
     $null
 }
 
+# ---------- Copy onto a smaller drive (only the data) ----------
+# The biggest NTFS partition (normally C:) is made smaller by Windows itself (nothing is deleted, Windows moves
+# files down if it has to), only the used parts of every partition are copied, the partitions after it move up,
+# and the source partition is put back to its full size afterwards. Allowed only when the data fits.
+# Returns an object with Reason (why it cannot be done) or the plan.
+function Get-CloneFitPlan([int]$SrcNumber, [int]$DstNumber) {
+    $a = Get-Disk -Number $SrcNumber -ErrorAction SilentlyContinue
+    $b = Get-Disk -Number $DstNumber -ErrorAction SilentlyContinue
+    $no = { param($r) [pscustomobject]@{ Reason = $r } }
+    if (-not $a -or -not $b) { return (& $no 'A chosen drive is no longer there.') }
+    if ([string]$a.PartitionStyle -ne 'GPT') { return (& $no 'Copying onto a smaller drive works only for drives with a GPT partition table (all Windows 11 PCs). This drive uses MBR.') }
+    $ss = [int]$a.LogicalSectorSize
+    if ($ss -ne [int]$b.LogicalSectorSize) { return (& $no 'The two drives use different sector sizes, so the copy cannot be made smaller. Use a target as big as the source.') }
+    $parts = @(Get-Partition -DiskNumber $SrcNumber -ErrorAction SilentlyContinue | Sort-Object Offset)
+    if (-not $parts.Count) { return (& $no 'The source drive has no partitions.') }
+    $mb = [int64]1MB
+    # the partition to make smaller: the biggest one with NTFS (normally C:)
+    $fit = $null; $fitVol = $null
+    foreach ($p in ($parts | Sort-Object Size -Descending)) {
+        $v = $null; try { $v = $p | Get-Volume -ErrorAction Stop } catch { }
+        if ($v -and $v.FileSystem -eq 'NTFS') { $fit = $p; $fitVol = $v; break }
+    }
+    if (-not $fit) { return (& $no 'No NTFS partition was found on the source drive to make smaller.') }
+    $fitName = if ($fit.DriveLetter) { "$($fit.DriveLetter):" } else { "partition $($fit.PartitionNumber)" }
+    $used = [int64]($fitVol.Size - $fitVol.SizeRemaining)
+    $layout = New-Object System.Collections.Generic.List[object]
+    $after = [int64]0
+    foreach ($p in $parts) {
+        if ($p.Offset -gt $fit.Offset) { $after += [int64]([Math]::Ceiling($p.Size / $mb) * $mb) }
+    }
+    $end = [int64]([Math]::Floor(($b.Size - $mb) / $mb) * $mb)    # the last 1 MB is kept for the backup partition table
+    $newSize = [int64]([Math]::Floor(($end - $fit.Offset - $after) / $mb) * $mb)
+    if ($newSize -gt $fit.Size) { $newSize = [int64]$fit.Size }
+    $other = [int64]0; foreach ($p in $parts) { if ($p.PartitionNumber -ne $fit.PartitionNumber) { $other += [int64]$p.Size } }
+    # spare room for Windows to keep working after the copy: 5% of the data, at least 50 MB (about 9 GB for 177 GB)
+    $margin = [int64][Math]::Max(50MB, $used * 0.05)
+    if ($newSize -lt $used + $margin) {
+        return (& $no ("The data does not fit. {0} holds {1} of data (plus {2} in the other partitions), and the target only has room for {3} on {0}. Use a bigger target drive." -f $fitName, (Format-ImgSize $used), (Format-ImgSize $other), (Format-ImgSize ([Math]::Max(0, $newSize)))))
+    }
+    $cursor = [int64]0
+    foreach ($p in $parts) {
+        if ($p.Offset -lt $fit.Offset) { $no2 = [int64]$p.Offset; $sz = [int64]$p.Size }
+        elseif ($p.PartitionNumber -eq $fit.PartitionNumber) { $no2 = [int64]$p.Offset; $sz = $newSize }
+        else { $no2 = [int64]([Math]::Ceiling($cursor / $mb) * $mb); $sz = [int64]$p.Size }
+        $layout.Add([pscustomobject]@{ Number = [int]$p.PartitionNumber; OldOffset = [int64]$p.Offset; NewOffset = $no2; Size = $sz; FullSize = [int64]$p.Size })
+        $cursor = $no2 + $sz
+    }
+    [pscustomobject]@{
+        Reason = $null; Src = $SrcNumber; Dst = $DstNumber; SrcPath = '\\.\PhysicalDrive' + $SrcNumber; DstSize = [int64]$b.Size; SectorSize = $ss
+        FitNumber = [int]$fit.PartitionNumber; FitName = $fitName; FitFullSize = [int64]$fit.Size; FitNewSize = $newSize
+        Used = $used; Other = $other; Layout = $layout.ToArray(); Shrunk = $false
+    }
+}
+
+# Makes the source partition smaller (Windows does it, and refuses if it cannot), then works out what to copy where.
+# Returns @{ Trip; Head; Tail; TailOff; Bytes }. Call Restore-CloneFitSource afterwards, whatever happens.
+function Invoke-CloneFitPrepare($Plan) {
+    $p = Get-Partition -DiskNumber $Plan.Src -PartitionNumber $Plan.FitNumber -ErrorAction Stop
+    if ([int64]$p.Size -gt $Plan.FitNewSize) {
+        $sup = Get-PartitionSupportedSize -DiskNumber $Plan.Src -PartitionNumber $Plan.FitNumber -ErrorAction Stop
+        if ([int64]$sup.SizeMin -gt $Plan.FitNewSize) {
+            throw ("Windows cannot make {0} small enough for the target. The smallest it allows now is {1}, and the target has room for {2}. Some Windows files that cannot be moved (often the page file or hibernation file) sit far into the drive. Nothing was copied and nothing was changed." -f $Plan.FitName, (Format-ImgSize $sup.SizeMin), (Format-ImgSize $Plan.FitNewSize))
+        }
+        $Plan.Shrunk = $true
+        Resize-Partition -DiskNumber $Plan.Src -PartitionNumber $Plan.FitNumber -Size $Plan.FitNewSize -ErrorAction Stop
+        $p = Get-Partition -DiskNumber $Plan.Src -PartitionNumber $Plan.FitNumber -ErrorAction Stop
+        if ([int64]$p.Size -gt $Plan.FitNewSize) { throw "Windows did not make $($Plan.FitName) small enough. Nothing was copied." }
+    }
+    foreach ($l in $Plan.Layout) { if ($l.Number -eq $Plan.FitNumber) { $l.Size = [int64]$p.Size } }
+    # Windows moved files when it made the partition smaller and may still hold their new places in memory: write
+    # everything to the drive now, because the copy reads the drive directly.
+    Sync-DiskVolumes $Plan.Src
+    foreach ($pp in (Get-Partition -DiskNumber $Plan.Src -ErrorAction SilentlyContinue)) {
+        $vp = $pp.AccessPaths | Where-Object { $_ -match '^\\\\\?\\Volume\{' } | Select-Object -First 1
+        if ($vp -and -not $pp.DriveLetter) { try { Write-VolumeCache -Path $vp -ErrorAction Stop } catch { } }
+    }
+    Start-Sleep -Seconds 1
+    $mb = [int64]1MB
+    $trip = New-Object System.Collections.Generic.List[long]
+    $moves = New-Object System.Collections.Generic.List[long]
+    $bytes = [double]0
+    foreach ($l in $Plan.Layout) {
+        $part = Get-Partition -DiskNumber $Plan.Src -PartitionNumber $l.Number -ErrorAction Stop
+        $delta = [int64]($l.NewOffset - $part.Offset)
+        if ($delta -ne 0) { $moves.Add([int64]($part.Offset / $Plan.SectorSize)); $moves.Add([int64]($l.NewOffset / $Plan.SectorSize)) }
+        $runs = $null
+        $vol = $part.AccessPaths | Where-Object { $_ -match '^\\\\\?\\Volume\{' } | Select-Object -First 1
+        $fs = $null; if ($vol) { try { $fs = (Get-Volume -Path $vol -ErrorAction Stop).FileSystem } catch { } }
+        if ($vol -and ($fs -eq 'NTFS' -or -not $fs)) {
+            try { $runs = @([DRImgJob]::GetUsedExtents($vol.TrimEnd('\'), [int64]$part.Offset)) + @(([int64]$part.Offset + [int64]$part.Size - $mb), $mb) }
+            catch { if ($fs -eq 'NTFS' -or $l.Number -eq $Plan.FitNumber) { throw ('Could not read which parts of partition {0} hold data, so nothing was copied. ({1})' -f $l.Number, $_.Exception.Message) } }
+        }
+        if (-not $runs) { $runs = @([int64]$part.Offset, [int64]$part.Size) }
+        for ($i = 0; $i + 1 -lt $runs.Count; $i += 2) {
+            $o = [int64]$runs[$i]; $n = [int64]$runs[$i + 1]
+            $pe = [int64]$part.Offset + [int64]$part.Size
+            if ($o + $n -gt $pe) { $n = $pe - $o }
+            if ($n -le 0) { continue }
+            $trip.Add($o); $trip.Add($o + $delta); $trip.Add($n); $bytes += $n
+        }
+    }
+    $g = [DRImgJob]::BuildFitGpt($Plan.SrcPath, $Plan.SectorSize, $Plan.DstSize, [long[]]$moves.ToArray())
+    [pscustomobject]@{ Trip = [long[]]$trip.ToArray(); Head = $g[0]; Tail = $g[1]; TailOff = [BitConverter]::ToInt64($g[2], 0); Bytes = $bytes }
+}
+
+# Puts the source partition back to its full size after a copy onto a smaller drive (or after one that stopped).
+function Restore-CloneFitSource($Plan) {
+    if (-not $Plan -or -not $Plan.Shrunk) { return $null }
+    try {
+        $sup = Get-PartitionSupportedSize -DiskNumber $Plan.Src -PartitionNumber $Plan.FitNumber -ErrorAction Stop
+        $to = [int64][Math]::Min([int64]$sup.SizeMax, $Plan.FitFullSize)
+        $p = Get-Partition -DiskNumber $Plan.Src -PartitionNumber $Plan.FitNumber -ErrorAction Stop
+        if ([int64]$p.Size -lt $to) { Resize-Partition -DiskNumber $Plan.Src -PartitionNumber $Plan.FitNumber -Size $to -ErrorAction Stop }
+        $Plan.Shrunk = $false
+        return $null
+    } catch {
+        return ("{0} on the source drive is still smaller than before. To give it its space back: Disk Management, right-click {0}, Extend Volume. ({1})" -f $Plan.FitName, $_.Exception.Message)
+    }
+}
+
+# ---------- Secure that fits a smaller drive, and Restore onto a smaller drive ----------
+# Secure: the biggest NTFS partition (normally C:) is made smaller by Windows just for the backup, so the backup
+# holds a C: that fits a smaller drive. Afterwards it is put back to its full size (Restore-CloneFitSource).
+# Returns $null when nothing needs doing, else a plan to hand to Restore-CloneFitSource.
+function Get-SecureFitInfo([int]$DiskNumber) {
+    $d = Get-Disk -Number $DiskNumber -ErrorAction SilentlyContinue
+    if (-not $d -or [string]$d.PartitionStyle -ne 'GPT') { return $null }
+    $fit = $null; $vol = $null
+    foreach ($p in (Get-Partition -DiskNumber $DiskNumber -ErrorAction SilentlyContinue | Sort-Object Size -Descending)) {
+        $v = $null; try { $v = $p | Get-Volume -ErrorAction Stop } catch { }
+        if ($v -and $v.FileSystem -eq 'NTFS') { $fit = $p; $vol = $v; break }
+    }
+    if (-not $fit) { return $null }
+    $used = [int64]($vol.Size - $vol.SizeRemaining)
+    [pscustomobject]@{ Src = $DiskNumber; FitNumber = [int]$fit.PartitionNumber; FitName = $(if ($fit.DriveLetter) { "$($fit.DriveLetter):" } else { "partition $($fit.PartitionNumber)" }); FitFullSize = [int64]$fit.Size; Used = $used; Shrunk = $false; FitNewSize = [int64]0 }
+}
+
+function Invoke-SecureFitPrepare($Info) {
+    $sup = Get-PartitionSupportedSize -DiskNumber $Info.Src -PartitionNumber $Info.FitNumber -ErrorAction Stop
+    # as small as Windows allows, keeping 5% of the data (plus 64 MB) as spare room; rounded up to a whole GB on big drives
+    $want = [int64]([Math]::Max([double]$sup.SizeMin, [double]$Info.Used * 1.05 + 64MB))
+    $unit = if ($want -gt 16GB) { [int64]1GB } else { [int64]1MB }
+    $want = [int64]([Math]::Ceiling($want / $unit) * $unit)
+    if ($want -ge $Info.FitFullSize) { return $Info }
+    $Info.FitNewSize = $want
+    $Info.Shrunk = $true
+    Resize-Partition -DiskNumber $Info.Src -PartitionNumber $Info.FitNumber -Size $want -ErrorAction Stop
+    Sync-DiskVolumes $Info.Src
+    foreach ($pp in (Get-Partition -DiskNumber $Info.Src -ErrorAction SilentlyContinue)) {
+        $vp = $pp.AccessPaths | Where-Object { $_ -match '^\\\\\?\\Volume\{' } | Select-Object -First 1
+        if ($vp -and -not $pp.DriveLetter) { try { Write-VolumeCache -Path $vp -ErrorAction Stop } catch { } }
+    }
+    Start-Sleep -Seconds 1
+    $Info
+}
+
+# Restore onto a smaller drive: the partitions that fit stay where they are; the ones after them (normally Recovery)
+# move to the end of the drive. Afterwards the partition before them (normally C:) is grown to fill the drive.
+# Returns an object with Reason, or the plan.
+function Get-RestoreFitPlan([string]$ImageFile, [int]$DiskNumber) {
+    $no = { param($r) [pscustomobject]@{ Reason = $r } }
+    $d = Get-Disk -Number $DiskNumber -ErrorAction SilentlyContinue
+    if (-not $d) { return (& $no 'That drive is no longer there.') }
+    $ss = [int]$d.LogicalSectorSize
+    $job = New-ImagerJob
+    try { $first = $job.ReadFirstBlock($ImageFile) } catch { return (& $no $_.Exception.Message) }
+    try { $raw = [DRImgJob]::ReadGptParts($first, $ss) } catch {
+        return (& $no "This backup cannot be put on a smaller drive: $($_.Exception.Message) Use a drive as big as the one it was made from.")
+    }
+    $mb = [int64]1MB
+    $parts = New-Object System.Collections.Generic.List[object]
+    for ($i = 0; $i + 1 -lt $raw.Count; $i += 2) { $parts.Add([pscustomobject]@{ Start = [int64]$raw[$i] * $ss; End = ([int64]$raw[$i + 1] + 1) * $ss }) }
+    $parts = @($parts | Sort-Object Start)
+    if (-not $parts.Count) { return (& $no 'The backup has no partitions.') }
+    $n = $parts.Count
+    $limit = [int64]([Math]::Floor(($d.Size - $mb) / $mb) * $mb)
+    $best = -1; $newStarts = $null
+    for ($k = $n; $k -ge 0; $k--) {
+        $cursor = $limit; $ns = @{}
+        for ($i = $n - 1; $i -ge $k; $i--) {
+            $sz = $parts[$i].End - $parts[$i].Start
+            $cursor = [int64]([Math]::Floor(($cursor - $sz) / $mb) * $mb); $ns[$i] = $cursor
+        }
+        $ok = if ($k -eq 0) { $cursor -ge $mb } else { $parts[$k - 1].End -le $cursor }
+        if ($ok) { $best = $k; $newStarts = $ns; break }
+    }
+    if ($best -lt 0) {
+        $big = ($parts | Sort-Object { $_.End - $_.Start } -Descending | Select-Object -First 1)
+        return (& $no ("This backup does not fit on this drive. Its biggest partition is {0} and the drive is {1}. Make the backup again with Secure and answer Yes to `"fit a smaller drive`", or use a bigger drive." -f (Format-ImgSize ($big.End - $big.Start)), (Format-ImgSize $d.Size)))
+    }
+    $map = New-Object System.Collections.Generic.List[long]
+    $moves = New-Object System.Collections.Generic.List[long]
+    for ($i = 0; $i -lt $n; $i++) {
+        $delta = if ($newStarts.ContainsKey($i)) { [int64]$newStarts[$i] - $parts[$i].Start } else { [int64]0 }
+        $map.Add($parts[$i].Start); $map.Add($parts[$i].End); $map.Add($delta)
+        if ($delta -ne 0) { $moves.Add([int64]($parts[$i].Start / $ss)); $moves.Add([int64](($parts[$i].Start + $delta) / $ss)) }
+    }
+    try { $g = [DRImgJob]::BuildGptFromBlock($first, $ss, [int64]$d.Size, [long[]]$moves.ToArray()) } catch { return (& $no $_.Exception.Message) }
+    [pscustomobject]@{
+        Reason = $null; Map = [long[]]$map.ToArray(); Head = $g[0]; Tail = $g[1]; TailOff = [BitConverter]::ToInt64($g[2], 0)
+        GrowOffset = $(if ($best -gt 0 -and $best -lt $n) { $parts[$best - 1].Start } else { [int64]-1 }); Disk = $DiskNumber
+    }
+}
+
+# After a restore onto a smaller drive: grow the partition before the moved ones (normally C:) to fill the drive.
+function Expand-RestoreFitTarget($Plan) {
+    if (-not $Plan -or $Plan.GrowOffset -lt 0) { return }
+    try {
+        Update-Disk -Number $Plan.Disk -ErrorAction SilentlyContinue
+        $p = Get-Partition -DiskNumber $Plan.Disk -ErrorAction Stop | Where-Object { [int64]$_.Offset -eq $Plan.GrowOffset } | Select-Object -First 1
+        if (-not $p) { return }
+        $sup = Get-PartitionSupportedSize -DiskNumber $Plan.Disk -PartitionNumber $p.PartitionNumber -ErrorAction Stop
+        if ([int64]$sup.SizeMax -gt [int64]$p.Size + 16MB) { Resize-Partition -DiskNumber $Plan.Disk -PartitionNumber $p.PartitionNumber -Size $sup.SizeMax -ErrorAction Stop }
+    } catch { }
+}
+
 # Returns a reason to refuse, or $null when the restore can go ahead.
-function Get-RestoreBlockReason([int]$DiskNumber, [string]$ImageFile) {
+function Get-RestoreBlockReason([int]$DiskNumber, [string]$ImageFile, [switch]$AllowSmaller) {
     $d = Get-Disk -Number $DiskNumber -ErrorAction SilentlyContinue
     if (-not $d) { return 'That drive is no longer there.' }
     if ($d.IsBoot -or $d.IsSystem) {
@@ -1601,7 +2039,7 @@ function Get-RestoreBlockReason([int]$DiskNumber, [string]$ImageFile) {
     }
     if (-not (Test-Path -LiteralPath $ImageFile -PathType Leaf)) { return 'Choose the image file to restore.' }
     try { $need = [DRImgJob]::ReadHeader($ImageFile) } catch { return $_.Exception.Message }
-    if ($d.Size -lt $need) {
+    if ($d.Size -lt $need -and -not $AllowSmaller) {
         return ("This drive is too small. The image needs {0} and the drive is {1}." -f (Format-ImgSize $need), (Format-ImgSize $d.Size))
     }
     $root = [IO.Path]::GetPathRoot((Resolve-Path -LiteralPath $ImageFile).Path)
