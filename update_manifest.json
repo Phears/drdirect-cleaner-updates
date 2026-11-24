@@ -1,7 +1,7 @@
 {
-  "version": "1.4.508",
-  "notes": "French: the DRDirect Uninstaller now opens in French when French is chosen.",
-  "published": "2026-11-24T09:35:41.5049631-05:00",
+  "version": "1.4.509",
+  "notes": "New DRDirect Uninstaller, fully in French and English.",
+  "published": "2026-11-24T09:52:11.1271717-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,8 +10,8 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "C983BCE26E3887864C0EF48FFAD8BDA1F1669EBEC6D9A4E3767F82BE766D2BD5",
-      "size": 1331244
+      "sha256": "CFB949F0A0ACDBC8EC0488702BA1FD88A0313969ABBAF645D781C94ED7E20455",
+      "size": 1497940
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
