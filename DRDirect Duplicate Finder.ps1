@@ -227,6 +227,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Threading;
 
 namespace DRDirect
 {
@@ -464,13 +465,31 @@ namespace DRDirect
         }
 
         static readonly ConditionalWeakTable<TextBlock, object> tbHooked = new ConditionalWeakTable<TextBlock, object>();
+        static ConditionalWeakTable<TextBlock, object> tbPending = new ConditionalWeakTable<TextBlock, object>();
         static void HookTextBlock(TextBlock tb)
         {
             object o;
             if (tbHooked.TryGetValue(tb, out o)) return;
             tbHooked.Add(tb, new object());
             DependencyPropertyDescriptor dpd = DependencyPropertyDescriptor.FromProperty(TextBlock.TextProperty, typeof(TextBlock));
-            if (dpd != null) dpd.AddValueChanged(tb, delegate (object s, EventArgs a) { if (applying) return; try { VisitInlines(tb); } catch { } });
+            if (dpd != null) dpd.AddValueChanged(tb, delegate (object s, EventArgs a)
+            {
+                if (applying) return;
+                // The program may be in the middle of adding pieces (Inlines.Clear / Add): changing a piece now can break
+                // its next Add. So the new pieces are translated just after, before the screen is drawn.
+                object pend;
+                if (tbPending.TryGetValue(tb, out pend)) return;
+                tbPending.Add(tb, new object());
+                try
+                {
+                    tb.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(delegate ()
+                    {
+                        tbPending.Remove(tb);
+                        try { VisitInlines(tb); } catch { }
+                    }));
+                }
+                catch { tbPending.Remove(tb); }
+            });
         }
 
         static void VisitInlines(TextBlock tb)

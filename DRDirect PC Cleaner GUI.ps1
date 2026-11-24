@@ -223,6 +223,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Threading;
 
 namespace DRDirect
 {
@@ -460,13 +461,31 @@ namespace DRDirect
         }
 
         static readonly ConditionalWeakTable<TextBlock, object> tbHooked = new ConditionalWeakTable<TextBlock, object>();
+        static ConditionalWeakTable<TextBlock, object> tbPending = new ConditionalWeakTable<TextBlock, object>();
         static void HookTextBlock(TextBlock tb)
         {
             object o;
             if (tbHooked.TryGetValue(tb, out o)) return;
             tbHooked.Add(tb, new object());
             DependencyPropertyDescriptor dpd = DependencyPropertyDescriptor.FromProperty(TextBlock.TextProperty, typeof(TextBlock));
-            if (dpd != null) dpd.AddValueChanged(tb, delegate (object s, EventArgs a) { if (applying) return; try { VisitInlines(tb); } catch { } });
+            if (dpd != null) dpd.AddValueChanged(tb, delegate (object s, EventArgs a)
+            {
+                if (applying) return;
+                // The program may be in the middle of adding pieces (Inlines.Clear / Add): changing a piece now can break
+                // its next Add. So the new pieces are translated just after, before the screen is drawn.
+                object pend;
+                if (tbPending.TryGetValue(tb, out pend)) return;
+                tbPending.Add(tb, new object());
+                try
+                {
+                    tb.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(delegate ()
+                    {
+                        tbPending.Remove(tb);
+                        try { VisitInlines(tb); } catch { }
+                    }));
+                }
+                catch { tbPending.Remove(tb); }
+            });
         }
 
         static void VisitInlines(TextBlock tb)
@@ -564,6 +583,8 @@ $script:DRLangData = @'
 -  Only USB sticks are offered. Your Windows drive and other drives inside the PC are never touched.	-  Seules les clés USB sont proposées. Votre disque Windows et les autres disques du PC ne sont jamais touchés.
 -  Use an empty USB stick, or copy anything you want to keep off it first.	-  Utilisez une clé USB vide, ou copiez d’abord ailleurs ce que vous voulez garder.
 -  Windows drive	-  disque Windows
+-  {0} could not be removed (in use or protected)	-  {0} n’a pas pu être retiré (en cours d’utilisation ou protégé)
+-  {0} skipped as Windows or program files	-  {0} ignoré(s) : fichiers de Windows ou de programmes
 - In bad cases Windows may have trouble starting.	- Dans les pires cas, Windows peut avoir du mal à démarrer.
 - No description was published for this version.	- Aucune description n’a été publiée pour cette version.
 - The PC gets slower, and programs can freeze or crash.	- Le PC ralentit, et les programmes peuvent figer ou planter.
@@ -572,6 +593,8 @@ $script:DRLangData = @'
 - YOU COULD LOSE DATA: files you are saving can fail to save or be damaged, and a crash while the drive is full can lose work you have not saved.	- VOUS POURRIEZ PERDRE DES DONNÉES : les fichiers en cours d’enregistrement peuvent ne pas s’enregistrer ou être endommagés, et un plantage quand le disque est plein peut faire perdre le travail non enregistré.
 - now on	- maintenant activé
 ... (output truncated)	... (sortie tronquée)
+...and {0} more	...et {0} de plus
+0 bytes	0 octet
 0 selected	0 sélectionné
 1 day	1 jour
 1 day left	1 jour restant
@@ -586,6 +609,7 @@ $script:DRLangData = @'
 1.  Pick the drive to copy	1.  Choisissez le disque à copier
 1.  Pick the drive to save	1.  Choisissez le disque à sauvegarder
 1. Accept Microsoft's licence terms.	1. Acceptez les termes de licence de Microsoft.
+100 KB (recommended)	100 Ko (recommandé)
 14 days left	14 jours restants
 1st window	1re fenêtre
 2.  Pick the drive that gets the copy	2.  Choisissez le disque qui reçoit la copie
@@ -618,7 +642,9 @@ A restart is a good idea.	Un redémarrage serait une bonne idée.
 A restart is needed to finish. Click Restart now when you are ready. Windows will not restart by itself.	Un redémarrage est nécessaire pour terminer. Cliquez sur Redémarrer maintenant quand vous êtes prêt. Windows ne redémarrera pas tout seul.
 A restart is waiting to finish installing updates.	Un redémarrage est en attente pour finir d’installer des mises à jour.
 A restart is waiting to finish updates	Un redémarrage est en attente pour finir des mises à jour
+A search is still running.	Une recherche est encore en cours.
 A separate program. Contact DRDirect for a copy.	Un programme séparé. Contactez DRDirect pour en obtenir une copie.
+AAC audio	Audio AAC
 ADVANCED SCAN	ANALYSE AVANCÉE
 AI is now off in Firefox. Close Firefox completely and open it again.	L’IA est maintenant désactivée dans Firefox. Fermez Firefox complètement et rouvrez-le.
 AI is still on	L’IA est encore active
@@ -631,17 +657,27 @@ AI websites are still open in	Les sites d’IA sont encore ouverts dans
 AI websites in	Sites d’IA dans
 AI websites: blocked in every browser	Sites d’IA : bloqués dans tous les navigateurs
 AI websites: open in {0}	Sites d’IA : ouverts dans {0}
+AIFF audio	Audio AIFF
+ALAC audio	Audio ALAC
 AND MORE!	ET PLUS ENCORE !
+APE audio	Audio APE
+ASF video	Vidéo ASF
 ASKS FIRST	DEMANDE D’ABORD
+AVI video	Vidéo AVI
+About	À propos
 About my PC	À propos de mon PC
+About the DRDirect Uninstaller	À propos du désinstalleur DRDirect
 About {0} to copy.{1}	Environ {0} à copier.{1}
 Accept and install	Accepter et installer
 Activate	Activer
 Activated	Activé
 Activated until {0}.	Activé jusqu’au {0}.
+Activated. Close and reopen the Duplicate Finder.	Activé. Fermez puis rouvrez le Duplicate Finder.
+Activated. Reopen the Duplicate Finder to use every category.	Activé. Rouvrez le Duplicate Finder pour utiliser toutes les catégories.
 Activated. Restart the Cleaner to lift the limits.	Activé. Redémarrez le Cleaner pour lever les limites.
 Activated. Restart the Cleaner to lift the trial limits.	Activé. Redémarrez le Cleaner pour lever les limites de l’essai.
 Activation code	Code d’activation
+Activation is not available in this copy.	L’activation n’est pas offerte dans cette copie.
 Active	Actif
 Adapter	Adaptateur
 Add	Ajouter
@@ -653,11 +689,15 @@ Adobe Acrobat AI Assistant: {0}	Assistant IA d’Adobe Acrobat : {0}
 Adobe Acrobat: turn AI Assistant back on	Adobe Acrobat : réactiver l’Assistant IA
 Adobe Acrobat: turn off AI Assistant	Adobe Acrobat : désactiver l’Assistant IA
 Advanced	Avancé
+Advanced removal	Retrait avancé
+Advanced removal of the ticked program	Retrait avancé du programme coché
+Advanced removal...	Retrait avancé...
 Advanced; Explorer restarts to rebuild it	Avancé ; l’Explorateur redémarre pour le refaire
 Advanced; Windows rebuilds this cache	Avancé ; Windows refait ce cache
 After the Recycle Bin is emptied, wipes the free space on SSD and NVMe drives so deleted files cannot be brought back, even with recovery programs. Files you still have are not touched. Hard drives are skipped.	Après le vidage de la Corbeille, nettoie l’espace libre des disques SSD et NVMe pour que les fichiers supprimés ne puissent pas être récupérés, même avec des programmes de récupération. Les fichiers que vous gardez ne sont pas touchés. Les disques durs sont ignorés.
 Age in use: about {0} of running time ({1} hours).	Âge d’utilisation : environ {0} de fonctionnement ({1} heures).
 Agree	D’accord
+All	Tout
 All Activated	Tout est activé
 All Windows system files are fine. Nothing needed repairing.	Tous les fichiers système de Windows sont corrects. Rien n’avait besoin d’être réparé.
 All checks finished. Nothing was changed. Click View results to choose what to clean.	Toutes les vérifications sont terminées. Rien n’a été changé. Cliquez sur Voir les résultats pour choisir quoi nettoyer.
@@ -677,8 +717,10 @@ Already-installed update installers	Installateurs de mises à jour déjà instal
 Also delete my Duplicate Finder licence	Supprimer aussi ma licence du Duplicate Finder
 Also delete my reports, licence and safe copies	Supprimer aussi mes rapports, ma licence et mes copies de sécurité
 Also put {0} install or repair on this Rescue USB?	Mettre aussi l’installation ou la réparation de {0} sur cette clé USB de secours ?
+Also scan drives	Analyser aussi les disques
 Also: {0} install or repair, from {1}. Copying Windows takes a while.	Aussi : installation ou réparation de {0}, depuis {1}. La copie de Windows prend un moment.
 An automatic proxy script is set: {0}	Un script de proxy automatique est défini : {0}
+An error occurred	Une erreur s’est produite
 Analysis complete	Analyse terminée
 Analysis unavailable	Analyse non disponible
 Analyzing this PC	Analyse de ce PC
@@ -686,11 +728,13 @@ Another Windows repair ({0}) was still running after {1} minutes, so System File
 Another Windows repair ({0}) was still running after {1} minutes, so {2} was not started. Restart the PC and run it again.	Une autre réparation Windows ({0}) tournait encore après {1} minutes, donc {2} n’a pas été lancé. Redémarrez le PC et relancez-le.
 Another free try: one cleanup run and one duplicate category.	Un autre essai gratuit : un nettoyage et une catégorie de doublons.
 Any of the Windows firewall, Microsoft Defender real-time protection and Windows Update that is off will be switched back on.	Le pare-feu Windows, la protection en temps réel de Microsoft Defender et Windows Update seront réactivés s’ils sont désactivés.
+Any size	Toute taille
 App and PowerShell logs	Journaux des applis et de PowerShell
 App caches	Caches des applis
 App caches (Discord, Spotify, Slack, Teams, Steam)	Caches des applis (Discord, Spotify, Slack, Teams, Steam)
 App is installed	L’appli est installée
 App is removed	L’appli est retirée
+Archives	Archives
 Ask DRDirect for a new build.{0}	Demandez une nouvelle version à DRDirect.{0}
 Asking Microsoft what drivers are available for this PC. This can take up to a minute.	Demande à Microsoft quels pilotes sont disponibles pour ce PC. Cela peut prendre jusqu’à une minute.
 Asking Windows nicely to behave...	On demande gentiment à Windows de bien se tenir...
@@ -698,6 +742,7 @@ Asks Windows to release idle memory held by running programs, like PC Manager Bo
 At the same rate of use: very little wear so far, so many years left. Too early to give a closer figure.	Au même rythme d’utilisation : très peu d’usure jusqu’ici, donc de nombreuses années restantes. Trop tôt pour donner un chiffre plus précis.
 At the same rate of use: {0}. This is only a rough guess.	Au même rythme d’utilisation : {0}. Ce n’est qu’une estimation approximative.
 Attention	Attention
+Audiobook	Livre audio
 Auto	Auto
 Automatic restart failed:	Le redémarrage automatique a échoué :
 Available	Disponible
@@ -706,23 +751,32 @@ BACKUP	SAUVEGARDE
 BACKUP FILE	FICHIER DE SAUVEGARDE
 BIOS version	Version du BIOS
 Back	Retour
+Back to simple view	Retour à la vue simple
+Back to the Cleaner	Retour au Cleaner
 Back to the top of the menu	Retour en haut du menu
 Back to top	Retour en haut
+Backup file	Fichier de sauvegarde
 Backup file back onto a drive	Sauvegarde vers disque
 Backup file saved:	Fichier de sauvegarde enregistré :
 Battery	Pile
 Battery health	Santé de la pile
+Bitmap image	Image bitmap
 Block AI websites	Bloquer les sites d’IA
 Blocks the ChatGPT, Gemini, Copilot, Perplexity, DeepSeek, Grok and Meta AI websites in Edge, Chrome, Brave and Firefox. Claude is left open. Only browsers that are signed in are changed (Brave has no sign-in). The browsers will show "Managed by your organization" while this is on.	Bloque les sites ChatGPT, Gemini, Copilot, Perplexity, DeepSeek, Grok et Meta AI dans Edge, Chrome, Brave et Firefox. Claude reste ouvert. Seuls les navigateurs connectés sont changés (Brave n’a pas de connexion). Les navigateurs afficheront « Géré par votre organisation » tant que c’est actif.
 Blocks the Claude website (claude.ai) in Edge, Chrome, Brave and Firefox. The Claude app stays installed and is never touched. Only browsers that are signed in are changed (Brave has no sign-in). Turn it back on any time.	Bloque le site de Claude (claude.ai) dans Edge, Chrome, Brave et Firefox. L’appli Claude reste installée et n’est jamais touchée. Seuls les navigateurs connectés sont changés (Brave n’a pas de connexion). Réactivez-le quand vous voulez.
 Brave: turn Leo AI back on	Brave : réactiver Leo AI
 Brave: turn off Leo AI	Brave : désactiver Leo AI
 Brave: uninstall completely	Brave : désinstaller complètement
+Broadcast video	Vidéo de diffusion
+Broken programs only	Programmes brisés seulement
 Browse	Parcourir
+Browse for  ▾	Parcourir  ▾
 Browse...	Parcourir...
 Browser Assistant	Assistant de navigateur
 Browser caches	Caches des navigateurs
 Browser home page, search engine and forced extensions: nothing unusual.	Page d’accueil, moteur de recherche et extensions forcées des navigateurs : rien d’inhabituel.
+Button error:	Erreur de bouton :
+Byte-for-byte	Octet par octet
 CAN BE UNDONE	PEUT ÊTRE ANNULÉ
 CHECK IT	VÉRIFIER
 CHKDSK could not complete the scan of C:. This usually means the volume is unavailable or the disk is failing. Check Event Viewer and the drive health before relying on this result.	CHKDSK n’a pas pu terminer l’analyse de C:. Cela veut souvent dire que le volume n’est pas disponible ou que le disque est en train de lâcher. Vérifiez l’Observateur d’événements et la santé du disque avant de vous fier à ce résultat.
@@ -733,12 +787,15 @@ CHKDSK found no file system problems on C:.	CHKDSK n’a trouvé aucun problème
 CHKDSK found problems on C: and repaired them online. No restart is needed.	CHKDSK a trouvé des problèmes sur C: et les a réparés en direct. Aucun redémarrage n’est nécessaire.
 CHKDSK found problems on C: that it cannot repair while Windows is running. They have been logged for offline repair. Run "chkdsk C: /spotfix" from an administrator command prompt and restart when prompted.	CHKDSK a trouvé sur C: des problèmes qu’il ne peut pas réparer pendant que Windows tourne. Ils ont été notés pour une réparation hors ligne. Lancez « chkdsk C: /spotfix » dans une invite de commandes administrateur et redémarrez quand on vous le demande.
 CHKDSK reported:	CHKDSK a signalé :
+CHOOSE A FOLDER	CHOISIR UN DOSSIER
 CLEANING THIS PC	NETTOYAGE DE CE PC
 COPY FROM	COPIER DEPUIS
 COPY ONTO	COPIER SUR
+CSV data	Données CSV
 CUSTOM SCAN	ANALYSE PERSONNALISÉE
 Cache and logs only; synced files are not touched	Cache et journaux seulement ; les fichiers synchronisés ne sont pas touchés
 Cache only; passwords, cookies, and sessions preserved	Cache seulement ; mots de passe, témoins (cookies) et sessions gardés
+Camcorder video	Vidéo de caméscope
 Cancel	Annuler
 Cancel shut down	Annuler l’arrêt
 Cancellation requested. The current Windows operation will finish safely.	Annulation demandée. L’opération Windows en cours va se terminer en toute sécurité.
@@ -750,8 +807,11 @@ Cannot read the used-space map (error	Impossible de lire la carte de l’espace 
 Cannot tell - check it yourself	Impossible à dire - vérifiez vous-même
 Cannot write the image file (error	Impossible d’écrire le fichier de sauvegarde (erreur
 Cannot write the target drive at	Impossible d’écrire sur le disque cible à
+Canon RAW photo	Photo RAW Canon
 Capacity	Capacité
 Caution	Prudence
+Certificate	Certificat
+Certificate check:	Vérification du certificat :
 ChatGPT app	Appli ChatGPT
 ChatGPT app: uninstall completely	Appli ChatGPT : désinstaller complètement
 ChatGPT, Gemini, Copilot and other AI websites are now blocked in {0}, and Claude is left open. Close and reopen the browser. It will show "Managed by your organization" - that is what keeps them blocked. "Turn back on" removes it.	ChatGPT, Gemini, Copilot et les autres sites d’IA sont maintenant bloqués dans {0}, et Claude reste ouvert. Fermez et rouvrez le navigateur. Il affichera « Géré par votre organisation » - c’est ce qui les garde bloqués. « Réactiver » l’enlève.
@@ -782,6 +842,7 @@ Checking	Vérification
 Checking Windows system files: {0}% done	Vérification des fichiers système de Windows : {0} % fait
 Checking Windows system files…	Vérification des fichiers système de Windows…
 Checking behind the sofa for missing files...	On cherche les fichiers perdus derrière le divan...
+Checking for updates...	Recherche de mises à jour...
 Checking temporary files and browser caches…	Vérification des fichiers temporaires et des caches des navigateurs…
 Checking temporary files, browser data, and maintenance settings. Nothing is being changed.	Vérification des fichiers temporaires, des données des navigateurs et des réglages d’entretien. Rien n’est changé.
 Checking the download...	Vérification du téléchargement...
@@ -796,11 +857,19 @@ Chipset, LAN, Wi-Fi, audio and BIOS drivers come from the maker, not Windows Upd
 Choose No to do it later. Nothing changes unless you choose Yes.	Choisissez Non pour le faire plus tard. Rien ne change sauf si vous choisissez Oui.
 Choose No to restart later yourself. Nothing restarts unless you choose Yes.	Choisissez Non pour redémarrer plus tard vous-même. Rien ne redémarre sauf si vous choisissez Oui.
 Choose a drive to copy from and a drive to copy onto.	Choisissez un disque à copier et un disque qui reçoit la copie.
+Choose a folder	Choisir un dossier
+Choose a folder, or tick a cloud service or a drive to scan.	Choisissez un dossier, ou cochez un service infonuagique ou un disque à analyser.
 Choose a level, or select individual tasks below.	Choisissez un niveau, ou sélectionnez des tâches une par une ci-dessous.
 Choose cleanup level	Choisir le niveau de nettoyage
+Choose one of the program's files	Choisissez un des fichiers du programme
+Choose programs	Choisir des programmes
 Choose the drive to restore onto.	Choisissez le disque sur lequel restaurer.
 Choose the drive to secure.	Choisissez le disque à sauvegarder.
+Choose the folder of the program you want to remove	Choisissez le dossier du programme à retirer
 Choose the image file to restore.	Choisissez le fichier de sauvegarde à restaurer.
+Choose the installer of the program you want to install	Choisissez l’installateur du programme à installer
+Choose the program's folder	Choisissez le dossier du programme
+Choose the record of the program you want to remove completely	Choisissez le relevé du programme à retirer complètement
 Choose the {0} ISO file	Choisissez le fichier ISO de {0}
 Choose two different drives.	Choisissez deux disques différents.
 Choose where to save the image.	Choisissez où enregistrer la sauvegarde.
@@ -823,8 +892,10 @@ Cleaning time - press here	Durée du nettoyage - appuyez ici
 Cleanup	Nettoyage
 Clear ARP cache	Vider le cache ARP
 Clear WinHTTP proxy	Effacer le proxy WinHTTP
+Clear all filters	Effacer tous les filtres
 Clear all history	Effacer tout l’historique
 Clear it now?	L’effacer maintenant ?
+Clear my ticks	Effacer mes coches
 Cleared browser cache {0} of {1}.	Cache de navigateur {0} sur {1} vidé.
 Cleared {0} developer cache folder(s).	{0} dossier(s) de cache de développement vidé(s).
 Cleared {0} game launcher cache folder(s).	{0} dossier(s) de cache de lanceurs de jeux vidé(s).
@@ -865,27 +936,38 @@ Close	Fermer
 Close Chrome and Edge before running, so the AI model they downloaded can be deleted.	Fermez Chrome et Edge avant de lancer, pour que le modèle d’IA qu’ils ont téléchargé puisse être supprimé.
 Close and reopen the program to start using it. No PC restart is needed.	Fermez et rouvrez le programme pour commencer à l’utiliser. Aucun redémarrage du PC n’est nécessaire.
 Close first:	Fermez d’abord :
+Close them now? (Yes = close them, No = remove anyway, Cancel = stop)	Les fermer maintenant ? (Oui = les fermer, Non = retirer quand même, Annuler = arrêter)
 Close this icon	Fermer cette icône
 Close your browsers first. Saved passwords and bookmarks are kept. This cannot be undone. DRDirect is not responsible for any sign-in or password you cannot get back.	Fermez d’abord vos navigateurs. Les mots de passe enregistrés et les favoris sont conservés. Ceci ne peut pas être annulé. DRDirect n’est pas responsable des connexions ou mots de passe que vous ne pourriez pas récupérer.
 Close {0} first, then you can close the Cleaner.	Fermez d’abord {0}, puis vous pourrez fermer le Cleaner.
 Code	Code
+Color legend	Légende des couleurs
+Columns	Colonnes
 Compact browser databases	Compacter les bases de données des navigateurs
 Compacted {0} database(s), {1} MB smaller.	{0} base(s) de données compactée(s), {1} Mo de moins.
+Comparing {0} possible matches...	Comparaison de {0} correspondances possibles...
 Completed	Terminé
+Completely removes a program you installed with tracking. Everything is backed up first.	Retire complètement un programme installé avec suivi. Tout est sauvegardé d’abord.
 Compressing	Compression
 Compressing and locking	Compression et verrouillage
+Confidence	Confiance
+Confidence rating	Niveau de confiance
 Confirm	Confirmer
+Confirm removal	Confirmer le retrait
 Confirm restart	Confirmer le redémarrage
 Confirm shut down	Confirmer l’arrêt
+Contact DRDirect for a copy for this machine.	Contactez DRDirect pour une copie pour cet ordinateur.
 Contact DRDirect for a key to unlock the {0} on this machine.	Contactez DRDirect pour une clé qui débloque {0} sur cet ordinateur.
 Contact DRDirect to be sent an activation code for this machine.	Contactez DRDirect pour recevoir un code d’activation pour cet ordinateur.
 Contact DRDirect to buy it. They will send you the program and a code for this machine.	Contactez DRDirect pour l’acheter. On vous enverra le programme et un code pour cet ordinateur.
 Contact DRDirect to continue using the {0} on this machine.	Contactez DRDirect pour continuer à utiliser {0} sur cet ordinateur.
+Continue	Continuer
 Continue?	Continuer ?
 Controlled folder access	Accès contrôlé aux dossiers
 Cookie cleanup can end active website and webmail sessions.	Le nettoyage des témoins (cookies) peut fermer vos sessions ouvertes sur les sites Web et les courriels.
 Cookies and website traces	Témoins (cookies) et traces des sites Web
 Copied whole, because they cannot be mapped:	Copiés en entier, car leur contenu ne peut pas être lu :
+Copies marked to remove	Copies marquées à retirer
 Copilot app	Appli Copilot
 Copilot app: uninstall completely	Appli Copilot : désinstaller complètement
 Copilot is now off in Edge. Close Edge completely and open it again.	Copilot est maintenant désactivé dans Edge. Fermez Edge complètement et rouvrez-le.
@@ -897,6 +979,7 @@ Copying the rescue system...	Copie du système de secours...
 Copying {0} (this takes a while)...	Copie de {0} (cela prend un moment)...
 Copying {0} Setup...	Copie de l’installation de {0}...
 Copying {0} in parts (this takes a while)...	Copie de {0} en plusieurs parties (cela prend un moment)...
+Copyright (c) 2026 DRDirect. All rights reserved.	Copyright (c) 2026 DRDirect. Tous droits réservés.
 Could not add Windows to the {0} start-up menu.	Impossible d’ajouter Windows au menu de démarrage {0}.
 Could not change Notepad's setting (code {0}).	Impossible de changer le réglage du Bloc-notes (code {0}).
 Could not check	Vérification impossible
@@ -904,6 +987,7 @@ Could not check for updates: {0}	Impossible de rechercher des mises à jour : {0
 Could not clear the Defender history log: {0}	Impossible de vider l’historique de Defender : {0}
 Could not clear {0}: {1}	Impossible de vider {0} : {1}
 Could not clear:	Impossible d’effacer :
+Could not delete	Suppression impossible
 Could not delete the report.	Impossible de supprimer le rapport.
 Could not download the Setup Wizard:	Impossible de télécharger l’Assistant d’installation :
 Could not empty the clipboard: {0}	Impossible de vider le presse-papiers : {0}
@@ -915,20 +999,29 @@ Could not list the SSD drives: {0}	Impossible de lister les disques SSD : {0}
 Could not open Notepad's settings (code {0}).	Impossible d’ouvrir les réglages du Bloc-notes (code {0}).
 Could not open Notepad's settings (code {0}). Close Notepad and try again.	Impossible d’ouvrir les réglages du Bloc-notes (code {0}). Fermez le Bloc-notes et réessayez.
 Could not open Windows Security: {0}	Impossible d’ouvrir Sécurité Windows : {0}
+Could not open that file:	Impossible d’ouvrir ce fichier :
 Could not open the DRDirect Uninstaller Program: {0}	Impossible d’ouvrir le programme de désinstallation DRDirect : {0}
 Could not open the Microsoft Store: {0}	Impossible d’ouvrir le Microsoft Store : {0}
 Could not open the drive for direct copying.	Impossible d’ouvrir le disque pour la copie directe.
 Could not reach the update server. You are still running the version you have.	Impossible de joindre le serveur de mise à jour. Vous gardez la version que vous avez.
+Could not read	Lecture impossible
+Could not read the Store apps:	Impossible de lire les applications du Store :
+Could not read the programs:	Impossible de lire les programmes :
 Could not read which parts of partition {0} hold data, so nothing was copied. ({1})	Impossible de savoir quelles parties de la partition {0} contiennent des données, donc rien n’a été copié. ({1})
 Could not read which parts of partition {0} hold data, so nothing was copied. Open the Imager as administrator and try again. ({1})	Impossible de savoir quelles parties de la partition {0} contiennent des données, donc rien n’a été copié. Ouvrez l’Imager en administrateur et réessayez. ({1})
 Could not read which parts of the drive hold data, so nothing was copied. ({0})	Impossible de savoir quelles parties du disque contiennent des données, donc rien n’a été copié. ({0})
 Could not read {0}: {1}	Impossible de lire {0} : {1}
+Could not remove	Retrait impossible
 Could not remove restore point '{0}' (code {1}).	Impossible de retirer le point de restauration « {0} » (code {1}).
+Could not remove: {0}	Retrait impossible : {0}
 Could not shred the free space on {0}: {1}	Impossible de nettoyer l’espace libre sur {0} : {1}
+Could not start its uninstaller:	Impossible de lancer son programme de désinstallation :
 Could not start the Duplicate Finder: {0}	Impossible de lancer le Duplicate Finder : {0}
+Could not start the installer:	Impossible de lancer l’installateur :
 Could not start the update window: {0}	Impossible d’ouvrir la fenêtre de mise à jour : {0}
 Could not start the winget install: {0}	Impossible de lancer l’installation de winget : {0}
 Could not start winget: {0}	Impossible de lancer winget : {0}
+Could not switch to the Cleaner: {0}	Impossible de passer au Cleaner : {0}
 Crazy Nutty 3D	3D complètement fou
 Create a Rescue USB	Créer une clé USB de secours
 Create or replace a Rescue USB	Créer ou remplacer
@@ -941,6 +1034,7 @@ Custom selection. Security and drive-health operations remain manual.	Sélection
 Customize Copilot key on keyboard	Personnaliser la touche Copilot du clavier
 DISM RestoreHealth	DISM RestoreHealth
 DISM component cleanup	Nettoyage des composants DISM
+DNG RAW photo	Photo RAW DNG
 DRDirect App Updater	Mise à jour des applis DRDirect
 DRDirect Clone & Backup	DRDirect Copie et sauvegarde
 DRDirect Imager - timing of this image	DRDirect Imager - durée de cette sauvegarde
@@ -956,15 +1050,21 @@ DRDirect PC Cleaner maintenance completed. Shutting down as you asked.	L’entre
 DRDirect PC Cleaner update icon	Icône de mise à jour de DRDirect Nettoyeur PC
 DRDirect PC Cleaner will now close and open again by itself.	DRDirect Nettoyeur PC va maintenant se fermer et se rouvrir tout seul.
 DRDirect PC Cleaner: update ready ({0})	DRDirect Nettoyeur PC : mise à jour prête ({0})
+DRDirect Pro Tech Uninstaller	Désinstalleur DRDirect Pro Tech
+DRDirect Pro Tech\nUninstaller	Désinstalleur\nDRDirect Pro Tech
 DRDirect Rescue USB - Warning	Clé USB de secours DRDirect - Avertissement
 DRDirect Rescue system	Système de secours DRDirect
 DRDirect Uninstaller	Désinstalleur DRDirect
 DRDirect Uninstaller Program	Programme de désinstallation DRDirect
+DRDirect Uninstaller is removing {0}	Le désinstalleur DRDirect retire {0}
 DRDirect backup file (*.drimg)|*.drimg	Fichier de sauvegarde DRDirect (*.drimg)|*.drimg
 DRDirect image (*.drimg)|*.drimg	Sauvegarde DRDirect (*.drimg)|*.drimg
+DUPLICATE SETS	GROUPES DE DOUBLONS
+DVD video	Vidéo DVD
 Danger	Danger
 Dashboard	Tableau de bord
 Data read:       {0} (empty space is skipped)	Données lues :   {0} (l’espace vide est sauté)
+Deep scan: looks for all of the program's leftover files, folders, services and settings in the registry and on the hard drive. System folders and drives are never touched. The extra accounts option also checks the other accounts' AppData folders (files and folders only).	Analyse approfondie : cherche tous les restes du programme (fichiers, dossiers, services et paramètres) dans le registre et sur le disque dur. Les dossiers système et les disques ne sont jamais touchés. L’option des autres comptes vérifie aussi les dossiers AppData des autres comptes (fichiers et dossiers seulement).
 Deeper	Plus profond
 Defender exclusions on this PC ({0}):	Exclusions de Defender sur ce PC ({0}) :
 Defender exclusions: CHECK THESE	Exclusions de Defender : À VÉRIFIER
@@ -974,6 +1074,7 @@ Defender history cleared. Defender is still on and protecting this PC.	Historiqu
 Defender quick scan	Analyse rapide de Defender
 Delete	Supprimer
 Delete downloaded AI models	Supprimer les modèles d’IA téléchargés
+Delete selected	Supprimer la sélection
 Delete this report?	Supprimer ce rapport ?
 Deleted files and cleared caches cannot be brought back.	Les fichiers supprimés et les caches vidés ne peuvent pas être récupérés.
 Deletes older System Restore snapshots, keeping only the most recent one. Reduces how far back you can roll back Windows.	Supprime les anciens points de restauration et garde seulement le plus récent. Réduit jusqu’où vous pouvez ramener Windows en arrière.
@@ -982,13 +1083,16 @@ Delivery Optimization cache	Cache de l’Optimisation de la distribution
 Delivery Optimization cache cmdlet is not available on this system.	La commande du cache de l’Optimisation de la distribution n’est pas disponible sur ce système.
 Desktop	Bureau
 Destructive actions always require final confirmation.	Les actions qui suppriment demandent toujours une confirmation finale.
+Details	Détails
 Developer caches	Caches de développement
 Directional Aid for Users	Aide aux utilisateurs
 Disable TCP heuristics	Désactiver l’heuristique TCP
 Disabled	Désactivé
+Disc image	Image disque
 Disk {0}	Disque {0}
 Disk {0} is not a USB flash drive. Nothing was changed.	Le disque {0} n’est pas une clé USB. Rien n’a été changé.
 Display adapter	Carte graphique
+DivX video	Vidéo DivX
 Do you want to be able to put this backup back onto a SMALLER drive (for example a 500 GB)?	Voulez-vous pouvoir remettre cette sauvegarde sur un disque PLUS PETIT (par exemple un 500 Go) ?
 Do you want to continue?	Voulez-vous continuer ?
 Dock: {0} (the dock only passes the drive through; the drive inside is a separate disk)	Station d’accueil : {0} (la station ne fait que relier le disque ; le disque à l’intérieur est un disque séparé)
@@ -996,9 +1100,13 @@ Docked drive	Disque dans une station d’accueil
 Documents	Documents
 Don't worry - this is often very easy to fix. A restart often sorts it.	Pas d’inquiétude - c’est souvent très facile à régler. Un redémarrage suffit souvent.
 Done	Terminé
+Done! The installer added {0} files and {1} settings.	Terminé ! L’installateur a ajouté {0} fichiers et {1} paramètres.
 Done. No restart is needed.	Terminé. Aucun redémarrage n’est nécessaire.
 Done. Notepad will now open with an empty page.	Terminé. Le Bloc-notes s’ouvrira maintenant sur une page vide.
+Done. Nothing was left behind.	Terminé. Il ne reste rien.
+Done. Put back {0} items.	Terminé. {0} éléments remis en place.
 Done. Restart the PC, then open Reliability Monitor again. The chart can take up to 24 hours to redraw.	Terminé. Redémarrez le PC, puis rouvrez le Moniteur de fiabilité. Le graphique peut prendre jusqu’à 24 heures à se redessiner.
+Done. The apps were removed.	Terminé. Les applications ont été retirées.
 Download and install it now?	Le télécharger et l’installer maintenant ?
 Download caches; tools fetch again when needed	Caches de téléchargement ; les outils retéléchargent au besoin
 Download now	Télécharger maintenant
@@ -1021,7 +1129,9 @@ Dropbox cache	Cache de Dropbox
 Duplicate Finder opened in its own window, running as your normal user rather than as administrator.	Le Duplicate Finder s’est ouvert dans sa propre fenêtre, avec votre compte normal plutôt qu’en administrateur.
 Duplicate Finder opened in its own window.	Le Duplicate Finder s’est ouvert dans sa propre fenêtre.
 Duplicates	Doublons
+Duplicates moved to the Recycle Bin.	Doublons déplacés dans la Corbeille.
 EVERYTHING on the USB stick you pick will be erased.	TOUT ce qui est sur la clé USB choisie sera effacé.
+EXACT DUPLICATE	DOUBLON EXACT
 Easy	Facile
 Edge is not signed in, so nothing was opened. Sign in to Edge first, then run this again.	Edge n’est pas connecté, donc rien n’a été ouvert. Connectez-vous d’abord à Edge, puis relancez ceci.
 Edge is opening. Click the three dots at the top right, open Settings, search for "Copilot" and switch the Copilot button off.	Edge s’ouvre. Cliquez sur les trois points en haut à droite, ouvrez Paramètres, cherchez « Copilot » et désactivez le bouton Copilot.
@@ -1041,8 +1151,10 @@ Empties whatever you last copied. Nothing else is touched; copy again and it wor
 Enable network-file scanning	Activer l’analyse des fichiers réseau
 Enabled	Activé
 Enables Microsoft Defender scanning of files accessed over the network.	Active l’analyse par Microsoft Defender des fichiers ouverts par le réseau.
+Enter the code DRDirect sent you.	Entrez le code que DRDirect vous a envoyé.
 Enter the code first.	Entrez d’abord le code.
 Enter the owner password:	Entrez le mot de passe du propriétaire :
+Entry	Entrée
 Erased website trace {0} of {1}.	Trace de site {0} sur {1} effacée.
 Erased {0} website trace item(s){1}. Saved passwords and bookmarks were kept.	{0} trace(s) de sites effacée(s){1}. Les mots de passe enregistrés et les favoris ont été gardés.
 Erases history, cookies and site data in every browser; passwords and bookmarks stay; signs you out	Efface l’historique, les témoins (cookies) et les données des sites dans tous les navigateurs ; les mots de passe et favoris restent ; vous déconnecte
@@ -1050,17 +1162,28 @@ Erasing the USB flash drive...	Effacement de la clé USB...
 Error	Erreur
 Even deeper 3D: bigger shadows and thicker raised edges. Turns the 3D look on too.	Encore plus de 3D : ombres plus grandes et bords en relief plus épais. Active aussi l’effet 3D.
 Every part of the image is read and tested.	Chaque partie de la sauvegarde est lue et vérifiée.
+Everything	Tout
 Everything DRDirect has been removed from this PC. The program will close now.	Tout ce qui vient de DRDirect a été retiré de ce PC. Le programme va se fermer.
 Everything in the Recycle Bin on your fixed drives	Tout ce qui est dans la Corbeille de vos disques fixes
+Everything known about the highlighted program	Tout ce qu’on sait du programme en surbrillance
 Everything looks good. Nothing was changed on this PC.	Tout semble bien. Rien n’a été changé sur ce PC.
 Everything on that stick will be erased.	Tout ce qui est sur cette clé sera effacé.
 Everything on the USB is erased. It starts this PC only.	Tout ce qui est sur la clé USB est effacé. Elle démarre seulement ce PC.
 Everything the Cleaner can switch on is already on. Nothing was changed.	Tout ce que le Cleaner peut activer est déjà actif. Rien n’a été changé.
+Excel spreadsheet	Feuille de calcul Excel
+Exit	Quitter
 Expert	Expert
 Expired	Expiré
+Export	Exporter
+Export the list	Exporter la liste
+Export the list...	Exporter la liste...
+Extended	Étendu
+FILES TICKED	FICHIERS COCHÉS
 FIX & PROTECT	RÉPARER ET PROTÉGER
 FIXING WINDOWS	RÉPARATION DE WINDOWS
+FLAC audio	Audio FLAC
 FREE SPACE	ESPACE LIBRE
+FREE TRY	ESSAI GRATUIT
 FREES SPACE	LIBÈRE DE L’ESPACE
 Fail-safe with network	Mode sans échec avec réseau
 Failed	Échoué
@@ -1069,11 +1192,13 @@ Feeding the hamsters that run Windows...	On nourrit les hamsters qui font tourne
 File Explorer search history	Historique de recherche de l’Explorateur de fichiers
 File type	Type de fichier
 Files and passwords stay safe unless you tick them.	Les fichiers et mots de passe restent protégés, sauf si vous les cochez.
+Filtering	Filtrage
 Find duplicate files	Trouver les fichiers en double
 Find duplicate files, speed and space, security, drive and memory checks, Hibernate, app updates and more.	Fichiers en double, vitesse et espace, sécurité, vérification des disques et de la mémoire, veille prolongée, mises à jour des applis et plus encore.
 Find large files	Trouver les gros fichiers
 Finds files that are 100% identical - same size, same SHA-256, then verified byte-for-byte - and keeps one copy of each set.	Trouve les fichiers identiques à 100 % - même taille, même SHA-256, puis vérifiés octet par octet - et garde une copie de chaque groupe.
 Finished. Click to see it	Terminé. Cliquez pour le voir
+Finished. Removed {0} items.	Terminé. {0} éléments retirés.
 Firefox: turn AI back on	Firefox : réactiver l’IA
 Firefox: turn off AI	Firefox : désactiver l’IA
 Firefox: uninstall completely	Firefox : désinstaller complètement
@@ -1086,12 +1211,25 @@ First the Rescue system is made on this PC. Microsoft's Windows ADK and Windows 
 Fix Windows	Réparer Windows
 Fix Windows problems	Réparer les problèmes de Windows
 Fixed	Réglé
+Flash video	Vidéo Flash
 Flush DNS resolver cache	Vider le cache DNS
+Folder	Dossier
 Folder or file	Dossier ou fichier
+Follow the installer. When it has finished, this carries on by itself.	Suivez l’installateur. Quand il aura fini, ceci continuera tout seul.
+Follow the steps in its own uninstaller if one opens.	Suivez les étapes de son propre programme de désinstallation s’il s’ouvre.
 Font cache reset	Réinitialisation du cache des polices
 Font cache reset ({0} file(s) removed). Restart Windows so every program picks up the fresh cache.	Cache des polices réinitialisé ({0} fichier(s) retiré(s)). Redémarrez Windows pour que chaque programme utilise le nouveau cache.
+For a program that is already gone, broken or will not uninstall. Type its name, then review the leftovers before anything is deleted.	Pour un programme déjà parti, brisé ou qui refuse de se désinstaller. Tapez son nom, puis vérifiez les restes avant que quoi que ce soit soit supprimé.
+For experts	Pour experts
 Force stop now	Forcer l’arrêt maintenant
+Forced	Forcé
+Forced Uninstall	Désinstallation forcée
+Forced uninstall...	Désinstallation forcée...
+Forced uninstaller	Désinstallation forcée
 Free space on {0} {1}% ({2} of {3})	Espace libre sur {0} {1} % ({2} sur {3})
+Free try - pick one category, then press Scan.	Essai gratuit - choisissez une catégorie, puis appuyez sur Analyser.
+Free try - this is the category you picked.	Essai gratuit - c’est la catégorie que vous avez choisie.
+Free try - you picked this category already.	Essai gratuit - vous avez déjà choisi cette catégorie.
 Free up memory	Libérer de la mémoire
 Free up memory (Boost)	Libérer de la mémoire (Boost)
 Freed about {0} of memory from {1} program(s). Nothing was closed. Free memory is now {2} of {3}.	Environ {0} de mémoire libérés de {1} programme(s). Rien n’a été fermé. La mémoire libre est maintenant de {2} sur {3}.
@@ -1100,12 +1238,14 @@ From:  {0}	De :  {0}
 From: {0}	De : {0}
 Full	Complet
 Full cleanup: Safe plus Windows Disk Cleanup and game launcher caches.	Nettoyage complet : Sûr, plus le Nettoyage de disque Windows et les caches des lanceurs de jeux.
+Full path to program's file or folder:	Chemin complet du fichier ou du dossier du programme :
 Full scan	Analyse complète
 Full scan:	Analyse complète :
 Full scan: never - overdue	Analyse complète : jamais - en retard
 Full scan: {0} - due in {1}	Analyse complète : {0} - prévue dans {1}
 Full scan: {0} - next in {1}	Analyse complète : {0} - prochaine dans {1}
 Full scan: {0} - overdue by {1}	Analyse complète : {0} - en retard de {1}
+GIF image	Image GIF
 Game launcher caches	Caches des lanceurs de jeux
 Games rebuild these by themselves	Les jeux les refont eux-mêmes
 Gemini and AI Mode are now off in Chrome. Close Chrome completely and open it again.	Gemini et le mode IA sont maintenant désactivés dans Chrome. Fermez Chrome complètement et rouvrez-le.
@@ -1125,7 +1265,12 @@ Good	Bon
 Google Drive cache	Cache de Google Drive
 Graphics	Graphique
 Graphics shader cache	Cache des shaders graphiques
+Group	Groupe
+Groups	Groupes
+Groups of identical files	Groupes de fichiers identiques
 Guided	Guidé
+HEIC photo	Photo HEIC
+HEIF photo	Photo HEIF
 HERE IS WHAT WILL CHANGE	VOICI CE QUI VA CHANGER
 HISTORY & UNDO	HISTORIQUE ET ANNULATION
 Hardware	Matériel
@@ -1142,14 +1287,22 @@ Hibernate saves your session to a file on C: so Windows can start fast. Turn it 
 Hibernate was NOT turned on. It needs about {0} free on {1}, and only {2} is free. Use Sleep instead (Start, Power, Sleep): it needs no disk space and wakes up fast.	La veille prolongée N’A PAS été activée. Il faut environ {0} de libre sur {1}, et il n’y a que {2} de libre. Utilisez plutôt la mise en veille (Démarrer, Marche/Arrêt, Mettre en veille) : elle ne prend pas d’espace disque et se réveille vite.
 Hibernation file (frees several GB)	Fichier de veille prolongée (libère plusieurs Go)
 Hidden Recycle Bin folders	Dossiers cachés de la Corbeille
+Hide programs published by Microsoft	Masquer les programmes publiés par Microsoft
+Hide published by Microsoft	Masquer ceux de Microsoft
+Highlight certified uninstallers	Surligner les désinstalleurs certifiés
+Highlight certified, missing and special uninstallers	Surligner les désinstalleurs certifiés, manquants et spéciaux
+Highlight missing uninstallers	Surligner les désinstalleurs manquants
+Highlight special uninstallers	Surligner les désinstalleurs spéciaux
 History	Historique
 History refresh warning: {0}	Avertissement de mise à jour de l’historique : {0}
 History, icons and autofill only - nothing is deleted	Historique, icônes et saisie automatique seulement - rien n’est supprimé
 Hitting it with a very small hammer...	Petit coup de marteau, tout doucement...
+Home	Accueil
 Hosts file blocks {0} site(s). That is normal if you or a blocker added them.	Le fichier hosts bloque {0} site(s). C’est normal si vous ou un bloqueur les avez ajoutés.
 Hosts file sends a site somewhere else: {0}	Le fichier hosts envoie un site ailleurs : {0}
 Hosts file: no redirects to other addresses.	Fichier hosts : aucune redirection vers d’autres adresses.
 I clear the junk, fix what is broken and give your PC a good tune-up, and I really am trying to make it last longer. I am not perfect, you know, but I am doing my best to keep it alive. But sometimes I have to say what nobody wants to hear: an old PC can only do so much.	Je vide les déchets, je répare ce qui est brisé et je donne une bonne mise au point à votre PC, et j’essaie vraiment de le faire durer plus longtemps. Je ne suis pas parfait, vous savez, mais je fais de mon mieux pour le garder en vie. Mais parfois je dois dire ce que personne ne veut entendre : un vieux PC a ses limites.
+I have looked at these files and agree to remove the ticked duplicates	J’ai regardé ces fichiers et j’accepte de retirer les doublons cochés
 I reviewed this plan and approve the selected changes.	J’ai lu ce plan et j’approuve les changements choisis.
 I will restart myself, when I am ready	Je redémarrerai moi-même, quand je serai prêt
 Icon cache	Cache des icônes
@@ -1157,6 +1310,7 @@ If it did not do the job, or you want your PC spotless, use DRDirect PC Cleaner 
 If the Copilot button still shows on the toolbar, open Edge Settings, search for "Copilot" and switch the button off.	Si le bouton Copilot apparaît encore dans la barre d’outils, ouvrez les Paramètres d’Edge, cherchez « Copilot » et désactivez le bouton.
 If you have not done a full scan for a while, please do one. A full scan reads every file, so it is a long scan. You can keep using the PC while it runs, but it may feel slower. Only tick it if you are ready to wait.	Si vous n’avez pas fait d’analyse complète depuis un moment, faites-en une. Une analyse complète lit chaque fichier, donc elle est longue. Vous pouvez continuer à utiliser le PC pendant ce temps, mais il peut sembler plus lent. Cochez-la seulement si vous êtes prêt à attendre.
 If you press No, the red and blue lights stay on until the scan is done.	Si vous appuyez sur Non, les lumières rouge et bleue restent allumées jusqu’à ce que l’analyse soit faite.
+Ignore files smaller than	Ignorer les fichiers de moins de
 Image file:      {0}	Fichier :        {0}
 Image:  {0}	Sauvegarde :  {0}
 Imaging	Sauvegarde en cours
@@ -1165,20 +1319,33 @@ In 10 minutes after it finishes	10 minutes après la fin
 In 5 minutes after it finishes	5 minutes après la fin
 In it: accept the licence, choose USB flash drive, then pick your USB stick of 8 GB or more.	Dedans : acceptez la licence, choisissez « Disque mémoire flash USB », puis votre clé USB de 8 Go ou plus.
 In use now: {0} of {1} ({2}%).	Utilisé maintenant : {0} sur {1} ({2} %).
+Include OneDrive / Google Drive / iCloud files	Inclure les fichiers OneDrive / Google Drive / iCloud
+Include cloud files from	Inclure les fichiers infonuagiques de
+Include subfolders	Inclure les sous-dossiers
 Included with a full code. The free try covers the Safe scan.	Inclus avec un code complet. L’essai gratuit couvre l’analyse Sûre.
 Info	Info
 Information	Information
 Inking & typing personalization	Personnalisation de l’écriture manuscrite et de la saisie
+Install Date	Date d’installation
+Install a program (with tracking)...	Installer un programme (avec suivi)...
+Install date	Date d’installation
+Install folder	Dossier d’installation
 Install it now? The Cleaner downloads Microsoft's own installer (about 20 MB) from aka.ms/getwinget, installs it, then continues.	L’installer maintenant ? Le Cleaner télécharge l’installateur de Microsoft (environ 20 Mo) depuis aka.ms/getwinget, l’installe, puis continue.
+Install records (*.txt)|*.txt	Relevés d’installation (*.txt)|*.txt
 Install these from Settings, Windows Update, Advanced options, Optional updates. This app does not install them.	Installez-les depuis Paramètres, Windows Update, Options avancées, Mises à jour facultatives. Cette appli ne les installe pas.
+Install with tracking	Installer avec suivi
 Installed	Installé
 Installed (with warnings)	Installé (avec avertissements)
 Installed in the last 30 days (check you recognise them):	Installés dans les 30 derniers jours (vérifiez que vous les reconnaissez) :
 Installed memory	Mémoire installée
+Installed on	Installé le
+Installer	Installateur
 Installing the update	Installation de la mise à jour
 Installing winget from Microsoft in a console window. It then runs the update by itself.	Installation de winget depuis Microsoft dans une fenêtre de console. Il lance ensuite la mise à jour tout seul.
 Installing winget...	Installation de winget...
+Installs a program and records everything it adds, so it can be fully removed later.	Installe un programme et note tout ce qu’il ajoute, pour pouvoir le retirer complètement plus tard.
 Installs the Recall feature in Windows again. Takes effect after a restart.	Réinstalle la fonction Recall dans Windows. S’applique après un redémarrage.
+Invert the ticks	Inverser les coches
 It also installs PowerShell 7 and Windows Terminal if this PC does not have them.	Il installe aussi PowerShell 7 et Windows Terminal si ce PC ne les a pas.
 It cannot be undone.	Cela ne peut pas être annulé.
 It cannot be undone. Files, programs, passwords and logins are not touched.	Cela ne peut pas être annulé. Les fichiers, programmes, mots de passe et connexions ne sont pas touchés.
@@ -1191,12 +1358,19 @@ It needs a {0} ISO file on this PC. Microsoft's Media Creation Tool can make one
 It passed last time. A week has gone by, so it is time to check again.	Tout allait bien la dernière fois. Une semaine a passé, il est temps de revérifier.
 It ran for {0} before it stopped.	Cela a tourné {0} avant de s’arrêter.
 It will show "Managed by your organization" - that is what keeps the AI off. "Turn back on" removes it.	Il affichera « Géré par votre organisation » - c’est ce qui garde l’IA désactivée. « Réactiver » l’enlève.
+Item path	Chemin de l’élément
+Items	Éléments
+Its leftovers are still looked for next.	Ses restes seront quand même recherchés ensuite.
 Its logs in {0}	Ses journaux dans {0}
 Its settings, logs and the DRDirect Uninstaller in {0}	Ses réglages, journaux et le désinstalleur DRDirect dans {0}
+Its uninstaller is missing ({0}). Use the Forced uninstaller to remove what is left of it.	Son programme de désinstallation est introuvable ({0}). Utilisez la désinstallation forcée pour retirer ce qui en reste.
+JPEG photo	Photo JPEG
 Jump lists and recent items	Listes de raccourcis et éléments récents
 KEEP APPS CURRENT	GARDER LES APPLIS À JOUR
+KEEP THIS ONE	GARDER CELUI-CI
 Keep it somewhere safe. If you lose it or it breaks, come back here and make a new one.	Gardez-la en lieu sûr. Si vous la perdez ou si elle brise, revenez ici en créer une nouvelle.
 Keep the 'DRDirect Uninstaller' folder in the same folder as the Cleaner, then try again.	Gardez le dossier « DRDirect Uninstaller » dans le même dossier que le Cleaner, puis réessayez.
+Kind	Type
 Known unwanted program installed: {0}	Programme indésirable connu installé : {0}
 LAST CLEAN	DERNIER MÉNAGE
 LONG CLEAN-UP	NETTOYAGE LONG
@@ -1214,24 +1388,36 @@ Last time took	La dernière fois
 Last time took ...	La dernière fois ...
 Left behind by an earlier Windows Update fix	Laissé par une ancienne réparation de Windows Update
 Left unticked on purpose. Before you tick it yourself on the Cleanup page, make sure you know all your email addresses and passwords, and keep them in a safe place. You may have to sign in again.	Laissé décoché exprès. Avant de le cocher vous-même dans la page Nettoyage, assurez-vous de connaître toutes vos adresses courriel et vos mots de passe, et gardez-les en lieu sûr. Vous devrez peut-être vous reconnecter.
+Leftover removal	Retrait des restes
+Legend	Légende
 Leo AI is now off in Brave. Close Brave completely and open it again.	Leo AI est maintenant désactivé dans Brave. Fermez Brave complètement et rouvrez-le.
 Life left: about {0}%	Vie restante : environ {0} %
 Life left: not measured for spinning hard drives. Health status and error counts below are what matter.	Vie restante : non mesurée pour les disques durs à plateaux. L’état de santé et le nombre d’erreurs ci-dessous sont ce qui compte.
 Life left: this drive does not report it.	Vie restante : ce disque ne l’indique pas.
+List of files and/or registry keys left after uninstallation	Liste des fichiers et clés de registre restés après la désinstallation
+List view settings	Réglages de l’affichage en liste
 Listing available updates in a console window. Nothing is installed.	Liste des mises à jour disponibles dans une fenêtre de console. Rien n’est installé.
+Listing files...	Liste des fichiers...
+Listing files... {0} found	Liste des fichiers... {0} trouvés
 Lists the 25 biggest files (over 100 MB) in your user folders so you can decide what to remove. Only looks - nothing is deleted.	Liste les 25 plus gros fichiers (plus de 100 Mo) de vos dossiers personnels pour que vous décidiez quoi retirer. Regarde seulement - rien n’est supprimé.
 Lists the folders, programs and file types Microsoft Defender skips, and points out any that look risky. Nothing is removed - exclusions you added on purpose always stay.	Liste les dossiers, programmes et types de fichiers que Microsoft Defender ignore, et signale ceux qui semblent risqués. Rien n’est retiré - les exclusions ajoutées exprès restent toujours.
 Lists the programs that start with Windows so you can see what slows sign-in. Only looks - nothing is changed.	Liste les programmes qui démarrent avec Windows pour voir ce qui ralentit l’ouverture de session. Regarde seulement - rien n’est changé.
+Loading the list:	Chargement de la liste :
 Logs	Journaux
 Long	Long
 Long-running Windows commands finish before the next task begins.	Les longues commandes Windows se terminent avant que la tâche suivante commence.
 Look again	Regarder de nouveau
 Look again, for example after fixing something. Nothing is changed.	Regarder de nouveau, par exemple après avoir réglé quelque chose. Rien n’est changé.
 Look at what the Cleaner did before.	Voir ce que le Cleaner a fait avant.
+Look for	Rechercher
 Look for a newer version of the Cleaner	Chercher une version plus récente du Cleaner
 Look for a newer version of the Cleaner.	Chercher une version plus récente du Cleaner.
+Look for leftovers in all Windows accounts	Chercher des restes dans tous les comptes Windows
 Looking at the drive...	Examen du disque...
 Looking for Windows updates...	Recherche des mises à jour Windows...
+Looking for leftovers	Recherche des restes
+Looking for what was left behind. Please wait...	Recherche de ce qui est resté. Veuillez patienter...
+Looking through your files.	Examen de vos fichiers.
 Looks for PHP on this PC (XAMPP, WAMP, Laragon and similar) and tells you if it is open to the PHP2Shell flaw that is being attacked right now. Only looks - nothing is changed.	Cherche PHP sur ce PC (XAMPP, WAMP, Laragon et autres) et vous dit s’il est exposé à la faille PHP2Shell, attaquée en ce moment. Regarde seulement - rien n’est changé.
 Looks for signs of a failing power supply or a PC that runs too hot: unexpected shutdowns, hardware errors, temperature and heat slowdowns in the last 30 days. Heat is also a common cause of lag in games. It can only point to a likely cause, such as dust or a tired power supply. Nothing is changed.	Cherche des signes d’alimentation défaillante ou d’un PC qui chauffe trop : arrêts inattendus, erreurs matérielles, température et ralentissements dus à la chaleur dans les 30 derniers jours. La chaleur est aussi une cause fréquente de ralentissement dans les jeux. Il ne peut qu’indiquer une cause probable, comme la poussière ou une alimentation fatiguée. Rien n’est changé.
 Looks for signs of a failing power supply, dust or a PC that runs too hot	Cherche des signes d’alimentation défaillante, de poussière ou d’un PC qui chauffe trop
@@ -1241,7 +1427,11 @@ Lost it or broken? Make a new one here, any time.	Perdue ou brisée ? Créez-en 
 MAX  -  fastest (bigger file)	MAX  -  le plus rapide (fichier plus gros)
 MEDIUM SCAN	ANALYSE MOYENNE
 MEGA cache	Cache de MEGA
+MIDI music	Musique MIDI
+MKV video	Vidéo MKV
+MPEG video	Vidéo MPEG
 MS Tools	Outils MS
+Made a mistake? Click "Undo last removal" within {0} hours to put everything back.	Une erreur ? Cliquez sur « Annuler le dernier retrait » dans les {0} heures pour tout remettre en place.
 Maintenance complete	Entretien terminé
 Maintenance finished with warnings	Entretien terminé avec des avertissements
 Maintenance finished, but the report could not be saved: {0}	Entretien terminé, mais le rapport n’a pas pu être enregistré : {0}
@@ -1255,6 +1445,7 @@ Makes a Windows 11 install USB with Microsoft's own Media Creation Tool. Needs a
 Makes an exact copy of one drive on another drive: Windows, programs and files. Only the used parts are copied, so it is fast.	Fait une copie exacte d’un disque sur un autre : Windows, programmes et fichiers. Seules les parties utilisées sont copiées, donc c’est rapide.
 Makes sure a backup file is complete and not damaged. Nothing is changed.	Vérifie qu’un fichier de sauvegarde est complet et non endommagé. Rien n’est changé.
 Making a Rescue USB ERASES the USB stick you pick. Everything on it now (files, photos, documents) will be deleted and cannot be brought back.	Créer une clé USB de secours EFFACE la clé choisie. Tout ce qui s’y trouve (fichiers, photos, documents) sera supprimé et ne pourra pas être récupéré.
+Making a Windows restore point first, so this can be undone...	Création d’un point de restauration Windows d’abord, pour pouvoir annuler...
 Making the Rescue system failed (DISM code {0}). Nothing was changed on the USB.	La création du système de secours a échoué (code DISM {0}). Rien n’a été changé sur la clé USB.
 Making the Rescue system failed (copype). Nothing was changed on the USB.	La création du système de secours a échoué (copype). Rien n’a été changé sur la clé USB.
 Making the Rescue system: adding the DRDirect Rescue app...	Création du système de secours : ajout de l’appli de secours DRDirect...
@@ -1278,6 +1469,7 @@ Memory is nearly full. Run "Free up memory" or close programs you are not using.
 Memory stick	Barrette de mémoire
 Memory test	Test de la mémoire
 Memory test (Windows Memory Diagnostic)	Test de la mémoire (Diagnostic de mémoire Windows)
+Menu error:	Erreur de menu :
 Message	Message
 Microsoft 365 Copilot app	Appli Microsoft 365 Copilot
 Microsoft 365 Copilot app: uninstall completely	Appli Microsoft 365 Copilot : désinstaller complètement
@@ -1295,6 +1487,9 @@ Microsoft's Windows ADK (Deployment Tools) was not installed, so the Rescue syst
 Microsoft's Windows PE add-on was not installed, so the Rescue system could not be made. Nothing was changed on the USB.	Le module Windows PE de Microsoft n’a pas été installé, donc le système de secours n’a pas pu être créé. Rien n’a été changé sur la clé USB.
 Microsoft's licence terms for the updates are accepted, the same as Windows Update in Settings does.	Les termes de licence de Microsoft pour les mises à jour sont acceptés, comme le fait Windows Update dans Paramètres.
 Microsoft's tool then downloads Windows, so it needs the internet.	L’outil de Microsoft télécharge ensuite Windows, donc il faut Internet.
+Missing	Manquant
+Missing control {0}	Contrôle manquant {0}
+Missing uninstaller	Désinstalleur manquant
 Model	Modèle
 Model: unknown - this dock does not let Windows ask the drive inside its make and model.	Modèle : inconnu - cette station d’accueil ne laisse pas Windows demander au disque sa marque et son modèle.
 More above	Plus haut
@@ -1306,6 +1501,12 @@ More tools below	Plus d’outils plus bas
 Motherboard	Carte mère
 Motherboard and BIOS	Carte mère et BIOS
 Motherboard drivers	Pilotes de la carte mère
+Move ticked duplicates to Recycle Bin	Mettre les doublons cochés dans la Corbeille
+Moved to Recycle Bin	Mis dans la Corbeille
+Moved {0} duplicates to the Recycle Bin, freeing {1}{2}	{0} doublons mis dans la Corbeille, {1} libérés{2}
+Music	Musique
+Music & audio	Musique et audio
+My Games	Mes jeux
 My goal is simple: to make Windows run better on every PC.	Mon but est simple : faire mieux fonctionner Windows sur chaque PC.
 NEEDS UPDATE	MISE À JOUR NÉCESSAIRE
 NEW RESCUE USB	NOUVELLE CLÉ USB DE SECOURS
@@ -1318,6 +1519,8 @@ Name	Nom
 Network	Réseau
 Network reset	Réinitialisation du réseau
 New update	Nouvelle mise à jour
+Next	Suivant
+Nikon RAW photo	Photo RAW Nikon
 No	Non
 No AI models on this PC	Aucun modèle d’IA sur ce PC
 No AI that the Cleaner can switch off is still on.	Aucune IA que le Cleaner peut désactiver n’est encore active.
@@ -1333,6 +1536,8 @@ No component store corruption detected	Aucune corruption du magasin de composant
 No developer tool caches were found on this PC.	Aucun cache d’outils de développement n’a été trouvé sur ce PC.
 No downloaded AI models were found. Nothing was deleted.	Aucun modèle d’IA téléchargé n’a été trouvé. Rien n’a été supprimé.
 No drives reported health information. This can happen with some USB and RAID controllers. Nothing was changed.	Aucun disque n’a donné d’information de santé. Cela peut arriver avec certains contrôleurs USB et RAID. Rien n’a été changé.
+No duplicates found	Aucun doublon trouvé
+No exact duplicates found.	Aucun doublon exact trouvé.
 No files over 100 MB were found in your user folders. Nothing was changed.	Aucun fichier de plus de 100 Mo n’a été trouvé dans vos dossiers personnels. Rien n’a été changé.
 No font cache folder was found. Nothing was changed.	Aucun dossier de cache des polices n’a été trouvé. Rien n’a été changé.
 No graphics shader caches were found on this PC.	Aucun cache de shaders graphiques n’a été trouvé sur ce PC.
@@ -1344,11 +1549,15 @@ No path given.	Aucun chemin donné.
 No problems found. Nothing was changed on this PC.	Aucun problème trouvé. Rien n’a été changé sur ce PC.
 No programs are set to start with Windows from the usual places. Nothing was changed.	Aucun programme n’est réglé pour démarrer avec Windows aux endroits habituels. Rien n’a été changé.
 No restore point was saved (System Restore may be off). The Cleaner keeps its own backups of the settings it changes.	Aucun point de restauration n’a été créé (la Restauration du système est peut-être désactivée). Le Cleaner garde ses propres copies des réglages qu’il change.
+No restore point:	Pas de point de restauration :
+No scan yet	Aucune analyse encore
 No steps are available on this PC.	Aucune étape n’est disponible sur ce PC.
+No subfolders in here.	Aucun sous-dossier ici.
 No supported web browser was found. Nothing was changed.	Aucun navigateur pris en charge n’a été trouvé. Rien n’a été changé.
 No task events were returned.	Aucun événement de tâche n’a été retourné.
 No: a normal backup (it can only go back onto a drive as big as this one).	Non : une sauvegarde normale (elle ne peut être remise que sur un disque aussi grand que celui-ci).
 None	Aucun
+None of these are installed on this PC. Install the app for a service and sign in - signing in on its website is not enough.	Aucun n’est installé sur ce PC. Installez l’application d’un service et connectez-vous - se connecter sur son site Web ne suffit pas.
 Normal	Normal
 Not a full path:	Pas un chemin complet :
 Not checked	Non vérifié
@@ -1358,11 +1567,16 @@ Not done	Pas fait
 Not done yet	Pas encore fait
 Not enough room on the USB for Windows: it needs {0} GB and has {1} GB. Use a USB of 16 GB or more.	Pas assez de place sur la clé USB pour Windows : il faut {0} Go et elle a {1} Go. Utilisez une clé de 16 Go ou plus.
 Not included with this licence. Contact DRDirect for a code.	Non inclus avec cette licence. Contactez DRDirect pour un code.
+Not installed on this PC:	Pas installé sur ce PC :
 Not installed.	Non installé.
+Not registered with Windows	Non enregistré dans Windows
+Not removed, backup failed:	Pas retiré, la sauvegarde a échoué :
 Not reported	Non indiqué
+Not signed	Non signé
 Not timed yet	Pas encore chronométré
 Not timed yet - press here	Pas encore chronométré - appuyez ici
 Not timed yet on this PC - the exact time shows after the first run.	Pas encore chronométré sur ce PC - la durée exacte s’affiche après la première fois.
+Not verified	Non vérifié
 Not yet	Pas encore
 Notepad	Bloc-notes
 Notepad already opens empty	Le Bloc-notes s’ouvre déjà vide
@@ -1371,9 +1585,12 @@ Notepad is not set up on this PC	Le Bloc-notes n’est pas installé sur ce PC
 Notepad is not set up on this PC. Nothing to change.	Le Bloc-notes n’est pas installé sur ce PC. Rien à changer.
 Notepad opens empty	Le Bloc-notes s’ouvre vide
 Notepad will bring back your last notes when it opens.	Le Bloc-notes rouvrira vos dernières notes à l’ouverture.
+Nothing from "{0}" is left on this PC.	Il ne reste rien de « {0} » sur ce PC.
 Nothing has been run on this PC yet. Analysis and cleanup results will be listed here.	Rien n’a encore été fait sur ce PC. Les résultats d’analyse et de nettoyage s’afficheront ici.
 Nothing has moved for {0} min. The drive is not answering - it may have damaged areas, or a USB drive may have been unplugged.	Rien n’a bougé depuis {0} min. Le disque ne répond pas - il a peut-être des zones endommagées, ou un disque USB a été débranché.
 Nothing has run yet.	Rien n’a encore été fait.
+Nothing in that folder is an exact copy of anything else. Try a bigger folder, or lower the size filter.	Rien dans ce dossier n’est une copie exacte d’autre chose. Essayez un plus grand dossier, ou baissez le filtre de taille.
+Nothing is ever deleted without your say-so	Rien n’est jamais supprimé sans votre accord
 Nothing reported	Rien à signaler
 Nothing suspicious was found. Nothing was changed. This sweep looks for signs of spyware and adware; keep using the Defender scans too.	Rien de suspect n’a été trouvé. Rien n’a été changé. Cette recherche cherche des signes de logiciels espions et publicitaires ; continuez aussi à faire les analyses Defender.
 Nothing was changed on this PC.	Rien n’a été changé sur ce PC.
@@ -1382,10 +1599,13 @@ Nothing was changed or removed. Some of these can be normal, so check each one y
 Nothing was changed.	Rien n’a été changé.
 Nothing was changed. Open Microsoft's Windows 11 download page instead?	Rien n’a été changé. Ouvrir plutôt la page de téléchargement de Windows 11 de Microsoft ?
 Nothing was removed.	Rien n’a été retiré.
+OGG audio	Audio OGG
+OGG video	Vidéo OGG
 ONLY LOOKS	REGARDE SEULEMENT
 OPENS A WINDOW - YOU FINISH IT	OUVRE UNE FENÊTRE - VOUS TERMINEZ
 ORDERED PRESETS	PRÉRÉGLAGES DANS L’ORDRE
 Off	Désactivé
+Off by default. Online-only files are not kept on this PC, so ticking this downloads every one from {0} to compare it.	Désactivé par défaut. Les fichiers en ligne seulement ne sont pas gardés sur ce PC; cocher ceci les télécharge tous depuis {0} pour les comparer.
 Old	Vieux
 Old Windows Update backup folders	Anciens dossiers de sauvegarde de Windows Update
 Old Windows copy; you cannot go back afterwards	Ancienne copie de Windows ; impossible de revenir en arrière ensuite
@@ -1394,9 +1614,12 @@ On	Activé
 On your main drive	Sur votre disque principal
 One click picks every "Turn off", "Remove" and "Delete" below that the Cleaner can do by itself. Claude is always left alone. Gmail, Word and the Edge button each open their own page, so pick those one by one. Nothing runs until you review and confirm.	Un clic choisit chaque « Désactiver », « Retirer » et « Supprimer » ci-dessous que le Cleaner peut faire lui-même. Claude n’est jamais touché. Gmail, Word et le bouton Edge ouvrent chacun leur propre page, alors choisissez-les un par un. Rien ne se fait avant que vous ayez vérifié et confirmé.
 One click. We only do the safe things, and we ask you before anything starts.	Un clic. On fait seulement ce qui est sûr, et on vous demande avant de commencer.
+One copy is always kept.	Une copie est toujours gardée.
 One copy of every file is always kept. Removed duplicates go to the Recycle Bin, so nothing is deleted permanently. Windows system folders, program folders, and hard links are skipped.	Une copie de chaque fichier est toujours gardée. Les doublons retirés vont dans la Corbeille, donc rien n’est supprimé définitivement. Les dossiers système de Windows, les dossiers de programmes et les liens physiques sont ignorés.
+One copy of every file is kept - the green KEEP row is never touched.	Une copie de chaque fichier est gardée - la ligne verte GARDER n’est jamais touchée.
 One quick summary of memory use, free disk space, how long Windows has been running, startup programs and any restart waiting. Nothing is changed.	Un résumé rapide de la mémoire utilisée, de l’espace disque libre, du temps depuis le démarrage de Windows, des programmes au démarrage et de tout redémarrage en attente. Rien n’est changé.
 OneDrive cache	Cache de OneDrive
+Only files that are 100% identical.	Seulement les fichiers 100 % identiques.
 Only looks - nothing is changed. Click Check now and the AI still switched on or installed is listed right here - handy after a Windows or browser update brings something back.	Regarde seulement - rien n’est changé. Cliquez sur Vérifier maintenant et l’IA encore active ou installée s’affiche ici - pratique quand une mise à jour de Windows ou d’un navigateur ramène quelque chose.
 Only the data is copied, about {0}. Nothing blank is copied.	Seules les données sont copiées, environ {0}. Rien de vide n’est copié.
 Only the used parts are read (about {0} of {1}).{2}	Seules les parties utilisées sont lues (environ {0} sur {1}).{2}
@@ -1413,15 +1636,23 @@ Open DRDirect PC Cleaner from its shortcut instead. Don't have it? Contact DRDir
 Open Duplicate Finder	Ouvrir le Duplicate Finder
 Open Edge, click the profile picture at the top left and sign in.	Ouvrez Edge, cliquez sur la photo de profil en haut à gauche et connectez-vous.
 Open Firefox, click the account button at the top right and sign in to a Mozilla account.	Ouvrez Firefox, cliquez sur le bouton du compte en haut à droite et connectez-vous à un compte Mozilla.
+Open file	Ouvrir le fichier
+Open it from its shortcut, or from the DRDirect PC Cleaner. Don't have it? Contact DRDirect.	Ouvrez-le depuis son raccourci, ou depuis DRDirect Nettoyeur PC. Vous ne l’avez pas ? Contactez DRDirect.
+Open it from the DRDirect PC Cleaner and enter the key DRDirect gave you.	Ouvrez-le depuis DRDirect Nettoyeur PC et entrez la clé que DRDirect vous a donnée.
+Open its folder	Ouvrir son dossier
 Open reports folder	Ouvrir le dossier des rapports
 Open the Cleaner as administrator and tick "Shred deleted files" to wipe the free space too.	Ouvrez le Cleaner en administrateur et cochez « Détruire les fichiers supprimés » pour nettoyer aussi l’espace libre.
 Open the Cleaner as administrator first - clearing the logs needs it.	Ouvrez d’abord le Cleaner en administrateur - c’est nécessaire pour effacer les journaux.
+Open the Cleaner from its own folder, or use its Remove programs button to open this window next time.	Ouvrez le Cleaner depuis son dossier, ou utilisez son bouton Retirer des programmes pour ouvrir cette fenêtre la prochaine fois.
 Open the DRDirect Uninstaller Program to remove programs you no longer want	Ouvrir le programme de désinstallation DRDirect pour retirer les programmes dont vous ne voulez plus
+Open the containing folder with this file highlighted	Ouvrir le dossier avec ce fichier en surbrillance
 Open the {0} drivers page for this board	Ouvrir la page des pilotes {0} pour cette carte mère
+Open this file so you can see exactly what it is	Ouvrir ce fichier pour voir exactement ce que c’est
 Open {0}, click the profile picture at the top right and sign in.	Ouvrez {0}, cliquez sur la photo de profil en haut à droite et connectez-vous.
 Opening Microsoft's download page instead. Click the first "Download now" button (Windows 11 Setup Wizard).	Ouverture de la page de téléchargement de Microsoft à la place. Cliquez sur le premier bouton « Télécharger maintenant » (Assistant d’installation de Windows 11).
 Opening Microsoft's download page so you can install it by hand.	Ouverture de la page de téléchargement de Microsoft pour l’installer à la main.
 Opening Windows Update in Settings instead.	Ouverture de Windows Update dans Paramètres à la place.
+Opening the Cleaner...	Ouverture du Cleaner...
 Opening the Duplicate Finder so you can enter its code.	Ouverture du Duplicate Finder pour entrer son code.
 Opening the Windows ISO...	Ouverture de l’ISO de Windows...
 Opens Edge so you can change its search engine from Bing to Google: Settings, search for "search engine", then pick Google under "Search engine used in the address bar". Edge keeps this choice to itself, so the last click is yours.	Ouvre Edge pour que vous changiez son moteur de recherche de Bing à Google : Paramètres, cherchez « moteur de recherche », puis choisissez Google sous « Moteur de recherche utilisé dans la barre d’adresses ». Edge garde ce choix pour lui, donc le dernier clic est le vôtre.
@@ -1445,20 +1676,27 @@ Opens the official ChatGPT download page.	Ouvre la page officielle de téléchar
 Opens the official Chrome download page.	Ouvre la page officielle de téléchargement de Chrome.
 Opens the official Claude download page.	Ouvre la page officielle de téléchargement de Claude.
 Opens the official Firefox download page.	Ouvre la page officielle de téléchargement de Firefox.
+Opus audio	Audio Opus
 Other things you can do	Autres choses que vous pouvez faire
+Owner	Propriétaire
 Owner password	Mot de passe du propriétaire
 Owner tools	Outils du propriétaire
 PC Cleaner	Nettoyeur PC
 PC checkup	Bilan du PC
+PDF document	Document PDF
 PHP on this PC needs a security update	PHP sur ce PC a besoin d’une mise à jour de sécurité
 PHP security check	Vérification de sécurité PHP
+PNG image	Image PNG
 PROBLEM FOUND	PROBLÈME TROUVÉ
 PROBLEM FOUND: PHP on this PC is open to the PHP2Shell flaw (CVE-2026-109618 / CVE-2026-109619). Update to PHP 8.2.35, 8.3.36, 8.4.27 or 8.5.12 or newer, and keep any PHP web server off the internet until then. Nothing was changed.	PROBLÈME TROUVÉ : PHP sur ce PC est exposé à la faille PHP2Shell (CVE-2026-109618 / CVE-2026-109619). Mettez à jour vers PHP 8.2.35, 8.3.36, 8.4.27 ou 8.5.12 ou plus récent, et gardez tout serveur Web PHP hors d’Internet d’ici là. Rien n’a été changé.
 PUT IT BACK ON	LA REMETTRE SUR
 Packs the files your browsers keep their history, icons and autofill in, so they take less space and search faster. Nothing is deleted. Passwords and cookies are never touched. Close your browsers first - any that are open are skipped.	Compacte les fichiers où vos navigateurs gardent l’historique, les icônes et la saisie automatique, pour qu’ils prennent moins de place et cherchent plus vite. Rien n’est supprimé. Les mots de passe et témoins (cookies) ne sont jamais touchés. Fermez d’abord vos navigateurs - ceux qui sont ouverts sont ignorés.
+Part of the DRDirect PC Cleaner.	Fait partie de DRDirect Nettoyeur PC.
+Partly removed (in use?):	Retiré en partie (en cours d’utilisation ?) :
 Past results	Résultats passés
 Paste the code DRDirect sent you, then press Activate.	Collez le code que DRDirect vous a envoyé, puis appuyez sur Activer.
 Paste the code DRDirect sent you.	Collez le code que DRDirect vous a envoyé.
+Path	Chemin
 Pause	Pause
 Paused {0} startup program(s) so the Advanced scan runs on its own: {1}	{0} programme(s) au démarrage mis en pause pour que l’analyse Avancée tourne seule : {1}
 Paused. Nothing is running now. Press Start to carry on, or Stop to end the scan here.	En pause. Rien ne tourne maintenant. Appuyez sur Démarrer pour continuer, ou sur Arrêter pour finir l’analyse ici.
@@ -1467,9 +1705,17 @@ Pauses after the step that is running now. Press Start to carry on.	Met en pause
 Pausing after this step...	Pause après cette étape...
 Permanently delete all {0} maintenance report(s)?	Supprimer définitivement les {0} rapport(s) d’entretien ?
 Permanently removes Recycle Bin contents from available fixed drives.	Supprime définitivement le contenu de la Corbeille des disques fixes disponibles.
+Phone video	Vidéo de téléphone
+Photoshop file	Fichier Photoshop
+Pick a folder and press Scan. Every match is proved byte-for-byte before it is shown.	Choisissez un dossier et appuyez sur Analyser. Chaque correspondance est vérifiée octet par octet avant d’être affichée.
 Pick a level to see its steps. Nothing has run yet, and you confirm before anything starts.	Choisissez un niveau pour voir ses étapes. Rien n’a encore été fait, et vous confirmez avant que quoi que ce soit commence.
+Pick a program's folder and remove it, even if it isn't in the list.	Choisissez le dossier d’un programme et retirez-le, même s’il n’est pas dans la liste.
 Pick what you want to do. Each one shows you the steps.	Choisissez ce que vous voulez faire. Chacun vous montre les étapes.
+Pick where to look for duplicates. Subfolders are included.	Choisissez où chercher des doublons. Les sous-dossiers sont inclus.
+Pictures	Images
+Places	Emplacements
 Plan stopped safely	Plan arrêté en toute sécurité
+Playlist	Liste de lecture
 Please close {0} and the DRDirect Uninstaller, then click Retry.	Fermez {0} et le désinstalleur DRDirect, puis cliquez sur Réessayer.
 Please leave this window open - it is working.	Laissez cette fenêtre ouverte - elle travaille.
 Please read first	À lire d’abord
@@ -1477,12 +1723,14 @@ Please read first  :)	À lire d’abord  :)
 Please restart Windows manually from the Start menu.	Redémarrez Windows vous-même depuis le menu Démarrer.
 Please wait until the cleaning is finished, then open Clone & Backup.	Attendez la fin du nettoyage, puis ouvrez Copie et sauvegarde.
 Please wait, I am analyzing your system for better performance, to make DRDirect run better for you...	Un instant, j’analyse votre système pour de meilleures performances, afin que DRDirect fonctionne mieux pour vous...
+Please wait...	Veuillez patienter...
 Plug in a USB flash drive you do not need.	Branchez une clé USB dont vous n’avez pas besoin.
 Plug in a USB stick (any size from 1 GB), then press Look again. A new one replaces a lost or broken Rescue USB.	Branchez une clé USB (de 1 Go ou plus), puis appuyez sur Regarder de nouveau. Une nouvelle remplace une clé de secours perdue ou brisée.
 Plug in a USB stick of at least 8 GB, then press Windows install USB again.	Branchez une clé USB d’au moins 8 Go, puis appuyez de nouveau sur Clé USB d’installation de Windows.
 Plug in the drive to copy onto.	Branchez le disque qui reçoit la copie.
 Plug in the drive to restore onto.	Branchez le disque sur lequel restaurer.
 Point here to see them all.	Pointez ici pour les voir tous.
+Policies	Stratégies
 Polishing the pixels...	On fait briller les pixels...
 Power and heat check	Vérification de l’alimentation et de la chaleur
 Power and heat: All good	Alimentation et chaleur : tout va bien
@@ -1504,14 +1752,20 @@ Processor work, added up over all threads:	Travail du processeur, additionné su
 Processor:       {0} threads, {1} used for compressing	Processeur :     {0} fils, {1} pour la compression
 Product	Produit
 Program	Programme
+Program component	Composant de programme
 Program name cache (MUICache)	Cache des noms de programmes (MUICache)
+Program's exact name:	Nom exact du programme :
+Programs	Programmes
 Programs starting with Windows: {0}	Programmes qui démarrent avec Windows : {0}
 Progress	Progression
+Properties	Propriétés
 Protected mode	Mode protégé
 Protection is on, drives are fine and there is room to spare.	La protection est active, les disques vont bien et il reste de la place.
 Proxy settings: none set.	Réglages de proxy : aucun.
 Publisher	Éditeur
+Put back the {0} items that were removed for "{1}"?	Remettre en place les {0} éléments retirés pour « {1} » ?
 Puts a backup file back onto a drive, so the drive is just like it was when you saved it.	Remet un fichier de sauvegarde sur un disque, pour que le disque soit comme au moment de la sauvegarde.
+Puts back what the last cleanup removed. This only works for 24 hours.	Remet en place ce que le dernier nettoyage a retiré. Ça ne fonctionne que pendant 24 heures.
 Puts the Adobe Acrobat AI settings back exactly as they were.	Remet les réglages d’IA d’Adobe Acrobat exactement comme avant.
 Puts the Brave AI settings back exactly as they were.	Remet les réglages d’IA de Brave exactement comme avant.
 Puts the Chrome AI settings back exactly as they were.	Remet les réglages d’IA de Chrome exactement comme avant.
@@ -1522,7 +1776,9 @@ Puts the Windows AI settings back exactly as they were.	Remet les réglages d’
 Puts the ads and suggestions settings back exactly as they were before "Windows 11: turn off ads and suggestions" changed them. Does nothing if that option was never run.	Remet les réglages de publicités et suggestions exactement comme avant que « Windows 11 : désactiver les publicités et suggestions » les change. Ne fait rien si cette option n’a jamais été lancée.
 Puts the telemetry services, scheduled tasks and policies back exactly as they were before "Turn off Windows telemetry" changed them. Does nothing if that option was never run.	Remet les services de télémétrie, les tâches planifiées et les stratégies exactement comme avant que « Désactiver la télémétrie de Windows » les change. Ne fait rien si cette option n’a jamais été lancée.
 Puts the typing settings back exactly as they were before "Stop sending typing data to Microsoft" changed them. Does nothing if that option was never run.	Remet les réglages de saisie exactement comme avant que « Arrêter d’envoyer les données de saisie à Microsoft » les change. Ne fait rien si cette option n’a jamais été lancée.
+Putting everything back...	Remise en place de tout...
 Question	Question
+Questionable	Douteux
 Queued and archived crash reports	Rapports de plantage en attente et archivés
 Quick	Rapide
 Quick scan	Analyse rapide
@@ -1532,6 +1788,10 @@ Quick scan: never - overdue	Analyse rapide : jamais - en retard
 Quick scan: {0} - due in {1}	Analyse rapide : {0} - prévue dans {1}
 Quick scan: {0} - next in {1}	Analyse rapide : {0} - prochaine dans {1}
 Quick scan: {0} - overdue by {1}	Analyse rapide : {0} - en retard de {1}
+QuickTime video	Vidéo QuickTime
+Quiet uninstall	Désinstallation silencieuse
+RAR archive	Archive RAR
+RAW photo	Photo RAW
 RECLAIM SPACE	RÉCUPÉRER DE L’ESPACE
 RESCUE SYSTEM	SYSTÈME DE SECOURS
 RESTART REQUIRED	REDÉMARRAGE NÉCESSAIRE
@@ -1539,13 +1799,18 @@ Read	Lecture
 Read each item first. DRDirect is not responsible for what you tick unread.	Lisez chaque élément d’abord. DRDirect n’est pas responsable de ce que vous cochez sans lire.
 Read head parked {0} times.	Tête de lecture rangée {0} fois.
 Read me: a short, friendly note	À lire : une courte note amicale
+Read the list of programs again	Relire la liste des programmes
 Reading is the slowest part: the processor waits for the drive to deliver the data.	La lecture est la partie la plus lente : le processeur attend que le disque livre les données.
+Reading the Windows Store apps...	Lecture des applications du Windows Store...
 Reading the drive	Lecture du disque
+Reading the programs on this PC...	Lecture des programmes de ce PC...
 Reads the health information your drives report about themselves, including estimated life left and read errors. Nothing is changed or deleted.	Lit les informations de santé que vos disques donnent sur eux-mêmes, y compris la vie restante estimée et les erreurs de lecture. Rien n’est changé ni supprimé.
+Ready	Prêt
 Ready to copy onto the smaller drive?	Prêt à copier sur le disque plus petit ?
 Ready to copy?	Prêt à copier ?
 Ready to create the Rescue USB on {0}?	Prêt à créer la clé USB de secours sur {0} ?
 Ready to restore?	Prêt à restaurer ?
+RealMedia video	Vidéo RealMedia
 Rebuilds the Windows font cache. It fixes missing, blank or wrong-looking fonts. Fonts themselves are not touched. A restart is recommended afterwards.	Refait le cache des polices de Windows. Cela répare les polices manquantes, vides ou mal affichées. Les polices elles-mêmes ne sont pas touchées. Un redémarrage est conseillé ensuite.
 Rebuilt automatically as you browse files	Refait automatiquement quand vous parcourez les fichiers
 Recall could not be installed: {0}	Recall n’a pas pu être installé : {0}
@@ -1556,12 +1821,15 @@ Recall was uninstalled. Restart Windows to finish. Its "Reinstall" button brings
 Recall, Click to Do and the AI in Paint and Notepad: {0}	Recall, Click to Do et l’IA dans Paint et le Bloc-notes : {0}
 Recall, Click to Do, and the AI in Paint and Notepad are now off. They are gone after the restart.	Recall, Click to Do et l’IA dans Paint et le Bloc-notes sont maintenant désactivés. Ils disparaissent après le redémarrage.
 Recent documents list	Liste des documents récents
+Recovered once removed	Récupéré une fois retiré
+Recovery	Récupération
 Recycle Bin	Corbeille
 Recycle Bin contents will be permanently removed.	Le contenu de la Corbeille sera supprimé définitivement.
 Reference code:	Code de référence :
 Refusing to delete a drive root:	Refus de supprimer la racine d’un disque :
 Refusing to wipe the Windows drive.	Refus d’effacer le disque Windows.
 Registry	Registre
+Registry entry	Entrée de registre
 Regular cleanup: temporary files, browser caches, Recycle Bin, Prefetch, old Windows Update leftovers, and caches Windows rebuilds by itself.	Nettoyage régulier : fichiers temporaires, caches des navigateurs, Corbeille, Prefetch, restes d’anciennes mises à jour Windows et caches que Windows refait tout seul.
 Reinstall	Réinstaller
 Reinstall Brave	Réinstaller Brave
@@ -1573,13 +1841,24 @@ Reinstall the Copilot app	Réinstaller l’appli Copilot
 Reinstall the Microsoft 365 Copilot app	Réinstaller l’appli Microsoft 365 Copilot
 Release IP address	Libérer l’adresse IP
 Reload NetBIOS name cache	Recharger le cache des noms NetBIOS
+Reload uninstallers	Recharger les désinstalleurs
 Reminder: this PC has not been restarted since the last clean, and Windows may still be finishing the changes.	Rappel : ce PC n’a pas été redémarré depuis le dernier nettoyage, et Windows termine peut-être encore les changements.
 Removable	Amovible
 Remove	Retirer
 Remove everything DRDirect from this PC?	Retirer tout ce qui vient de DRDirect de ce PC ?
+Remove from a folder...	Retirer depuis un dossier...
+Remove from the list only	Retirer de la liste seulement
+Remove selected programs	Retirer les programmes choisis
 Remove the ChatGPT app	Retirer l’appli ChatGPT
 Remove the Claude app	Retirer l’appli Claude
+Remove the ticked programs	Retirer les programmes cochés
+Remove the ticked programs without questions	Retirer les programmes cochés sans questions
+Remove these {0} apps?	Retirer ces {0} applications ?
+Remove these {0} programs {1}?	Retirer ces {0} programmes {1} ?
 Remove this copy	Retirer cette copie
+Remove ticked apps	Retirer les applications cochées
+Remove tracked install	Retirer une installation suivie
+Remove tracked install...	Retirer une installation suivie...
 Remove {0} from this PC?	Retirer {0} de ce PC ?
 Removed website data {0} of {1}.	Données de site {0} sur {1} retirées.
 Removed {0} old Windows Update backup folder(s).	{0} ancien(s) dossier(s) de sauvegarde de Windows Update retiré(s).
@@ -1596,6 +1875,13 @@ Removes the Copilot app for every account and stops Windows adding it to new acc
 Removes the Microsoft 365 Copilot app for every account. Word, Excel and your documents are not touched.	Retire l’appli Microsoft 365 Copilot pour tous les comptes. Word, Excel et vos documents ne sont pas touchés.
 Removes the Recall feature from Windows altogether. Takes effect after a restart.	Retire complètement la fonction Recall de Windows. S’applique après un redémarrage.
 Removes the old copy of Windows kept after a big Windows update, using Windows Disk Cleanup. It can free 10-30 GB. You can NOT go back to the earlier Windows afterwards. Windows removes it by itself after about 10 days anyway.	Retire l’ancienne copie de Windows gardée après une grosse mise à jour, avec le Nettoyage de disque de Windows. Cela peut libérer 10 à 30 Go. Vous ne pourrez PAS revenir à l’ancien Windows ensuite. Windows la retire de lui-même après environ 10 jours de toute façon.
+Removes the ticked programs quietly, without asking for each one.	Retire les programmes cochés en silence, sans demander pour chacun.
+Removing	Retrait
+Removing leftovers	Retrait des restes
+Removing programs	Retrait des programmes
+Removing the leftovers. Everything is backed up first...	Retrait des restes. Tout est sauvegardé d’abord...
+Removing what "{0}" added. Everything is backed up first...	Retrait de ce que « {0} » a ajouté. Tout est sauvegardé d’abord...
+Removing {0}  ({1} of {2})...	Retrait de {0}  ({1} sur {2})...
 Renew IP address	Renouveler l’adresse IP
 Repair	Réparer
 Repairs the Windows component store using DISM RestoreHealth.	Répare le magasin de composants de Windows avec DISM RestoreHealth.
@@ -1615,43 +1901,66 @@ Restart the PC to finish installing the updates.	Redémarrez le PC pour finir d�
 Restart when done	Redémarrer à la fin
 Restore	Restaurer
 Restore TCP auto-tuning to normal	Remettre le réglage automatique TCP à la normale
+Restore point made: DRDirect Uninstaller is removing {0}	Point de restauration créé : le désinstalleur DRDirect retire {0}
 Restore typing settings	Rétablir les réglages de saisie
 Restoring	Restauration
+Results	Résultats
 Retry	Réessayer
 Return to dashboard	Retour au tableau de bord
 Review maintenance plan	Revoir le plan d’entretien
 Review selected plan	Revoir le plan choisi
+Rich text	Texte enrichi
 Right away (10 seconds after it finishes)	Tout de suite (10 secondes après la fin)
 Run	Lancer
 Run 'PHP security check' under Health to see which one.	Lancez « Vérification de sécurité PHP » sous Santé pour voir lequel.
 Run Defender operations independently. Existing exclusions are never removed automatically.	Faites les opérations Defender séparément. Les exclusions existantes ne sont jamais retirées automatiquement.
 Run box history	Historique de la boîte Exécuter
 Run selected tasks	Lancer les tâches choisies
+Run this command	Lancer cette commande
 Running	En cours
 Running for	En cours depuis
 Running maintenance plan	Plan d’entretien en cours
 Runs one Microsoft Defender full scan and nothing else. It can take a long time.	Lance une seule analyse complète de Microsoft Defender, rien d’autre. Cela peut être long.
 Runs the Windows Disk Cleanup profile for the C: drive.	Lance le Nettoyage de disque de Windows pour le disque C:.
+Runs the advanced uninstall options on the ticked program.	Lance les options de désinstallation avancées sur le programme coché.
 SAFE SCAN	ANALYSE SÛRE
 SAVE THIS DRIVE	SAUVEGARDER CE DISQUE
+SEARCHING IN	RECHERCHE DANS
 SELECTED SCAN	ANALYSE CHOISIE
 SERIOUS PROBLEM	PROBLÈME GRAVE
+SHA-256 {0}...  -  verified byte-for-byte	SHA-256 {0}...  -  vérifié octet par octet
 SIGNS YOU OUT	VOUS DÉCONNECTE
+SPACE TO FREE	ESPACE À LIBÉRER
 SSD speed	Vitesse du SSD
 START HERE	COMMENCEZ ICI
+STEP 1	ÉTAPE 1
+STEP 2	ÉTAPE 2
+STEP 3	ÉTAPE 3
+SVG graphic	Graphique SVG
 Safe	Sûr
 Safe steps plus more cleanup. Cookies stay off.	Les étapes Sûres plus un nettoyage plus poussé. Les témoins (cookies) restent décochés.
 Safety	Sécurité
 Safety blocked deletion outside the approved root: {0}	Par sécurité, la suppression hors du dossier autorisé a été bloquée : {0}
+Same SHA-256	Même SHA-256
+Same size	Même taille
+Save	Enregistrer
 Save a Windows restore point (safety net)	Créer un point de restauration Windows (filet de sécurité)
 Save all open work before restarting. Restart this PC now?	Enregistrez tout votre travail ouvert avant de redémarrer. Redémarrer ce PC maintenant ?
 Save all open work before shutting down. Shut down this PC now?	Enregistrez tout votre travail ouvert avant d’éteindre. Éteindre ce PC maintenant ?
 Save the image on a drive with a letter, such as D:.	Enregistrez la sauvegarde sur un disque avec une lettre, comme D:.
+Saved Games	Parties enregistrées
 Saves a Windows restore point before anything changes, so Windows itself can go back. If Windows cannot make one, the Cleaner says so and carries on with its own backups.	Crée un point de restauration Windows avant tout changement, pour que Windows puisse revenir en arrière. Si Windows ne peut pas en créer un, le Cleaner le dit et continue avec ses propres copies.
 Saves a whole drive into one backup file that you can put back later. The drive itself is not changed.	Enregistre un disque entier dans un seul fichier de sauvegarde que vous pourrez remettre plus tard. Le disque lui-même n’est pas changé.
 Saving the Rescue system to this PC...	Enregistrement du système de secours sur ce PC...
+Scan all Windows accounts for leftovers	Chercher des restes dans tous les comptes Windows
+Scan all of {0} as well. {1} free of {2}.	Analyser aussi tout {0}. {1} libres sur {2}.
+Scan complete	Analyse terminée
+Scan failed: {0}	L’analyse a échoué : {0}
+Scan for duplicates	Chercher des doublons
 Scan now?	Analyser maintenant ?
+Scan stopped.	Analyse arrêtée.
 Scan:      Windows Defender {0} scan	Analyse :  analyse {0} de Windows Defender
+Scanning	Analyse en cours
 Scans all accessible files. This may take several hours.	Analyse tous les fichiers accessibles. Cela peut prendre plusieurs heures.
 Scans common threat locations without changing exclusions.	Analyse les endroits habituels des menaces sans changer les exclusions.
 Scans protected Windows files and repairs damaged copies.	Analyse les fichiers protégés de Windows et répare les copies endommagées.
@@ -1677,11 +1986,16 @@ See past results	Voir les résultats passés
 See what is new and update	Voir les nouveautés et mettre à jour
 See what the Cleaner did, open the reports, and undo changes to settings	Voir ce que le Cleaner a fait, ouvrir les rapports et annuler les changements de réglages
 Select cleanup items after reviewing the estimated impact. Passwords, bookmarks, personal documents, and active sessions remain protected unless cookie cleanup is explicitly selected.	Choisissez les éléments à nettoyer après avoir vu l’effet prévu. Les mots de passe, favoris, documents personnels et sessions ouvertes restent protégés, sauf si le nettoyage des témoins (cookies) est expressément choisi.
+Select down to...	Sélectionner jusqu’à...
 Select exactly what you want to run. Nothing starts until you review and confirm the plan.	Choisissez exactement ce que vous voulez faire. Rien ne commence avant que vous ayez vérifié et confirmé le plan.
+Select none	Ne rien sélectionner
+Select using checkboxes	Sélectionner avec des cases à cocher
 Selected tasks:	Tâches choisies :
 Serial number: not reported	Numéro de série : non indiqué
 Serial number: {0}	Numéro de série : {0}
 Serious: this needs attention now. Click to check again.	Grave : cela demande votre attention maintenant. Cliquez pour revérifier.
+Service	Service
+Services not checked:	Services non vérifiés :
 Setting up the stick...	Préparation de la clé...
 Settings	Paramètres
 Settings changes can be undone.	Les changements de réglages peuvent être annulés.
@@ -1690,13 +2004,26 @@ Settings is open at Text input. Under "Customize Copilot key on keyboard", choos
 Setup	Installation
 Shortcuts	Raccourcis
 Shortcuts to documents you opened, not the documents	Raccourcis vers les documents ouverts, pas les documents eux-mêmes
+Show Windows updates	Afficher les mises à jour Windows
+Show advanced options	Afficher les options avancées
 Show all tools	Afficher tous les outils
 Show available updates	Voir les mises à jour disponibles
 Show each item	Afficher chaque élément
 Show each item - change just one thing	Afficher chaque élément - changer une seule chose
+Show in folder	Afficher dans le dossier
+Show in the registry	Afficher dans le registre
+Show items in groups	Afficher les éléments par groupes
+Show me	Montrer
 Show me first	Me montrer d’abord
+Show only broken programs	Afficher seulement les programmes brisés
+Show protected items	Afficher les éléments protégés
+Show system components	Afficher les composants système
+Show unregistered applications	Afficher les applications non enregistrées
 Shows about how long a Safe, Medium and Advanced scan would take on this PC	Montre combien de temps environ prendraient les analyses Sûre, Moyenne et Avancée sur ce PC
 Shows here after your first clean	S’affiche ici après votre premier nettoyage
+Shows only programs whose uninstaller is missing. Click again to show everything.	Affiche seulement les programmes dont le désinstalleur manque. Cliquez de nouveau pour tout afficher.
+Shows or hides installed Windows updates in the list.	Affiche ou masque les mises à jour Windows installées dans la liste.
+Shows the extra buttons. Click again to hide them.	Affiche les boutons de plus. Cliquez de nouveau pour les masquer.
 Shows the memory installed in this PC (size, type, speed), how much is in use, and whether Windows has recorded memory errors in the last 30 days. Only looks - nothing is changed.	Montre la mémoire installée dans ce PC (taille, type, vitesse), combien est utilisée, et si Windows a noté des erreurs de mémoire dans les 30 derniers jours. Regarde seulement - rien n’est changé.
 Shows which folders, programs and file types Defender skips, and marks any that look risky. Nothing is ever removed - exclusions you added on purpose, like a work or tools folder, always stay.	Montre quels dossiers, programmes et types de fichiers Defender ignore, et signale ceux qui semblent risqués. Rien n’est jamais retiré - les exclusions ajoutées exprès, comme un dossier de travail ou d’outils, restent toujours.
 Shred deleted files	Détruire les fichiers supprimés
@@ -1708,8 +2035,12 @@ Shut down now	Éteindre maintenant
 Shut down when done	Éteindre à la fin
 Shutting down…	Arrêt en cours…
 Sign in to the browser first.	Connectez-vous d’abord au navigateur.
+Signed in	Connecté
 Size	Taille
 Size: {0}  (nothing is missing - Windows counts in 1,024s, so it shows {1} GB)	Taille : {0}  (rien ne manque - Windows compte par 1 024, donc il affiche {1} Go)
+Skip	Passer
+Skipped - Windows or program file, not safe to remove	Ignoré - fichier de Windows ou de programme, risqué à retirer
+Skipped a registry entry:	Entrée de registre ignorée :
 Skipped {0}: close it and run this again.	{0} ignoré : fermez-le et relancez ceci.
 Skipped: Microsoft Defender does not run in Safe Mode. Restart Windows normally to scan.	Ignoré : Microsoft Defender ne fonctionne pas en mode sans échec. Redémarrez Windows normalement pour analyser.
 Skipped: Notepad is open. Close Notepad and run this again.	Ignoré : le Bloc-notes est ouvert. Fermez-le et relancez ceci.
@@ -1721,18 +2052,22 @@ SmartCopy	SmartCopy
 SmartCopy, Secure, Restore and Rescue USB: copy or back up a whole drive	SmartCopy, Secure, Restauration et clé USB de secours : copier ou sauvegarder un disque entier
 So if a PC still crawls after a clean, it is nobody's fault. It may simply be ready to retire to a quiet life on a shelf, with a gold watch and a farewell cake. Give it a good send-off, and when the new one arrives, I will keep that one running nicely too.	Alors si un PC se traîne encore après un nettoyage, ce n’est la faute de personne. Il est peut-être simplement prêt pour une retraite tranquille sur une tablette, avec une montre en or et un gâteau d’adieu. Faites-lui de beaux adieux, et quand le nouveau arrivera, je le garderai en forme lui aussi.
 Software	Logiciel
+Some apps could not be removed:	Certaines applications n’ont pas pu être retirées :
 Some apps may close or restart during their update. Save your work first.	Certaines applis peuvent se fermer ou redémarrer pendant leur mise à jour. Enregistrez votre travail d’abord.
 Some damaged Windows system files could not be repaired. Run "DISM RestoreHealth", restart, then run System File Checker again.	Certains fichiers système endommagés de Windows n’ont pas pu être réparés. Lancez « DISM RestoreHealth », redémarrez, puis relancez le Vérificateur des fichiers système.
 Some damaged Windows system files were found and repaired. Restart the PC to finish.	Des fichiers système endommagés de Windows ont été trouvés et réparés. Redémarrez le PC pour terminer.
 Some items open Gmail, Word, Edge, Settings, the Microsoft Store or a download page at the right place. The last click there is yours - the steps show when it runs.	Certains éléments ouvrent Gmail, Word, Edge, Paramètres, le Microsoft Store ou une page de téléchargement au bon endroit. Le dernier clic là-bas est le vôtre - les étapes s’affichent quand ça se lance.
 Some of it could not be removed:	Une partie n’a pas pu être retirée :
 Something is already running.	Quelque chose est déjà en cours.
+Something went wrong:	Un problème est survenu :
+Sony RAW photo	Photo RAW Sony
 Sorry, this PC is not strong enough to run 2 at the same time right now.{0}{1}Please wait until {2} is finished and closed.	Désolé, ce PC n’est pas assez puissant pour en faire tourner 2 en même temps pour l’instant.{0}{1}Attendez que {2} soit terminé et fermé.
 Sorry, this PC is not strong enough to run all 3 at the same time.{0}{1}Try 2. If that does not work, do one at a time, that will work.	Désolé, ce PC n’est pas assez puissant pour faire tourner les 3 en même temps.{0}{1}Essayez 2. Si ça ne marche pas, faites-les un à la fois, ça marchera.
 Sound	Son
 Sound device	Périphérique audio
 Sounds: a soft chime when a clean finishes, and a small tick when you point at a button	Sons : un doux carillon à la fin d’un nettoyage, et un petit clic quand vous pointez un bouton
 Source	Source
+Space	Espace
 Space is low. Run the Cleanup tasks and the large files list.	L’espace est bas. Lancez les tâches de nettoyage et la liste des gros fichiers.
 Speed	Vitesse
 Speed and space	Vitesse et espace
@@ -1752,14 +2087,20 @@ Starts with Windows from an unusual place: {0}  ({1})	Démarre avec Windows depu
 Startup	Démarrage
 Startup apps	Applis au démarrage
 Startup programs: all start from normal places.	Programmes au démarrage : tous démarrent d’endroits normaux.
+Status	État
 Steam and Epic web caches; launchers rebuild them	Caches Web de Steam et Epic ; les lanceurs les refont
+Step 1 of 3: recording what is on your PC now.	Étape 1 sur 3 : relevé de ce qui est sur votre PC maintenant.
+Step 3 of 3: checking what the installer added.	Étape 3 sur 3 : vérification de ce que l’installateur a ajouté.
 Stop	Arrêter
+Stop / allow Wand pop-ups	Bloquer / permettre les fenêtres de Wand
 Stop after current task	Arrêter après la tâche en cours
+Stop it and close the Duplicate Finder? (No = keep it running in the background)	L’arrêter et fermer le Duplicate Finder ? (Non = la laisser continuer en arrière-plan)
 Stop now?	Arrêter maintenant ?
 Stop now? The target drive will be left only partly written.	Arrêter maintenant ? Le disque cible ne sera écrit qu’en partie.
 Stop sending typing data	Arrêter d’envoyer les données de saisie
 Stop sending typing data to Microsoft	Arrêter d’envoyer les données de saisie à Microsoft
 Stop starting with Windows	Ne plus démarrer avec Windows
+Stop waiting for this one	Ne plus attendre celui-ci
 Stopped	Arrêté
 Stopped: {0}	Arrêté : {0}
 Stopping after current task…	Arrêt après la tâche en cours…
@@ -1772,6 +2113,7 @@ Switch On or Off AI	Activer ou désactiver l’IA
 Switch between the simple view and every tool	Passer de la vue simple à tous les outils
 Switch off AI	Désactiver l’IA
 Switch off AI in Windows and web browsers	Désactiver l’IA dans Windows et les navigateurs Web
+Switch to the DRDirect Cleaner. Use its Remove programs button to come back here.	Passer au Cleaner DRDirect. Utilisez son bouton Retirer des programmes pour revenir ici.
 Switched on and off {0} times.	Allumé et éteint {0} fois.
 Switched on and off: this drive does not report how many times.	Allumé et éteint : ce disque n’indique pas combien de fois.
 Switches "SdbinstMergeDbTask" back on, exactly as Windows has it by default. Does nothing if it is already on.	Réactive « SdbinstMergeDbTask », exactement comme Windows l’a par défaut. Ne fait rien s’il est déjà actif.
@@ -1779,6 +2121,7 @@ Switches Hibernate and Fast Startup back on. Needs free space on C: about the si
 Switches off "SdbinstMergeDbTask", a Windows task that only helps very old programs run. Some PCs protect it; if so, the Cleaner tells you and leaves it alone. Nothing is deleted, and "Turn the compatibility task back on" undoes it.	Désactive « SdbinstMergeDbTask », une tâche Windows qui aide seulement de très vieux programmes à fonctionner. Certains PC la protègent ; dans ce cas, le Cleaner vous le dit et la laisse tranquille. Rien n’est supprimé, et « Réactiver la tâche de compatibilité » l’annule.
 Switches off Recall (the snapshots of your screen), Click to Do, and the AI tools in Paint and Notepad. Takes effect after the restart. "Turn back on" undoes it.	Désactive Recall (les captures de votre écran), Click to Do et les outils d’IA dans Paint et le Bloc-notes. S’applique après le redémarrage. « Réactiver » l’annule.
 Switches the Windows firewall, Microsoft Defender real-time protection and Windows Update back on if any of them are off. When another antivirus or firewall is in charge, that part is left alone.	Réactive le pare-feu Windows, la protection en temps réel de Microsoft Defender et Windows Update s’ils sont désactivés. Quand un autre antivirus ou pare-feu s’en occupe, cette partie n’est pas touchée.
+Sync	Synchro
 System	Système
 System File Checker	Vérificateur des fichiers système
 System File Checker could not start the Windows Modules Installer service. Restart the PC and run it again.	Le Vérificateur des fichiers système n’a pas pu démarrer le service Programme d’installation des modules Windows. Redémarrez le PC et relancez-le.
@@ -1800,7 +2143,14 @@ TEST MODE: would run {0} {1}	MODE TEST : lancerait {0} {1}
 TEST MODE: {0} settings were not changed.	MODE TEST : les réglages de {0} n’ont pas été changés.
 TEST MODE: {0} was not changed.	MODE TEST : {0} n’a pas été changé.
 THIS PC	CE PC
+TIFF image	Image TIFF
 TO PREVENT LOSING DATA, YOU NEED TO CLEAN SOME SPACE OUT OF {0}: NOW. Click	POUR ÉVITER DE PERDRE DES DONNÉES, VOUS DEVEZ LIBÉRER DE L’ESPACE SUR {0}: MAINTENANT. Cliquez sur
+TOTAL SETS: {0}	TOTAL DES GROUPES : {0}
+TOTAL THIS SESSION	TOTAL DE CETTE SESSION
+TRIAL - 1 DAY LEFT	ESSAI - 1 JOUR RESTANT
+TRIAL - {0} DAYS LEFT	ESSAI - {0} JOURS RESTANTS
+TRIAL ENDS TODAY	L’ESSAI FINIT AUJOURD’HUI
+Take "{0}" off the list of installed programs, without running its uninstaller?	Retirer « {0} » de la liste des programmes installés, sans lancer son désinstalleur ?
 Takes a few seconds. Nothing is changed.	Prend quelques secondes. Rien n’est changé.
 Takes out only the AI websites the Cleaner blocked.	Retire seulement les sites d’IA que le Cleaner a bloqués.
 Taskbar jump lists and Recent Items	Listes de raccourcis de la barre des tâches et éléments récents
@@ -1809,12 +2159,19 @@ Temperature	Température
 Temperature, life left and error counts are not available for this drive (some USB and RAID drives do not report them).	La température, la vie restante et le nombre d’erreurs ne sont pas disponibles pour ce disque (certains disques USB et RAID ne les indiquent pas).
 Temporary cache only; logins and chats are kept	Cache temporaire seulement ; les connexions et conversations sont gardées
 Test mode: the DRDirect Uninstaller Program would open here.	Mode test : le programme de désinstallation DRDirect s’ouvrirait ici.
+Test version of the new DRDirect Uninstaller.	Version d’essai du nouveau désinstalleur DRDirect.
+Text file	Fichier texte
+Text file (*.txt)|*.txt	Fichier texte (*.txt)|*.txt
 That ISO has no Windows image in it.	Cet ISO ne contient pas d’image Windows.
 That ISO is not a Windows install ISO.	Cet ISO n’est pas un ISO d’installation de Windows.
 That ISO is not for 64-bit Intel and AMD PCs.	Cet ISO n’est pas pour les PC Intel et AMD 64 bits.
 That ISO is {0}, but this PC has {1}. Use a {2} ISO.	Cet ISO est {0}, mais ce PC a {1}. Utilisez un ISO de {2}.
 That code is not correct for this PC. Check it and try again.	Ce code n’est pas bon pour ce PC. Vérifiez-le et réessayez.
 That drive is no longer there.	Ce disque n’est plus là.
+That file is no longer there.	Ce fichier n’est plus là.
+That file or folder was not found.	Ce fichier ou ce dossier est introuvable.
+That folder does not exist:	Ce dossier n’existe pas :
+That is a Windows or system folder. It is never removed.	C’est un dossier de Windows ou du système. Il n’est jamais retiré.
 That is a lot of startup programs and can slow sign-in. Turn the ones you do not need off in Windows Settings > Apps > Startup. Nothing was changed.	Cela fait beaucoup de programmes au démarrage et peut ralentir l’ouverture de session. Désactivez ceux dont vous n’avez pas besoin dans Paramètres Windows > Applications > Démarrage. Rien n’a été changé.
 That is the Windows drive. Nothing was changed.	C’est le disque Windows. Rien n’a été changé.
 That key is not correct for this PC. Check it and try again.	Cette clé n’est pas bonne pour ce PC. Vérifiez-la et réessayez.
@@ -1830,7 +2187,11 @@ The Claude website is open again in {0}. Close and reopen the browser. The Claud
 The Claude website was not blocked by the Cleaner, so there was nothing to put back.	Le site de Claude n’avait pas été bloqué par le Cleaner, donc il n’y avait rien à remettre.
 The Cleaner never removes exclusions. Yours stay exactly as they are.	Le Cleaner ne retire jamais d’exclusions. Les vôtres restent exactement comme elles sont.
 The Copilot app	L’appli Copilot
+The DRDirect Cleaner is not open, and this window does not know where it is kept.	Le Cleaner DRDirect n’est pas ouvert, et cette fenêtre ne sait pas où il se trouve.
+The DRDirect Cleaner is not open. Open it from its shortcut.	Le Cleaner DRDirect n’est pas ouvert. Ouvrez-le depuis son raccourci.
 The DRDirect Uninstaller Program was not found beside the Cleaner.	Le programme de désinstallation DRDirect n’a pas été trouvé à côté du Cleaner.
+The DRDirect Uninstaller could not start:	Le désinstalleur DRDirect n’a pas pu démarrer :
+The DRDirect Uninstaller needs a key.	Le désinstalleur DRDirect a besoin d’une clé.
 The DRDirect folder is not where it should be, so nothing was removed.	Le dossier DRDirect n’est pas où il devrait être, donc rien n’a été retiré.
 The Duplicate Finder is not included with this licence, and is not installed on this PC.	Le Duplicate Finder n’est pas inclus avec cette licence et n’est pas installé sur ce PC.
 The Duplicate Finder is not included with this licence.	Le Duplicate Finder n’est pas inclus avec cette licence.
@@ -1892,11 +2253,14 @@ The image file is damaged (checksum does not match).	Le fichier de sauvegarde es
 The image file is damaged (size does not match).	Le fichier de sauvegarde est endommagé (la taille ne correspond pas).
 The image file is damaged.	Le fichier de sauvegarde est endommagé.
 The image file is stored on the drive you are restoring to. Copy it to another drive first.	Le fichier de sauvegarde est sur le disque que vous restaurez. Copiez-le d’abord sur un autre disque.
+The installer has finished	L’installateur a terminé
 The job is still running. Press Stop first, or wait until it is done.	Le travail est encore en cours. Appuyez d’abord sur Arrêter, ou attendez qu’il soit fini.
 The last Windows memory test ({0}) found no errors.	Le dernier test de mémoire de Windows ({0}) n’a trouvé aucune erreur.
 The last Windows memory test ({0}) reported a problem. Replace or reseat the RAM, and back up anything important.	Le dernier test de mémoire de Windows ({0}) a signalé un problème. Remplacez ou réinstallez la RAM, et sauvegardez tout ce qui est important.
 The maintenance task ended without a final status.	La tâche d’entretien s’est terminée sans état final.
 The memory check only looks. The Windows memory test needs a restart that Windows asks about, and this app never restarts the PC by itself.	La vérification de la mémoire ne fait que regarder. Le test de mémoire de Windows demande un redémarrage que Windows vous propose, et cette appli ne redémarre jamais le PC d’elle-même.
+The name is too short to search for safely. Type the program's full name.	Le nom est trop court pour chercher sans risque. Tapez le nom complet du programme.
+The name of the program you are installing:	Le nom du programme que vous installez :
 The official {0} download page is open in the web browser. Download it and run the installer.	La page officielle de téléchargement de {0} est ouverte dans le navigateur. Téléchargez-le et lancez l’installateur.
 The official {0} download page is open in the web browser. Download the app and run the installer.	La page officielle de téléchargement de {0} est ouverte dans le navigateur. Téléchargez l’appli et lancez l’installateur.
 The operation had already moved on. It will stop at the end of this task.	L’opération était déjà passée à la suite. Elle s’arrêtera à la fin de cette tâche.
@@ -1937,6 +2301,7 @@ There is a new update	Il y a une nouvelle mise à jour
 There is no AI app or browser here that can be uninstalled.	Il n’y a ici aucune appli d’IA ni navigateur qui puisse être désinstallé.
 There is no other drive to save the backup on. Plug in an external drive (USB), then come back to Secure.	Il n’y a aucun autre disque où enregistrer la sauvegarde. Branchez un disque externe (USB), puis revenez à Secure.
 There is no previous Windows installation on this PC (Windows.old). Nothing was changed.	Il n’y a pas d’ancienne installation de Windows sur ce PC (Windows.old). Rien n’a été changé.
+There is nothing to undo. A removal can only be undone for {0} hours.	Il n’y a rien à annuler. Un retrait ne peut être annulé que pendant {0} heures.
 There was nothing to put back: the Cleaner has not changed any AI settings on this PC.	Il n’y avait rien à remettre : le Cleaner n’a changé aucun réglage d’IA sur ce PC.
 There was nothing to restore: the Cleaner has not changed the Windows 11 ads and suggestions on this PC.	Il n’y avait rien à rétablir : le Cleaner n’a pas changé les publicités et suggestions de Windows 11 sur ce PC.
 There was nothing to restore: the Cleaner has not changed the typing settings on this PC.	Il n’y avait rien à rétablir : le Cleaner n’a pas changé les réglages de saisie sur ce PC.
@@ -1947,6 +2312,9 @@ These are only listed. Nothing was changed or deleted - check each one yourself 
 These checks only look at the PC and show what is using space or slowing it down. Nothing is changed or deleted.	Ces vérifications ne font que regarder le PC et montrer ce qui prend de la place ou le ralentit. Rien n’est changé ni supprimé.
 These could let a virus hide. If you did not add them, remove them in Windows Security > Virus & threat protection > Manage settings > Exclusions:	Ils pourraient permettre à un virus de se cacher. Si vous ne les avez pas ajoutés, retirez-les dans Sécurité Windows > Protection contre les virus et menaces > Gérer les paramètres > Exclusions :
 These problems should be checked by a technician.	Ces problèmes devraient être vérifiés par un technicien.
+These programs are still running from the files being removed:	Ces programmes fonctionnent encore à partir des fichiers à retirer :
+These {0} files will be moved to the Recycle Bin:	Ces {0} fichiers seront mis dans la Corbeille :
+They go to the Recycle Bin, so you can restore any of them.	Ils vont dans la Corbeille, vous pouvez donc les récupérer.
 This PC	Ce PC
 This PC does not have the Rescue system yet. Clone & Backup makes it first, from Microsoft's free Windows ADK and Windows PE add-on (downloaded from Microsoft, needs the internet), then erases and formats the USB and makes the Rescue USB.	Ce PC n’a pas encore le système de secours. Copie et sauvegarde le crée d’abord, à partir du Windows ADK et du module Windows PE gratuits de Microsoft (téléchargés depuis Microsoft, il faut Internet), puis efface et formate la clé USB et crée la clé USB de secours.
 This PC does not report any usable ID, so images cannot be locked to it.	Ce PC ne donne aucun identifiant utilisable, donc les sauvegardes ne peuvent pas y être verrouillées.
@@ -1956,11 +2324,15 @@ This backup cannot be put on a smaller drive: {0} Use a drive as big as the one 
 This backup does not fit on this drive. Its biggest partition is {0} and the drive is {1}. Make the backup again with Secure and answer Yes to "fit a smaller drive", or use a bigger drive.	Cette sauvegarde n’entre pas sur ce disque. Sa plus grande partition fait {0} et le disque fait {1}. Refaites la sauvegarde avec Secure en répondant Oui à « disque plus petit », ou utilisez un disque plus grand.
 This backup was made by an older version and cannot be put on a smaller drive.	Cette sauvegarde a été faite par une ancienne version et ne peut pas être mise sur un disque plus petit.
 This battery does not tell Windows how worn it is.	Cette pile n’indique pas à Windows son niveau d’usure.
+This can take a few minutes. Please wait...	Ça peut prendre quelques minutes. Veuillez patienter...
 This copy cannot be activated here. Contact DRDirect.	Cette copie ne peut pas être activée ici. Contactez DRDirect.
 This copy has reached the end of its licence	Cette copie a atteint la fin de sa licence
+This copy is activated. Enter a new code here to extend it.	Cette copie est activée. Entrez un nouveau code ici pour la prolonger.
+This copy is activated. Nothing to do.	Cette copie est activée. Rien à faire.
 This copy is not activated for this PC	Cette copie n’est pas activée pour ce PC
 This copy of DRDirect PC Cleaner has been blocked. Please contact your software provider.	Cette copie de DRDirect Nettoyeur PC a été bloquée. Contactez votre fournisseur de logiciel.
 This copy of DRDirect PC Cleaner needs attention. Please contact your software provider.	Cette copie de DRDirect Nettoyeur PC demande votre attention. Contactez votre fournisseur de logiciel.
+This copy of the Duplicate Finder is not activated for this PC.	Cette copie du Duplicate Finder n’est pas activée pour ce PC.
 This deletes the settings, reports, licence and the program file itself.	Ceci supprime les réglages, rapports, la licence et le fichier du programme lui-même.
 This drive did not report a health status. That is normal for some external drives.	Ce disque n’a pas donné d’état de santé. C’est normal pour certains disques externes.
 This drive has failed to read data {0} time(s) without being able to correct it. That is an early sign of a failing drive.	Ce disque n’a pas réussi à lire des données {0} fois sans pouvoir corriger. C’est un premier signe d’un disque qui lâche.
@@ -1968,6 +2340,7 @@ This drive has failed to write data {0} time(s) without being able to correct it
 This drive has logged {0} data error(s) of its own. That is an early sign of a failing drive.	Ce disque a noté lui-même {0} erreur(s) de données. C’est un premier signe d’un disque qui lâche.
 This drive has used most of its rated write life. It still works, but plan to replace it.	Ce disque a utilisé la plus grande partie de sa durée d’écriture prévue. Il fonctionne encore, mais prévoyez de le remplacer.
 This drive is too small. The image needs {0} and the drive is {1}.	Ce disque est trop petit. La sauvegarde a besoin de {0} et le disque fait {1}.
+This file is part of DRDirect Duplicate Finder and cannot be opened on its own.	Ce fichier fait partie de DRDirect Duplicate Finder et ne peut pas être ouvert seul.
 This file is part of DRDirect PC Cleaner and cannot be opened on its own.	Ce fichier fait partie de DRDirect Nettoyeur PC et ne peut pas être ouvert seul.
 This image is locked to the PC that made it. It can only be opened on that PC.	Cette sauvegarde est verrouillée au PC qui l’a faite. Elle ne peut être ouverte que sur ce PC.
 This is a DRDirect Rescue USB. It holds hidden boot files. Please do not change anything on it.	Ceci est une clé USB de secours DRDirect. Elle contient des fichiers de démarrage cachés. Ne changez rien dessus.
@@ -1976,12 +2349,14 @@ This is a long clean-up. It can look stuck for a while, so please let it finish.
 This is a long repair. It can look stuck for a while, so please let it finish. You can keep using the PC, but it may feel slower. Only tick it if you are ready to wait.	C’est une longue réparation. Elle peut sembler bloquée un moment, alors laissez-la finir. Vous pouvez continuer à utiliser le PC, mais il peut sembler plus lent. Cochez-la seulement si vous êtes prêt à attendre.
 This is a long scan. It can sit at the same percentage for a while, so please let it finish. Only tick it if you are ready to wait.	C’est une longue analyse. Elle peut rester au même pourcentage un moment, alors laissez-la finir. Cochez-la seulement si vous êtes prêt à attendre.
 This is not a DRDirect image file.	Ce n’est pas un fichier de sauvegarde DRDirect.
+This is not an install record made by the DRDirect Uninstaller.	Ce n’est pas un relevé d’installation fait par le désinstalleur DRDirect.
 This is only a reminder, and nothing is wrong with your files. Update PHP to 8.2.35, 8.3.36, 8.4.27 or 8.5.12 (or newer) when you can.	C’est seulement un rappel, et vos fichiers n’ont aucun problème. Mettez PHP à jour vers 8.2.35, 8.3.36, 8.4.27 ou 8.5.12 (ou plus récent) quand vous le pouvez.
 This laptop is running on its battery.	Ce portable fonctionne sur sa pile.
 This note is kept for good and cannot be deleted.	Cette note est gardée pour de bon et ne peut pas être supprimée.
 This only happens once after an update and can take up to a minute. Please wait...	Cela n’arrive qu’une fois après une mise à jour et peut prendre jusqu’à une minute. Patientez...
 This only removes the report files. It does not undo any maintenance that was already run.	Cela retire seulement les fichiers de rapport. Cela n’annule aucun entretien déjà fait.
 This page switches off the AI built into Windows and your browsers. Nothing is deleted and every change can be undone. Start with "What AI is on this PC?", then use "Turn off all AI". To change just one thing, open "Show each item" at the bottom.	Cette page désactive l’IA intégrée à Windows et à vos navigateurs. Rien n’est supprimé et chaque changement peut être annulé. Commencez par « Quelle IA est sur ce PC ? », puis utilisez « Désactiver toute l’IA ». Pour changer une seule chose, ouvrez « Afficher chaque élément » en bas.
+This program has no uninstaller. Use the Forced uninstaller to remove what is left of it.	Ce programme n’a pas de désinstalleur. Utilisez la désinstallation forcée pour retirer ce qui en reste.
 This puts back every AI and browser setting the Cleaner changed on this PC, using the backups it saved.	Ceci remet chaque réglage d’IA et de navigateur que le Cleaner a changé sur ce PC, avec les copies qu’il a gardées.
 This removes:	Ceci retire :
 This runs 'winget upgrade --all' and updates every app winget can update on this PC.	Ceci lance « winget upgrade --all » et met à jour chaque appli que winget peut mettre à jour sur ce PC.
@@ -1989,11 +2364,16 @@ This task is not on this PC, so there is nothing to change.	Cette tâche n’est
 This user	Cet utilisateur
 This version of Windows does not offer the previous-installation cleanup, so Windows.old was left alone.	Cette version de Windows n’offre pas le nettoyage de l’ancienne installation, donc Windows.old n’a pas été touché.
 This version of Windows does not provide the drive health information this check reads. Nothing was changed.	Cette version de Windows ne fournit pas les informations de santé des disques que cette vérification lit. Rien n’a été changé.
+This will remove {0} files and {1} settings that "{2}" added.	Ceci retirera {0} fichiers et {1} paramètres que « {2} » a ajoutés.
 This will run now:	Ceci va être fait maintenant :
 This will uninstall ALL of these from this PC:	Ceci va désinstaller TOUT ceci de ce PC :
 This wipes the crash reports and Windows event logs on THIS PC, so Reliability Monitor starts again with a clean chart.	Ceci efface les rapports de plantage et les journaux d’événements de Windows sur CE PC, pour que le Moniteur de fiabilité reparte avec un graphique propre.
 Thumbnail cache	Cache des miniatures
+Tick (or click on) one program in the list first.	Cochez (ou cliquez sur) un programme dans la liste d’abord.
+Tick all	Tout cocher
 Tick every item below, except the cookie item that signs you out	Cocher tous les éléments ci-dessous, sauf celui des témoins (cookies) qui vous déconnecte
+Tick the apps you want to remove first.	Cochez d’abord les applications à retirer.
+Tick the programs you want to remove in the list, then click here.	Cochez les programmes à retirer dans la liste, puis cliquez ici.
 Tightening the bolts...	On resserre les boulons...
 Time	Heure
 Time taken: {0}	Durée : {0}
@@ -2001,13 +2381,16 @@ Time taken: {0} min {1} sec	Durée : {0} min {1} s
 Time to clean. Do a Safe clean, or pick your own.	C’est le temps de nettoyer. Faites un nettoyage Sûr, ou choisissez le vôtre.
 Tip: Windows is running from {0}, so it is copied while in use. For a perfect copy, start the PC from the Rescue USB.	Conseil : Windows tourne sur {0}, donc il est copié pendant qu’il sert. Pour une copie parfaite, démarrez le PC avec la clé USB de secours.
 Tip: Windows is running from {0}, so the image is made while it is in use. For a perfect image, make it from the Rescue USB.	Conseil : Windows tourne sur {0}, donc la sauvegarde est faite pendant qu’il sert. Pour une sauvegarde parfaite, faites-la depuis la clé USB de secours.
+Tip: remove the program with the normal Remove button first, then use this to clean up what is left.	Conseil : retirez d’abord le programme avec le bouton Retirer normal, puis utilisez ceci pour nettoyer ce qui reste.
 To check those disks, open the RAID controller program (for example Intel Rapid Storage, MegaRAID or the motherboard RAID tool).	Pour vérifier ces disques, ouvrez le programme du contrôleur RAID (par exemple Intel Rapid Storage, MegaRAID ou l’outil RAID de la carte mère).
 To make another Rescue USB, use the Rescue USB button in DRDirect Clone & Backup. Copying these files is not enough.	Pour créer une autre clé USB de secours, utilisez le bouton Clé USB de secours dans DRDirect Copie et sauvegarde. Copier ces fichiers ne suffit pas.
 To make it fit, Windows first makes {0} smaller ({1} to {2}). Nothing is deleted. This can take a few minutes. When the copy is done, {3} is put back to its full size.{4}	Pour que ça entre, Windows réduit d’abord {0} ({1} à {2}). Rien n’est supprimé. Cela peut prendre quelques minutes. Après la copie, {3} est remis à sa pleine taille.{4}
+To remove this program completely later, click "Remove tracked install" and choose this record:	Pour retirer complètement ce programme plus tard, cliquez sur « Retirer une installation suivie » et choisissez ce relevé :
 To start a rescue, restart the PC from this USB. To use the app inside Windows, open DRDirect Clone & Backup.bat.	Pour lancer un secours, redémarrez le PC sur cette clé USB. Pour utiliser l’appli dans Windows, ouvrez DRDirect Clone & Backup.bat.
 To turn any off, use Windows Settings > Apps > Startup. Nothing was changed.	Pour en désactiver, utilisez Paramètres Windows > Applications > Démarrage. Rien n’a été changé.
 Today	Aujourd’hui
 Too small:	Trop petite :
+Total	Total
 Total time it took:	Durée totale :
 Total time it took: {0}:{1}:{2}	Durée totale : {0}:{1}:{2}
 Total time:      {0} seconds	Durée totale :   {0} secondes
@@ -2037,6 +2420,8 @@ Turns off Hibernate and Fast Startup and deletes the hibernation file, which is 
 Turns off Leo, the AI assistant built into Brave. Passwords, bookmarks and sign-ins are not touched. Brave will show "Managed by your organization" while this is on.	Désactive Leo, l’assistant d’IA intégré à Brave. Les mots de passe, favoris et connexions ne sont pas touchés. Brave affichera « Géré par votre organisation » tant que c’est actif.
 Turns off the AI chatbot sidebar, AI link previews and AI tab groups. Passwords, bookmarks and sign-ins are not touched. Firefox settings will say the browser is managed by your organization while this is on.	Désactive le panneau de clavardage IA, les aperçus de liens IA et les groupes d’onglets IA. Les mots de passe, favoris et connexions ne sont pas touchés. Les paramètres de Firefox diront que le navigateur est géré par votre organisation tant que c’est actif.
 Turns off the Copilot sidebar, Copilot reading the page, Copilot on the new tab page, and AI writing help. Passwords, bookmarks and sign-ins are not touched. Edge will show "Managed by your organization" while this is on.	Désactive le panneau Copilot, la lecture de la page par Copilot, Copilot sur la page Nouvel onglet et l’aide à l’écriture par IA. Les mots de passe, favoris et connexions ne sont pas touchés. Edge affichera « Géré par votre organisation » tant que c’est actif.
+Turns the Windows pop-ups from Wand off, or back on. Wand itself keeps working normally.	Désactive ou réactive les fenêtres Windows de Wand. Wand continue de fonctionner normalement.
+Type the program's name, pick its file or folder, or do both.	Tapez le nom du programme, choisissez son fichier ou son dossier, ou faites les deux.
 Type: {0} in a USB dock or case	Type : {0} dans une station d’accueil ou un boîtier USB
 Typing settings are back to how they were before the Cleaner changed them.	Les réglages de saisie sont revenus comme avant que le Cleaner les change.
 UPDATE	MISE À JOUR
@@ -2045,9 +2430,16 @@ USB stick(s) big enough (8 GB or more):	Clé(s) USB assez grande(s) (8 Go ou plu
 Unavailable	Non disponible
 Unblock AI websites	Débloquer les sites d’IA
 Unchecked	Non coché
+Undo last removal	Annuler le dernier retrait
+Uninstall	Désinstaller
 Uninstall all AI	Désinstaller toute l’IA
+Uninstall command	Commande de désinstallation
+Uninstall command (you can change it before running it):	Commande de désinstallation (vous pouvez la changer avant de la lancer) :
 Uninstall completely	Désinstaller complètement
+Uninstall quietly	Désinstaller en silence
 Uninstaller	Désinstalleur
+Uninstaller missing	Désinstalleur manquant
+Uninstaller name	Nom du désinstalleur
 Uninstalls Brave from this PC.	Désinstalle Brave de ce PC.
 Uninstalls Chrome from this PC. Bookmarks and passwords stay in your Google account.	Désinstalle Chrome de ce PC. Les favoris et mots de passe restent dans votre compte Google.
 Uninstalls Firefox from this PC. Bookmarks and passwords stay in your Mozilla account.	Désinstalle Firefox de ce PC. Les favoris et mots de passe restent dans votre compte Mozilla.
@@ -2057,8 +2449,16 @@ Uninstalls the Microsoft 365 Copilot app (the Copilot chat and Office start page
 Uninstalls the Microsoft Copilot app for every account on this PC. It can be installed again from the Microsoft Store.	Désinstalle l’appli Microsoft Copilot pour tous les comptes de ce PC. Elle peut être réinstallée depuis le Microsoft Store.
 Unknown	Inconnu
 Unknown maintenance task: {0}	Tâche d’entretien inconnue : {0}
+Unregistered	Non enregistré
+Unregistered application	Application non enregistrée
+Unregistered applications	Applications non enregistrées
+Unregistered scan:	Analyse des non enregistrés :
 Unspecified	Non précisé
+Untick all	Tout décocher
 Untick every item below	Décocher tous les éléments ci-dessous
+Unverified	Non vérifié
+Unverified certificate	Certificat non vérifié
+Up	Monter
 Up to date	À jour
 Update	Mise à jour
 Update Cleanup	Nettoyage des mises à jour
@@ -2071,6 +2471,8 @@ Update the Cleaner	Mettre à jour le Cleaner
 Update this program	Mettre à jour ce programme
 Update {0} is available.	La mise à jour {0} est disponible.
 Updated to {0}.	Mis à jour vers {0}.
+Updated to {0}. Close and reopen this window to use it.	Mis à jour vers {0}. Fermez puis rouvrez cette fenêtre pour l’utiliser.
+Updates are not available in this copy.	Les mises à jour ne sont pas offertes dans cette copie.
 Updates available	Mises à jour disponibles
 Updates the apps installed on this PC using Windows Package Manager (winget). Your files and settings are not touched.	Met à jour les applis installées sur ce PC avec le Gestionnaire de paquets Windows (winget). Vos fichiers et réglages ne sont pas touchés.
 Updating apps in a colour PowerShell window. Close it when it says it has finished.	Mise à jour des applis dans une fenêtre PowerShell en couleur. Fermez-la quand elle dit qu’elle a fini.
@@ -2078,12 +2480,20 @@ Updating apps in a console window. Close it when it says it has finished.	Mise �
 Updating the Uninstaller	Mise à jour du désinstalleur
 Upgrade to the newest Windows 11 now? The Cleaner downloads Microsoft's own Windows 11 Setup Wizard and starts it. Your files and programs are kept. It takes about an hour and the PC restarts a few times, so keep it plugged in.	Passer au plus récent Windows 11 maintenant ? Le Cleaner télécharge l’Assistant d’installation de Windows 11 de Microsoft et le lance. Vos fichiers et programmes sont gardés. Cela prend environ une heure et le PC redémarre quelques fois, alors gardez-le branché.
 Use "Check for driver updates" above. This asks Microsoft what drivers are available for this PC and installs nothing.	Utilisez « Chercher des mises à jour de pilotes » plus haut. Cela demande à Microsoft quels pilotes sont disponibles pour ce PC et n’installe rien.
+Use this folder	Utiliser ce dossier
+Use this only for a program that is already gone. The entry is backed up first, so Undo can put it back.	Utilisez ceci seulement pour un programme déjà parti. L’entrée est sauvegardée d’abord, pour qu’Annuler puisse la remettre.
 Valid	Valide
 Value	Valeur
+Verified	Vérifié
+Verified certificate	Certificat vérifié
 Version	Version
+Version {0}	Version {0}
 Version {0}  (you have {1})	Version {0}  (vous avez {1})
 Version {0} is ready. Click here, then press Check for updates.	La version {0} est prête. Cliquez ici, puis appuyez sur Rechercher des mises à jour.
 Version {0} is ready. Click to see what changed and install it.	La version {0} est prête. Cliquez pour voir ce qui a changé et l’installer.
+Very good	Très bon
+Video stream	Flux vidéo
+Videos	Vidéos
 View results	Voir les résultats
 Virus	Virus
 Virus protection is off	La protection antivirus est désactivée
@@ -2091,22 +2501,34 @@ Virus protection: Microsoft Defender real-time protection is OFF.	Protection ant
 Virus protection: Microsoft Defender real-time protection is on.	Protection antivirus : la protection en temps réel de Microsoft Defender est active.
 Virus protection: no active antivirus was found on this PC.	Protection antivirus : aucun antivirus actif n’a été trouvé sur ce PC.
 Virus protection: {0} is protecting this PC.	Protection antivirus : {0} protège ce PC.
+Voice recording	Enregistrement vocal
 Vulnerable	Vulnérable
 WARNING - Rescue USB	AVERTISSEMENT - Clé USB de secours
+WAV audio	Audio WAV
 WINDOWS HEALTH	SANTÉ DE WINDOWS
+WMA audio	Audio WMA
+WMV video	Vidéo WMV
 Wait for it to finish, then try again. Starting another now would cancel the progress you can see.	Attendez la fin, puis réessayez. En lancer un autre maintenant annulerait la progression en cours.
 Waiting	En attente
 Waiting for another Windows repair to finish first…	Attente de la fin d’une autre réparation Windows…
+Waiting for programs to close	En attente de la fermeture des programmes
 Waiting for the drive to be read	Attente de la lecture du disque
 Waiting for the file to be written	Attente de l’écriture du fichier
+Wand pop-ups	Fenêtres de Wand
+Wand pop-ups are now turned off.	Les fenêtres de Wand sont maintenant désactivées.
+Wand pop-ups are turned back on.	Les fenêtres de Wand sont réactivées.
+Wand still works normally. Messages inside the Wand window itself are not affected.	Wand fonctionne toujours normalement. Les messages dans la fenêtre de Wand ne changent pas.
 Warning	Avertissement
 Web and Bing results are now off in Start search. Sign out and back in for it to take effect. "Turn back on" removes it.	Les résultats Web et Bing sont maintenant désactivés dans la recherche du menu Démarrer. Déconnectez-vous et reconnectez-vous pour que ça s’applique. « Réactiver » l’enlève.
 Web and Bing results in Start search: {0}	Résultats Web et Bing dans la recherche Démarrer : {0}
+WebM video	Vidéo WebM
+WebP image	Image WebP
 Well-known junk programs: none found.	Programmes indésirables connus : aucun trouvé.
 What AI is on this PC?	Quelle IA est sur ce PC ?
 What Advanced does	Ce que fait Avancé
 What Medium does	Ce que fait Moyen
 What Safe mode does	Ce que fait le mode Sûr
+What do you want to do?	Que voulez-vous faire ?
 What is inside this PC, and where there is room to improve it. Nothing here is changed or installed.	Ce qu’il y a dans ce PC, et où il peut être amélioré. Rien n’est changé ni installé ici.
 What is on the USB now will be replaced. It starts this PC only.	Ce qui est sur la clé USB sera remplacé. Elle démarre seulement ce PC.
 What is on {0} now will be replaced by the copy.	Ce qui est sur {0} sera remplacé par la copie.
@@ -2124,9 +2546,12 @@ When Notepad starts	Au démarrage du Bloc-notes
 When everything has finished, Windows needs to restart or shut down. Choose below which, and when. You get a countdown first, and you can cancel it or go sooner.	Quand tout est fini, Windows doit redémarrer ou s’éteindre. Choisissez ci-dessous lequel, et quand. Un compte à rebours s’affiche d’abord, et vous pouvez l’annuler ou devancer.
 When should Windows restart or shut down after the clean?	Quand Windows doit-il redémarrer ou s’éteindre après le nettoyage ?
 When the clean-up finishes, restart Windows:	À la fin du nettoyage, redémarrer Windows :
+When the window opens	À l’ouverture de la fenêtre
 When you open Notepad, you get a clean, empty page. Old notes will not pop up anymore. Your saved files are not touched.	Quand vous ouvrez le Bloc-notes, vous avez une page vide et propre. Les anciennes notes ne réapparaîtront plus. Vos fichiers enregistrés ne sont pas touchés.
 Whispering encouragement to your PC...	On murmure des encouragements à votre PC...
 Why your {0}: drive needs space	Pourquoi votre disque {0}: a besoin d’espace
+Window closed	Fenêtre fermée
+Window opening	Ouverture de la fenêtre
 Windows 11 ads and suggestions are back to how they were before the Cleaner changed them.	Les publicités et suggestions de Windows 11 sont revenues comme avant que le Cleaner les change.
 Windows 11 ads and suggestions are off. Sign out and back in to see the full effect. Your previous settings were saved; "Turn Windows 11 extras back on" puts them back.	Les publicités et suggestions de Windows 11 sont désactivées. Déconnectez-vous et reconnectez-vous pour voir tout l’effet. Vos anciens réglages ont été gardés ; « Réactiver les extras de Windows 11 » les remet.
 Windows 11: turn off ads and suggestions	Windows 11 : désactiver les publicités et suggestions
@@ -2141,6 +2566,8 @@ Windows Event Logs	Journaux d’événements Windows
 Windows ISO file (*.iso)|*.iso	Fichier ISO de Windows (*.iso)|*.iso
 Windows Search: turn off web and Bing results	Recherche Windows : désactiver les résultats Web et Bing
 Windows Search: turn web and Bing results back on	Recherche Windows : réactiver les résultats Web et Bing
+Windows Store apps	Applications du Windows Store
+Windows Store apps...	Applications du Windows Store...
 Windows Update could not be started: {0}	Windows Update n’a pas pu être lancé : {0}
 Windows Update could not finish:	Windows Update n’a pas pu finir :
 Windows Update download cache	Cache de téléchargement de Windows Update
@@ -2201,6 +2628,7 @@ Windows stopped and restarted on its own {0} time(s) in the last 30 days.	Window
 Windows telemetry is off: {0} service(s) and {1} scheduled task(s) switched off, and the data-collection policies set (Windows, Edge, Chrome, Brave, Firefox, NVIDIA, Office). Your previous settings were saved; "Turn telemetry back on" puts them back.	La télémétrie de Windows est désactivée : {0} service(s) et {1} tâche(s) planifiée(s) désactivé(s), et les stratégies de collecte de données réglées (Windows, Edge, Chrome, Brave, Firefox, NVIDIA, Office). Vos anciens réglages ont été gardés ; « Réactiver la télémétrie » les remet.
 Windows temporary files	Fichiers temporaires de Windows
 Windows took too long to save a restore point, so the Cleaner stopped waiting and carried on. Nothing was changed by this step.	Windows a pris trop de temps à créer un point de restauration, donc le Cleaner a arrêté d’attendre et a continué. Rien n’a été changé par cette étape.
+Windows updates	Mises à jour Windows
 Windows was NOT added:	Windows N’A PAS été ajouté :
 Windows will restart in {0} to finish the repairs. Save your work. Click Restart now to go sooner, or Restart later to cancel.	Windows va redémarrer dans {0} pour finir les réparations. Enregistrez votre travail. Cliquez sur Redémarrer maintenant pour devancer, ou Redémarrer plus tard pour annuler.
 Windows will shut down in {0} because the clean is done. Save your work. Click Shut down now to go sooner, or Cancel shut down to stop it.	Windows va s’éteindre dans {0} car le nettoyage est fini. Enregistrez votre travail. Cliquez sur Éteindre maintenant pour devancer, ou Annuler l’arrêt pour l’arrêter.
@@ -2217,10 +2645,12 @@ Windows: uninstall Recall completely	Windows : désinstaller complètement Recal
 Wipes free space on SSD and NVMe drives; files you keep are not touched	Nettoie l’espace libre des disques SSD et NVMe ; les fichiers gardés ne sont pas touchés
 Word and Excel: turn Copilot back on	Word et Excel : réactiver Copilot
 Word and Excel: turn off Copilot	Word et Excel : désactiver Copilot
+Word document	Document Word
 Word is not installed on this PC. Nothing was opened.	Word n’est pas installé sur ce PC. Rien n’a été ouvert.
 Word is opening. Click File > Options > Copilot, tick Enable Copilot and click OK, then close and reopen Word. Do the same in Excel and PowerPoint.	Word s’ouvre. Cliquez sur Fichier > Options > Copilot, cochez Activer Copilot et cliquez sur OK, puis fermez et rouvrez Word. Faites pareil dans Excel et PowerPoint.
 Word is opening. Click File > Options > Copilot, untick Enable Copilot and click OK, then close and reopen Word. Do the same in Excel and PowerPoint.	Word s’ouvre. Cliquez sur Fichier > Options > Copilot, décochez Activer Copilot et cliquez sur OK, puis fermez et rouvrez Word. Faites pareil dans Excel et PowerPoint.
 Writing the image file	Écriture du fichier de sauvegarde
+X days left	X jours restants
 YOU MAKE THE LAST CLICK	VOUS FAITES LE DERNIER CLIC
 YOU WILL BE SIGNED OUT of every website. Before you tick it, make sure you have ALL the details to get back in: your email accounts, your Google account, your Microsoft and Apple accounts, and every other password you use.	VOUS SEREZ DÉCONNECTÉ de tous les sites Web. Avant de cocher, assurez-vous d’avoir TOUS les renseignements pour vous reconnecter : vos comptes courriel, votre compte Google, vos comptes Microsoft et Apple, et tous vos autres mots de passe.
 Yes	Oui
@@ -2234,6 +2664,8 @@ You are up to date.	Vous êtes à jour.
 You can keep using the PC. If an update needs a restart, the window says so - nothing restarts by itself.	Vous pouvez continuer à utiliser le PC. Si une mise à jour demande un redémarrage, la fenêtre le dit - rien ne redémarre tout seul.
 You can still restart sooner, or cancel the restart, from the progress page.	Vous pouvez encore redémarrer plus tôt, ou annuler le redémarrage, depuis la page de progression.
 You do not have a Rescue USB yet. Make one now and keep it somewhere safe.	Vous n’avez pas encore de clé USB de secours. Créez-en une maintenant et gardez-la en lieu sûr.
+You saved 0 bytes	Vous avez économisé 0 octet
+You saved {0}	Vous avez économisé {0}
 Your PC got too warm and slowed itself down {0} times in the last 30 days.	Votre PC a trop chauffé et a ralenti de lui-même {0} fois dans les 30 derniers jours.
 Your PC is running hot right now ({0} C).	Votre PC chauffe en ce moment ({0} °C).
 Your PC turned off by itself {0} times in the last 30 days.	Votre PC s’est éteint tout seul {0} fois dans les 30 derniers jours.
@@ -2246,21 +2678,27 @@ Your own files, browsers and logins are not touched. Your reports, licence and t
 Your recent changes	Vos changements récents
 Your {0}: drive is {1}% full	Votre disque {0}: est plein à {1} %
 Your {0}: drive is {1}% full ({2}).	Votre disque {0}: est plein à {1} % ({2}).
+Zip archive	Archive Zip
 Zoom is not installed on this PC. Nothing was opened.	Zoom n’est pas installé sur ce PC. Rien n’a été ouvert.
 Zoom is opening. Click Settings (the gear, bottom left) > General, scroll to AI and click Manage, and tick the features you want back on.	Zoom s’ouvre. Cliquez sur Paramètres (l’engrenage, en bas à gauche) > Général, descendez jusqu’à IA et cliquez sur Gérer, puis cochez les fonctions que vous voulez réactiver.
 Zoom: turn AI Companion back on	Zoom : réactiver AI Companion
 Zoom: turn off AI Companion	Zoom : désactiver AI Companion
 [Windows drive]	[disque Windows]
+_Basic operations	_Opérations de base
+_Quick filters	_Filtres rapides
 a Windows program that malware often hides behind	un programme Windows derrière lequel les logiciels malveillants se cachent souvent
 a file type programs and scripts use	un type de fichier utilisé par les programmes et les scripts
 a whole drive or a system folder	un disque entier ou un dossier système
+all done	tout est fait
 and	et
 are both inside	sont tous les deux inclus
 at least 8 GB	au moins 8 Go
 back on	réactivé
 cannot check	impossible de vérifier
 cleanup jobs done	tâches de nettoyage faites
+close these programs	fermer ces programmes
 could not open:	n’a pas pu ouvrir :
+every file type - the most thorough, and the slowest	tous les types de fichiers - le plus complet, et le plus lent
 everything off	tout désactivé
 first, then run this again. Nothing was erased.	d’abord, puis relancez ceci. Rien n’a été effacé.
 for life	à vie
@@ -2278,11 +2716,13 @@ not installed	non installé
 not responding	ne répond pas
 nothing to do	rien à faire
 on this PC.	sur ce PC.
+one after the other	un après l’autre
 only looks	regarde seulement
 only one window	une seule fenêtre
 partition {0}	partition {0}
 please wait	patientez
 put it back	la remettre
+quietly, without asking for each one	en silence, sans demander pour chacun
 restart	redémarrer
 roughly {0} more month(s)	environ {0} mois de plus
 roughly {0} more year(s)	environ {0} an(s) de plus
@@ -2317,6 +2757,7 @@ yesterday	hier
 yesterday, {0}	hier, {0}
 your Windows drive	votre disque Windows
 {0}   Please do not remove the USB.   Running for {1}	{0}   Ne retirez pas la clé USB.   En cours depuis {1}
+{0}  ({1} free)	{0}  ({1} libres)
 {0} - due in	{0} - prévu dans
 {0} - next in	{0} - prochaine dans
 {0} - no model name reported, see the motherboard below	{0} - aucun nom de modèle indiqué, voir la carte mère ci-dessous
@@ -2328,10 +2769,14 @@ your Windows drive	votre disque Windows
 {0} AI item(s) still on - pick "Turn off" for them on this page.	{0} élément(s) d’IA encore actif(s) - choisissez « Désactiver » pour eux sur cette page.
 {0} Defender exclusion(s) configured	{0} exclusion(s) de Defender réglée(s)
 {0} GB at {1} MHz	{0} Go à {1} MHz
+{0} IDENTICAL COPIES  -  {1} each	{0} COPIES IDENTIQUES  -  {1} chacune
 {0} PHP install(s) found:	{0} installation(s) de PHP trouvée(s) :
 {0} Windows update(s) failed to install and have not installed since:	{0} mise(s) à jour de Windows n’ont pas pu s’installer et ne se sont pas installées depuis :
 {0} built-in AI: {1}	IA intégrée de {0} : {1}
+{0} can be reclaimed across {1} set{2}.	{0} peuvent être récupérés dans {1} groupe(s).
 {0} check{1} finished. Nothing was changed on this PC.	{0} vérification(s) terminée(s). Rien n’a été changé sur ce PC.
+{0} cloud files were included in this scan. Any that were online-only had to be downloaded to be compared.	{0} fichiers infonuagiques ont été inclus dans cette analyse. Ceux qui étaient en ligne seulement ont dû être téléchargés pour être comparés.
+{0} cloud files were skipped - they are not stored on this PC, so checking them would download every one. Tick 'Include OneDrive / Google Drive / iCloud files' above to compare them anyway.	{0} fichiers infonuagiques ont été ignorés - ils ne sont pas sur ce PC, et les vérifier les téléchargerait tous. Cochez « Inclure les fichiers OneDrive / Google Drive / iCloud » plus haut pour les comparer quand même.
 {0} could not be confirmed as Microsoft's, so it was not run. Nothing was changed on the USB.	{0} n’a pas pu être confirmé comme venant de Microsoft, donc il n’a pas été lancé. Rien n’a été changé sur la clé USB.
 {0} could not be removed: {1}	{0} n’a pas pu être retiré : {1}
 {0} could not be switched on: {1}	{0} n’a pas pu être activé : {1}
@@ -2343,7 +2788,10 @@ your Windows drive	votre disque Windows
 {0} did nothing{1} for {2} minutes (no processor or disk work), so the Cleaner stopped it. Windows was most likely busy with an update or waiting for a restart. Restart the PC, let Windows Update finish, then run it again. Nothing was changed.	{0} n’a rien fait{1} pendant {2} minutes (aucun travail du processeur ou du disque), donc le Cleaner l’a arrêté. Windows était sans doute occupé par une mise à jour ou attendait un redémarrage. Redémarrez le PC, laissez Windows Update finir, puis relancez-le. Rien n’a été changé.
 {0} driver update(s) are available for this PC.	{0} mise(s) à jour de pilotes disponible(s) pour ce PC.
 {0} drives report a problem	{0} disques signalent un problème
+{0} duplicate sets found  -  {1} files ticked  -  {2} will be freed	{0} groupes de doublons trouvés  -  {1} fichiers cochés  -  {2} seront libérés
+{0} duplicate {1} moved to the Recycle Bin. One copy of each was kept.	{0} doublon(s) mis dans la Corbeille. Une copie de chacun a été gardée.
 {0} entry(s) in the Run box	{0} entrée(s) dans la boîte Exécuter
+{0} file types - much faster than scanning everything	{0} types de fichiers - beaucoup plus rapide que de tout analyser
 {0} finished with error {1}.	{0} a fini avec l’erreur {1}.
 {0} finished with exit code {1}.	{0} a fini avec le code de sortie {1}.
 {0} finished.	{0} a fini.
@@ -2361,6 +2809,7 @@ your Windows drive	votre disque Windows
 {0} install or repair is on the USB too.	L’installation ou la réparation de {0} est aussi sur la clé USB.
 {0} is almost full	{0} est presque plein
 {0} is back on.	{0} est réactivé.
+{0} is not installed on this PC. Install the {1} app for Windows and sign in, then reopen the Duplicate Finder. Signing in on the website is not enough - the app is what puts the files on this PC.	{0} n’est pas installé sur ce PC. Installez l’application {1} pour Windows et connectez-vous, puis rouvrez le Duplicate Finder. Se connecter sur le site Web ne suffit pas - c’est l’application qui met les fichiers sur ce PC.
 {0} is not installed on this PC. Nothing was changed.	{0} n’est pas installé sur ce PC. Rien n’a été changé.
 {0} is not set - nothing was deleted.	{0} n’est pas défini - rien n’a été supprimé.
 {0} is not set up on this PC, so there was nothing to clear.	{0} n’est pas installé sur ce PC, donc il n’y avait rien à vider.
@@ -2374,14 +2823,18 @@ your Windows drive	votre disque Windows
 {0} is still installed. Close it if it is open and run this again, or remove it in Settings > Apps > Installed apps.	{0} est encore installé. Fermez-le s’il est ouvert et relancez ceci, ou retirez-le dans Paramètres > Applications > Applications installées.
 {0} is still off. It may be controlled by a policy or by another program.	{0} est toujours désactivé. Il est peut-être contrôlé par une stratégie ou un autre programme.
 {0} is still running; nothing was removed.	{0} tourne encore ; rien n’a été retiré.
+{0} items could not be put back.	{0} éléments n’ont pas pu être remis en place.
+{0} items could not be removed (they may be in use). Restart the PC and run the Forced uninstaller again to finish them.	{0} éléments n’ont pas pu être retirés (ils sont peut-être utilisés). Redémarrez le PC et relancez la désinstallation forcée pour les finir.
 {0} items could not be removed, for example {1}	{0} éléments n’ont pas pu être retirés, par exemple {1}
 {0} location(s)	{0} emplacement(s)
+{0} min left	{0} min restantes
 {0} never - overdue	{0} jamais - en retard
 {0} of these notes were removed from the Cleaning history.	{0} de ces notes ont été retirées de l’historique des nettoyages.
 {0} of {1}   -   {2}/s   -   running for {3}	{0} sur {1}   -   {2}/s   -   en cours depuis {3}
 {0} on the source drive is still smaller than before. To give it its space back: Disk Management, right-click {0}, Extend Volume. ({1})	{0} sur le disque source est encore plus petit qu’avant. Pour lui redonner son espace : Gestion des disques, clic droit sur {0}, Étendre le volume. ({1})
 {0} past search(es)	{0} recherche(s) passée(s)
 {0} program(s) start with Windows:	{0} programme(s) démarrent avec Windows :
+{0} programs	{0} programmes
 {0} refused	{0} refusée
 {0} refused - ignored for {1}	{0} refusée - ignorée pendant {1}
 {0} refused - never scanned	{0} refusée - jamais analysé
@@ -2399,6 +2852,7 @@ your Windows drive	votre disque Windows
 {0} thing(s) need attention. Nothing was changed.	{0} chose(s) demandent votre attention. Rien n’a été changé.
 {0} thing(s) need attention. Tick "Turn protection back on" to fix them. Nothing was changed.	{0} chose(s) demandent votre attention. Cochez « Réactiver la protection » pour les régler. Rien n’a été changé.
 {0} things need attention	{0} choses demandent votre attention
+{0} uninstallers in total, {1} GB	{0} désinstalleurs au total, {1} Go
 {0} was removed, but these could not be deleted. You can delete them yourself:	{0} a été retiré, mais ceci n’a pas pu être supprimé. Vous pouvez le supprimer vous-même :
 {0} was removed. Its "Reinstall" button brings it back.	{0} a été retiré. Son bouton « Réinstaller » le ramène.
 {0} was still not finished after {1} minutes, so the Cleaner stopped it. Restart the PC, let Windows Update finish, then run it again.	{0} n’était toujours pas fini après {1} minutes, donc le Cleaner l’a arrêté. Redémarrez le PC, laissez Windows Update finir, puis relancez-le.
@@ -2417,12 +2871,15 @@ your Windows drive	votre disque Windows
 ↗  Open Edge to show it	↗  Ouvrir Edge pour l’afficher
 ↗  Open Word to turn off	↗  Ouvrir Word pour désactiver
 ↗  Open Word to turn on	↗  Ouvrir Word pour activer
+↩  Undo last removal	↩  Annuler le dernier retrait
+↩  Undo last removal  ({0})	↩  Annuler le dernier retrait  ({0})
 ↺  Turn all back on	↺  Tout réactiver
 ↺  Undo all AI changes	↺  Annuler tous les changements d’IA
 ↻  Check again	↻  Revérifier
 ⇄   Clone & Backup	⇄   Copie et sauvegarde
 ⊘   Switch On or Off AI	⊘   Activer ou désactiver l’IA
 ⌂   Dashboard	⌂   Tableau de bord
+⌂  Back to the Cleaner	⌂  Retour au Cleaner
 ⌕  Check now	⌕  Vérifier maintenant
 ⏭️  PowerShell 7 - already current, kept as it is	⏭️  PowerShell 7 - déjà à jour, gardé tel quel
 ⏭️  {0} - installed by its own installer, so it updates itself. Nothing to uninstall, kept current one	⏭️  {0} - installé par son propre installateur, il se met donc à jour lui-même. Rien à désinstaller, version actuelle gardée
@@ -2452,10 +2909,15 @@ your Windows drive	votre disque Windows
 ●  Protected mode	●  Mode protégé
 ◐   Maintenance progress	◐   Progression de l’entretien
 ◷   Cleaning history	◷   Historique
+☐  Clear my ticks	☐  Effacer mes coches
+☑  Tick all	☑  Tout cocher
 ☾   Hibernate	☾   Veille prolongée
 ⚒   Fix Windows 10/11	⚒   Réparer Windows 10/11
+⚠  Broken programs	⚠  Programmes brisés
 ⚠  SIGNS YOU OUT	⚠  VOUS DÉCONNECTE
 ⚡   Check power and heat	⚡   Vérifier l’alimentation et la chaleur
+⚡  Remove quietly	⚡  Retirer en silence
+⚡  Uninstall quietly	⚡  Désinstaller en silence
 ⛨   Downloading the tool...	⛨   Téléchargement de l’outil...
 ⛨   Full scan only	⛨   Analyse complète seulement
 ⛨   Smart App Control	⛨   Contrôle intelligent des applications
@@ -2471,7 +2933,10 @@ your Windows drive	votre disque Windows
 ✕  Turn off	✕  Désactiver
 ✕  Turn off all AI	✕  Désactiver toute l’IA
 ✦   Clean my PC	✦   Nettoyer mon PC
+⟳  Reload uninstallers	⟳  Recharger les désinstalleurs
 ⧉   Find duplicate files	⧉   Trouver les fichiers en double
+⬅  Back to simple view	⬅  Retour à la vue simple
+⬆  Windows updates	⬆  Mises à jour Windows
 ⭳   Update my apps	⭳   Mettre à jour mes applis
 ＋  Show all tools	＋  Afficher tous les outils
 －  Show fewer tools	－  Afficher moins d’outils
@@ -2481,14 +2946,26 @@ your Windows drive	votre disque Windows
 💥 {0} could not be installed (exit code {1})	💥 {0} n’a pas pu être installé (code de sortie {1})
 💥 {0} failed (exit code {1})	💥 {0} a échoué (code de sortie {1})
 💥 {0} problems	💥 {0} problèmes
+💪  Forced uninstaller	💪  Désinstallation forcée
+📁  Remove from a folder	📁  Retirer depuis un dossier
+📄  Properties	📄  Propriétés
 📦 {0} packages to upgrade:	📦 {0} paquets à mettre à jour :
+🔄  Refresh the list	🔄  Actualiser la liste
 🔎 Checking for upgrades...	🔎 Recherche des mises à jour...
 🔑  Activate this product	🔑  Activer ce produit
+🔔  Allow Wand pop-ups	🔔  Permettre les fenêtres de Wand
+🔕  Stop Wand pop-ups	🔕  Bloquer les fenêtres de Wand
+🔧  Show advanced options	🔧  Afficher les options avancées
+🗑  Remove selected programs	🗑  Retirer les programmes choisis
+🗑  Uninstall	🗑  Désinstaller
 🗑  Uninstall all AI	🗑  Désinstaller toute l’IA
 🗑  Uninstall completely	🗑  Désinstaller complètement
 😎 Everything is already up to date!	😎 Tout est déjà à jour !
+🛠  Advanced removal	🛠  Retrait avancé
 🧰 {0} is not installed - installing it...	🧰 {0} n’est pas installé - installation...
 🧰 {0} was not installed through winget - bringing it under winget...	🧰 {0} n’a pas été installé avec winget - passage sous winget...
+🧹  Remove tracked install	🧹  Retirer une installation suivie
+🪟  Windows Store apps	🪟  Applications du Windows Store
 '@
 try { if (-not ('DRDirect.MsgBox' -as [type])) { Add-Type -ReferencedAssemblies 'PresentationFramework', 'PresentationCore', 'WindowsBase', 'System.Xaml' -TypeDefinition $script:DRMsgBoxCode -ErrorAction Stop } } catch { }
 function Get-DRLanguageSaved {
@@ -8479,11 +8956,48 @@ Write-Host ''
 Read-Host 'Press Enter to close' | Out-Null
 
 '@
+    # French: the update window's own lines in French too (winget's lines follow the Windows language).
+    $drFlashyTitle = 'DRDirect App Updater'
+    if (('DRDirect.Lang' -as [type]) -and [DRDirect.Lang]::French) {
+        $drFlashyTitle = 'DRDirect - Mise à jour des applications'
+        foreach ($kv in @(
+        @('''     ✦  K E E P I N G   Y O U R   A P P S   F R E S H  ✦''', '''     ✦  V O S   A P P S   T O U J O U R S   À   J O U R  ✦'''),
+        @('-like ''*K E E P I N G*''', '-like ''*✦*'''),
+        @('''💥 winget not found. Install "App Installer" from the Microsoft Store.''', '''💥 winget introuvable. Installez « App Installer » depuis le Microsoft Store.'''),
+        @('''Press Enter to close''', '''Appuyez sur Entrée pour fermer'''),
+        @(' is not installed - installing it..."', ' n’’est pas installé - installation..."'),
+        @(' timed out after ${TimeoutMinutes}m - skipped"', ' : délai de ${TimeoutMinutes} min dépassé - ignoré"'),
+        @('(timeout)', '(délai dépassé)'),
+        @('✅ $($e.Name) installed"', '✅ $($e.Name) installé"'),
+        @(' - not needed on this PC"', ' - pas nécessaire sur ce PC"'),
+        @(' could not be installed (exit code ', ' n’’a pas pu être installé (code de sortie '),
+        @('''🔎 Checking for upgrades...''', '''🔎 Recherche des mises à jour...'''),
+        @(' - version $have is already installed, winget just has not caught up"', ' - la version $have est déjà installée, winget n’’est simplement pas encore à jour"'),
+        @('⏭️  Skipping $($s.Name)', '⏭️  Ignoré : $($s.Name)'),
+        @('''😎 Everything is already up to date!''', '''😎 Tout est déjà à jour !'''),
+        @(' packages to upgrade:"', ' applications à mettre à jour :"'),
+        @('"up to ${TimeoutMinutes} min"', '"jusqu’’à ${TimeoutMinutes} min"'),
+        @('''no time limit''', '''sans limite de temps'''),
+        @(' - installed by its own installer, so it updates itself. Nothing to uninstall, kept current one"', ' - installé par son propre installateur, il se met donc à jour seul. Rien à désinstaller, version actuelle gardée"'),
+        @(' - newer version does not apply to this PC, kept current one"', ' - la nouvelle version ne s’’applique pas à ce PC, version actuelle gardée"'),
+        @('✅ $($p.Name) upgraded"', '✅ $($p.Name) mis à jour"'),
+        @(' was not installed through winget - bringing it under winget..."', ' n’’a pas été installé par winget - prise en charge par winget..."'),
+        @('''✅ PowerShell 7 is now installed through winget and up to date''', '''✅ PowerShell 7 est maintenant installé par winget et à jour'''),
+        @('''⏭️  PowerShell 7 - already current, kept as it is''', '''⏭️  PowerShell 7 - déjà à jour, gardé tel quel'''),
+        @(' failed (exit code ', ' a échoué (code de sortie '),
+        @('(exit $(', '(code $('),
+        @(' - installed from the Microsoft Store, so the Store updates it. Nothing to do"', ' - installé depuis le Microsoft Store, c’’est donc le Store qui le met à jour. Rien à faire"'),
+        @('"🎉 Done in ${secs}s"', '"🎉 Terminé en ${secs} s"'),
+        @(' upgraded") -NoNewline', ' mis à jour") -NoNewline'),
+        @('"   ✅ no problems"', '"   ✅ aucun problème"'),
+        @(' problems")', ' problèmes")')
+        )) { $flashy = $flashy.Replace($kv[0], $kv[1]) }
+    }
     try {
         $file = Join-Path $env:TEMP 'DRDirect-Winget-Upgrade.ps1'
         [IO.File]::WriteAllText($file, $flashy, (New-Object Text.UTF8Encoding $true))
         # 'start' forces a real new console window, like the cmd route that always showed one; the script itself waits for Enter before it closes, on every path.
-        Start-Process -FilePath 'cmd.exe' -ArgumentList ('/c start "DRDirect App Updater" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + $file + '"') -WindowStyle Hidden | Out-Null
+        Start-Process -FilePath 'cmd.exe' -ArgumentList ('/c start "' + $drFlashyTitle + '" powershell.exe -NoProfile -ExecutionPolicy Bypass -File "' + $file + '"') -WindowStyle Hidden | Out-Null
         $ui.AppUpdatesStatus.Text = 'Updating apps in a colour PowerShell window. Close it when it says it has finished.'
     } catch {
         $ui.AppUpdatesStatus.Text = "Could not start the update window: $($_.Exception.Message)"

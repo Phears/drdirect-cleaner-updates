@@ -1,17 +1,17 @@
 {
-  "version": "1.4.504",
+  "version": "1.4.505",
   "notes": "French / English: a button on the Dashboard switches the Cleaner, Clone & Backup and the Duplicate Finder between French and English at any time.",
-  "published": "2026-11-24T06:26:22.1303756-05:00",
+  "published": "2026-11-24T09:07:07.4321201-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
-      "sha256": "164D3B535C1E88E5450F929903EAEB0C0BE2419565B256C8FAA4867A1580D929",
-      "size": 508288
+      "sha256": "FC99A0DEBD7B38767CE8E9354252459ED5D19DFCE60D8A0665EF3B3B9C1AEC7D",
+      "size": 509182
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "332EB2E0594B682F79AE0D77C2F39832B97E46E74A5451A863C9494ED4B804C6",
-      "size": 1295735
+      "sha256": "52CD9D6841CC01228568624FBE880CE6CB8DFC052F6653775B670919F92E2E46",
+      "size": 1330481
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
