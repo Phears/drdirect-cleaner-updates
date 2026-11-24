@@ -9234,6 +9234,16 @@ function Open-DRUninstaller {
     if (Show-DRRunningUninstaller -UninstallerPath $uninstaller) { return }
     Grant-DRUninstallerFolderAccess -UninstallerPath $uninstaller
     try {
+        # Its own setting (beside it) says which language it shows: the one chosen in the Cleaner.
+        try {
+            $drSet = Join-Path (Split-Path -Parent $uninstaller) 'BCUninstaller.settings'
+            if (Test-Path -LiteralPath $drSet) {
+                $drWant = if (('DRDirect.Lang' -as [type]) -and [DRDirect.Lang]::French) { 'fr' } else { 'en' }
+                $drTxt = [IO.File]::ReadAllText($drSet)
+                $drNew = [regex]::Replace($drTxt, '<Language>[\s\S]*?</Language>|<Language\s*/>', '<Language>' + $drWant + '</Language>')
+                if ($drNew -ne $drTxt) { [IO.File]::WriteAllText($drSet, $drNew, (New-Object Text.UTF8Encoding $true)) }
+            }
+        } catch { }
         $launcher = Get-DRCleanerLauncherPath
         if ($launcher) { $env:DRDIRECT_CLEANER_EXE = $launcher }
         Start-Process -FilePath $uninstaller -WorkingDirectory (Split-Path -Parent $uninstaller)
