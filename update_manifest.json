@@ -1,7 +1,7 @@
 {
-  "version": "1.4.501",
-  "notes": "Switch off AI: Claude is never blocked; the Claude card only turns Claude starting with Windows off or on.",
-  "published": "2026-11-23T16:54:47.1827546-05:00",
+  "version": "1.4.502",
+  "notes": "Edge: choice to use Google instead of Bing. Driver search uses Google. Update my apps no longer shows the App Installer error.",
+  "published": "2026-11-23T21:25:23.4926238-05:00",
   "files": [
     {
       "name": "DRDirect Duplicate Finder.ps1",
@@ -10,13 +10,13 @@
     },
     {
       "name": "DRDirect PC Cleaner GUI.ps1",
-      "sha256": "BD98FC9FF60DE8C34FCB428F34EBA8AF8BF74A293AF44F805A44313875AF0603",
-      "size": 1031036
+      "sha256": "70C606941DD6BFEF6F24D614CA583AEE3422B6A67843C1E1290EAC620B948705",
+      "size": 1035559
     },
     {
       "name": "DRDirect Cleaner Engine.ps1",
-      "sha256": "820C8FF8F49E0C37AC9730FF20DF0D6538DE6E7B19D6D64052121747A758B34E",
-      "size": 393576
+      "sha256": "020DDAE9669466BFC3FB232F726ECF1F8EAB26095B5547AD121DCACFA6A47DD8",
+      "size": 387353
     },
     {
       "name": "DRDirect Updater.ps1",

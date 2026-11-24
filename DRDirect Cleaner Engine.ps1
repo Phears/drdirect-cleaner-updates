@@ -226,16 +226,18 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='ai.zoom'; Category='AI'; Name='Zoom: turn off AI Companion'; Description='Opens Zoom so you can switch its AI off: Settings > General > AI > Manage, then untick Auto-start questions, Auto-generate transcripts, Auto-start notes and Use transcript to enrich notes, and click Update on each page. Zoom keeps this switch in the app and your Zoom account, so the last click is yours.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.edge'; Category='AI'; Name='Edge: turn off Copilot'; Description='Turns off the Copilot sidebar, Copilot reading the page, Copilot on the new tab page, and AI writing help. Passwords, bookmarks and sign-ins are not touched. Edge will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.edge-button'; Category='AI'; Name='Edge: hide the Copilot button'; Description='Opens Edge so you can switch off the Copilot button on the toolbar: Settings, search for Copilot, switch the button off. The newest Edge keeps this switch to itself, so the last click is yours.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.edge-bing'; Category='AI'; Name='Edge: use Google instead of Bing'; Description='Opens Edge so you can change its search engine from Bing to Google: Settings, search for "search engine", then pick Google under "Search engine used in the address bar". Edge keeps this choice to itself, so the last click is yours.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.chrome'; Category='AI'; Name='Chrome: turn off Gemini and AI Mode'; Description='Turns off Gemini in Chrome, the AI Mode button, "Help me write", and the AI tab and history features. Passwords, bookmarks and sign-ins are not touched. Chrome will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.brave'; Category='AI'; Name='Brave: turn off Leo AI'; Description='Turns off Leo, the AI assistant built into Brave. Passwords, bookmarks and sign-ins are not touched. Brave will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.firefox'; Category='AI'; Name='Firefox: turn off AI'; Description='Turns off the AI chatbot sidebar, AI link previews and AI tab groups. Passwords, bookmarks and sign-ins are not touched. Firefox settings will say the browser is managed by your organization while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.remove-models'; Category='AI'; Name='Delete downloaded AI models'; Description='Deletes the AI model Chrome and Edge download in the background - often 2 to 4 GB. Close the browser first, and also pick "Turn off" on the Chrome or Edge row, or the browser downloads it again. Only browsers that are signed in are changed.'; Risk='Cleanup'; Duration='< 2 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.block-sites'; Category='AI'; Name='Block AI websites'; Description='Blocks the ChatGPT, Gemini, Copilot, Perplexity, DeepSeek, Grok and Meta AI websites in Edge, Chrome, Brave and Firefox. Claude is left open. Only browsers that are signed in are changed (Brave has no sign-in). The browsers will show "Managed by your organization" while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.claude-block'; Category='AI'; Name='Claude website: turn off'; Description='Blocks the Claude website (claude.ai) in Edge, Chrome, Brave and Firefox. The Claude app stays installed and is never touched. Only browsers that are signed in are changed (Brave has no sign-in). Turn it back on any time.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.adobe'; Category='AI'; Name='Adobe Acrobat: turn off AI Assistant'; Description='Turns off the AI Assistant and generative AI features in Adobe Acrobat and Acrobat Reader. Only shown when Adobe Acrobat or Reader is installed. Your PDFs and Adobe sign-in are not touched. Close and reopen Acrobat afterwards. Acrobat may show that some settings are managed by your organization while this is on.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.search'; Category='AI'; Name='Windows Search: turn off web and Bing results'; Description='Stops the Start menu search box from sending what you type to Bing and showing web and AI results. Searching your own files and apps still works. Takes effect after you sign out and back in.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.gmail'; Category='AI'; Name='Gmail: turn off Gemini'; Description='Opens Gmail settings in the web browser: untick the Smart features boxes and click Save changes. Google keeps this switch in the Google account, so the last click is yours.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.chatgpt-app'; Category='AI'; Name='Remove the ChatGPT app'; Description='Uninstalls the ChatGPT app. Chats saved in the ChatGPT account are not deleted, and the app can be installed again.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='ai.claude-app'; Category='AI'; Name='Claude app: start with Windows'; Description='Turn off stops the Claude app starting by itself when Windows starts (the same switch as Task Manager > Startup apps). Turn back on puts it back the way it was. The Claude app stays installed and the Claude website is never blocked. Takes effect at the next restart.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.claude-app'; Category='AI'; Name='Remove the Claude app'; Description='Uninstalls the Claude app. Chats saved in the Claude account are not deleted, and the app can be installed again.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         # The "Turn back on" choice of each row above. Shown inside its row, never as a row of its own.
         [pscustomobject]@{ Id='ai.windows.on'; Category='AI'; Name='Windows: turn Recall and the AI in Paint and Notepad back on'; Description='Puts the Windows AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.copilot-app.on'; Category='AI'; Name='Reinstall the Copilot app'; Description='Opens the Copilot app in the Microsoft Store so you can install it again.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -244,10 +246,12 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='ai.zoom.on'; Category='AI'; Name='Zoom: turn AI Companion back on'; Description='Opens Zoom so you can switch AI Companion back on.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.edge.on'; Category='AI'; Name='Edge: turn Copilot back on'; Description='Puts the Edge AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.edge-button.on'; Category='AI'; Name='Edge: show the Copilot button again'; Description='Opens Edge so you can switch the Copilot button back on.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.edge-bing.on'; Category='AI'; Name='Edge: use Bing again'; Description='Opens Edge so you can pick Microsoft Bing as its search engine again.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.chrome.on'; Category='AI'; Name='Chrome: turn Gemini and AI Mode back on'; Description='Puts the Chrome AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.brave.on'; Category='AI'; Name='Brave: turn Leo AI back on'; Description='Puts the Brave AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.firefox.on'; Category='AI'; Name='Firefox: turn AI back on'; Description='Puts the Firefox AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.block-sites.on'; Category='AI'; Name='Unblock AI websites'; Description='Takes out only the AI websites the Cleaner blocked.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.claude-block.on'; Category='AI'; Name='Claude website: turn back on'; Description='Opens the Claude website again in the browsers where the Cleaner blocked it.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.adobe.on'; Category='AI'; Name='Adobe Acrobat: turn AI Assistant back on'; Description='Puts the Adobe Acrobat AI settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.search.on'; Category='AI'; Name='Windows Search: turn web and Bing results back on'; Description='Puts the Start menu search settings back exactly as they were.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.gmail.on'; Category='AI'; Name='Gmail: turn Gemini back on'; Description='Opens Gmail settings so you can tick Smart features again.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
@@ -256,6 +260,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='ai.copilot-app.uninstall'; Category='AI'; Name='Copilot app: uninstall completely'; Description='Removes the Copilot app for every account and stops Windows adding it to new accounts.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.m365-app.uninstall'; Category='AI'; Name='Microsoft 365 Copilot app: uninstall completely'; Description='Removes the Microsoft 365 Copilot app for every account. Word, Excel and your documents are not touched.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.chatgpt-app.uninstall'; Category='AI'; Name='ChatGPT app: uninstall completely'; Description='Removes the ChatGPT app, including a regular installed copy. Chats saved in the account are not deleted.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.claude-app.uninstall'; Category='AI'; Name='Claude app: uninstall completely'; Description='Removes the Claude app, including a regular installed copy. Chats saved in the account are not deleted.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.edge.uninstall'; Category='AI'; Name='Edge: uninstall completely'; Description='Windows does not allow Edge to be uninstalled.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.chrome.uninstall'; Category='AI'; Name='Chrome: uninstall completely'; Description='Uninstalls Chrome from this PC. Bookmarks and passwords stay in your Google account.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.brave.uninstall'; Category='AI'; Name='Brave: uninstall completely'; Description='Uninstalls Brave from this PC.'; Risk='Confirm'; Duration='< 2 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$true ; Interruptible=$false ; CloudService=$null }
@@ -264,7 +269,7 @@ function Get-DRTaskCatalog {
         [pscustomobject]@{ Id='ai.chrome.reinstall'; Category='AI'; Name='Reinstall Chrome'; Description='Opens the official Chrome download page.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.brave.reinstall'; Category='AI'; Name='Reinstall Brave'; Description='Opens the official Brave download page.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.firefox.reinstall'; Category='AI'; Name='Reinstall Firefox'; Description='Opens the official Firefox download page.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
-        [pscustomobject]@{ Id='ai.claude-app.on'; Category='AI'; Name='Claude app: start with Windows again'; Description='Puts the Claude app back to starting with Windows, exactly as it was before.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
+        [pscustomobject]@{ Id='ai.claude-app.on'; Category='AI'; Name='Reinstall the Claude app'; Description='Opens the official Claude download page.'; Risk='Guided'; Duration='< 1 min'; RequiresAdmin=$false; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
         [pscustomobject]@{ Id='ai.restore'; Category='AI'; Name='Turn everything back on'; Description='Turns every Windows and browser AI setting and website block on this page back on, exactly as it was before, and the "Managed by your organization" message goes away. Apps, and the switches in Gmail, Word and Edge, come back with their own "Reinstall" or "Turn back on" button.'; Risk='Safe'; Duration='< 1 min'; RequiresAdmin=$true; DefaultSelected=$false; SupportsAnalysis=$false; Destructive=$false ; Interruptible=$false ; CloudService=$null }
     )
 }
@@ -1566,7 +1571,7 @@ function Set-DRSfcLiveText {
 }
 
 function Invoke-DRSfc {
-    param([string]$TaskId, [string]$TestRoot, [int]$WaitForOthersMinutes = 20, [int]$SilentLimitMinutes = 45, [int]$StuckPercentMinutes = 30, [int]$NoPercentMinutes = 20, [int]$MaxTotalMinutes = 180)
+    param([string]$TaskId, [string]$TestRoot, [int]$WaitForOthersMinutes = 20, [int]$SilentLimitMinutes = 45, [int]$StuckPercentMinutes = 30, [int]$NoPercentMinutes = 60, [int]$MaxTotalMinutes = 180)
     if ($TestRoot) {
         New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: System File Checker was not run.'
         return
@@ -1670,11 +1675,6 @@ function Invoke-DRSfc {
                 }
                 if ($cpuNow -gt ($lastCpu + 1)) { $lastNews = Get-Date }
                 $lastCpu = $cpuNow
-                # No percentage yet: Windows has not let sfc start checking. Show the real time waited so far.
-                if ($lastPercent -lt 0) {
-                    $waited = [int][math]::Floor(((Get-Date) - $sfcStarted).TotalMinutes)
-                    Set-DRSfcLiveText ('Waiting for Windows to let the check start ({0} of {1} min)' -f $waited, $NoPercentMinutes)
-                }
             }
             elseif (((Get-Date) - $lastNews).TotalMinutes -ge $SilentLimitMinutes) {
                 # Nothing at all from sfc for this long: it is stuck behind Windows, not working.
@@ -1758,67 +1758,6 @@ function Invoke-DRChkdsk {
             }
         }
     }
-}
-
-# Windows Defender quick or full scan. MpCmdRun gives no percentage and the old run waited on it with no limit, so the
-# row only said "Starting…" for the whole scan. This one tells the person Defender is scanning, publishes the process so
-# Stop can reach it, and cancels the scan if it runs past a hard limit, so it can never run on for ever.
-function Invoke-DRDefenderScan {
-    param([string]$TaskId, [ValidateSet('Quick','Full')][string]$Kind, [string]$TestRoot, [int]$MaxMinutes = 0)
-    $mpCmd = Find-DRMpCmdRun
-    $scanType = if ($Kind -eq 'Full') { '2' } else { '1' }
-    if ($TestRoot) {
-        New-DREvent -TaskId $TaskId -State Information -Message ("TEST MODE: would run {0} -Scan -ScanType {1}" -f $mpCmd, $scanType)
-        return
-    }
-    if ($MaxMinutes -le 0) { $MaxMinutes = if ($Kind -eq 'Full') { 480 } else { 90 } }
-    $what = if ($Kind -eq 'Full') { 'Defender is checking every file on this PC' } else { 'Defender is checking the places viruses usually hide' }
-    Set-DRSfcLiveText ('{0} (Defender shows no percentage, only when it is done)' -f $what)
-
-    $psi = New-Object System.Diagnostics.ProcessStartInfo
-    $psi.FileName = $mpCmd
-    $psi.Arguments = "-Scan -ScanType $scanType"
-    $psi.UseShellExecute = $false
-    $psi.CreateNoWindow = $true
-    $psi.RedirectStandardOutput = $true
-    $psi.RedirectStandardError = $true
-    $process = New-Object System.Diagnostics.Process
-    $process.StartInfo = $psi
-
-    $exitCode = $null
-    $tooLong = $false
-    $text = ''
-    $started = Get-Date
-    try {
-        [void]$process.Start()
-        Set-DRActiveChildProcess -ProcessId $process.Id
-        $outTask = $process.StandardOutput.ReadToEndAsync()
-        $errTask = $process.StandardError.ReadToEndAsync()
-        while (-not $process.WaitForExit(5000)) {
-            if (((Get-Date) - $started).TotalMinutes -ge $MaxMinutes) {
-                $tooLong = $true
-                try { Start-DRHiddenProcess -FilePath $mpCmd -Arguments @('-Cancel') | Out-Null } catch { }
-                if (-not $process.WaitForExit(30000)) { try { $process.Kill() } catch { } }
-                break
-            }
-        }
-        if (-not $tooLong) { $exitCode = $process.ExitCode }
-        try { if ($outTask.Wait(5000)) { $text += $outTask.Result } } catch { }
-        try { if ($errTask.Wait(5000)) { $text += "`r`n" + $errTask.Result } } catch { }
-    } finally {
-        Set-DRActiveChildProcess -ProcessId 0
-        Set-DRSfcLiveText $null
-        $process.Dispose()
-    }
-
-    $report = Format-DROutputForLog -Text ($text -replace "`0", '')
-    if ($report) { New-DREvent -TaskId $TaskId -State Information -Message ("MpCmdRun.exe reported:`r`n{0}" -f $report) }
-    if ($tooLong) {
-        New-DREvent -TaskId $TaskId -State Warning -Message ("The Defender {0} scan was still running after {1} minutes, so the Cleaner stopped it and carried on. Restart the PC and run it again. Nothing was changed." -f $Kind.ToLower(), $MaxMinutes)
-        return
-    }
-    if ($null -eq $exitCode) { throw "$mpCmd did not report a result. It was most likely stopped before it finished." }
-    if ($exitCode -ne 0) { throw "$mpCmd finished with exit code $exitCode." }
 }
 
 function Invoke-DRWindowsUpdateReset {
@@ -3704,6 +3643,7 @@ function Get-DRAIBrowserForTask {
     switch ($TaskId) {
         'ai.edge'    { return 'Edge' }
         'ai.edge-button' { return 'Edge' }
+        'ai.edge-bing' { return 'Edge' }
         'ai.chrome'  { return 'Chrome' }
         'ai.brave'   { return 'Brave' }
         'ai.firefox' { return 'Firefox' }
@@ -4106,6 +4046,46 @@ function Get-DRClaudeSite {
     return 'claude.ai'
 }
 
+function Add-DRClaudeSiteBlock {
+    <#
+        Adds claude.ai to a browser's block list beside anything already on it and
+        records the one numbered entry added - before adding it - so "Turn back on"
+        takes out only that. Returns 1 when it added the entry, 0 when it was
+        already there.
+    #>
+    param(
+        [ValidateSet('Chrome','Edge','Brave','Firefox')][string]$Browser,
+        [string]$Root = 'HKLM:\SOFTWARE',
+        [string]$BackupFolder = (Get-DRAIBackupFolder)
+    )
+    $key = Get-DRAISiteBlockKey -Browser $Browser -Root $Root
+    $site = Get-DRClaudeSite -Browser $Browser
+    $backupPath = Join-Path $BackupFolder ('AI_ClaudeSite_{0}.json' -f $Browser)
+    $names = @(); $present = @()
+    $opened = Open-DRRegistryKey -Key $key
+    if ($opened) {
+        try {
+            $names = @($opened.GetValueNames())
+            $present = @($names | ForEach-Object { [string]$opened.GetValue($_) })
+        } finally { $opened.Close() }
+    }
+    if ($present -contains $site) { return 0 }
+    $next = 1
+    while ($names -contains [string]$next) { $next++ }
+    New-Item -Path $BackupFolder -ItemType Directory -Force | Out-Null
+    $record = [pscustomobject]@{
+        Target  = ('ClaudeSite_{0}' -f $Browser)
+        Key     = $key
+        Name    = [string]$next
+        Value   = $site
+        NewKeys = @(Get-DRMissingRegistryKeys -Key $key -Root $Root)
+    }
+    [System.IO.File]::WriteAllText($backupPath, (ConvertTo-Json -InputObject $record -Depth 4), (New-Object System.Text.UTF8Encoding($false)))
+    $opened = Open-DRRegistryKey -Key $key -Create
+    try { $opened.SetValue([string]$next, $site, [Microsoft.Win32.RegistryValueKind]::String) } finally { $opened.Close() }
+    return 1
+}
+
 function Remove-DRClaudeSiteBlock {
     # Takes out only the entry Add-DRClaudeSiteBlock recorded, and only while it still holds claude.ai.
     param(
@@ -4138,175 +4118,33 @@ function Test-DRClaudeSiteBlocked {
     return ($present -contains (Get-DRClaudeSite -Browser $Browser))
 }
 
-function Clear-DRClaudeSiteBlocks {
-    <#
-        DRDirect never blocks Claude. An earlier version could block claude.ai in
-        the browsers; this takes out only the entries that version recorded, and
-        only while they still hold claude.ai. Quiet: returns the browsers opened
-        again, and never stops the task it runs in.
-    #>
-    $opened = @()
+function Invoke-DRClaudeSiteBlock {
+    param([string]$TaskId, [string]$TestRoot, [switch]$TurnOn)
+    $done = @(); $skipped = @()
     foreach ($browser in @('Edge','Chrome','Brave','Firefox')) {
-        try { if (Remove-DRClaudeSiteBlock -Browser $browser) { $opened += $browser } } catch { }
-    }
-    return $opened
-}
-
-function Get-DRClaudeStartupEntries {
-    <#
-        Every way the Claude app (never Claude Code) is set to start with Windows
-        for the signed-in person: a Run entry, a Startup-folder shortcut, or the
-        Store app's startup task. Each comes with the switch Windows itself uses
-        to turn it on or off - the one Task Manager > Startup apps changes - and
-        whether it is on now. Only reads.
-    #>
-    $approvedRoot = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved'
-    $isClaude = {
-        param([string]$Text)
-        ($Text -match 'claude') -and ($Text -notmatch 'claude[-_ ]?code|\\\.local\\bin\\|node_modules|\\npm\\')
-    }
-    $approvedOn = {
-        param([string]$Key, [string]$Name)
-        $k = Open-DRRegistryKey -Key $Key
-        if (-not $k) { return $true }
-        try { $bytes = $k.GetValue($Name) } finally { $k.Close() }
-        # No switch yet means Windows starts it; an odd first byte means switched off.
-        if (-not ($bytes -is [byte[]]) -or $bytes.Length -lt 1) { return $true }
-        return (($bytes[0] -band 1) -eq 0)
-    }
-
-    $run = Open-DRRegistryKey -Key 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
-    if ($run) {
-        try {
-            foreach ($name in @($run.GetValueNames())) {
-                if (-not $name) { continue }
-                if (& $isClaude ($name + ' ' + [string]$run.GetValue($name))) {
-                    $key = $approvedRoot + '\Run'
-                    [pscustomobject]@{ Kind = 'Approved'; Key = $key; Name = $name; On = [bool](& $approvedOn $key $name) }
-                }
-            }
-        } finally { $run.Close() }
-    }
-
-    $folders = Open-DRRegistryKey -Key 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders'
-    $startup = $null
-    if ($folders) { try { $startup = [string]$folders.GetValue('Startup') } finally { $folders.Close() } }
-    if ($startup -and (Test-Path -LiteralPath $startup -PathType Container)) {
-        foreach ($file in @(Get-ChildItem -LiteralPath $startup -File -ErrorAction SilentlyContinue)) {
-            if (& $isClaude $file.Name) {
-                $key = $approvedRoot + '\StartupFolder'
-                [pscustomobject]@{ Kind = 'Approved'; Key = $key; Name = $file.Name; On = [bool](& $approvedOn $key $file.Name) }
-            }
+        if (-not (Test-DRAIBrowserPresent -Browser $browser)) { continue }
+        if (-not $TurnOn) {
+            # Same rule as the other AI rows: a browser with accounts must be signed in first.
+            if ($browser -ne 'Brave' -and -not (Test-DRBrowserSignedIn -Browser $browser)) { $skipped += $browser; continue }
+            if (-not $TestRoot) { Add-DRClaudeSiteBlock -Browser $browser | Out-Null }
+            $done += $browser
+        } else {
+            if (-not $TestRoot) { if (Remove-DRClaudeSiteBlock -Browser $browser) { $done += $browser } } else { $done += $browser }
         }
     }
-
-    # The Store version keeps its startup switch per package: State 2 or 4 = starts with Windows.
-    $tasksRoot = 'HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData'
-    $root = Open-DRRegistryKey -Key $tasksRoot
-    if ($root) {
-        try {
-            foreach ($package in @($root.GetSubKeyNames() | Where-Object { & $isClaude $_ })) {
-                $packageKey = $root.OpenSubKey($package)
-                if (-not $packageKey) { continue }
-                try {
-                    foreach ($task in @($packageKey.GetSubKeyNames())) {
-                        $taskKey = $packageKey.OpenSubKey($task)
-                        if (-not $taskKey) { continue }
-                        try {
-                            $state = $taskKey.GetValue('State')
-                            if ($null -ne $state) {
-                                [pscustomobject]@{ Kind = 'Task'; Key = ('{0}\{1}\{2}' -f $tasksRoot, $package, $task); Name = 'State'; On = ([int]$state -in @(2, 4)) }
-                            }
-                        } finally { $taskKey.Close() }
-                    }
-                } finally { $packageKey.Close() }
-            }
-        } finally { $root.Close() }
+    foreach ($browser in $skipped) {
+        New-DREvent -TaskId $TaskId -State Warning -Message ('{0} is not signed in, so the Claude website was not blocked there. Sign in to {0} first, then run this again.' -f $browser)
     }
-}
-
-function Set-DRClaudeStartup {
-    <#
-        Turn off: stops the Claude app starting with Windows, after saving each
-        switch exactly as it was. Turn back on (-TurnOn): puts those switches back.
-        The app is never closed, removed or blocked, and the Claude website is
-        never touched - except that any old claude.ai block is taken out.
-    #>
-    param([string]$TaskId, [string]$TestRoot, [switch]$TurnOn, [string]$BackupFolder = (Get-DRAIBackupFolder))
-    $backupPath = Join-Path $BackupFolder 'AI_ClaudeStartup.json'
+    if (-not $done.Count) {
+        if (-not $skipped.Count) {
+            $none = if ($TurnOn) { 'The Claude website was not blocked by the Cleaner, so there was nothing to put back.' } else { 'No supported web browser was found. Nothing was changed.' }
+            New-DREvent -TaskId $TaskId -State Information -Message $none
+        }
+        return
+    }
     $prefix = if ($TestRoot) { 'TEST MODE: nothing was changed. ' } else { '' }
-    $unblocked = @()
-    if (-not $TestRoot) { $unblocked = @(Clear-DRClaudeSiteBlocks) }
-    if ($unblocked.Count) {
-        New-DREvent -TaskId $TaskId -State Information -Message ('The Claude website is open again in {0} - DRDirect never blocks Claude. Close and reopen the browser.' -f ($unblocked -join ', '))
-    }
-
-    if ($TurnOn) {
-        if (-not (Test-Path -LiteralPath $backupPath -PathType Leaf)) {
-            New-DREvent -TaskId $TaskId -State Information -Message 'The Cleaner has not changed how Claude starts on this PC, so there was nothing to put back.'
-            return
-        }
-        $saved = @(Get-Content -LiteralPath $backupPath -Raw | ConvertFrom-Json | ForEach-Object { $_ })
-        if (-not $TestRoot) {
-            foreach ($entry in $saved) {
-                # Only the two startup switches this Cleaner changes; an edited backup cannot point anywhere else.
-                if ([string]$entry.Key -notlike 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\*' -and
-                    [string]$entry.Key -notlike 'HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\CurrentVersion\AppModel\SystemAppData\*') { continue }
-                if ($entry.Existed) {
-                    $k = Open-DRRegistryKey -Key $entry.Key -Create
-                    try {
-                        if ($entry.Kind -eq 'DWord') { $k.SetValue([string]$entry.Name, [int]$entry.Value, [Microsoft.Win32.RegistryValueKind]::DWord) }
-                        else { $k.SetValue([string]$entry.Name, [byte[]]@($entry.Value | ForEach-Object { [byte]$_ }), [Microsoft.Win32.RegistryValueKind]::Binary) }
-                    } finally { $k.Close() }
-                } else {
-                    $k = Open-DRRegistryKey -Key $entry.Key -Writable
-                    if ($k) { try { $k.DeleteValue([string]$entry.Name, $false) } finally { $k.Close() } }
-                }
-            }
-            Remove-DRSafeItem -LiteralPath $backupPath -AllowedRoot $BackupFolder | Out-Null
-        }
-        New-DREvent -TaskId $TaskId -State Information -Message ($prefix + 'Claude will start with Windows again, the way it was before. It takes effect at the next restart.')
-        return
-    }
-
-    $entries = @(Get-DRClaudeStartupEntries | Where-Object { $_.On })
-    if (-not $entries.Count) {
-        New-DREvent -TaskId $TaskId -State Information -Message 'Claude is not set to start with Windows on this PC, so nothing needed changing. The Claude app is installed and works as usual.'
-        return
-    }
-    if (-not $TestRoot) {
-        # Earlier saves are kept, so "Turn back on" always returns to the very first state.
-        $records = @()
-        if (Test-Path -LiteralPath $backupPath -PathType Leaf) { $records = @(Get-Content -LiteralPath $backupPath -Raw | ConvertFrom-Json | ForEach-Object { $_ }) }
-        foreach ($entry in $entries) {
-            if (@($records | Where-Object { $_.Key -eq $entry.Key -and $_.Name -eq $entry.Name }).Count) { continue }
-            $k = Open-DRRegistryKey -Key $entry.Key
-            $existing = $null
-            if ($k) { try { $existing = $k.GetValue($entry.Name) } finally { $k.Close() } }
-            $records += [pscustomobject]@{
-                Key     = $entry.Key
-                Name    = $entry.Name
-                Kind    = $(if ($entry.Kind -eq 'Task') { 'DWord' } else { 'Binary' })
-                Existed = ($null -ne $existing)
-                Value   = $(if ($existing -is [byte[]]) { @($existing | ForEach-Object { [int]$_ }) } else { $existing })
-            }
-        }
-        New-Item -Path $BackupFolder -ItemType Directory -Force | Out-Null
-        [System.IO.File]::WriteAllText($backupPath, (ConvertTo-Json -InputObject @($records) -Depth 4), (New-Object System.Text.UTF8Encoding($false)))
-
-        foreach ($entry in $entries) {
-            $k = Open-DRRegistryKey -Key $entry.Key -Create
-            try {
-                if ($entry.Kind -eq 'Task') { $k.SetValue($entry.Name, 1, [Microsoft.Win32.RegistryValueKind]::DWord) }
-                else {
-                    # 03 = switched off, followed by the time it was switched off - what Task Manager writes.
-                    $bytes = [byte[]](@(3, 0, 0, 0) + [BitConverter]::GetBytes([DateTime]::Now.ToFileTime()))
-                    $k.SetValue($entry.Name, $bytes, [Microsoft.Win32.RegistryValueKind]::Binary)
-                }
-            } finally { $k.Close() }
-        }
-    }
-    New-DREvent -TaskId $TaskId -State Information -Message ($prefix + 'Claude will no longer start by itself when Windows starts. It stays installed - open it from the Start menu any time. "Turn back on" puts it back.')
+    if ($TurnOn) { New-DREvent -TaskId $TaskId -State Information -Message ($prefix + ('The Claude website is open again in {0}. Close and reopen the browser. The Claude app was never touched.' -f ($done -join ', '))) }
+    else { New-DREvent -TaskId $TaskId -State Information -Message ($prefix + ('The Claude website is now blocked in {0}. Close and reopen the browser. The Claude app was never touched, and "Turn back on" opens the website again.' -f ($done -join ', '))) }
 }
 
 function Open-DRForUser {
@@ -4382,6 +4220,12 @@ function Invoke-DRAIGuidedTask {
             $target = 'ms-settings:personalization-textinput'
             $message = if ($TurnOn) { 'Settings is open at Text input. Under "Customize Copilot key on keyboard", choose Copilot.' }
                        else { 'Settings is open at Text input. Under "Customize Copilot key on keyboard", choose Search.' }
+        }
+        'ai.edge-bing' {
+            $target = Get-DRAIBrowserExe -Browser Edge
+            $message = if ($TurnOn) { 'Edge is opening. Click the three dots at the top right, open Settings, search for "search engine" and pick Microsoft Bing under "Search engine used in the address bar".' }
+                       else { 'Edge is opening. Click the three dots at the top right, open Settings, search for "search engine" and pick Google under "Search engine used in the address bar".' }
+            if (-not $target) { $message = 'Edge was not found on this PC. Nothing was opened.' }
         }
         'ai.edge-button' {
             # Turning AI off needs the sign-in first; showing the button again does not.
@@ -4499,9 +4343,10 @@ function Get-DRAIReport {
     foreach ($app in @(
             @{ Id = 'ai.copilot-app'; Label = 'Copilot app' },
             @{ Id = 'ai.m365-app';    Label = 'Microsoft 365 Copilot app' },
-            @{ Id = 'ai.chatgpt-app'; Label = 'ChatGPT app' })) {
-        # Claude is never listed: DRDirect keeps Claude, so it is not AI to switch off.
-        if (& $isPresent $app.Id) { & $row $true ('{0}: installed' -f $app.Label) }
+            @{ Id = 'ai.chatgpt-app'; Label = 'ChatGPT app' },
+            @{ Id = 'ai.claude-app';  Label = 'Claude app' })) {
+        # Claude is kept on purpose, so it is listed but not counted as AI still on.
+        if (& $isPresent $app.Id) { & $row ($app.Id -ne 'ai.claude-app') ('{0}: installed{1}' -f $app.Label, $(if ($app.Id -eq 'ai.claude-app') { ' (kept)' } else { '' })) }
     }
     $browsers = @(@('Edge','Chrome','Brave','Firefox') | Where-Object { Test-DRAIBrowserPresent -Browser $_ })
     foreach ($browser in $browsers) {
@@ -4520,9 +4365,6 @@ function Get-DRAIReport {
 
 function Invoke-DRAICheck {
     param([string]$TaskId)
-    # DRDirect never blocks Claude: an old claude.ai block from an earlier version comes out here.
-    $unblocked = @(Clear-DRClaudeSiteBlocks)
-    if ($unblocked.Count) { New-DREvent -TaskId $TaskId -State Information -Message ('The Claude website is open again in {0}. Close and reopen the browser.' -f ($unblocked -join ', ')) }
     $rows = @(Get-DRAIReport)
     foreach ($item in $rows) {
         New-DREvent -TaskId $TaskId -State $(if ($item.On) { 'Warning' } else { 'Information' }) -Message $item.Text
@@ -4591,8 +4433,8 @@ function Invoke-DRAITurnBackOn {
         else { Restore-DRAIPolicy -TaskId $TaskId -Targets $policyTargets }
         return
     }
-    if ($base -eq 'ai.claude-app') { Set-DRClaudeStartup -TaskId $TaskId -TestRoot $TestRoot -TurnOn; return }
-    $app = switch ($base) { 'ai.copilot-app' {'Copilot'} 'ai.m365-app' {'M365Copilot'} 'ai.chatgpt-app' {'ChatGPT'} default { $null } }
+    if ($base -eq 'ai.claude-block') { Invoke-DRClaudeSiteBlock -TaskId $TaskId -TestRoot $TestRoot -TurnOn; return }
+    $app = switch ($base) { 'ai.copilot-app' {'Copilot'} 'ai.m365-app' {'M365Copilot'} 'ai.chatgpt-app' {'ChatGPT'} 'ai.claude-app' {'Claude'} default { $null } }
     if ($app) { Open-DRAIAppReinstall -TaskId $TaskId -App $app -TestRoot $TestRoot; return }
     Invoke-DRAIGuidedTask -TaskId $base -TestRoot $TestRoot -TurnOn -EventTaskId $TaskId
 }
@@ -4861,8 +4703,7 @@ function Uninstall-DRAICompletely {
         }
         return
     }
-    # Claude is never uninstalled from here: DRDirect keeps Claude.
-    $app = switch ($base) { 'ai.copilot-app' {'Copilot'} 'ai.m365-app' {'M365Copilot'} 'ai.chatgpt-app' {'ChatGPT'} default { $null } }
+    $app = switch ($base) { 'ai.copilot-app' {'Copilot'} 'ai.m365-app' {'M365Copilot'} 'ai.chatgpt-app' {'ChatGPT'} 'ai.claude-app' {'Claude'} default { $null } }
     if (-not $app) { return }
     # The Store package first, then a regular installed copy through its own silent uninstaller.
     Remove-DRAIApp -TaskId $TaskId -App $app
@@ -4930,7 +4771,7 @@ function Get-DRAIStatus {
     $removedApps = @(Get-DRAIRemovedApps)
     $backupFolder = Get-DRAIBackupFolder
     $hasBackup = { param([string]$Name) Test-Path -LiteralPath (Join-Path $backupFolder ('AI_{0}.json' -f $Name)) -PathType Leaf }
-    $appOf = @{ 'ai.copilot-app' = 'Copilot'; 'ai.m365-app' = 'M365Copilot'; 'ai.chatgpt-app' = 'ChatGPT' }
+    $appOf = @{ 'ai.copilot-app' = 'Copilot'; 'ai.m365-app' = 'M365Copilot'; 'ai.chatgpt-app' = 'ChatGPT'; 'ai.claude-app' = 'Claude' }
     $hasApp = {
         param([string]$App)
         [bool](@($packages | Where-Object { Test-DRAIAppMatch -App $App -Name $_.Name -Publisher $_.Publisher }).Count -or
@@ -4947,6 +4788,7 @@ function Get-DRAIStatus {
             'ai.office-copilot' { [bool](Get-DRWordExe) }
             'ai.zoom'        { [bool](Get-DRZoomExe) }
             'ai.block-sites' { [bool]@(@('Edge','Chrome','Brave','Firefox') | Where-Object { Test-DRAIBrowserPresent -Browser $_ }).Count }
+            'ai.claude-block' { [bool]@(@('Edge','Chrome','Brave','Firefox') | Where-Object { Test-DRAIBrowserPresent -Browser $_ }).Count }
             'ai.gmail'       { $true }
             'ai.copilot-app' { & $hasApp 'Copilot' }
             'ai.m365-app'    { & $hasApp 'M365Copilot' }
@@ -4984,12 +4826,9 @@ function Get-DRAIStatus {
             $canOn = & $hasBackup $(if ($task.Id -eq 'ai.adobe') { 'Adobe' } else { 'Search' })
         } elseif ($task.Id -eq 'ai.block-sites') {
             $canOn = [bool]@(Get-ChildItem -LiteralPath $backupFolder -Filter 'AI_Sites_*.json' -File -ErrorAction SilentlyContinue).Count
-        } elseif ($task.Id -eq 'ai.claude-app') {
-            # Claude's switch is only "starts with Windows" - the app is never removed or blocked.
-            $claudeStartup = @(); try { $claudeStartup = @(Get-DRClaudeStartupEntries) } catch { }
-            $canOff = [bool]@($claudeStartup | Where-Object { $_.On }).Count
-            $canOn = & $hasBackup 'ClaudeStartup'
-        } elseif ($task.Id -in @('ai.gmail','ai.office-copilot','ai.zoom','ai.edge-button','ai.copilot-key')) {
+        } elseif ($task.Id -eq 'ai.claude-block') {
+            $canOn = [bool]@(Get-ChildItem -LiteralPath $backupFolder -Filter 'AI_ClaudeSite_*.json' -File -ErrorAction SilentlyContinue).Count
+        } elseif ($task.Id -in @('ai.gmail','ai.office-copilot','ai.zoom','ai.edge-button','ai.edge-bing','ai.copilot-key')) {
             $canOn = $true
         }
         # What is really true for this row, so the screen never claims more than the Cleaner knows.
@@ -4998,6 +4837,11 @@ function Get-DRAIStatus {
         try {
             if ($appOf.ContainsKey($task.Id)) {
                 if ($canOff) { $state = 'On'; $stateText = 'App is installed' } else { $state = 'Off'; $stateText = 'App is removed' }
+                if ($task.Id -eq 'ai.claude-app' -and $canOff) {
+                    # Claude's Turn off / Turn back on act on the website, so the banner reports that.
+                    $openIn = @(@('Edge','Chrome','Brave','Firefox') | Where-Object { (Test-DRAIBrowserPresent -Browser $_) -and -not (Test-DRClaudeSiteBlocked -Browser $_) })
+                    if ($openIn.Count) { $state = 'On'; $stateText = 'Claude is ON - claude.ai is open in your browsers' } else { $state = 'Off'; $stateText = 'Claude is OFF - claude.ai blocked in your browsers' }
+                }
             } elseif ($task.Id -eq 'ai.windows') {
                 if (Test-DRAIPolicyApplied -Target Windows) { $state = 'Off' } else { $state = 'On' }
             } elseif ($task.Id -in @('ai.edge','ai.chrome','ai.brave','ai.firefox')) {
@@ -5009,10 +4853,9 @@ function Get-DRAIStatus {
             } elseif ($task.Id -eq 'ai.block-sites') {
                 $openIn = @(@('Edge','Chrome','Brave','Firefox') | Where-Object { (Test-DRAIBrowserPresent -Browser $_) -and -not (Test-DRAISitesBlocked -Browser $_) })
                 if ($openIn.Count) { $state = 'On'; $stateText = 'AI websites are still open in ' + ($openIn -join ', ') } else { $state = 'Off'; $stateText = 'AI websites are blocked' }
-            } elseif ($task.Id -eq 'ai.claude-app') {
-                if ($canOff) { $state = 'On'; $stateText = 'Claude starts with Windows' }
-                elseif ($canOn) { $state = 'Off'; $stateText = 'Claude does not start with Windows' }
-                else { $state = 'Off'; $stateText = 'Claude is installed - not set to start with Windows' }
+            } elseif ($task.Id -eq 'ai.claude-block') {
+                $openIn = @(@('Edge','Chrome','Brave','Firefox') | Where-Object { (Test-DRAIBrowserPresent -Browser $_) -and -not (Test-DRClaudeSiteBlocked -Browser $_) })
+                if ($openIn.Count) { $state = 'On'; $stateText = 'Claude is ON - website open' } else { $state = 'Off'; $stateText = 'Claude is OFF - website blocked' }
             } elseif ($task.Id -eq 'ai.remove-models') {
                 if ($modelBytes -gt 0) { $state = 'On'; $stateText = 'AI models are still on this PC' } else { $state = 'Off'; $stateText = 'No AI models on this PC' }
             }
@@ -5857,8 +5700,8 @@ function Invoke-DRTask {
             'repair.windows-update' { Invoke-DRWindowsUpdateReset -TaskId $TaskId -TestRoot $TestRoot }
             'repair.network-reset' { Invoke-DRNetworkReset -TaskId $TaskId -TestRoot $TestRoot }
             'security.defender-update' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath (Find-DRMpCmdRun) -Arguments @('-SignatureUpdate') -TestRoot $TestRoot | Out-Null }
-            'security.quick-scan' { Invoke-DRDefenderScan -TaskId $TaskId -Kind Quick -TestRoot $TestRoot }
-            'security.full-scan' { Invoke-DRDefenderScan -TaskId $TaskId -Kind Full -TestRoot $TestRoot }
+            'security.quick-scan' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath (Find-DRMpCmdRun) -Arguments @('-Scan','-ScanType','1') -TestRoot $TestRoot | Out-Null }
+            'security.full-scan' { Invoke-DRExternalCommand -TaskId $TaskId -FilePath (Find-DRMpCmdRun) -Arguments @('-Scan','-ScanType','2') -TestRoot $TestRoot | Out-Null }
             'security.network-files' {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: Defender preferences were not changed.' }
                 else { Set-MpPreference -DisableScanningNetworkFiles $false -ErrorAction Stop }
@@ -5969,23 +5812,23 @@ function Invoke-DRTask {
             'ai.chrome'  { Invoke-DRAIBrowserTask -TaskId $TaskId -Browser Chrome -TestRoot $TestRoot }
             'ai.brave'   { Invoke-DRAIBrowserTask -TaskId $TaskId -Browser Brave -TestRoot $TestRoot }
             'ai.firefox' { Invoke-DRAIBrowserTask -TaskId $TaskId -Browser Firefox -TestRoot $TestRoot }
-            'ai.block-sites' { if (-not $TestRoot) { [void](Clear-DRClaudeSiteBlocks) }; Invoke-DRAISiteBlock -TaskId $TaskId -TestRoot $TestRoot }
+            'ai.block-sites' { Invoke-DRAISiteBlock -TaskId $TaskId -TestRoot $TestRoot }
+            'ai.claude-block' { Invoke-DRClaudeSiteBlock -TaskId $TaskId -TestRoot $TestRoot }
             'ai.remove-models' { Remove-DRAIModels -TaskId $TaskId -TestRoot $TestRoot }
             { $_ -like 'ai.*.on' } { Invoke-DRAITurnBackOn -TaskId $TaskId -TestRoot $TestRoot }
             # Read-only, so it looks at the real PC even in test mode.
             'ai.check' { Invoke-DRAICheck -TaskId $TaskId }
-            { $_ -in @('ai.gmail','ai.office-copilot','ai.zoom','ai.edge-button','ai.copilot-key') } { Invoke-DRAIGuidedTask -TaskId $TaskId -TestRoot $TestRoot }
+            { $_ -in @('ai.gmail','ai.office-copilot','ai.zoom','ai.edge-button','ai.edge-bing','ai.copilot-key') } { Invoke-DRAIGuidedTask -TaskId $TaskId -TestRoot $TestRoot }
             { $_ -like 'ai.*.uninstall' } { Uninstall-DRAICompletely -TaskId $TaskId -TestRoot $TestRoot }
             { $_ -like 'ai.*.reinstall' } { Invoke-DRAIReinstall -TaskId $TaskId -TestRoot $TestRoot }
-            'ai.claude-app' { Set-DRClaudeStartup -TaskId $TaskId -TestRoot $TestRoot }
-            { $_ -in @('ai.copilot-app','ai.m365-app','ai.chatgpt-app') } {
-                $app = switch ($TaskId) { 'ai.copilot-app' {'Copilot'} 'ai.m365-app' {'M365Copilot'} 'ai.chatgpt-app' {'ChatGPT'} }
+            { $_ -in @('ai.copilot-app','ai.m365-app','ai.chatgpt-app','ai.claude-app') } {
+                $app = switch ($TaskId) { 'ai.copilot-app' {'Copilot'} 'ai.m365-app' {'M365Copilot'} 'ai.chatgpt-app' {'ChatGPT'} 'ai.claude-app' {'Claude'} }
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: no apps were removed.' }
                 else { Remove-DRAIApp -TaskId $TaskId -App $app }
             }
             'ai.restore' {
                 if ($TestRoot) { New-DREvent -TaskId $TaskId -State Information -Message 'TEST MODE: AI settings were not changed.' }
-                else { [void](Clear-DRClaudeSiteBlocks); Restore-DRAIPolicy -TaskId $TaskId }
+                else { Restore-DRAIPolicy -TaskId $TaskId }
             }
             'health.chkdsk' { Invoke-DRChkdsk -TaskId $TaskId -TestRoot $TestRoot }
             'health.drive-check' { Invoke-DRDriveHealth -TaskId $TaskId -TestRoot $TestRoot }

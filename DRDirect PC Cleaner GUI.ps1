@@ -1587,11 +1587,11 @@ $script:driverPanel = $null
 $script:DRAIStatus = @()
 # These only look, or only open a page for the customer to finish, so a run of
 # nothing but these never needs Windows to restart.
-$script:DRNoRestartTaskIds = @('health.chkdsk','health.drive-check','health.pc-checkup','health.ram-check','health.power-heat-check','health.ram-test','health.boost-memory','health.startup-apps','health.large-files','health.php-check','security.checkup','cleanup.hibernate-off','cleanup.hibernate-on','ai.check','ai.gmail','ai.office-copilot','ai.edge-button','ai.copilot-key','ai.remove-models','ai.adobe','ai.adobe.on','ai.zoom','ai.zoom.on',
-    'ai.gmail.on','ai.office-copilot.on','ai.edge-button.on','ai.copilot-key.on',
+$script:DRNoRestartTaskIds = @('health.chkdsk','health.drive-check','health.pc-checkup','health.ram-check','health.power-heat-check','health.ram-test','health.boost-memory','health.startup-apps','health.large-files','health.php-check','security.checkup','cleanup.hibernate-off','cleanup.hibernate-on','ai.check','ai.gmail','ai.office-copilot','ai.edge-button','ai.edge-bing','ai.copilot-key','ai.remove-models','ai.adobe','ai.adobe.on','ai.zoom','ai.zoom.on',
+    'ai.gmail.on','ai.office-copilot.on','ai.edge-button.on','ai.edge-bing.on','ai.copilot-key.on',
     'ai.copilot-app.on','ai.m365-app.on','ai.chatgpt-app.on','ai.claude-app.on',
     'ai.edge.uninstall','ai.chrome.uninstall','ai.brave.uninstall','ai.firefox.uninstall',
-    'ai.copilot-app.uninstall','ai.m365-app.uninstall','ai.chatgpt-app.uninstall',
+    'ai.copilot-app.uninstall','ai.m365-app.uninstall','ai.chatgpt-app.uninstall','ai.claude-app.uninstall',
     'ai.chrome.reinstall','ai.brave.reinstall','ai.firefox.reinstall')
 # The "Turn off" choices "Turn off all AI" picks, filled as the AI rows are drawn.
 $script:DRCheckWarned = @{}
@@ -2237,14 +2237,13 @@ function New-DRAIChoicePanel {
     $id = [string]$Task.Id
     $onId = "$id.on"
     $offLabel = switch -Wildcard ($id) {
-        # Claude's only switch is "starts with Windows"; it is never removed or blocked.
-        'ai.claude-app'    { '✕  Turn off'; break }
         'ai.check'         { '⌕  Check now' }
         'ai.restore'       { '↺  Turn all back on' }
         'ai.remove-models' { '✕  Delete' }
         'ai.*-app'         { '✕  Remove' }
         # These two only open the app, and the last click is the person's, so the button says so.
         'ai.edge-button'   { '↗  Open Edge to hide it' }
+        'ai.edge-bing'     { '↗  Open Edge to change it' }
         'ai.office-copilot' { '↗  Open Word to turn off' }
         default            { '✕  Turn off' }
     }
@@ -2252,26 +2251,36 @@ function New-DRAIChoicePanel {
     $canOff = (-not $Status) -or [bool]$Status.CanOff
     $offReason = $null
     if ($NeedsSignIn) { $canOff = $false; $offReason = 'Sign in to the browser first.' }
-    elseif (-not $canOff -and $id -eq 'ai.claude-app') { $offReason = 'Already off: Claude does not start with Windows.' }
     elseif (-not $canOff) { $offReason = 'Already removed from this PC.' }
     # Rows that can tell whether their AI is on show it in dark green (on) or dark red (off).
     $isOff = $null
     if ($Status -and $offKind -eq 'Off') { $isOff = [bool]($Status.CanOn -or -not $Status.CanOff) }
+    if ($id -eq 'ai.claude-app') {
+        # The Claude app has no setting to switch, so Turn off and Turn back on act on the Claude website
+        # (blocked or open in the browsers). The app itself is only touched by Remove below.
+        $blockStatus = @($script:DRAIStatus | Where-Object { $_.TaskId -eq 'ai.claude-block' }) | Select-Object -First 1
+        $blockOpen = [bool]($blockStatus -and $blockStatus.CanOff -and $blockStatus.State -eq 'On')
+        $blockCanOn = [bool]($blockStatus -and $blockStatus.CanOn)
+        $siteOff = New-DRAIChoiceButton -Label '✕  Turn off' -Kind 'Off' -TaskId 'ai.claude-block' -Enabled $blockOpen -Reason 'Already off: the Claude website is blocked.' -Active (-not $blockOpen)
+        $siteOn = New-DRAIChoiceButton -Label '✓  Turn back on' -Kind 'On' -TaskId 'ai.claude-block.on' -Enabled $blockCanOn -Reason 'Already on - the Cleaner has not turned it off.' -Active $blockOpen
+        [void]$panel.Children.Add($siteOff); [void]$panel.Children.Add($siteOn)
+    }
     $offButton = New-DRAIChoiceButton -Label $offLabel -Kind $offKind -TaskId $id -Enabled $canOff -Reason $offReason -Active $isOff
     [void]$panel.Children.Add($offButton)
     if ($id -eq 'ai.restore') { $script:DRAIRestoreButton = $offButton }
     # "Turn off all AI" picks everything the Cleaner can finish by itself.
     # Claude is never part of it: DRDirect keeps Claude.
-    if ($offKind -eq 'Off' -and [string]$Task.Risk -ne 'Guided' -and $id -ne 'ai.claude-app') { [void]$script:DRAIOffButtons.Add($offButton) }
+    if ($offKind -eq 'Off' -and [string]$Task.Risk -ne 'Guided' -and $id -notin @('ai.claude-app','ai.claude-block')) { [void]$script:DRAIOffButtons.Add($offButton) }
 
     if (@($catalog | Where-Object { $_.Id -eq $onId }).Count) {
         $onLabel = switch ($id) {
             'ai.edge-button'    { '↗  Open Edge to show it' }
+            'ai.edge-bing'      { '↗  Open Edge to change it back' }
             'ai.office-copilot' { '↗  Open Word to turn on' }
-            default             { if ($id -like 'ai.*-app' -and $id -ne 'ai.claude-app') { '↻  Reinstall' } else { '✓  Turn back on' } }
+            default             { if ($id -like 'ai.*-app') { '↻  Reinstall' } else { '✓  Turn back on' } }
         }
         $canOn = [bool]($Status -and $Status.CanOn)
-        $onReason = if ($canOn) { $null } elseif ($id -eq 'ai.claude-app') { 'Already on - the Cleaner has not changed how Claude starts.' } elseif ($id -like 'ai.*-app') { 'Already installed.' } else { 'Already on - the Cleaner has not turned it off on this PC.' }
+        $onReason = if ($canOn) { $null } elseif ($id -like 'ai.*-app') { 'Already installed.' } else { 'Already on - the Cleaner has not turned it off on this PC.' }
         [void]$panel.Children.Add((New-DRAIChoiceButton -Label $onLabel -Kind 'On' -TaskId $onId -Enabled $canOn -Reason $onReason -Active $(if ($null -ne $isOff) { -not $isOff } else { $null })))
     }
 
@@ -4209,7 +4218,7 @@ function Start-RunPlan {
         $ui.ProgressList.BeginAnimation([Windows.UIElement]::OpacityProperty, $null)
         $ui.ProgressList.Opacity = 1
     }
-    $ui.OverallProgress.IsIndeterminate=$false; $ui.OverallProgress.Value=0; $ui.ProgressPercent.Text='0%'; $ui.CancelPlanButton.IsEnabled=$true; $ui.CancelPlanButton.Content='Stop after current task'
+    $ui.OverallProgress.Value=0; $ui.ProgressPercent.Text='0%'; $ui.CancelPlanButton.IsEnabled=$true; $ui.CancelPlanButton.Content='Stop after current task'
     $ui.RestartButton.Visibility='Collapsed'
     Set-ProgressScanLevel -Preset $script:cleanupPreset
     # While it runs, the person can still change when Windows restarts afterwards, or turn the automatic restart off.
@@ -4290,7 +4299,7 @@ function Update-DRElapsedDisplay {
     $base = $script:activeTaskMessage
     if ([string]::IsNullOrWhiteSpace($base)) { $base = 'Working…' }
     # System File Checker and DISM write their real progress to a small file while they run.
-    if ($script:activeTaskId -in @('repair.sfc', 'repair.dism-health', 'repair.component-cleanup', 'security.quick-scan', 'security.full-scan') -and $env:DRDIRECT_CHILD_PID_FILE) {
+    if ($script:activeTaskId -in @('repair.sfc', 'repair.dism-health', 'repair.component-cleanup') -and $env:DRDIRECT_CHILD_PID_FILE) {
         try {
             $sfcLive = $env:DRDIRECT_CHILD_PID_FILE + '.sfc'
             if ([System.IO.File]::Exists($sfcLive)) {
@@ -4552,7 +4561,6 @@ function Complete-RunPlan {
     }
 
     $ui.ProgressPercent.Text = '100%'
-    $ui.OverallProgress.IsIndeterminate = $false; $ui.RunStripBar.IsIndeterminate = $false
     $ui.OverallProgress.Value = 100
     # Windows' own soft calendar chime, left to ring out for about 5 seconds, so the person knows the Cleaner
     # is all done even if they have looked away. It is the sound that comes with Windows, so nothing is downloaded.
@@ -5137,7 +5145,7 @@ function Add-DRBoardSupportRow {
             default { $null }
         }
         $query = if ($site) { 'site:{0} {1} drivers' -f $site, $model } else { '{0} {1} drivers' -f $maker, $model }
-        $url = 'https://www.bing.com/search?q=' + [uri]::EscapeDataString($query)
+        $url = 'https://www.google.com/search?q=' + [uri]::EscapeDataString($query)
         $label = if ($site) { "Open the $short drivers page for this board" } else { 'Search for this board''s drivers' }
         Add-DRHardwareRow $Panel 'Motherboard drivers' (('{0} {1}' -f $maker, $model).Trim()) 'Chipset, LAN, Wi-Fi, audio and BIOS drivers come from the maker, not Windows Update. This opens their page in your browser. Nothing is downloaded or installed.'
         $button = New-Object Windows.Controls.Button -Property @{ Content = $label; Padding = '16,8'; Margin = '190,4,0,8'; HorizontalAlignment = 'Left'; Cursor = 'Hand'; FontWeight = 'Bold'; Foreground = 'White'; Background = '#0057D9'; BorderThickness = '0' }
@@ -5478,20 +5486,8 @@ $pollTimer.Add_Tick({
             $pTotal = [Math]::Max(1, @($catalog | Where-Object { $selection[$_.Id] }).Count)
             $pDone = [Math]::Max(0, $pTotal - @($runQueue).Count - $(if ($curTaskId) { 1 } else { 0 }))
             $planPct = [Math]::Min(99, [Math]::Max(0, 100.0 * $pDone / $pTotal))
-            # The blue line always shows progress: the running item's real percentage when Windows gives one
-            # (System File Checker, DISM), added to the items already done.
-            $curPct = $null
-            if ($env:DRDIRECT_CHILD_PID_FILE) {
-                try {
-                    $liveFile = $env:DRDIRECT_CHILD_PID_FILE + '.sfc'
-                    if ([System.IO.File]::Exists($liveFile) -and ([System.IO.File]::ReadAllText($liveFile) -match '(\d{1,3})(?:[.,]\d+)?\s*% done')) { $curPct = [Math]::Min(100, [int]$Matches[1]) }
-                } catch { }
-            }
-            # Otherwise the running item moves the line by its time on this PC, the same as the time left.
-            $curShare = if ($null -ne $curPct) { $curPct / 100.0 } else { [Math]::Min(0.99, [Math]::Max(0.0, $taskShare)) }
-            $linePct = [Math]::Min(99, 100.0 * ($pDone + $curShare) / $pTotal)
             $ui.OverallProgress.IsIndeterminate = $false; $ui.RunStripBar.IsIndeterminate = $false
-            $ui.OverallProgress.Value = $linePct; $ui.RunStripBar.Value = $linePct
+            $ui.OverallProgress.Value = $planPct; $ui.RunStripBar.Value = $planPct
             $ui.ProgressPercent.Text = ('{0} of {1} done' -f $pDone, $pTotal)
             # Keep the running item (its green lights) in the middle of the list, gliding to it, until everything is done.
             try {
@@ -5516,7 +5512,7 @@ $pollTimer.Add_Tick({
             if ($script:runScanLevel -in @('Safe','Medium','Advanced')) {
                 $lv = [string]$script:runScanLevel
                 $barCtl = $ui["Preset${lv}Bar"]; $leftCtl = $ui["Preset${lv}Left"]
-                if ($barCtl) { $barCtl.Visibility = 'Visible'; $barCtl.Value = $linePct }
+                if ($barCtl) { $barCtl.Visibility = 'Visible'; $barCtl.Value = $planPct }
                 if ($leftCtl) {
                     $leftCtl.Visibility = 'Visible'
                     # When the running item goes past its expected time, say so plainly instead of freezing on a number:
@@ -5526,7 +5522,7 @@ $pollTimer.Add_Tick({
                     $curName = [string]$ui.CleaningCaption.Text
                     # Only real, measured time: how long the run and the current item have been going. No countdown guesses.
                     $runElapsed = if ($runStartedAt) { ((Get-Date) - [datetime]$runStartedAt).TotalSeconds } else { $curElapsed }
-                    $leftCtl.Text = [char]0x23F1 + ' Running for ' + (& $fmt $runElapsed) + $(if ($curName) { ' - now on ' + $curName + ' (' + (& $fmt $curElapsed) + ')' } else { '' }) + $(if ($leftSecs -ge 1) { ' - about ' + (& $fmt $leftSecs) + ' left' } else { '' })
+                    $leftCtl.Text = [char]0x23F1 + ' Running for ' + (& $fmt $runElapsed) + $(if ($curName) { ' - now on ' + $curName + ' (' + (& $fmt $curElapsed) + ')' } else { '' })
                 }
                 # The same block on top of the running page: the scan's time, a button in its colour, the bar and
                 # the countdown, with two blue lights flashing beside it.
@@ -5541,7 +5537,7 @@ $pollTimer.Add_Tick({
                         $ui.RunLevelBadge.Background = New-Object Windows.Media.LinearGradientBrush ([Windows.Media.ColorConverter]::ConvertFromString($runTop)), ([Windows.Media.ColorConverter]::ConvertFromString($runBottom)), 90
                         $script:DRRunBadgeLevel = $lv
                     }
-                    $ui.RunLevelBar.Value = $linePct
+                    $ui.RunLevelBar.Value = $planPct
                     if ($leftCtl) { $ui.RunLevelLeft.Text = $leftCtl.Text }
                 }
             }
@@ -5620,7 +5616,7 @@ $pollTimer.Add_Tick({
             $ui.RunStrip.Visibility = 'Visible'
             $ui.RunStripTitle.Text = [string][char]0x2714 + '  Finished. Click to see it'
             $ui.RunStripDetail.Text = [string]$ui.ProgressHeading.Text
-            $ui.RunStripBar.IsIndeterminate = $false; $ui.RunStripBar.Value = 100
+            $ui.RunStripBar.Value = 100
             $ui.RunStripCleaning.Visibility = 'Collapsed'; $ui.RunStripHint.Visibility = 'Collapsed'
         } else {
             $ui.RunStrip.Visibility = 'Collapsed'
@@ -10658,6 +10654,71 @@ if ($NoShow) {
                 try { Invoke-DRDirectRestartNow -DelaySeconds 30 }
                 catch { [void][Windows.MessageBox]::Show("The PC could not be restarted from here: $($_.Exception.Message)`n`nRestart it yourself when you are ready.", 'DRDirect PC Cleaner', [Windows.MessageBoxButton]::OK, [Windows.MessageBoxImage]::Warning) }
             }
+        } catch { }
+    })
+    # Windows 11 that Microsoft has stopped updating (end of service): tell the person once in a while and let
+    # them choose. Yes downloads Microsoft's own Windows 11 Setup Wizard (Installation Assistant) and starts it;
+    # it upgrades in place and keeps files and programs. The Cleaner never upgrades Windows by itself.
+    # Windows 10 is left out on purpose: many Windows 10 PCs cannot take Windows 11.
+    $script:DRWinEosShown = $false
+    $window.Add_ContentRendered({
+        if ($script:DRWinEosShown -or $TestMode) { return }
+        $script:DRWinEosShown = $true
+        try {
+            $cv = Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -ErrorAction Stop
+            $build = [int]$cv.CurrentBuild
+            if ($build -lt 22000) { return }   # not Windows 11
+            $edition = [string]$cv.EditionID
+            $longer = $edition -match 'Enterprise|Education|IoT'   # these editions get an extra year from Microsoft
+            # Microsoft's end-of-updates dates for each Windows 11 version (build number). Builds not listed are newer and still supported.
+            if ($longer) {
+                $ends = @{ 22000 = '2024-10-08'; 22621 = '2025-10-14'; 22631 = '2026-11-10'; 26100 = '2027-10-12'; 26200 = '2028-10-10' }
+            } else {
+                $ends = @{ 22000 = '2023-10-10'; 22621 = '2024-10-08'; 22631 = '2025-11-11'; 26100 = '2026-10-13'; 26200 = '2027-10-13' }
+            }
+            if (-not $ends.ContainsKey($build)) { return }
+            $endDate = [datetime]::ParseExact($ends[$build], 'yyyy-MM-dd', [Globalization.CultureInfo]::InvariantCulture)
+            if ((Get-Date) -lt $endDate.AddDays(1)) { return }
+            # Said No? Then stay quiet for 7 days.
+            try {
+                $last = [string](Get-ItemProperty -LiteralPath $script:DR3DKey -Name 'WinEosLastAsked' -ErrorAction Stop).WinEosLastAsked
+                $lastDate = [datetime]::Parse($last, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::RoundtripKind)
+                if (((Get-Date) - $lastDate).TotalDays -lt 7) { return }
+            } catch { }
+            $ver = [string]$cv.DisplayVersion
+            if (-not $ver) { $ver = "build $build" }
+            $answer = [Windows.MessageBox]::Show("This PC runs Windows 11 version $ver. Microsoft stopped sending security updates for this version on $($endDate.ToString('MMMM d, yyyy')), so Windows Update can get stuck on old updates.`n`nUpgrade to the newest Windows 11 now? The Cleaner downloads Microsoft's own Windows 11 Setup Wizard and starts it. Your files and programs are kept. It takes about an hour and the PC restarts a few times, so keep it plugged in.`n`nChoose No to do it later. Nothing changes unless you choose Yes.",
+                'DRDirect PC Cleaner', [Windows.MessageBoxButton]::YesNo, [Windows.MessageBoxImage]::Warning, [Windows.MessageBoxResult]::No)
+            if ($answer -ne [Windows.MessageBoxResult]::Yes) {
+                try {
+                    if (-not (Test-Path -LiteralPath $script:DR3DKey)) { $null = New-Item -Path $script:DR3DKey -Force }
+                    Set-ItemProperty -LiteralPath $script:DR3DKey -Name 'WinEosLastAsked' -Value ((Get-Date).ToString('o')) -Type String
+                } catch { }
+                return
+            }
+            # Download and start the Setup Wizard in its own window so the Cleaner stays responsive.
+            $cmd = @'
+$ErrorActionPreference = 'Stop'
+try {
+    Write-Host 'Downloading the Windows 11 Setup Wizard from Microsoft...'
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    $file = Join-Path $env:TEMP 'Windows11InstallationAssistant.exe'
+    Invoke-WebRequest -Uri 'https://go.microsoft.com/fwlink/?linkid=2171764' -OutFile $file -UseBasicParsing
+    $sig = Get-AuthenticodeSignature -LiteralPath $file
+    if ($sig.Status -ne 'Valid' -or $sig.SignerCertificate.Subject -notmatch 'O=Microsoft Corporation') { throw 'The downloaded file is not signed by Microsoft.' }
+    Write-Host 'Starting the Windows 11 Setup Wizard. Click "Accept and install" in its window.'
+    Start-Process -FilePath $file
+    Start-Sleep -Seconds 5
+} catch {
+    Write-Host ('Could not download the Setup Wizard: ' + $_.Exception.Message) -ForegroundColor Yellow
+    Write-Host 'Opening Microsoft''s download page instead. Click the first "Download now" button (Windows 11 Setup Wizard).'
+    Start-Process 'https://www.microsoft.com/software-download/windows11'
+    Read-Host 'Press Enter to close' | Out-Null
+}
+'@
+            $tmp = Join-Path $env:TEMP 'DRDirect-Windows11-Upgrade.ps1'
+            Set-Content -LiteralPath $tmp -Value $cmd -Encoding UTF8
+            Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', "`"$tmp`"") | Out-Null
         } catch { }
     })
 # The update icon by the clock. A closed program cannot mark its own taskbar icon, so a small helper
